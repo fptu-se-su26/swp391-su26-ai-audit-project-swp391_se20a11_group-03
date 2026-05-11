@@ -2,26 +2,26 @@
 
 ## 1. Project Information
 
-| Item | Description |
-|---|---|
-| Course |  |
-| Class |  |
-| Semester | SU26 |
-| Group |  |
-| Topic |  |
-| Repository |  |
+| Item       | Description                                                      |
+| ---------- | ---------------------------------------------------------------- |
+| Course     | SWP391                                                           |
+| Class      | SE20A11                                                          |
+| Semester   | SU26                                                             |
+| Group      | 3                                                                |
+| Topic      | Web-based Healthcare Consultation and Appointment Booking System |
+| Repository |                                                                  |
 
 ---
 
 ## 2. Team Members
 
-| No | Student ID | Full Name | GitHub Username | Role | Main Responsibility |
-|---:|---|---|---|---|---|
-| 1 |  |  |  | Leader |  |
-| 2 |  |  |  | Member |  |
-| 3 |  |  |  | Member |  |
-| 4 |  |  |  | Member |  |
-| 5 |  |  |  | Member |  |
+|  No | Student ID | Full Name            | GitHub Username | Role   | Main Responsibility |
+| --: | ---------- | -------------------- | --------------- | ------ | ------------------- |
+|   1 | DE190344   | Nguyen Ngoc Bao Long | KayT2K          | Leader |                     |
+|   2 | DE190062   | Le Phuoc Sang        | lsang9494-lang  | Member |                     |
+|   3 | DE190404   | Pham Manh Thang      | ThangManhPham   | Member |                     |
+|   4 | DE191098   | Tran Van Duc         | ductran2005     | Member |                     |
+|   5 | DE190463   | Hoang Xuan Anh Tuan  | tuan190605      | Member |                     |
 
 ---
 
