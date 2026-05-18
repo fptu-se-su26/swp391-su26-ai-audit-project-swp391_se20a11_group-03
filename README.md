@@ -2,14 +2,14 @@
 
 ## 1. Project Information
 
-| Item       | Description                                                      |
-| ---------- | ---------------------------------------------------------------- |
-| Course     | SWP391                                                           |
-| Class      | SE20A11                                                          |
-| Semester   | SU26                                                             |
-| Group      | 3                                                                |
-| Topic      |Real-time Bidding System                                          |
-| Repository |                                                                  |
+| Item       | Description              |
+| ---------- | ------------------------ |
+| Course     | SWP391                   |
+| Class      | SE20A11                  |
+| Semester   | SU26                     |
+| Group      | 3                        |
+| Topic      | Real-time Bidding System |
+| Repository |                          |
 
 ---
 
