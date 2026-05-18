@@ -8,7 +8,7 @@
 | Class      | SE20A11                                                          |
 | Semester   | SU26                                                             |
 | Group      | 3                                                                |
-| Topic      | Web-based Healthcare Consultation and Appointment Booking System |
+| Topic      |Real-time Bidding System                                          |
 | Repository |                                                                  |
 
 ---
