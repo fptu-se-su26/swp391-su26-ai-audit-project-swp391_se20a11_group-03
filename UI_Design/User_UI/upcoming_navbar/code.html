@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LuxeAuction - High-End Public Storefront</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline": "#75777e",
+                      "secondary-fixed-dim": "#e9c176",
+                      "on-primary-fixed-variant": "#39475f",
+                      "secondary-container": "#fed488",
+                      "outline-variant": "#c5c6cd",
+                      "secondary": "#775a19",
+                      "inverse-on-surface": "#f2f0f2",
+                      "secondary-fixed": "#ffdea5",
+                      "surface-bright": "#fbf9fb",
+                      "surface-container-low": "#f5f3f5",
+                      "inverse-primary": "#b9c7e4",
+                      "tertiary-container": "#002116",
+                      "surface": "#fbf9fb",
+                      "on-background": "#1b1b1d",
+                      "tertiary-fixed-dim": "#8bd6b6",
+                      "surface-container-high": "#eae7ea",
+                      "primary-container": "#0d1c32",
+                      "surface-dim": "#dbd9db",
+                      "on-tertiary-container": "#479175",
+                      "primary-fixed-dim": "#b9c7e4",
+                      "on-primary-fixed": "#0d1c32",
+                      "surface-variant": "#e4e2e4",
+                      "on-primary": "#ffffff",
+                      "tertiary-fixed": "#a6f2d1",
+                      "on-error-container": "#93000a",
+                      "primary": "#000000",
+                      "on-surface": "#1b1b1d",
+                      "on-primary-container": "#76849f",
+                      "tertiary": "#000000",
+                      "on-secondary-container": "#785a1a",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container": "#efedef",
+                      "error": "#ba1a1a",
+                      "on-tertiary-fixed-variant": "#00513b",
+                      "surface-tint": "#515f78",
+                      "primary-fixed": "#d6e3ff",
+                      "on-secondary-fixed": "#261900",
+                      "error-container": "#ffdad6",
+                      "on-tertiary-fixed": "#002116",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed-variant": "#5d4201",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary": "#ffffff",
+                      "surface-container-highest": "#e4e2e4",
+                      "on-surface-variant": "#44474d",
+                      "inverse-surface": "#303032",
+                      "background": "#fbf9fb"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "gutter": "24px",
+                      "sm": "12px",
+                      "xl": "80px",
+                      "md": "24px",
+                      "base": "8px",
+                      "xs": "4px",
+                      "margin-desktop": "64px",
+                      "lg": "48px"
+              },
+              "fontFamily": {
+                      "display-lg-mobile": ["Montserrat"],
+                      "label-sm": ["Inter"],
+                      "display-lg": ["Montserrat"],
+                      "label-md": ["Inter"],
+                      "headline-md": ["Montserrat"],
+                      "body-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-sm": ["Montserrat"]
+              },
+              "fontSize": {
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .glass-overlay {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 20px rgba(13, 28, 50, 0.15);
+        }
+        .glow-button {
+            box-shadow: 0 0 15px rgba(233, 193, 118, 0.4);
+            transition: all 0.3s ease;
+        }
+        .glow-button:hover {
+            box-shadow: 0 0 25px rgba(233, 193, 118, 0.6);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .carousel-container {
+            scroll-behavior: smooth;
+        }
+        .progress-bar-segment {
+            transition: width 4s linear;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-surface-dim shadow-sm flex justify-between items-center px-margin-mobile md:px-margin-desktop w-full h-20 sticky top-0 z-50">
+<!-- Brand -->
+<div class="flex items-center gap-gutter">
+<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim tracking-tight">LuxeAuction</h1>
+<!-- Navigation Links (Web Only) -->
+<nav class="hidden md:flex gap-gutter items-center h-full">
+<a class="text-primary dark:text-primary-fixed pb-1 h-full flex items-center hover:text-secondary dark:hover:text-secondary-fixed-dim transition-colors text-on-surface-variant" href="#">Live Auctions</a>
+<a class="dark:text-on-surface-variant font-body-md h-full flex items-center hover:text-secondary dark:hover:text-secondary-fixed-dim transition-colors text-primary border-b-2 border-secondary font-bold" href="#">Upcoming</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant font-body-md h-full flex items-center hover:text-secondary dark:hover:text-secondary-fixed-dim transition-colors" href="#">Results</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant font-body-md h-full flex items-center hover:text-secondary dark:hover:text-secondary-fixed-dim transition-colors" href="#">Consign</a>
+</nav>
+</div>
+<!-- Central Search Bar (Web) -->
+<div class="hidden md:flex flex-1 max-w-lg mx-gutter">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border border-outline rounded-full py-2 pl-10 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-secondary-fixed-dim transition-all border-2" placeholder="Search lots, makers, or collections..." type="text"/>
+<button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-sm md:gap-gutter">
+<button class="md:hidden text-on-surface-variant p-2 scale-95 active:scale-90 transition-transform"><span class="material-symbols-outlined">search</span></button>
+<div class="flex items-center gap-xs px-3 py-1.5 bg-surface-container-high rounded-full border border-outline-variant">
+<span class="material-symbols-outlined text-secondary text-[18px]">account_balance_wallet</span>
+<span class="font-label-md text-label-md text-primary">$5,240</span>
+</div>
+<button class="relative p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1.5 w-2 h-2 bg-error rounded-full border border-surface"></span>
+</button>
+<div class="flex items-center cursor-pointer group ml-2">
+<div class="w-10 h-10 rounded-full border-2 border-outline-variant group-hover:border-secondary transition-all overflow-hidden flex items-center justify-center bg-surface-container">
+<img alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCH0Y_p1FpY_H4L_Y1Y_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col w-full">
+<!-- Hero Section -->
+<section class="relative w-full h-[614px] min-h-[400px] flex items-end pb-xl" data-alt="A cinematic luxury heritage room with timepieces." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBePAK7sZ5UDntGVeoO2NYns9z3x4K2H65AQbihb-e-nrCJm7CKPa-fSH0vCyD3HefdPFH6jZFTAOX7ctUIct1NFtJ3HqIexxSgmYLslBa2eG8KCnb15eLHLTN3hA-71AOkP5lOwHCEBU69Q_MB_nTqTMBv0BetWSbrPsQcs8ShH7SMF_tYLFUzn25JzLCpd6omkavyzEevTEf-KV0mSMTw17QYYZzyriylIsjr0-QaL7PuQpjkoSwK3MI2BSgMhzCeyj-LNagGmoud'); background-size: cover; background-position: center;">
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container via-transparent to-transparent opacity-80"></div>
+<div class="relative z-10 px-margin-mobile md:px-margin-desktop w-full max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-end gap-md">
+<div class="text-on-primary">
+<span class="bg-secondary text-on-secondary px-3 py-1 rounded-full font-label-sm text-label-sm uppercase tracking-widest mb-sm inline-block">Featured Auction</span>
+<h2 class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-on-primary mb-2">Upcoming Curations: Autumn 2024</h2>
+<p class="font-body-lg text-body-lg text-inverse-primary max-w-2xl">Preview our exclusive upcoming lots. Register early to secure your bidding paddle.</p>
+</div>
+<div class="glass-overlay rounded-lg p-md border border-outline-variant/30 flex flex-col items-center min-w-[200px]">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">PREVIEW ENDS IN</span>
+<div class="flex gap-sm text-primary font-headline-md text-headline-md font-bold" id="hero-countdown"><div class="flex flex-col items-center"><span class="time-val">02</span><span class="text-[10px] font-normal text-on-surface-variant uppercase">Weeks</span></div><span>:</span><div class="flex flex-col items-center"><span class="time-val">04</span><span class="text-[10px] font-normal text-on-surface-variant uppercase">Days</span></div></div>
+</div>
+</div>
+</section>
+<!-- Filter Bar -->
+<div class="bg-surface-container-low border-b border-outline-variant sticky top-20 z-40">
+<div class="px-margin-mobile md:px-margin-desktop py-4 flex gap-sm overflow-x-auto no-scrollbar items-center max-w-7xl mx-auto">
+<span class="material-symbols-outlined text-on-surface-variant mr-2 hidden sm:block">filter_list</span>
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md shadow-md transition-all">All Categories</button>
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-surface text-on-surface border border-outline-variant hover:border-primary hover:shadow-sm transition-all font-label-md text-label-md">Watches</button>
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-surface text-on-surface border border-outline-variant hover:border-primary hover:shadow-sm transition-all font-label-md text-label-md">Fine Art</button>
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-surface text-on-surface border border-outline-variant hover:border-primary hover:shadow-sm transition-all font-label-md text-label-md">Jewelry</button>
+<button class="whitespace-nowrap px-6 py-2.5 rounded-full bg-surface text-on-surface border border-outline-variant hover:border-primary hover:shadow-sm transition-all font-label-md text-label-md">Classic Cars</button>
+</div>
+</div><section class="px-margin-mobile md:px-margin-desktop py-xl max-w-7xl mx-auto w-full"><div class="flex flex-col gap-lg"><div class="flex flex-col md:flex-row md:items-end justify-between gap-md"><div><h3 class="font-headline-md text-headline-md text-primary font-bold">Catalog Preview</h3><p class="font-body-md text-body-md text-on-surface-variant mt-1">Explore the world's most anticipated luxury items arriving this season.</p></div><div class="flex flex-wrap gap-sm"><button class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg font-label-md hover:border-primary transition-all">Category <span class="material-symbols-outlined text-sm">expand_more</span></button><button class="flex items-center gap-2 px-4 py-2 bg-surface border border-outline-variant rounded-lg font-label-md hover:border-primary transition-all">Brand <span class="material-symbols-outlined text-sm">expand_more</span></button></div></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter"><div class="bg-surface rounded-xl overflow-hidden soft-shadow border border-outline-variant/30 flex flex-col group transition-all hover:border-primary"><div class="relative h-56 overflow-hidden bg-surface-container-lowest"><span class="absolute top-3 left-3 z-10 bg-surface-container-highest text-on-surface-variant px-2 py-1 rounded-sm font-label-sm">Preview</span><button class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-primary hover:bg-white transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span></button><img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANdqKPl56gFtN5wAeZz0XhHftC5rwSX_G1hB3LouYzJsFUbLmMdEdI42L1QXoiA4BPVgcOLEOlLikc3-UvuU5xqHLmsLpcLLsO3AIM2Y-I6qzA6L2u-JMSrojMwvmF95mtIh5cB09y7-yfQMk_bBA5wDwE4R7l_VwH5MwRAYEI7yUyz3mG1BiAuGiaHBSEFgj7ZUeeNhromQ3jROgNDKnYUEyrP0UL9A4R8KrufKsxK_RNCE1eMdpXdup8biX87SClJiqGk5a4xLTT"/></div><div class="p-4 flex flex-col gap-2"><h4 class="font-headline-sm text-[18px] text-primary font-bold line-clamp-1">Patek Philippe Aquanaut</h4><div class="flex flex-col gap-1"><span class="font-label-sm text-on-surface-variant uppercase text-[10px]">Estimated Price</span><span class="font-label-md text-primary">$150,000 - $180,000</span></div><div class="mt-2 pt-2 border-t border-outline-variant/20 flex justify-between items-center"><span class="text-on-surface-variant font-label-sm">Opens in 14 days</span></div></div></div><div class="bg-surface rounded-xl overflow-hidden soft-shadow border border-outline-variant/30 flex flex-col group transition-all hover:border-primary"><div class="relative h-56 overflow-hidden bg-surface-container-lowest"><span class="absolute top-3 left-3 z-10 bg-surface-container-highest text-on-surface-variant px-2 py-1 rounded-sm font-label-sm">Preview</span><button class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-primary hover:bg-white transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span></button><img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_D1a27UndMYzpeK1DXDFFxP-4izgqbZ3SbZHTu6RHfl37zV8ws5mlRSUO0Clp16UyFGkDv-NFg-Zroiii-Kw_ViBmVEiD1Ro9qOg0UbZk5GSf4qfnOGMB72kCude986W19MD4Ok_BJNykvlr-QgGQ92rYfrBfMMZNGX34p0sDcc4yLxk0odeBufJIIkCeMBBkeTe-vp_vhUk05fk_wgzNOmu6sAEcg3SvR-rMpCiIWm052DyEw04N1pEjnFbkmxQga_Lzyx_L-UVc"/></div><div class="p-4 flex flex-col gap-2"><h4 class="font-headline-sm text-[18px] text-primary font-bold line-clamp-1">Abstract Expressionist Study</h4><div class="flex flex-col gap-1"><span class="font-label-sm text-on-surface-variant uppercase text-[10px]">Estimated Price</span><span class="font-label-md text-primary">$45,000 - $60,000</span></div><div class="mt-2 pt-2 border-t border-outline-variant/20 flex justify-between items-center"><span class="text-on-surface-variant font-label-sm">Opens in 14 days</span></div></div></div><div class="bg-surface rounded-xl overflow-hidden soft-shadow border border-outline-variant/30 flex flex-col group transition-all hover:border-primary"><div class="relative h-56 overflow-hidden bg-surface-container-lowest"><span class="absolute top-3 left-3 z-10 bg-surface-container-highest text-on-surface-variant px-2 py-1 rounded-sm font-label-sm">Preview</span><button class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-primary hover:bg-white transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span></button><img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBePAK7sZ5UDntGVeoO2NYns9z3x4K2H65AQbihb-e-nrCJm7CKPa-fSH0vCyD3HefdPFH6jZFTAOX7ctUIct1NFtJ3HqIexxSgmYLslBa2eG8KCnb15eLHLTN3hA-71AOkP5lOwHCEBU69Q_MB_nTqTMBv0BetWSbrPsQcs8ShH7SMF_tYLFUzn25JzLCpd6omkavyzEevTEf-KV0mSMTw17QYYZzyriylIsjr0-QaL7PuQpjkoSwK3MI2BSgMhzCeyj-LNagGmoud"/></div><div class="p-4 flex flex-col gap-2"><h4 class="font-headline-sm text-[18px] text-primary font-bold line-clamp-1">Vintage Porcelain Set</h4><div class="flex flex-col gap-1"><span class="font-label-sm text-on-surface-variant uppercase text-[10px]">Estimated Price</span><span class="font-label-md text-primary">$12,000 - $15,000</span></div><div class="mt-2 pt-2 border-t border-outline-variant/20 flex justify-between items-center"><span class="text-on-surface-variant font-label-sm">Opens in 14 days</span></div></div></div><div class="bg-surface rounded-xl overflow-hidden soft-shadow border border-outline-variant/30 flex flex-col group transition-all hover:border-primary"><div class="relative h-56 overflow-hidden bg-surface-container-lowest"><span class="absolute top-3 left-3 z-10 bg-surface-container-highest text-on-surface-variant px-2 py-1 rounded-sm font-label-sm">Preview</span><button class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-primary hover:bg-white transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span></button><img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBePAK7sZ5UDntGVeoO2NYns9z3x4K2H65AQbihb-e-nrCJm7CKPa-fSH0vCyD3HefdPFH6jZFTAOX7ctUIct1NFtJ3HqIexxSgmYLslBa2eG8KCnb15eLHLTN3hA-71AOkP5lOwHCEBU69Q_MB_nTqTMBv0BetWSbrPsQcs8ShH7SMF_tYLFUzn25JzLCpd6omkavyzEevTEf-KV0mSMTw17QYYZzyriylIsjr0-QaL7PuQpjkoSwK3MI2BSgMhzCeyj-LNagGmoud"/></div><div class="p-4 flex flex-col gap-2"><h4 class="font-headline-sm text-[18px] text-primary font-bold line-clamp-1">Limited Edition Sculpture</h4><div class="flex flex-col gap-1"><span class="font-label-sm text-on-surface-variant uppercase text-[10px]">Estimated Price</span><span class="font-label-md text-primary">$25,000 - $35,000</span></div><div class="mt-2 pt-2 border-t border-outline-variant/20 flex justify-between items-center"><span class="text-on-surface-variant font-label-sm">Opens in 14 days</span></div></div></div></div></div></section>
+<!-- Live Hot Section -->
+<!-- Featured Watches Section -->
+<!-- Fine Art Masterpieces Section -->
+</main>
+<!-- Footer -->
+<footer class="bg-primary-container dark:bg-tertiary-container text-on-primary-container dark:text-on-tertiary-container py-12 flex flex-col items-center gap-md px-margin-desktop w-full mt-auto">
+<h2 class="font-headline-md text-headline-md text-on-primary-container">LuxeAuction</h2>
+<nav class="flex gap-gutter flex-wrap justify-center">
+<a class="text-on-primary-container opacity-80 font-body-md text-body-md hover:text-secondary-container transition-opacity" href="#">Terms of Service</a>
+<a class="text-on-primary-container opacity-80 font-body-md text-body-md hover:text-secondary-container transition-opacity" href="#">Privacy Policy</a>
+<a class="text-on-primary-container opacity-80 font-body-md text-body-md hover:text-secondary-container transition-opacity" href="#">Auction Rules</a>
+<a class="text-on-primary-container opacity-80 font-body-md text-body-md hover:text-secondary-container transition-opacity" href="#">Contact Support</a>
+</nav>
+<p class="font-body-md text-body-md mt-4 opacity-60">© 2024 LuxeAuction Premium. All rights reserved.</p>
+</footer>
+<script>
+        // Hero Countdown Logic
+        setInterval(() => {
+            const timeVals = document.querySelectorAll('#hero-countdown .time-val');
+            if(timeVals.length === 3) {
+                let seconds = parseInt(timeVals[2].innerText);
+                let minutes = parseInt(timeVals[1].innerText);
+                seconds--;
+                if(seconds < 0) {
+                    seconds = 59;
+                    minutes--;
+                }
+                timeVals[2].innerText = seconds.toString().padStart(2, '0');
+                if(minutes >= 0) timeVals[1].innerText = minutes.toString().padStart(2, '0');
+            }
+        }, 1000);
+
+        // Auto-scroll indicator simulation for "Live Hot"
+        const progressBar = document.getElementById('live-hot-progress');
+        if (progressBar) {
+            function animateProgress() {
+                progressBar.style.transition = 'none';
+                progressBar.style.width = '0%';
+                setTimeout(() => {
+                    progressBar.style.transition = 'width 4s linear';
+                    progressBar.style.width = '100%';
+                }, 10);
+            }
+            animateProgress();
+            setInterval(animateProgress, 4000);
+        }
+    </script>
+</body></html>
