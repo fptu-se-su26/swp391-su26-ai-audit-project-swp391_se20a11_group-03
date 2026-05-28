@@ -22,7 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 class BiddingServiceTest {
 
     @Test
-    void twoUsersBidAtSameTime_firstRequestWins_secondRejected() throws Exception {
+    // Test 2 người cùng đặt cùng một mức giá: request vào trước sẽ thắng, request vào sau bị reject.
+    void sameBidAmount_firstRequestWins_secondRejected() throws Exception {
         InMemoryAuctionSessionRepository auctionRepo = new InMemoryAuctionSessionRepository();
         InMemoryBidRepository bidRepo = new InMemoryBidRepository();
         BiddingService service = new BiddingService(auctionRepo, bidRepo);
@@ -32,79 +33,156 @@ class BiddingServiceTest {
         auction.setCurrentHighestBid(10_000_000L);
         auctionRepo.save(auction);
 
-        CountDownLatch start = new CountDownLatch(1);
-        CountDownLatch done = new CountDownLatch(2);
         AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
 
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        executor.submit(() -> runBid(service, start, done, successCount, 1L));
-        executor.submit(() -> runBid(service, start, done, successCount, 2L));
-
-        start.countDown();
-        Assertions.assertTrue(done.await(5, TimeUnit.SECONDS));
-        executor.shutdownNow();
+        runConcurrentBids(service,
+                new BidAttempt(1L, 1L, 11_000_000L, 0),
+                new BidAttempt(1L, 2L, 11_000_000L, 50),
+                successCount,
+                failCount);
 
         Assertions.assertEquals(1, successCount.get());
+        Assertions.assertEquals(1, failCount.get());
         Assertions.assertEquals(1, bidRepo.savedCount);
         Assertions.assertEquals(11_000_000L, auctionRepo.savedAuction.getCurrentHighestBid());
+        Assertions.assertEquals(Long.valueOf(1L), auctionRepo.savedAuction.getCurrentWinnerUserId());
     }
 
     @Test
+    // Test trường hợp bid cao hơn đến trước: bid thấp hơn đến sau phải bị reject.
+    void higherBidFirst_lowerBidRejected() throws Exception {
+        InMemoryAuctionSessionRepository auctionRepo = new InMemoryAuctionSessionRepository();
+        InMemoryBidRepository bidRepo = new InMemoryBidRepository();
+        BiddingService service = new BiddingService(auctionRepo, bidRepo);
+
+        AuctionSession auction = service.createDefaultAuctionSession(2L, 20L, LocalDateTime.now().minusSeconds(30));
+        auction.setStatus(AuctionStatus.ACTIVE);
+        auction.setCurrentHighestBid(10_000_000L);
+        auctionRepo.save(auction);
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
+
+        runConcurrentBids(service,
+                new BidAttempt(2L, 3L, 12_000_000L, 0),
+                new BidAttempt(2L, 4L, 11_000_000L, 50),
+                successCount,
+                failCount);
+
+        Assertions.assertEquals(1, successCount.get());
+        Assertions.assertEquals(1, failCount.get());
+        Assertions.assertEquals(1, bidRepo.savedCount);
+        Assertions.assertEquals(12_000_000L, auctionRepo.savedAuction.getCurrentHighestBid());
+        Assertions.assertEquals(Long.valueOf(3L), auctionRepo.savedAuction.getCurrentWinnerUserId());
+    }
+
+    @Test
+    // Test trường hợp bid thấp hơn đến trước nhưng vẫn hợp lệ, sau đó bid cao hơn đến sau vẫn tiếp tục được nhận nếu còn hợp lệ.
+    void lowerBidFirst_thenHigherBidStillAccepted_ifMeetsMinimumIncrement() throws Exception {
+        InMemoryAuctionSessionRepository auctionRepo = new InMemoryAuctionSessionRepository();
+        InMemoryBidRepository bidRepo = new InMemoryBidRepository();
+        BiddingService service = new BiddingService(auctionRepo, bidRepo);
+
+        AuctionSession auction = service.createDefaultAuctionSession(3L, 30L, LocalDateTime.now().minusSeconds(30));
+        auction.setStatus(AuctionStatus.ACTIVE);
+        auction.setCurrentHighestBid(10_000_000L);
+        auctionRepo.save(auction);
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
+
+        runConcurrentBids(service,
+                new BidAttempt(3L, 5L, 11_000_000L, 0),
+                new BidAttempt(3L, 6L, 12_000_000L, 50),
+                successCount,
+                failCount);
+
+        Assertions.assertEquals(2, successCount.get());
+        Assertions.assertEquals(0, failCount.get());
+        Assertions.assertEquals(2, bidRepo.savedCount);
+        Assertions.assertEquals(12_000_000L, auctionRepo.savedAuction.getCurrentHighestBid());
+        Assertions.assertEquals(Long.valueOf(6L), auctionRepo.savedAuction.getCurrentWinnerUserId());
+    }
+
+    @Test
+    // Test anti-sniper: bid hợp lệ gần cuối phiên sẽ kéo dài thời gian đấu giá thêm 10 giây.
     void successfulBid_extendsEndTimeBy10Seconds() {
         InMemoryAuctionSessionRepository auctionRepo = new InMemoryAuctionSessionRepository();
         InMemoryBidRepository bidRepo = new InMemoryBidRepository();
         BiddingService service = new BiddingService(auctionRepo, bidRepo);
 
         LocalDateTime start = LocalDateTime.now().minusSeconds(10);
-        AuctionSession auction = service.createDefaultAuctionSession(2L, 20L, start);
+        AuctionSession auction = service.createDefaultAuctionSession(4L, 40L, start);
         auction.setStatus(AuctionStatus.ACTIVE);
         auction.setCurrentHighestBid(5_000_000L);
         LocalDateTime originalEnd = auction.getEndTime();
         auctionRepo.save(auction);
 
-        BidResponse response = service.placeBid(makeRequest(2L, 3L, 6_000_000L));
+        BidResponse response = service.placeBid(makeRequest(4L, 7L, 6_000_000L));
 
         Assertions.assertTrue(response.isSuccess());
         Assertions.assertEquals(originalEnd.plusSeconds(10), auctionRepo.savedAuction.getEndTime());
     }
 
     @Test
+    // Test validation bước nhảy: bid thấp hơn mức tối thiểu phải bị reject với đúng message.
     void bidBelowMinimumIncrement_isRejectedWithCorrectMessage() {
         InMemoryAuctionSessionRepository auctionRepo = new InMemoryAuctionSessionRepository();
         InMemoryBidRepository bidRepo = new InMemoryBidRepository();
         BiddingService service = new BiddingService(auctionRepo, bidRepo);
 
-        AuctionSession auction = service.createDefaultAuctionSession(3L, 30L, LocalDateTime.now().minusSeconds(10));
+        AuctionSession auction = service.createDefaultAuctionSession(5L, 50L, LocalDateTime.now().minusSeconds(10));
         auction.setStatus(AuctionStatus.ACTIVE);
         auction.setCurrentHighestBid(10_000_000L);
         auctionRepo.save(auction);
 
-        BidResponse response = service.placeBid(makeRequest(3L, 4L, 10_500_000L));
+        BidResponse response = service.placeBid(makeRequest(5L, 8L, 10_500_000L));
 
         Assertions.assertFalse(response.isSuccess());
         Assertions.assertEquals("Bạn cần đặt giá cao hơn", response.getMessage());
     }
 
     @Test
+    // Test điều kiện vào phòng: phải có deposit confirmed và trước deadline 30 phút.
     void canJoinRoom_requiresConfirmedDepositBeforeDeadline() {
         InMemoryAuctionSessionRepository auctionRepo = new InMemoryAuctionSessionRepository();
         BiddingService service = new BiddingService(auctionRepo, new InMemoryBidRepository());
-        AuctionSession auction = service.createDefaultAuctionSession(4L, 40L, LocalDateTime.now().plusHours(1));
 
-        Assertions.assertTrue(service.canJoinRoom(auction, true, LocalDateTime.now().minusMinutes(31)));
-        Assertions.assertFalse(service.canJoinRoom(auction, false, LocalDateTime.now().minusMinutes(31)));
-        Assertions.assertFalse(service.canJoinRoom(auction, true, LocalDateTime.now().plusMinutes(40)));
+        LocalDateTime startTime = LocalDateTime.now().plusHours(2);
+        AuctionSession auction = service.createDefaultAuctionSession(6L, 60L, startTime);
+
+        LocalDateTime depositTimePass = startTime.minusMinutes(31);
+        LocalDateTime depositTimeFail = startTime.minusMinutes(29);
+        LocalDateTime depositTimeTooLate = startTime.plusMinutes(40);
+
+        Assertions.assertTrue(service.canJoinRoom(auction, true, depositTimePass));
+        Assertions.assertFalse(service.canJoinRoom(auction, true, depositTimeFail));
+        Assertions.assertFalse(service.canJoinRoom(auction, false, depositTimePass));
+        Assertions.assertFalse(service.canJoinRoom(auction, true, depositTimeTooLate));
     }
 
-    private void runBid(BiddingService service, CountDownLatch start, CountDownLatch done, AtomicInteger successCount, Long userId) {
+    private void runConcurrentBids(BiddingService service, BidAttempt first, BidAttempt second,
+                                   AtomicInteger successCount, AtomicInteger failCount) throws Exception {
+        CountDownLatch done = new CountDownLatch(2);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        executor.submit(() -> runBid(service, done, successCount, failCount, first));
+        executor.submit(() -> runBid(service, done, successCount, failCount, second));
+        Assertions.assertTrue(done.await(5, TimeUnit.SECONDS));
+        executor.shutdownNow();
+    }
+
+    private void runBid(BiddingService service, CountDownLatch done, AtomicInteger successCount, AtomicInteger failCount, BidAttempt attempt) {
         try {
-            start.await();
-            BidResponse response = service.placeBid(makeRequest(1L, userId, 11_000_000L));
+            Thread.sleep(attempt.delayMs);
+            BidResponse response = service.placeBid(makeRequest(attempt.auctionId, attempt.userId, attempt.amount));
             if (response.isSuccess()) {
                 successCount.incrementAndGet();
+            } else {
+                failCount.incrementAndGet();
             }
         } catch (Exception ignored) {
-            // test helper
+            failCount.incrementAndGet();
         } finally {
             done.countDown();
         }
@@ -116,6 +194,20 @@ class BiddingServiceTest {
         request.setUserId(userId);
         request.setBidAmount(amount);
         return request;
+    }
+
+    private static class BidAttempt {
+        private final Long auctionId;
+        private final Long userId;
+        private final Long amount;
+        private final long delayMs;
+
+        private BidAttempt(Long auctionId, Long userId, Long amount, long delayMs) {
+            this.auctionId = auctionId;
+            this.userId = userId;
+            this.amount = amount;
+            this.delayMs = delayMs;
+        }
     }
 
     private static class InMemoryAuctionSessionRepository implements AuctionSessionRepository {
