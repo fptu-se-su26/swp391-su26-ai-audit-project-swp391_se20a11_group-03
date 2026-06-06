@@ -30,6 +30,7 @@
 ```text
 src/
 docs/
+sql/
 .github/
 README.md
 ```
@@ -103,15 +104,32 @@ feat, fix, docs, test, refactor, style, chore
 
 ---
 
-## 8. How to Run
+## 8. SQL Server Setup for Authentication
 
-```text
-Students write project running instructions here.
-```
+The login/register flow now uses SQL Server as the primary persistence layer.
+
+### Database
+- Database name: `VNEC_Auth`
+- Script path: `sql/VNEC_Auth.sql`
+
+### Tables
+- `dbo.Users` stores account data with hashed passwords and per-user salts.
+
+### Security Notes
+- Passwords are never stored in plain text.
+- Password hashing uses SHA-256 with salt as a baseline.
+- For production, upgrade to a stronger password hashing scheme and secure credential management.
+- Update JDBC credentials in `UserDAO` before running locally.
 
 ---
 
-## 9. AI Usage Rule
+## 9. How to Run
+
+Students write project running instructions here.
+
+---
+
+## 10. AI Usage Rule
 
 Students are allowed to use AI tools such as ChatGPT, Gemini, Claude, GitHub Copilot, Cursor, Antigravity, or similar tools.
 

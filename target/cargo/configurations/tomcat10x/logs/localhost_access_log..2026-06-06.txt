@@ -1,0 +1,15 @@
+127.0.0.1 - - [06/Jun/2026:22:07:36 +0700] "GET /cargocpc/index.html HTTP/1.1" 200 124
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:09:12 +0700] "GET /vnec-auth/login.jsp HTTP/1.1" 200 2796
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:09:12 +0700] "GET /vnec-auth/assets/css/auth.css HTTP/1.1" 304 -
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:09:41 +0700] "POST /vnec-auth/login HTTP/1.1" 500 13450
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:11:58 +0700] "POST /vnec-auth/login HTTP/1.1" 500 3740
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:28:25 +0700] "POST /vnec-auth/login HTTP/1.1" 404 683
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:30:20 +0700] "POST /vnec-auth/login HTTP/1.1" 404 683
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:37:56 +0700] "POST /vnec-auth/login HTTP/1.1" 404 683
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:46:45 +0700] "GET /vnec-auth/profile HTTP/1.1" 404 683
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:46:46 +0700] "GET /vnec-auth/profile HTTP/1.1" 404 683
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:46:56 +0700] "GET /vnec-auth/profile HTTP/1.1" 404 683
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:50:35 +0700] "GET /vnec-auth/profile HTTP/1.1" 404 683
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:52:56 +0700] "GET /vnec-auth/profile HTTP/1.1" 404 683
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:52:57 +0700] "GET /vnec-auth/profile HTTP/1.1" 404 683
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:22:52:58 +0700] "GET /vnec-auth/profile HTTP/1.1" 404 683
