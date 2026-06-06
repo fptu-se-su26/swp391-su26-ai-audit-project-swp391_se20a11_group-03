@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auction Marketplace</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --panel: rgba(255,255,255,.82);
+      --panel-solid: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: rgba(148,163,184,.25);
+      --primary: #2563eb;
+      --primary-2: #0ea5e9;
+      --success: #16a34a;
+      --shadow: 0 18px 60px rgba(15, 23, 42, .10);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef4ff 100%);
+      color: var(--text);
+    }
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(255,255,255,.78);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      white-space: nowrap;
+    }
+    .brand span { color: var(--primary); }
+    .searchbar {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.3fr .9fr .9fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .searchbar input, .searchbar select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--panel-solid);
+      border-radius: 14px;
+      padding: 12px 14px;
+      outline: none;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 10px 25px rgba(37,99,235,.22);
+      transition: transform .15s ease, opacity .15s ease;
+      white-space: nowrap;
+    }
+    .btn:hover { transform: translateY(-1px); opacity: .96; }
+    .btn.secondary { background: linear-gradient(135deg, #334155, #1e293b); box-shadow: none; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 24px 20px 56px; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .hero-main { padding: 30px; }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      background: rgba(37,99,235,.08);
+      color: var(--primary);
+    }
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(32px, 4vw, 52px);
+      line-height: 1.04;
+      letter-spacing: -.04em;
+    }
+    .hero p { margin: 0; color: var(--muted); line-height: 1.7; font-size: 15px; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 22px;
+    }
+    .stat {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid var(--line);
+    }
+    .stat .num { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+    .stat .lbl { color: var(--muted); font-size: 13px; }
+    .hero-side { padding: 22px; display: grid; gap: 14px; }
+    .mini-card {
+      padding: 18px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+    .mini-card h3 { margin: 0 0 10px; font-size: 16px; }
+    .mini-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 18px;
+      margin-top: 18px;
+      align-items: start;
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 12px;
+    }
+    .section-title h2 { margin: 0; font-size: 20px; }
+    .section-title .hint { color: var(--muted); font-size: 13px; }
+    .products { padding: 20px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .product {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 10px 25px rgba(15,23,42,.04);
+      display: grid;
+      gap: 10px;
+    }
+    .thumb {
+      height: 150px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #dbeafe, #eff6ff 55%, #e0f2fe);
+      border: 1px solid rgba(37,99,235,.10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-weight: 800;
+      font-size: 18px;
+    }
+    .product h3 { margin: 0; font-size: 17px; }
+    .meta { color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .price { font-size: 16px; font-weight: 800; }
+    .pill {
+      display: inline-flex;
+      width: fit-content;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(22,163,74,.10);
+      color: var(--success);
+    }
+    .sidebar { display: grid; gap: 18px; }
+    .side-box { padding: 20px; }
+    .side-box h3 { margin: 0 0 12px; }
+    .detail-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      margin-top: 14px;
+    }
+    pre {
+      margin: 10px 0 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 14px;
+      padding: 12px;
+      overflow: auto;
+      max-height: 320px;
+    }
+    .empty {
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+      background: #fff;
+      border: 1px dashed var(--line);
+      border-radius: 18px;
+    }
+    .footer-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 12px;
+    }
+    @media (max-width: 1100px) {
+      .hero, .content { grid-template-columns: 1fr; }
+      .searchbar { grid-template-columns: 1fr 1fr 1fr auto; }
+    }
+    @media (max-width: 860px) {
+      .nav-inner { flex-direction: column; align-items: stretch; }
+      .searchbar { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-inner">
+      <div class="brand">Auction<span>Market</span></div>
+      <div class="searchbar">
+        <input id="q" placeholder="Tìm tên sản phẩm..." />
+        <select id="categoryFilter">
+          <option value="">Tất cả danh mục</option>
+          <option value="1">Art</option>
+          <option value="2">Luxury Watch</option>
+        </select>
+        <select id="sortFilter">
+          <option value="newest">Mới nhất</option>
+          <option value="priceAsc">Giá tăng dần</option>
+          <option value="priceDesc">Giá giảm dần</option>
+        </select>
+        <button class="btn" onclick="applySearch()">Tìm kiếm</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="panel hero-main">
+        <span class="tag">Live auction marketplace</span>
+        <h1>Khám phá sản phẩm đấu giá với giao diện web thật.</h1>
+        <p>
+          Dùng thanh tìm kiếm trên navbar để lọc sản phẩm theo tên, danh mục và sắp xếp.
+          Dữ liệu mẫu đã được nạp sẵn để bạn test ngay.
+        </p>
+        <div class="stats">
+          <div class="stat"><div class="num" id="statCount">2</div><div class="lbl">Sản phẩm mẫu</div></div>
+          <div class="stat"><div class="num">1</div><div class="lbl">Phiên đấu giá đang live</div></div>
+          <div class="stat"><div class="num">2</div><div class="lbl">Bid mẫu</div></div>
+        </div>
+      </div>
+      <aside class="panel hero-side">
+        <div class="mini-card">
+          <h3>Cách test nhanh</h3>
+          <p>Mở trang, nhập từ khóa, chọn danh mục rồi bấm <strong>Tìm kiếm</strong>.</p>
+        </div>
+        <div class="mini-card">
+          <h3>URL</h3>
+          <p><code>http://localhost:8088/</code></p>
+        </div>
+        <div class="mini-card">
+          <h3>API</h3>
+          <p><code>/api/products</code></p>
+          <p><code>/api/products/1</code></p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="content">
+      <div class="panel products">
+        <div class="section-title">
+          <h2>Danh sách sản phẩm</h2>
+          <div class="hint" id="resultHint">Đang tải dữ liệu...</div>
+        </div>
+        <div id="productsGrid" class="grid"></div>
+      </div>
+
+      <div class="sidebar">
+        <div class="panel side-box">
+          <div class="section-title" style="margin-bottom:8px;">
+            <h2 style="font-size:18px;">Chi tiết sản phẩm</h2>
+          </div>
+          <div style="display:flex; gap:10px; margin-bottom:12px;">
+            <input id="detailId" type="number" value="1" min="1" style="flex:1;padding:12px 14px;border-radius:14px;border:1px solid var(--line);outline:none;" />
+            <button class="btn secondary" onclick="loadDetail()">Xem</button>
+          </div>
+          <div id="detailBox" class="detail-card">
+            Chọn một sản phẩm để xem chi tiết.
+          </div>
+        </div>
+
+        <div class="panel side-box">
+          <h3 style="margin-top:0;">Mẹo test</h3>
+          <p class="footer-note">Nếu bạn vừa thay code, hãy refresh bằng <strong>Ctrl + F5</strong>.</p>
+          <p class="footer-note">Nếu không thấy gì, kiểm tra backend đang chạy đúng port <strong>8088</strong>.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let allProducts = [];
+
+    function money(v) {
+      if (v === null || v === undefined) return '';
+      try { return new Intl.NumberFormat('vi-VN').format(v); } catch { return v; }
+    }
+
+    function renderProducts(list) {
+      const grid = document.getElementById('productsGrid');
+      const hint = document.getElementById('resultHint');
+      document.getElementById('statCount').textContent = list.length;
+      if (!list.length) {
+        grid.innerHTML = '<div class="empty">Không có sản phẩm phù hợp.</div>';
+        hint.textContent = '0 kết quả';
+        return;
+      }
+      hint.textContent = list.length + ' kết quả';
+      grid.innerHTML = list.map(p => `
+        <article class="product">
+          <div class="thumb">#${p.productId}</div>
+          <span class="pill">${p.status ?? 'ACTIVE'}</span>
+          <h3>${p.productName ?? ''}</h3>
+          <div class="meta">${p.categoryName ?? 'No category'}</div>
+          <div class="price">${money(p.startingPrice)} VND</div>
+          <button class="btn" style="width:100%;" onclick="loadDetail(${p.productId})">Xem chi tiết</button>
+        </article>
+      `).join('');
+    }
+
+    async function fetchProducts(url) {
+      const res = await fetch(url);
+      return await res.json();
+    }
+
+    async function loadAll() {
+      document.getElementById('resultHint').textContent = 'Đang tải...';
+      const data = await fetchProducts('/api/products?page=0&size=100');
+      allProducts = data.content || [];
+      renderProducts(allProducts);
+    }
+
+    function applyFilters(list) {
+      const q = document.getElementById('q').value.trim().toLowerCase();
+      const cat = document.getElementById('categoryFilter').value;
+      let result = [...list];
+      if (q) result = result.filter(p => (p.productName || '').toLowerCase().includes(q));
+      if (cat) result = result.filter(p => String(p.categoryId) === cat);
+      const sort = document.getElementById('sortFilter').value;
+      if (sort === 'priceAsc') result.sort((a, b) => (a.startingPrice || 0) - (b.startingPrice || 0));
+      if (sort === 'priceDesc') result.sort((a, b) => (b.startingPrice || 0) - (a.startingPrice || 0));
+      if (sort === 'newest') result.sort((a, b) => (b.productId || 0) - (a.productId || 0));
+      return result;
+    }
+
+    function applySearch() {
+      renderProducts(applyFilters(allProducts));
+    }
+
+    async function loadDetail(idFromCard) {
+      const id = idFromCard || document.getElementById('detailId').value;
+      const box = document.getElementById('detailBox');
+      box.innerHTML = 'Đang tải chi tiết...';
+      try {
+        const res = await fetch('/api/products/' + id);
+        const data = await res.json();
+        box.innerHTML = `
+          <div><strong>${data.productName ?? ''}</strong></div>
+          <div style="color:#64748b;margin-top:6px;">${data.description ?? ''}</div>
+          <hr style="border:none;border-top:1px solid rgba(148,163,184,.25);margin:14px 0;" />
+          <div><strong>Danh mục:</strong> ${data.categoryName ?? ''}</div>
+          <div><strong>Giá khởi điểm:</strong> ${money(data.startingPrice)} VND</div>
+          <div><strong>Trạng thái:</strong> ${data.status ?? ''}</div>
+          <div style="margin-top:10px;"><strong>Auction:</strong> ${data.auction ? data.auction.status : 'Không có'}</div>
+          ${data.auction ? `<pre>${JSON.stringify(data.auction.bids || [], null, 2)}</pre>` : ''}
+        `;
+      } catch (e) {
+        box.innerHTML = 'Lỗi: ' + e.message;
+      }
+    }
+
+    document.getElementById('q').addEventListener('input', applySearch);
+    document.getElementById('categoryFilter').addEventListener('change', applySearch);
+    document.getElementById('sortFilter').addEventListener('change', applySearch);
+
+    loadAll();
+  </script>
+</body>
+</html>
