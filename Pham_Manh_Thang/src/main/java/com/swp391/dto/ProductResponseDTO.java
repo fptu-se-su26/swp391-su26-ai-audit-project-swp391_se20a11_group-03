@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author Pham Manh Thang
@@ -14,19 +15,34 @@ import java.time.LocalDateTime;
 public class ProductResponseDTO {
     private Long productId;
     private Long sellerId;
-    private String sellerName;
     private Integer categoryId;
-    private String categoryName;
     private String productName;
     private String description;
-    private String imagesUrl;
-    private String condition;
-    private String brand;
-    private String origin;
-    private String weightSize;
     private Long startingPrice;
     private Long stepPrice;
-    private String status;
-    private LocalDateTime createdAt;
     private Integer taxPercent;
+    private String status;
+    private LocalDateTime submittedAt;
+    private LocalDateTime createdAt;
+    private String rejectionReason;
+    private List<ProductImageDTO> images;
+    private List<ProductAttributeValueDTO> attributes;
+}
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+class ProductImageDTO {
+    private Long imageId;
+    private String imageUrl;
+    private Boolean isPrimary;
+}
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+class ProductAttributeValueDTO {
+    private Long valueId;
+    private Long attributeId;
+    private String attributeValue;
 }

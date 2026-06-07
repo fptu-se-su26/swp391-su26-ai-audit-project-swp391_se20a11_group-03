@@ -19,6 +19,8 @@ public class CategoryDTO {
     @Size(max = 100, message = "Category name must not exceed 100 characters")
     private String categoryName;
 
-    @Size(max = 255, message = "Description must not exceed 255 characters")
+    @Size(max = 500, message = "Description must not exceed 500 characters")
     private String description;
+
+    private Boolean isActive;
 }

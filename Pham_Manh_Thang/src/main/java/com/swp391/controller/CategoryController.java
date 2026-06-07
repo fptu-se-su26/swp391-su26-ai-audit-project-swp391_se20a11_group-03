@@ -1,7 +1,6 @@
 package com.swp391.controller;
 
-import com.swp391.dto.ApiResponse;
-import com.swp391.dto.CategoryDTO;
+import com.swp391.dto.*;
 import com.swp391.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +43,20 @@ public class CategoryController {
         CategoryDTO created = categoryService.createCategory(categoryDTO);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Category created successfully", created));
+    }
+
+    @PostMapping("/attributes")
+    public ResponseEntity<ApiResponse<CategoryAttributeDTO>> addCategoryAttribute(@Valid @RequestBody CategoryAttributeDTO dto) {
+        CategoryAttributeDTO created = categoryService.addCategoryAttribute(dto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Category attribute added successfully", created));
+    }
+
+    @PostMapping("/attributes/options")
+    public ResponseEntity<ApiResponse<AttributeOptionDTO>> addAttributeOption(@Valid @RequestBody AttributeOptionDTO dto) {
+        AttributeOptionDTO created = categoryService.addAttributeOption(dto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Attribute option added successfully", created));
     }
 
     @PutMapping("/{categoryId}")

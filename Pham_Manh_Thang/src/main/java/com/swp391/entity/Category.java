@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
 /**
  * @author Pham Manh Thang
@@ -22,6 +23,12 @@ public class Category {
     @Column(name = "CategoryName", nullable = false, unique = true, length = 100)
     private String categoryName;
 
-    @Column(name = "Description", length = 255)
+    @Column(name = "Description", length = 500)
     private String description;
+
+    @Column(name = "IsActive", nullable = false)
+    private Boolean isActive = true;
+
+    @Column(name = "CreatedAt", nullable = false)
+    private LocalDateTime createdAt;
 }

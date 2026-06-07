@@ -1,6 +1,7 @@
 package com.swp391.service.impl;
 
 import com.swp391.entity.Contract;
+import com.swp391.exception.BusinessException;
 import com.swp391.repository.ContractRepository;
 import com.swp391.service.ContractService;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +21,19 @@ public class ContractServiceImpl implements ContractService {
 
     @Override
     @Transactional
-    public Contract createListingContract(Long productId) {
+    public Contract createListingContract(Long productId, Long generatedBy) {
+        // Check for existing contract to prevent duplicates
+        if (contractRepository.findByContractTypeAndReferenceId("LISTING", productId).isPresent()) {
+            throw new BusinessException("Listing contract already exists for product ID: " + productId);
+        }
+
         Contract contract = new Contract();
         contract.setContractType("LISTING");
         contract.setReferenceId(productId);
-        // TODO: Integrate PDF generation service after merge
-        contract.setFileUrl(""); // Placeholder for actual PDF file URL
+        // TODO: Replace with actual PDF generation service
+        contract.setFileUrl("/contracts/listing_" + productId + ".pdf");
+        contract.setStatus("GENERATED");
+        contract.setGeneratedBy(generatedBy);
         contract.setCreatedAt(LocalDateTime.now());
         return contractRepository.save(contract);
     }

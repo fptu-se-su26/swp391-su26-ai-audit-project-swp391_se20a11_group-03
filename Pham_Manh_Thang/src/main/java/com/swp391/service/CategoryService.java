@@ -1,7 +1,6 @@
 package com.swp391.service;
 
-import com.swp391.dto.CategoryDTO;
-
+import com.swp391.dto.*;
 import java.util.List;
 
 /**
@@ -14,4 +13,7 @@ public interface CategoryService {
     CategoryDTO updateCategory(Integer categoryId, CategoryDTO categoryDTO);
     void deleteCategory(Integer categoryId);
     List<CategoryDTO> searchCategories(String keyword);
+
+    CategoryAttributeDTO addCategoryAttribute(CategoryAttributeDTO dto);
+    AttributeOptionDTO addAttributeOption(AttributeOptionDTO dto);
 }

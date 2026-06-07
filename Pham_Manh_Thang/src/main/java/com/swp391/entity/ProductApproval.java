@@ -20,19 +20,20 @@ public class ProductApproval {
     @Column(name = "ApprovalId")
     private Long approvalId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ProductId", nullable = false)
-    private Product product;
+    @Column(name = "ProductId", nullable = false)
+    private Long productId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ReviewedBy", nullable = false)
-    private User reviewedBy;
+    @Column(name = "ReviewedBy", nullable = false)
+    private Long reviewedBy;
 
     @Column(name = "Status", nullable = false, length = 30)
     private String status;
 
     @Column(name = "Reason", length = 500)
     private String reason;
+
+    @Column(name = "ApprovalNote", columnDefinition = "NVARCHAR(MAX)")
+    private String approvalNote;
 
     @Column(name = "ReviewedAt", nullable = false)
     private LocalDateTime reviewedAt;

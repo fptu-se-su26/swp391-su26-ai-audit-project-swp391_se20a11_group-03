@@ -14,4 +14,6 @@ import lombok.NoArgsConstructor;
 public class ProductApprovalRequestDTO {
     @Size(max = 500, message = "Reason must not exceed 500 characters")
     private String reason;
+
+    private String approvalNote;
 }

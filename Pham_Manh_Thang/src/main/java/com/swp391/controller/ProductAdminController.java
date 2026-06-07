@@ -1,8 +1,6 @@
 package com.swp391.controller;
 
-import com.swp391.dto.ApiResponse;
-import com.swp391.dto.ProductApprovalRequestDTO;
-import com.swp391.dto.ProductResponseDTO;
+import com.swp391.dto.*;
 import com.swp391.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +38,7 @@ public class ProductAdminController {
         if (request == null) {
             request = new ProductApprovalRequestDTO();
         }
-        // TODO: Replace with actual authenticated user ID after integrating Spring Security
+        // TODO: Replace with actual authenticated user ID from Spring Security
         Long reviewerId = 1L;
         ProductResponseDTO product = productService.approveProduct(productId, request, reviewerId);
         return ResponseEntity.ok(ApiResponse.success("Product approved successfully", product));
@@ -50,7 +48,7 @@ public class ProductAdminController {
     public ResponseEntity<ApiResponse<ProductResponseDTO>> rejectProduct(
             @PathVariable Long productId,
             @Valid @RequestBody ProductApprovalRequestDTO request) {
-        // TODO: Replace with actual authenticated user ID after integrating Spring Security
+        // TODO: Replace with actual authenticated user ID from Spring Security
         Long reviewerId = 1L;
         ProductResponseDTO product = productService.rejectProduct(productId, request, reviewerId);
         return ResponseEntity.ok(ApiResponse.success("Product rejected successfully", product));
