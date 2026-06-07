@@ -4,7 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8016cddf-37bb-48a6-bf2e-43e917db549e" name="Changes" comment="" />
+    <list default="true" id="8016cddf-37bb-48a6-bf2e-43e917db549e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/controller/CategoryController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/controller/CategoryController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/dto/CreateProductRequestDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/dto/CreateProductRequestDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/dto/ProductResponseDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/dto/ProductResponseDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/entity/AttributeOption.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/entity/AttributeOption.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/repository/ProductApprovalRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/repository/ProductApprovalRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/application.properties" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -37,10 +47,17 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "JUnit.All in swp391-se20a11-group03.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Spring Boot.Swp391Application.executor": "Run",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
     "git-widget-placeholder": "Pham-Manh-Thang/#1",
@@ -52,10 +69,42 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "reference.settings.ide.settings.web.browsers",
     "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RunManager" selected="Spring Boot.Swp391Application">
+    <configuration name="All in swp391-se20a11-group03" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="swp391-se20a11-group03" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="TEST_OBJECT" value="package" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Swp391Application" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <option name="ALTERNATIVE_JRE_PATH" value="21" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <module name="swp391-se20a11-group03" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.swp391.Swp391Application" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="JUnit.All in swp391-se20a11-group03" />
+      <item itemvalue="Spring Boot.Swp391Application" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.All in swp391-se20a11-group03" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -73,10 +122,16 @@
       <updated>1780368168777</updated>
       <workItem from="1780368170002" duration="2423000" />
       <workItem from="1780503230089" duration="392000" />
+      <workItem from="1780812914870" duration="519000" />
+      <workItem from="1780842017817" duration="6031000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

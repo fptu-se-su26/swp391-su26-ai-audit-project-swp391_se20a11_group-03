@@ -35,26 +35,3 @@ public class CreateProductRequestDTO {
 
     private List<CreateProductAttributeValueDTO> attributes;
 }
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class CreateProductImageDTO {
-    @NotBlank(message = "Image URL is required")
-    @Size(max = 500, message = "Image URL must not exceed 500 characters")
-    private String imageUrl;
-
-    private Boolean isPrimary = false;
-}
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class CreateProductAttributeValueDTO {
-    @NotNull(message = "Attribute ID is required")
-    private Long attributeId;
-
-    @NotBlank(message = "Attribute value is required")
-    @Size(max = 500, message = "Attribute value must not exceed 500 characters")
-    private String attributeValue;
-}

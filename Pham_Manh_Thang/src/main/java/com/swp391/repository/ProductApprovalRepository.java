@@ -11,5 +11,5 @@ import java.util.List;
  */
 @Repository
 public interface ProductApprovalRepository extends JpaRepository<ProductApproval, Long> {
-    List<ProductApproval> findByProduct_ProductId(Long productId);
+    List<ProductApproval> findByProductId(Long productId);
 }

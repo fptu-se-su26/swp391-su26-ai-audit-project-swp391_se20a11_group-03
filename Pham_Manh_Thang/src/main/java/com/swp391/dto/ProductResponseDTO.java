@@ -28,21 +28,3 @@ public class ProductResponseDTO {
     private List<ProductImageDTO> images;
     private List<ProductAttributeValueDTO> attributes;
 }
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class ProductImageDTO {
-    private Long imageId;
-    private String imageUrl;
-    private Boolean isPrimary;
-}
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class ProductAttributeValueDTO {
-    private Long valueId;
-    private Long attributeId;
-    private String attributeValue;
-}

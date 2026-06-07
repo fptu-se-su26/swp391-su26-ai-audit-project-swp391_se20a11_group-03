@@ -12,9 +12,10 @@ import java.util.List;
 
 /**
  * @author Pham Manh Thang
+ * Category REST API Controller (JSON only)
  */
 @RestController
-@RequestMapping("/admin/categories")
+@RequestMapping("/api/admin/categories")
 @RequiredArgsConstructor
 public class CategoryController {
 

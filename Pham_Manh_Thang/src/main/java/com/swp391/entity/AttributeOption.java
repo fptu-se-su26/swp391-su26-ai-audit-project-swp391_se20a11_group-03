@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
  * @author Pham Manh Thang
  */
 @Entity
-@Table(name = "AttributeOptions")
+@Table(name = "attribute_options")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
