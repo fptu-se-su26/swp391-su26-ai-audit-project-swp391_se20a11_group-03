@@ -1,0 +1,8 @@
+127.0.0.1 - - [06/Jun/2026:23:41:03 +0700] "GET /cargocpc/index.html HTTP/1.1" 200 124
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:23:41:33 +0700] "GET /vnec-auth/login.jsp HTTP/1.1" 200 2818
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:23:41:33 +0700] "GET /vnec-auth/profile HTTP/1.1" 302 -
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:23:41:33 +0700] "GET /vnec-auth/login.jsp HTTP/1.1" 200 2818
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:23:41:33 +0700] "GET /vnec-auth/fpt-ai/health HTTP/1.1" 500 1656
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:23:43:18 +0700] "HEAD /vnec-auth/login.jsp HTTP/1.1" 200 -
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:23:43:18 +0700] "HEAD /vnec-auth/profile HTTP/1.1" 302 -
+0:0:0:0:0:0:0:1 - - [06/Jun/2026:23:43:18 +0700] "HEAD /vnec-auth/fpt-ai/health HTTP/1.1" 500 -
