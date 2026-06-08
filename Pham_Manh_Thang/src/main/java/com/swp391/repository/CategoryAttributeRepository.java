@@ -12,4 +12,7 @@ import java.util.List;
 @Repository
 public interface CategoryAttributeRepository extends JpaRepository<CategoryAttribute, Long> {
     List<CategoryAttribute> findByCategoryId(Integer categoryId);
+    List<CategoryAttribute> findByCategoryIdOrderByDisplayOrderAsc(Integer categoryId);
+    List<CategoryAttribute> findByCategoryCategoryId(Integer categoryId);
+    List<CategoryAttribute> findByCategoryCategoryIdOrderByDisplayOrderAsc(Integer categoryId);
 }

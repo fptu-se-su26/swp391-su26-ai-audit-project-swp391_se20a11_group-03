@@ -21,7 +21,7 @@
                         "on-primary": "#ffffff",
                         "on-surface": "#1b1b1d",
                         "on-primary-container": "#76849f",
-                        "primary": "#000000",
+                        "primary": "#515f78",
                         "tertiary": "#000000",
                         "on-secondary-container": "#785a1a",
                         "on-tertiary-fixed-variant": "#00513b",
@@ -34,8 +34,6 @@
                         "on-secondary-fixed": "#261900",
                         "on-tertiary-fixed": "#002116",
                         "on-error": "#ffffff",
-                        "on-secondary-fixed-variant": "#5d4201",
-                        "on-tertiary": "#ffffff",
                         "on-secondary": "#ffffff",
                         "inverse-surface": "#303032",
                         "surface-container-highest": "#e4e2e4",
@@ -123,11 +121,39 @@
             background: #c5c6cd;
             border-radius: 4px;
         }
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #d1d5db;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .toggle-switch.active {
+            background: #10b981;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .toggle-switch.active::after {
+            left: 22px;
+        }
     </style>
 </head>
 <body class="flex overflow-hidden">
 <!-- Executive SideNavBar -->
-<aside class="h-screen w-80 fixed left-0 top-0 flex flex-col bg-surface-container-low border-r border-outline-variant shadow-sm z-40">
+<aside class="h-screen w-80 fixed left-0 top-0 flex flex-col bg-surface-container border-r border-outline-variant shadow-sm z-40">
     <div class="flex flex-col h-full py-lg px-md">
         <!-- Header Identity -->
         <div class="mb-xl px-sm">
@@ -158,6 +184,10 @@
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">category</span>
                 <span class="font-label-md text-label-md">Categories</span>
             </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" th:href="@{/admin/products/pending}">
+                <span class="material-symbols-outlined">inventory_2</span>
+                <span class="font-label-md text-label-md">Pending Product Approvals</span>
+            </a>
             <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
                 <span class="material-symbols-outlined">campaign</span>
                 <span class="font-label-md text-label-md">Broadcasts</span>
@@ -187,7 +217,7 @@
         <div class="flex items-center gap-lg">
             <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Category & Attribute Configuration</h2>
             <button onclick="openAddCategoryModal()" class="bg-primary text-white px-md py-sm rounded-lg font-label-md text-label-md flex items-center gap-xs hover:opacity-90 transition-opacity">
-                <span class="material-symbols-outlined text-sm">add</span>Add New Category
+                <span class="material-symbols-outlined text-sm">add</span>Add Category
             </button>
         </div>
         <div class="flex items-center gap-md">
@@ -199,62 +229,58 @@
             </div>
         </div>
     </header>
-    <!-- Dashboard Content -->
-    <div class="px-margin-desktop py-lg max-w-[1600px] mx-auto space-y-lg">
-        <!-- Success/Error Toast -->
-        <div th:if="${message}" th:text="${message}" class="p-4 rounded-lg" th:classappend="${messageType == 'success'} ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"></div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-10 gap-gutter h-full">
-            <!-- Category Tree -->
-            <div class="lg:col-span-3 bg-surface-container-lowest rounded-xl border border-outline-variant/30 flex flex-col overflow-hidden">
-                <div class="p-md border-b border-outline-variant/30 bg-surface-container-low">
-                    <h4 class="font-label-md text-label-md font-bold text-on-surface">Category Tree</h4>
-                </div>
-                <div class="p-md border-b border-outline-variant/30">
-                    <div class="relative flex items-center">
-                        <span class="material-symbols-outlined absolute left-3 text-on-surface-variant">search</span>
-                        <input class="w-full pl-10 pr-4 py-2 bg-background border border-outline-variant rounded-lg text-label-md focus:ring-1 focus:ring-primary outline-none" placeholder="Search categories..." type="text"/>
+        <!-- Dashboard Content -->
+        <div class="px-margin-desktop py-lg max-w-[1600px] mx-auto space-y-lg">
+            <div class="grid grid-cols-1 lg:grid-cols-10 gap-gutter h-[calc(100vh-140px)]">
+                <!-- Category Tree -->
+                <div class="lg:col-span-3 bg-surface-container-lowest rounded-xl border border-outline-variant/30 flex flex-col overflow-hidden">
+                    <div class="p-md border-b border-outline-variant/30 bg-surface-container-low">
+                        <h4 class="font-label-md text-label-md font-bold text-on-surface">Category Tree</h4>
                     </div>
-                </div>
-                <div class="flex-1 overflow-y-auto p-sm space-y-1">
-                    <div th:each="category : ${categories}" class="flex items-center justify-between p-sm rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer" th:classappend="${category?.isActive} ? 'bg-primary/5 text-primary border border-primary/20' : ''">
-                        <span class="font-label-md" th:text="${category?.categoryName}">Category</span>
-                        <div class="flex gap-2">
-                            <button th:attr="onclick='editCategory(' + ${category?.categoryId} + ')'" class="p-1 text-blue-600 hover:text-blue-800">
-                                <span class="material-symbols-outlined text-sm">edit</span>
-                            </button>
-                            <button th:attr="onclick='deleteCategory(' + ${category?.categoryId} + ')'" class="p-1 text-red-600 hover:text-red-800">
-                                <span class="material-symbols-outlined text-sm">delete</span>
-                            </button>
+                    <div class="p-md border-b border-outline-variant/30">
+                        <div class="relative flex items-center border border-outline-variant rounded-lg">
+                            <span class="material-symbols-outlined absolute left-3 text-on-surface-variant">search</span>
+                            <input id="searchInput" class="w-full pl-10 pr-4 py-2 bg-background rounded-lg text-label-md focus:ring-1 focus:ring-primary outline-none" placeholder="Search categories..." type="text" oninput="filterCategories()"/>
                         </div>
                     </div>
-                </div>
-            </div>
-            <!-- Category Details -->
-            <div class="lg:col-span-7 bg-surface-container-lowest rounded-xl border border-outline-variant/30 flex flex-col overflow-hidden">
-                <div class="p-md border-b border-outline-variant/30 bg-surface-container-low flex justify-between items-center">
-                    <h4 class="font-label-md text-label-md font-bold text-on-surface">Category Details</h4>
-                </div>
-                <div class="p-md">
-                    <div th:if="${selectedCategory != null}" class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="font-label-sm text-on-surface-variant mb-2 block">Category Name</label>
-                                <p class="font-body-md text-on-surface" th:text="${selectedCategory?.categoryName}"></p>
-                            </div>
-                            <div>
-                                <label class="font-label-sm text-on-surface-variant mb-2 block">Status</label>
-                                <p class="font-body-md" th:text="${selectedCategory?.isActive} ? 'Active' : 'Inactive'" th:classappend="${selectedCategory?.isActive} ? 'text-green-600' : 'text-red-600'"></p>
-                            </div>
-                            <div class="col-span-2">
-                                <label class="font-label-sm text-on-surface-variant mb-2 block">Description</label>
-                                <p class="font-body-md text-on-surface" th:text="${selectedCategory?.description} ?: 'No description'"></p>
-                            </div>
-                        </div>
+                    <div id="categoryList" class="flex-1 overflow-y-auto p-sm space-y-1 custom-scrollbar">
+                        <!-- Categories will be rendered here -->
                     </div>
-                    <div th:if="${selectedCategory == null}" class="text-center py-12 text-on-surface-variant">
+                </div>
+                <!-- Attribute Builder -->
+                <div class="lg:col-span-7 bg-surface-container-lowest rounded-xl border border-outline-variant/30 flex flex-col overflow-hidden">
+                    <div class="p-md border-b border-outline-variant/30 bg-surface-container-low flex justify-between items-center">
+                        <div>
+                            <h4 class="font-label-md text-label-md font-bold text-on-surface">Attribute Builder</h4>
+                            <p id="selectedCategoryName" class="text-sm text-on-surface-variant mt-1">Select a category to get started</p>
+                        </div>
+                        <button id="addAttributeBtn" onclick="openAddModal()" class="bg-primary text-white px-md py-sm rounded-lg font-label-md text-label-md flex items-center gap-xs hover:opacity-90 transition-opacity disabled:opacity-50" disabled>
+                            <span class="material-symbols-outlined text-sm">add</span>Add Attribute
+                        </button>
+                    </div>
+                <div id="attributeBuilder" class="flex-1 overflow-y-auto p-md">
+                    <div id="noCategorySelected" class="text-center py-12 text-on-surface-variant">
                         <span class="material-symbols-outlined text-6xl mb-4">category</span>
                         <p class="font-label-md">Select a category from the tree</p>
+                    </div>
+                    <div id="attributeTableContainer" class="hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-surface-container-low border-b border-outline-variant">
+                                    <th class="px-6 py-4 font-label-md text-on-surface-variant">ATTRIBUTE NAME</th>
+                                    <th class="px-6 py-4 font-label-md text-on-surface-variant">DATA TYPE</th>
+                                    <th class="px-6 py-4 font-label-md text-on-surface-variant">REQUIRED</th>
+                                    <th class="px-6 py-4 font-label-md text-on-surface-variant text-right">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attributeTableBody" class="divide-y divide-outline-variant">
+                                <!-- Attributes will be rendered here -->
+                            </tbody>
+                        </table>
+                        <div id="noAttributes" class="text-center py-12 text-on-surface-variant hidden">
+                            <span class="material-symbols-outlined text-4xl mb-2">list_alt</span>
+                            <p class="font-label-md">No attributes yet. Add your first attribute!</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -262,51 +288,110 @@
     </div>
 </main>
 
-<!-- Add Category Modal -->
-<div id="addCategoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl p-6 w-96 shadow-2xl">
-        <h3 class="font-headline-sm mb-4 text-on-surface">Add New Category</h3>
-        <form th:action="@{/admin/categories}" method="post">
+<!-- Add/Edit Attribute Modal -->
+<div id="attributeModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
+        <h3 id="modalTitle" class="font-headline-sm mb-4 text-on-surface">Add Attribute</h3>
+        <form id="attributeForm">
+            <input type="hidden" id="editAttributeId" value=""/>
             <div class="mb-4">
-                <label class="font-label-sm text-on-surface-variant mb-2 block">Category Name</label>
-                <input type="text" name="categoryName" required class="w-full p-3 border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary outline-none" placeholder="Enter category name"/>
+                <label class="font-label-sm text-on-surface-variant mb-2 block">Attribute Name</label>
+                <input type="text" id="attributeName" required class="w-full p-3 border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary outline-none" placeholder="e.g., Brand, Model"/>
             </div>
             <div class="mb-4">
-                <label class="font-label-sm text-on-surface-variant mb-2 block">Description</label>
-                <textarea name="description" class="w-full p-3 border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary outline-none" rows="2" placeholder="Enter description..."></textarea>
+                <label class="font-label-sm text-on-surface-variant mb-2 block">Data Type</label>
+                <select id="dataType" required class="w-full p-3 border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary outline-none bg-white">
+                    <option value="Text">Text</option>
+                    <option value="Number">Number</option>
+                    <option value="Dropdown">Dropdown</option>
+                </select>
             </div>
-            <div class="mb-4">
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" name="isActive" checked class="rounded border-outline-variant text-primary focus:ring-primary"/>
-                    <span class="font-label-sm text-on-surface">Active</span>
-                </label>
+            <div class="mb-6 flex items-center gap-3">
+                <div id="requiredToggle" class="toggle-switch" onclick="toggleRequired()"></div>
+                <label class="font-label-sm text-on-surface-variant cursor-pointer" onclick="toggleRequired()">Required</label>
             </div>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeAddCategoryModal()" class="px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors font-label-md">Cancel</button>
-                <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-label-md">Add Category</button>
+                <button type="button" onclick="closeModal()" class="px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors font-label-md">Cancel</button>
+                <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-label-md">Save Attribute</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div id="deleteCategoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl p-6 w-96 shadow-2xl">
-        <h3 class="font-headline-sm mb-2 text-on-surface">Delete Category</h3>
-        <p class="font-body-md text-on-surface-variant mb-4">Are you sure you want to delete this category? This action cannot be undone.</p>
-        <form id="deleteCategoryForm" method="post">
+    <div id="deleteModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <h3 class="font-headline-sm mb-2 text-on-surface">Delete Attribute</h3>
+            <p class="font-body-md text-on-surface-variant mb-6">Are you sure you want to delete this attribute? This action cannot be undone.</p>
             <div class="flex gap-3 justify-end">
-                <button type="button" onclick="closeDeleteCategoryModal()" class="px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors font-label-md">Cancel</button>
-                <button type="submit" class="bg-error text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-label-md">Delete</button>
+                <button onclick="closeDeleteModal()" class="px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors font-label-md">Cancel</button>
+                <button id="confirmDeleteBtn" class="bg-error text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-label-md">Delete</button>
             </div>
-        </form>
+        </div>
     </div>
-</div>
 
-<script>
+    <!-- Add/Edit Category Modal -->
+    <div id="addCategoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <h3 id="categoryModalTitle" class="font-headline-sm mb-4 text-on-surface">Add New Category</h3>
+            <form id="addCategoryForm" method="post" th:action="@{/admin/categories}">
+                <input type="hidden" id="editCategoryId" name="categoryId" value="">
+                <div class="mb-4">
+                    <label class="font-label-sm text-on-surface-variant mb-2 block">Category Name</label>
+                    <input type="text" id="categoryNameInput" name="categoryName" required class="w-full p-3 border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary outline-none" placeholder="Enter category name" oninput="validateCategoryName()"/>
+                    <p id="categoryNameError" class="text-error text-sm mt-1 hidden"></p>
+                </div>
+                <div class="mb-4 text-sm text-on-surface-variant">
+                    <span class="material-symbols-outlined text-sm align-middle">info</span>
+                    Only letters and spaces are allowed. No duplicates, special characters, or numbers.
+                </div>
+                <div class="flex gap-3 justify-end">
+                    <button type="button" onclick="closeAddCategoryModal()" class="px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors font-label-md">Cancel</button>
+                    <button type="submit" id="addCategoryBtn" disabled class="bg-primary text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-label-md disabled:opacity-50">Save Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Category Confirmation Modal -->
+    <div id="deleteCategoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <h3 class="font-headline-sm mb-2 text-on-surface">Delete Category</h3>
+            <p id="deleteCategoryMessage" class="font-body-md text-on-surface-variant mb-6">Are you sure you want to delete this category? This action cannot be undone.</p>
+            <div class="flex gap-3 justify-end">
+                <button onclick="closeDeleteCategoryModal()" class="px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors font-label-md">Cancel</button>
+                <form id="deleteCategoryForm" method="post" style="display: inline;">
+                    <button type="submit" class="bg-error text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-label-md">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Global state
+    let categories = [];
+    let selectedCategoryId = null;
+    let attributes = [];
+    let isEditMode = false;
+    let editingAttributeId = null;
+    let currentIsRequired = false;
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCategories();
+    });
+
+    // --- Add Category Modal Functions ---
     function openAddCategoryModal() {
+        editingCategoryId = null;
+        document.getElementById('categoryModalTitle').textContent = 'Add New Category';
+        document.getElementById('editCategoryId').value = '';
+        document.getElementById('addCategoryForm').action = '/admin/categories';
         document.getElementById('addCategoryModal').classList.remove('hidden');
         document.getElementById('addCategoryModal').classList.add('flex');
+        document.getElementById('categoryNameInput').value = '';
+        document.getElementById('categoryNameError').classList.add('hidden');
+        document.getElementById('addCategoryBtn').disabled = true;
     }
 
     function closeAddCategoryModal() {
@@ -314,8 +399,104 @@
         document.getElementById('addCategoryModal').classList.remove('flex');
     }
 
-    function deleteCategory(categoryId) {
-        document.getElementById('deleteCategoryForm').action = '/admin/categories/' + categoryId + '/delete';
+    function validateCategoryName() {
+        const input = document.getElementById('categoryNameInput');
+        const error = document.getElementById('categoryNameError');
+        const submitBtn = document.getElementById('addCategoryBtn');
+        const value = input.value.trim();
+        
+        // Regex: only letters (Vietnamese and English) and spaces
+        const regex = /^[a-zA-ZÀ-ỹ\s]+$/;
+        
+        let isValid = true;
+        let errorMessage = '';
+        
+        if (!value) {
+            isValid = false;
+        } else if (!regex.test(value)) {
+            isValid = false;
+            errorMessage = 'Only letters and spaces are allowed. No special characters or numbers.';
+        } else {
+            // Check for duplicate (skip if it's the same as current category being edited)
+            const duplicate = categories.find(cat => 
+                cat.categoryName.toLowerCase() === value.toLowerCase() && 
+                cat.categoryId !== editingCategoryId
+            );
+            if (duplicate) {
+                isValid = false;
+                errorMessage = 'This category name already exists.';
+            }
+        }
+        
+        if (!isValid && errorMessage) {
+            error.textContent = errorMessage;
+            error.classList.remove('hidden');
+        } else {
+            error.classList.add('hidden');
+        }
+        
+        submitBtn.disabled = !isValid;
+    }
+
+    // --- Category Functions ---
+    async function loadCategories() {
+        try {
+            const response = await fetch('/api/admin/categories');
+            const result = await response.json();
+            categories = result.data;
+            renderCategories();
+        } catch (error) {
+            console.error('Error loading categories:', error);
+        }
+    }
+
+    function filterCategories() {
+        renderCategories();
+    }
+
+    function renderCategories() {
+        const container = document.getElementById('categoryList');
+        const searchTerm = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase() : '';
+        
+        const filteredCategories = categories.filter(category => 
+            category.categoryName.toLowerCase().includes(searchTerm)
+        );
+        
+        container.innerHTML = filteredCategories.map(category => `
+            <div class="flex items-center justify-between p-sm rounded-lg transition-colors ${selectedCategoryId === category.categoryId ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:bg-surface-container-low'}">
+                <span class="font-label-md cursor-pointer flex-1" onclick="selectCategory(${category.categoryId})">${escapeHtml(category.categoryName)}</span>
+                <div class="flex items-center gap-1">
+                    <button onclick="event.stopPropagation(); openEditCategoryModal(${category.categoryId})" class="p-1 text-on-surface-variant hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                    </button>
+                    <button onclick="event.stopPropagation(); openDeleteCategoryModal(${category.categoryId}, '${escapeHtml(category.categoryName)}')" class="p-1 text-on-surface-variant hover:text-error transition-colors">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    let editingCategoryId = null;
+
+    function openEditCategoryModal(categoryId) {
+        editingCategoryId = categoryId;
+        const category = categories.find(c => c.categoryId === categoryId);
+        
+        if (!category) return;
+        
+        document.getElementById('categoryModalTitle').textContent = 'Edit Category';
+        document.getElementById('editCategoryId').value = categoryId;
+        document.getElementById('categoryNameInput').value = category.categoryName;
+        document.getElementById('categoryNameError').classList.add('hidden');
+        document.getElementById('addCategoryBtn').disabled = false;
+        document.getElementById('addCategoryModal').classList.remove('hidden');
+        document.getElementById('addCategoryModal').classList.add('flex');
+    }
+
+    function openDeleteCategoryModal(categoryId, categoryName) {
+        document.getElementById('deleteCategoryMessage').textContent = `Are you sure you want to delete category "${categoryName}"? This action cannot be undone.`;
+        document.getElementById('deleteCategoryForm').action = `/admin/categories/${categoryId}/delete`;
         document.getElementById('deleteCategoryModal').classList.remove('hidden');
         document.getElementById('deleteCategoryModal').classList.add('flex');
     }
@@ -325,12 +506,241 @@
         document.getElementById('deleteCategoryModal').classList.remove('flex');
     }
 
+    async function selectCategory(categoryId) {
+        selectedCategoryId = categoryId;
+        const category = categories.find(c => c.categoryId === categoryId);
+        renderCategories();
+        
+        // Update UI
+        document.getElementById('selectedCategoryName').textContent = category ? category.categoryName : '';
+        document.getElementById('addAttributeBtn').disabled = false;
+        document.getElementById('noCategorySelected').classList.add('hidden');
+        document.getElementById('attributeTableContainer').classList.remove('hidden');
+        
+        await loadAttributes();
+    }
+
+    // --- Attribute Functions ---
+    async function loadAttributes() {
+        if (!selectedCategoryId) return;
+        
+        try {
+            const response = await fetch(`/api/admin/attributes/category/${selectedCategoryId}`);
+            const result = await response.json();
+            attributes = result.data;
+            renderAttributes();
+        } catch (error) {
+            console.error('Error loading attributes:', error);
+        }
+    }
+
+    function renderAttributes() {
+        const tbody = document.getElementById('attributeTableBody');
+        const noAttributes = document.getElementById('noAttributes');
+        
+        if (!attributes || attributes.length === 0) {
+            tbody.innerHTML = '';
+            noAttributes.classList.remove('hidden');
+            return;
+        }
+        
+        noAttributes.classList.add('hidden');
+        tbody.innerHTML = attributes.map(attr => `
+            <tr class="hover:bg-surface-bright transition-colors">
+                <td class="px-6 py-5 font-body-md text-on-surface">${escapeHtml(attr.attributeName)}</td>
+                <td class="px-6 py-5 font-body-md text-on-surface-variant">${escapeHtml(attr.dataType)}</td>
+                <td class="px-6 py-5">
+                    <div class="toggle-switch ${attr.isRequired ? 'active' : ''}" onclick="event.stopPropagation(); toggleAttributeRequired(${attr.attributeId}, ${attr.isRequired})"></div>
+                </td>
+                <td class="px-6 py-5 text-right space-x-2">
+                    <button onclick="editAttribute(${attr.attributeId})" class="p-1 text-blue-600 hover:text-blue-800">
+                        <span class="material-symbols-outlined text-sm">edit</span>
+                    </button>
+                    <button onclick="confirmDeleteAttribute(${attr.attributeId})" class="p-1 text-red-600 hover:text-red-800">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    async function toggleAttributeRequired(attributeId, currentValue) {
+        // Find attribute
+        const attribute = attributes.find(a => a.attributeId === attributeId);
+        if (!attribute) return;
+        
+        // Update local state
+        attribute.isRequired = !currentValue;
+        
+        // Send update to server
+        await saveAttribute(attribute);
+    }
+
+    // --- Modal Functions ---
+    function openAddModal() {
+        isEditMode = false;
+        editingAttributeId = null;
+        currentIsRequired = false;
+        
+        document.getElementById('modalTitle').textContent = 'Add Attribute';
+        document.getElementById('attributeName').value = '';
+        document.getElementById('dataType').value = 'Text';
+        document.getElementById('requiredToggle').classList.remove('active');
+        document.getElementById('attributeModal').classList.remove('hidden');
+        document.getElementById('attributeModal').classList.add('flex');
+    }
+
+    function editAttribute(attributeId) {
+        const attr = attributes.find(a => a.attributeId === attributeId);
+        if (!attr) return;
+        
+        isEditMode = true;
+        editingAttributeId = attributeId;
+        currentIsRequired = attr.isRequired;
+        
+        document.getElementById('modalTitle').textContent = 'Edit Attribute';
+        document.getElementById('attributeName').value = attr.attributeName;
+        document.getElementById('dataType').value = attr.dataType;
+        document.getElementById('editAttributeId').value = attributeId;
+        
+        if (attr.isRequired) {
+            document.getElementById('requiredToggle').classList.add('active');
+        } else {
+            document.getElementById('requiredToggle').classList.remove('active');
+        }
+        
+        document.getElementById('attributeModal').classList.remove('hidden');
+        document.getElementById('attributeModal').classList.add('flex');
+    }
+
+    function closeModal() {
+        document.getElementById('attributeModal').classList.add('hidden');
+        document.getElementById('attributeModal').classList.remove('flex');
+    }
+
+    function toggleRequired() {
+        currentIsRequired = !currentIsRequired;
+        const toggle = document.getElementById('requiredToggle');
+        if (currentIsRequired) {
+            toggle.classList.add('active');
+        } else {
+            toggle.classList.remove('active');
+        }
+    }
+
+    async function saveAttribute(attribute) {
+        try {
+            const response = await fetch(`/api/admin/attributes/${attribute.attributeId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(attribute)
+            });
+            
+            if (response.ok) {
+                renderAttributes();
+            } else {
+                alert('Failed to update attribute');
+            }
+        } catch (error) {
+            console.error('Error saving attribute:', error);
+        }
+    }
+
+    // Form submission
+    document.getElementById('attributeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const attributeData = {
+            categoryId: selectedCategoryId,
+            attributeName: document.getElementById('attributeName').value,
+            dataType: document.getElementById('dataType').value,
+            isRequired: currentIsRequired,
+            displayOrder: attributes.length + 1
+        };
+        
+        try {
+            let response;
+            if (isEditMode) {
+                attributeData.attributeId = editingAttributeId;
+                response = await fetch(`/api/admin/attributes/${editingAttributeId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(attributeData)
+                });
+            } else {
+                response = await fetch('/api/admin/attributes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(attributeData)
+                });
+            }
+            
+            if (response.ok) {
+                closeModal();
+                await loadAttributes();
+            } else {
+                alert('Failed to save attribute');
+            }
+        } catch (error) {
+            console.error('Error saving attribute:', error);
+        }
+    });
+
+    // --- Delete Functions ---
+    let deleteTargetId = null;
+    
+    function confirmDeleteAttribute(attributeId) {
+        deleteTargetId = attributeId;
+        document.getElementById('deleteModal').classList.remove('hidden');
+        document.getElementById('deleteModal').classList.add('flex');
+    }
+    
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+        document.getElementById('deleteModal').classList.remove('flex');
+        deleteTargetId = null;
+    }
+    
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+        if (!deleteTargetId) return;
+        
+        try {
+            const response = await fetch(`/api/admin/attributes/${deleteTargetId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                closeDeleteModal();
+                await loadAttributes();
+            } else {
+                alert('Failed to delete attribute');
+            }
+        } catch (error) {
+            console.error('Error deleting attribute:', error);
+        }
+    });
+
+    // --- Utility Functions ---
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     // Close modals when clicking outside
-    ['addCategoryModal', 'deleteCategoryModal'].forEach(id => {
+    ['attributeModal', 'deleteModal', 'addCategoryModal', 'deleteCategoryModal'].forEach(id => {
         document.getElementById(id).addEventListener('click', function(e) {
             if (e.target === this) {
-                this.classList.add('hidden');
-                this.classList.remove('flex');
+                if (id === 'deleteModal') {
+                    closeDeleteModal();
+                } else if (id === 'addCategoryModal') {
+                    closeAddCategoryModal();
+                } else if (id === 'deleteCategoryModal') {
+                    closeDeleteCategoryModal();
+                } else {
+                    closeModal();
+                }
             }
         });
     });

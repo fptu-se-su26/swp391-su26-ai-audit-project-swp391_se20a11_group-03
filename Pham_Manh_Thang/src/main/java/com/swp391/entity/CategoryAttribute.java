@@ -22,6 +22,10 @@ public class CategoryAttribute {
     @Column(name = "CategoryId", nullable = false)
     private Integer categoryId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CategoryId", nullable = false, insertable = false, updatable = false)
+    private Category category;
+
     @Column(name = "AttributeName", nullable = false, length = 100)
     private String attributeName;
 

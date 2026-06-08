@@ -42,11 +42,17 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public CategoryDTO createCategory(CategoryDTO categoryDTO) {
-        if (categoryRepository.existsByCategoryName(categoryDTO.getCategoryName())) {
+        // Validate category name format
+        String categoryName = categoryDTO.getCategoryName().trim();
+        if (!categoryName.matches("^[a-zA-ZÀ-ỹ\\s]+$")) {
+            throw new BusinessException("Only letters and spaces are allowed. No special characters or numbers.");
+        }
+        
+        if (categoryRepository.existsByCategoryName(categoryName)) {
             throw new BusinessException("Category name already exists");
         }
         Category category = new Category();
-        category.setCategoryName(categoryDTO.getCategoryName());
+        category.setCategoryName(categoryName);
         category.setDescription(categoryDTO.getDescription());
         category.setIsActive(true);
         category.setCreatedAt(LocalDateTime.now());
@@ -60,12 +66,19 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
 
-        if (!category.getCategoryName().equals(categoryDTO.getCategoryName()) &&
-            categoryRepository.existsByCategoryName(categoryDTO.getCategoryName())) {
+        String newCategoryName = categoryDTO.getCategoryName().trim();
+        
+        // Validate category name format
+        if (!newCategoryName.matches("^[a-zA-ZÀ-ỹ\\s]+$")) {
+            throw new BusinessException("Only letters and spaces are allowed. No special characters or numbers.");
+        }
+
+        if (!category.getCategoryName().equals(newCategoryName) &&
+            categoryRepository.existsByCategoryName(newCategoryName)) {
             throw new BusinessException("Category name already exists");
         }
 
-        category.setCategoryName(categoryDTO.getCategoryName());
+        category.setCategoryName(newCategoryName);
         category.setDescription(categoryDTO.getDescription());
         if (categoryDTO.getIsActive() != null) {
             category.setIsActive(categoryDTO.getIsActive());

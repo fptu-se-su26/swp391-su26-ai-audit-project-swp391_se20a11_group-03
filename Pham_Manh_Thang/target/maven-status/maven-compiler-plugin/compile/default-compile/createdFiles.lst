@@ -1,5 +1,6 @@
 com\swp391\entity\Contract.class
 com\swp391\repository\ProductImageRepository.class
+com\swp391\controller\CategoryAttributeController.class
 com\swp391\exception\GlobalExceptionHandler.class
 com\swp391\repository\ProductAttributeValueRepository.class
 com\swp391\service\impl\EmailServiceImpl.class
@@ -20,6 +21,7 @@ com\swp391\repository\ContractRepository.class
 com\swp391\Swp391Application.class
 com\swp391\dto\AttributeOptionDTO.class
 com\swp391\dto\ProductImageDTO.class
+com\swp391\controller\AdminProductViewController.class
 com\swp391\dto\ProductApprovalRequestDTO.class
 com\swp391\entity\User.class
 com\swp391\controller\CategoryController.class
