@@ -34,3 +34,4 @@ public class CategoryAttribute {
     @Column(name = "DisplayOrder", nullable = false)
     private Integer displayOrder = 0;
 }
+

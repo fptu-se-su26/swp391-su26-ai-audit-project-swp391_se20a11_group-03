@@ -1,4 +1,4 @@
-package com.vnec.model;
+package com.auction.account.model;
 
 public enum VerificationStatus {
     PENDING_PROFILE,
@@ -9,3 +9,5 @@ public enum VerificationStatus {
     LOCKED,
     REJECTED
 }
+
+

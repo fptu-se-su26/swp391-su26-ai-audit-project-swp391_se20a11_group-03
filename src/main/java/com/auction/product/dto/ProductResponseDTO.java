@@ -28,3 +28,4 @@ public class ProductResponseDTO {
     private List<ProductImageDTO> images;
     private List<ProductAttributeValueDTO> attributes;
 }
+

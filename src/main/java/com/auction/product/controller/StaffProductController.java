@@ -67,3 +67,4 @@ public class StaffProductController {
         return "redirect:/staff/products/pending";
     }
 }
+

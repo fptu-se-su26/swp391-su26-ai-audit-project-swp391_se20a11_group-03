@@ -1,7 +1,7 @@
-package com.vnec.dao;
+package com.auction.account.dao;
 
-import com.vnec.model.User;
-import com.vnec.util.JpaUtil;
+import com.auction.account.model.User;
+import com.auction.account.util.JpaUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 
@@ -128,3 +128,5 @@ public class UserDAO {
         }
     }
 }
+
+

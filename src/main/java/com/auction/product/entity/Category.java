@@ -32,3 +32,4 @@ public class Category {
     @Column(name = "CreatedAt", nullable = false)
     private LocalDateTime createdAt;
 }
+

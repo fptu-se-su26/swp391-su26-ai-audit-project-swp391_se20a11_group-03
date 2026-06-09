@@ -13,3 +13,4 @@ import java.util.List;
 public interface CategoryAttributeRepository extends JpaRepository<CategoryAttribute, Long> {
     List<CategoryAttribute> findByCategoryId(Integer categoryId);
 }
+

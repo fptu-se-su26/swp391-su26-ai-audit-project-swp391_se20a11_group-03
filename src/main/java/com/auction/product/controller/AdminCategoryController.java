@@ -66,3 +66,4 @@ public class AdminCategoryController {
         return "redirect:/admin/categories";
     }
 }
+

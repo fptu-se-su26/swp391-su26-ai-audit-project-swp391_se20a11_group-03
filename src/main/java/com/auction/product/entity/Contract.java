@@ -38,3 +38,4 @@ public class Contract {
     @Column(name = "CreatedAt", nullable = false)
     private LocalDateTime createdAt;
 }
+

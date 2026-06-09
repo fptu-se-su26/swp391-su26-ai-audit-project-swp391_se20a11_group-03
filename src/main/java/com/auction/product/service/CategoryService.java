@@ -17,3 +17,4 @@ public interface CategoryService {
     CategoryAttributeDTO addCategoryAttribute(CategoryAttributeDTO dto);
     AttributeOptionDTO addAttributeOption(AttributeOptionDTO dto);
 }
+

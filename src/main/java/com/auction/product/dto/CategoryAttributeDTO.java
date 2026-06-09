@@ -31,3 +31,4 @@ public class CategoryAttributeDTO {
 
     private Integer displayOrder = 0;
 }
+

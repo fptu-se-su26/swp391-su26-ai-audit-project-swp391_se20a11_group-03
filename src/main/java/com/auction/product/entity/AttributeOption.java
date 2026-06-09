@@ -25,3 +25,4 @@ public class AttributeOption {
     @Column(name = "OptionValue", nullable = false, length = 100)
     private String optionValue;
 }
+

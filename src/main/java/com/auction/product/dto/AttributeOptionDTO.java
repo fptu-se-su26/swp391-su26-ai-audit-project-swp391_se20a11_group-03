@@ -23,3 +23,4 @@ public class AttributeOptionDTO {
     @Size(max = 100, message = "Option value must not exceed 100 characters")
     private String optionValue;
 }
+

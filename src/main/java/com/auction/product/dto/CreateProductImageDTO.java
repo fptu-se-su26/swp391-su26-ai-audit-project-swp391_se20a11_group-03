@@ -19,3 +19,4 @@ public class CreateProductImageDTO {
 
     private Boolean isPrimary = false;
 }
+

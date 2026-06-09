@@ -1,6 +1,6 @@
-package com.vnec.service;
+package com.auction.account.service;
 
-import com.vnec.util.FptAiConfig;
+import com.auction.account.util.FptAiConfig;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -62,3 +62,6 @@ public class FptAiService {
         }
     }
 }
+
+
+

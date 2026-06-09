@@ -1,9 +1,9 @@
-package com.vnec.service;
+package com.auction.account.service;
 
-import com.vnec.model.IdentityDocument;
-import com.vnec.model.User;
-import com.vnec.model.VerificationStatus;
-import com.vnec.util.AppConfig;
+import com.auction.account.model.IdentityDocument;
+import com.auction.account.model.User;
+import com.auction.account.model.VerificationStatus;
+import com.auction.account.util.AppConfig;
 
 public class IdentityVerificationService {
     private final ProfileService profileService = new ProfileService();
@@ -50,3 +50,5 @@ public class IdentityVerificationService {
         }
     }
 }
+
+

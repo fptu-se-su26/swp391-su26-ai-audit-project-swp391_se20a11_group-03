@@ -54,3 +54,4 @@ public class ProductAdminController {
         return ResponseEntity.ok(ApiResponse.success("Product rejected successfully", product));
     }
 }
+

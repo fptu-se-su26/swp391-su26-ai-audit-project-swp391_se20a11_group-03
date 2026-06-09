@@ -1,6 +1,6 @@
-package com.vnec.service;
+package com.auction.account.service;
 
-import com.vnec.util.AuditLogUtil;
+import com.auction.account.util.AuditLogUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -21,3 +21,6 @@ public final class AuthAuditService {
         AuditLogUtil.authEvent("REGISTER", false, email, message, request.getRemoteAddr(), request.getHeader("User-Agent"));
     }
 }
+
+
+

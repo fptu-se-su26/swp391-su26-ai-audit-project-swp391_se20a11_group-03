@@ -35,3 +35,4 @@ public class CreateProductRequestDTO {
 
     private List<CreateProductAttributeValueDTO> attributes;
 }
+

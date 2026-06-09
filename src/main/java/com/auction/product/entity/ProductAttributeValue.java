@@ -28,3 +28,4 @@ public class ProductAttributeValue {
     @Column(name = "AttributeValue", nullable = false, length = 500)
     private String attributeValue;
 }
+

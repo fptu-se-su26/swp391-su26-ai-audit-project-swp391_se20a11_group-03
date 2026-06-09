@@ -38,3 +38,4 @@ public class ProductApproval {
     @Column(name = "ReviewedAt", nullable = false)
     private LocalDateTime reviewedAt;
 }
+

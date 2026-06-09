@@ -1,4 +1,4 @@
-package com.vnec.util;
+package com.auction.account.util;
 
 public final class AppConfig {
     private AppConfig() {
@@ -26,3 +26,5 @@ public final class AppConfig {
         return "true".equalsIgnoreCase(value) || "1".equals(value);
     }
 }
+
+

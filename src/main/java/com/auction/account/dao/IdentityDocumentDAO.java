@@ -1,7 +1,7 @@
-package com.vnec.dao;
+package com.auction.account.dao;
 
-import com.vnec.model.IdentityDocument;
-import com.vnec.util.JpaUtil;
+import com.auction.account.model.IdentityDocument;
+import com.auction.account.util.JpaUtil;
 import jakarta.persistence.EntityManager;
 
 public class IdentityDocumentDAO {
@@ -41,3 +41,5 @@ public class IdentityDocumentDAO {
         }
     }
 }
+
+

@@ -13,3 +13,4 @@ import java.util.List;
 public interface AttributeOptionRepository extends JpaRepository<AttributeOption, Long> {
     List<AttributeOption> findByAttributeId(Long attributeId);
 }
+

@@ -15,3 +15,4 @@ public class ProductImageDTO {
     private String imageUrl;
     private Boolean isPrimary;
 }
+

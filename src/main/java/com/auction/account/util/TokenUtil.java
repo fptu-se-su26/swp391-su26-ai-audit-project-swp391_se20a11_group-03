@@ -1,4 +1,4 @@
-package com.vnec.util;
+package com.auction.account.util;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -34,3 +34,5 @@ public final class TokenUtil {
         return sb.toString();
     }
 }
+
+

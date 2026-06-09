@@ -1,4 +1,4 @@
-package com.vnec.model;
+package com.auction.account.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -192,3 +192,5 @@ public class IdentityDocument {
         this.updatedAt = updatedAt;
     }
 }
+
+

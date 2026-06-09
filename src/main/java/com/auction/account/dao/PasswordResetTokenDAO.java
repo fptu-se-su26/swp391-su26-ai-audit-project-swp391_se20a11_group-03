@@ -1,7 +1,7 @@
-package com.vnec.dao;
+package com.auction.account.dao;
 
-import com.vnec.model.PasswordResetToken;
-import com.vnec.util.JpaUtil;
+import com.auction.account.model.PasswordResetToken;
+import com.auction.account.util.JpaUtil;
 import jakarta.persistence.EntityManager;
 
 import java.time.LocalDateTime;
@@ -55,3 +55,5 @@ public class PasswordResetTokenDAO {
         }
     }
 }
+
+

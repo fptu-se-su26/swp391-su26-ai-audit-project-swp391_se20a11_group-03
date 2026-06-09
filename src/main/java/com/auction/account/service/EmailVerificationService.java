@@ -1,7 +1,7 @@
-package com.vnec.service;
+package com.auction.account.service;
 
-import com.vnec.model.User;
-import com.vnec.util.TokenUtil;
+import com.auction.account.model.User;
+import com.auction.account.util.TokenUtil;
 
 public class EmailVerificationService {
     private final ProfileService profileService = new ProfileService();
@@ -18,3 +18,5 @@ public class EmailVerificationService {
         return rawToken;
     }
 }
+
+

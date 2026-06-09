@@ -15,3 +15,4 @@ public interface ProductService {
     ProductResponseDTO createProduct(CreateProductRequestDTO request, Long sellerId);
     List<ProductResponseDTO> getProductsBySellerId(Long sellerId);
 }
+

@@ -1,4 +1,4 @@
-package com.vnec.util;
+package com.auction.account.util;
 
 public final class FptAiConfig {
     private static final String API_KEY_ENV = "FPT_AI_API_KEY";
@@ -32,3 +32,6 @@ public final class FptAiConfig {
         return null;
     }
 }
+
+
+

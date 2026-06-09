@@ -1,7 +1,7 @@
-package com.vnec.dao;
+package com.auction.account.dao;
 
-import com.vnec.model.AuditLog;
-import com.vnec.util.JpaUtil;
+import com.auction.account.model.AuditLog;
+import com.auction.account.util.JpaUtil;
 import jakarta.persistence.EntityManager;
 
 public class AuditLogDAO {
@@ -23,3 +23,5 @@ public class AuditLogDAO {
         }
     }
 }
+
+

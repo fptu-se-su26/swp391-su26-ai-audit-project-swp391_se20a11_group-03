@@ -17,3 +17,4 @@ public class ProductApprovalRequestDTO {
 
     private String approvalNote;
 }
+

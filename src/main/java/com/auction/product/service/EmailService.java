@@ -7,3 +7,4 @@ package com.swp391.service;
 public interface EmailService {
     void sendListingContractEmail(String toEmail, Long productId, byte[] pdfAttachment);
 }
+

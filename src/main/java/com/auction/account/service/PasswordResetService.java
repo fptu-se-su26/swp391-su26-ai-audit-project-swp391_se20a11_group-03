@@ -1,10 +1,10 @@
-package com.vnec.service;
+package com.auction.account.service;
 
-import com.vnec.dao.PasswordResetTokenDAO;
-import com.vnec.dao.UserDAO;
-import com.vnec.model.PasswordResetToken;
-import com.vnec.model.User;
-import com.vnec.util.TokenUtil;
+import com.auction.account.dao.PasswordResetTokenDAO;
+import com.auction.account.dao.UserDAO;
+import com.auction.account.model.PasswordResetToken;
+import com.auction.account.model.User;
+import com.auction.account.util.TokenUtil;
 
 import java.time.LocalDateTime;
 
@@ -30,3 +30,5 @@ public class PasswordResetService {
         return true;
     }
 }
+
+

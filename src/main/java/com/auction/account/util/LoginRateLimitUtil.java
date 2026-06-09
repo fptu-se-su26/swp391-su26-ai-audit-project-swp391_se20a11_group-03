@@ -1,4 +1,4 @@
-package com.vnec.util;
+package com.auction.account.util;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -99,3 +99,5 @@ public final class LoginRateLimitUtil {
         }
     }
 }
+
+

@@ -20,3 +20,4 @@ public class EmailServiceImpl implements EmailService {
         log.info("Sending listing contract email to {} for product ID {}", toEmail, productId);
     }
 }
+

@@ -28,3 +28,4 @@ public class ProductImage {
     @Column(name = "IsPrimary", nullable = false)
     private Boolean isPrimary = false;
 }
+

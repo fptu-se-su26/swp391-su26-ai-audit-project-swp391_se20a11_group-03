@@ -53,3 +53,4 @@ public class Product {
     @Column(name = "RejectionReason", length = 500)
     private String rejectionReason;
 }
+

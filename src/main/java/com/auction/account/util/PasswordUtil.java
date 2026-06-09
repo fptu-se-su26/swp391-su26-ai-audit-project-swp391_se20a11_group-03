@@ -1,4 +1,4 @@
-package com.vnec.util;
+package com.auction.account.util;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -75,3 +75,5 @@ public final class PasswordUtil {
         return data;
     }
 }
+
+

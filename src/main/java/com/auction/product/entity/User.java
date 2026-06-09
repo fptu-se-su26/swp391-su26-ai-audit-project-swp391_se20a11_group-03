@@ -45,3 +45,4 @@ public class User {
     @Column(name = "CreatedAt", nullable = false)
     private LocalDateTime createdAt;
 }
+

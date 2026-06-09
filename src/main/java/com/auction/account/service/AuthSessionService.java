@@ -1,6 +1,6 @@
-package com.vnec.service;
+package com.auction.account.service;
 
-import com.vnec.model.User;
+import com.auction.account.model.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
@@ -22,3 +22,6 @@ public final class AuthSessionService {
         }
     }
 }
+
+
+

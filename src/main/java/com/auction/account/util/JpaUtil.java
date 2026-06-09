@@ -1,4 +1,4 @@
-package com.vnec.util;
+package com.auction.account.util;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -47,3 +47,6 @@ public final class JpaUtil {
         }
     }
 }
+
+
+

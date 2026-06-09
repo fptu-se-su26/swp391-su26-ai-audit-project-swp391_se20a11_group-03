@@ -15,3 +15,4 @@ public class ProductAttributeValueDTO {
     private Long attributeId;
     private String attributeValue;
 }
+

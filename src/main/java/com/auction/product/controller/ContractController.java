@@ -26,3 +26,4 @@ public class ContractController {
         return ResponseEntity.ok(ApiResponse.success(contracts));
     }
 }
+

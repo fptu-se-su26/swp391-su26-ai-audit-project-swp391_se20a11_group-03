@@ -1,13 +1,13 @@
-package com.vnec.service;
+package com.auction.account.service;
 
-import com.vnec.dao.IdentityDocumentDAO;
-import com.vnec.dao.UserDAO;
-import com.vnec.dao.UserVerificationTokenDAO;
-import com.vnec.model.IdentityDocument;
-import com.vnec.model.User;
-import com.vnec.model.UserVerificationToken;
-import com.vnec.model.VerificationStatus;
-import com.vnec.model.VerificationType;
+import com.auction.account.dao.IdentityDocumentDAO;
+import com.auction.account.dao.UserDAO;
+import com.auction.account.dao.UserVerificationTokenDAO;
+import com.auction.account.model.IdentityDocument;
+import com.auction.account.model.User;
+import com.auction.account.model.UserVerificationToken;
+import com.auction.account.model.VerificationStatus;
+import com.auction.account.model.VerificationType;
 
 import java.time.LocalDateTime;
 
@@ -98,3 +98,5 @@ public class ProfileService {
         return VerificationStatus.VERIFIED;
     }
 }
+
+

@@ -1,7 +1,7 @@
-package com.vnec.util;
+package com.auction.account.util;
 
-import com.vnec.dao.AuditLogDAO;
-import com.vnec.model.AuditLog;
+import com.auction.account.dao.AuditLogDAO;
+import com.auction.account.model.AuditLog;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -44,3 +44,5 @@ public final class AuditLogUtil {
         return value == null ? "-" : value.replaceAll("[\r\n]+", " ").trim();
     }
 }
+
+

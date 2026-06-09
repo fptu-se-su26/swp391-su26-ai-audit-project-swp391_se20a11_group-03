@@ -1,10 +1,10 @@
-package com.vnec.service;
+package com.auction.account.service;
 
-import com.vnec.model.IdentityDocument;
-import com.vnec.model.User;
-import com.vnec.model.VerificationStatus;
-import com.vnec.util.AppConfig;
-import com.vnec.util.TokenUtil;
+import com.auction.account.model.IdentityDocument;
+import com.auction.account.model.User;
+import com.auction.account.model.VerificationStatus;
+import com.auction.account.util.AppConfig;
+import com.auction.account.util.TokenUtil;
 
 public class OcrService {
     public String getProviderName() {
@@ -44,3 +44,5 @@ public class OcrService {
 
     public record OcrResult(String providerName, String status, String rawJson) {}
 }
+
+

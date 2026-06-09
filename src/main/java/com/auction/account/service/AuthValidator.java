@@ -1,4 +1,4 @@
-package com.vnec.service;
+package com.auction.account.service;
 
 public final class AuthValidator {
     public String validateRegistration(String fullName, String email, String phone, String identityNumber, String password, String confirmPassword) {
@@ -45,3 +45,6 @@ public final class AuthValidator {
         return value == null || value.trim().isEmpty();
     }
 }
+
+
+

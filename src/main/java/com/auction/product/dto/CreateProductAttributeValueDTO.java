@@ -21,3 +21,4 @@ public class CreateProductAttributeValueDTO {
     @Size(max = 500, message = "Attribute value must not exceed 500 characters")
     private String attributeValue;
 }
+

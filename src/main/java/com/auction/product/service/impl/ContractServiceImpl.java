@@ -38,3 +38,4 @@ public class ContractServiceImpl implements ContractService {
         return contractRepository.save(contract);
     }
 }
+

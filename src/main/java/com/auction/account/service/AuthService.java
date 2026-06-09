@@ -1,8 +1,8 @@
-package com.vnec.service;
+package com.auction.account.service;
 
-import com.vnec.dao.UserDAO;
-import com.vnec.model.User;
-import com.vnec.util.PasswordUtil;
+import com.auction.account.dao.UserDAO;
+import com.auction.account.model.User;
+import com.auction.account.util.PasswordUtil;
 
 public class AuthService {
     private final UserDAO userDAO;
@@ -114,3 +114,5 @@ public class AuthService {
         }
     }
 }
+
+

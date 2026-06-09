@@ -1,6 +1,6 @@
-package com.vnec.service;
+package com.auction.account.service;
 
-import com.vnec.util.AppConfig;
+import com.auction.account.util.AppConfig;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
@@ -64,3 +64,5 @@ public class MailService {
                 + "</div>";
     }
 }
+
+
