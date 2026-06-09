@@ -12,15 +12,50 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring.boot.version>3.3.6</spring.boot.version>
         <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
         <jakarta.mail.version>2.0.1</jakarta.mail.version>
         <hibernate.version>6.5.2.Final</hibernate.version>
         <jakarta.persistence.version>3.1.0</jakarta.persistence.version>
         <jakarta.transaction.version>2.0.1</jakarta.transaction.version>
+        <jakarta.validation.version>3.1.0</jakarta.validation.version>
         <sqlserver.jdbc.version>12.6.1.jre11</sqlserver.jdbc.version>
+        <lombok.version>1.18.36</lombok.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>${spring.boot.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>${spring.boot.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <version>${spring.boot.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+            <version>${spring.boot.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>${spring.boot.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
@@ -48,21 +83,25 @@
             <version>${jakarta.transaction.version}</version>
         </dependency>
         <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>${jakarta.validation.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>jakarta.mail</artifactId>
             <version>${jakarta.mail.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.11.4</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
         <finalName>vnec-auth</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring.boot.version}</version>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -77,59 +116,6 @@
                 <version>3.4.0</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>3.4.0</version>
-                <configuration>
-                    <excludeDefaultDirectories>false</excludeDefaultDirectories>
-                    <filesets>
-                        <fileset>
-                            <directory>${project.build.directory}</directory>
-                            <includes>
-                                <include>**/*</include>
-                            </includes>
-                            <followSymlinks>false</followSymlinks>
-                            <useDefaultExcludes>false</useDefaultExcludes>
-                            <outputDirectory>${project.build.directory}</outputDirectory>
-                            <directoryMode>0755</directoryMode>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.cargo</groupId>
-                <artifactId>cargo-maven3-plugin</artifactId>
-                <version>1.10.13</version>
-                <configuration>
-                    <container>
-                        <containerId>tomcat10x</containerId>
-                        <zipUrlInstaller>
-                            <url>https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.24/bin/apache-tomcat-10.1.24.zip</url>
-                            <downloadDir>${project.build.directory}/downloads-cargo2</downloadDir>
-                            <extractDir>${project.build.directory}/extracts-cargo2</extractDir>
-                        </zipUrlInstaller>
-                    </container>
-                    <configuration>
-                        <home>${project.build.directory}/cargo2/home</home>
-                        <properties>
-                            <cargo.servlet.port>8080</cargo.servlet.port>
-                            <cargo.rmi.port>8208</cargo.rmi.port>
-                            <cargo.logging>medium</cargo.logging>
-                        </properties>
-                    </configuration>
-                    <deployables>
-                        <deployable>
-                            <groupId>com.vnec</groupId>
-                            <artifactId>vnec-auth</artifactId>
-                            <type>war</type>
-                            <properties>
-                                <context>/vnec-auth</context>
-                            </properties>
-                        </deployable>
-                    </deployables>
                 </configuration>
             </plugin>
         </plugins>
