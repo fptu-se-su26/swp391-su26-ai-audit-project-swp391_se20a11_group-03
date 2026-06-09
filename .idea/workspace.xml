@@ -5,35 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8016cddf-37bb-48a6-bf2e-43e917db549e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/data_sources_history.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/data_sources_history.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/controller/AdminProductViewController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/controller/AdminProductViewController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/controller/ProductAdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/controller/ProductAdminController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/repository/ProductRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/repository/ProductRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/repository/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/repository/UserRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/ContractService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/ContractService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/EmailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/EmailService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/impl/ContractServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/impl/ContractServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/impl/EmailServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/impl/EmailServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/impl/ProductServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/impl/ProductServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/util/ThymeleafPDFUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/util/ThymeleafPDFUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/templates/admin/category-management.html" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/templates/admin/category-management.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/templates/admin/product-approvals.html" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/templates/admin/product-approvals.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/AdminProductViewController.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/AdminProductViewController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/ProductAdminController.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/ProductAdminController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/StaffProductController.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/StaffProductController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/ProductRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/ProductRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/UserRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/UserRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/ContractService.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/ContractService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/EmailService.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/EmailService.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/ContractServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/ContractServiceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/EmailServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/EmailServiceImpl.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/ProductServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/ProductServiceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/util/ThymeleafPDFUtil.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/util/ThymeleafPDFUtil.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/templates/admin/product-approvals.html" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/templates/admin/product-approvals.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -150,7 +128,7 @@
       <workItem from="1780877563556" duration="5239000" />
       <workItem from="1780919113478" duration="3537000" />
       <workItem from="1780978169991" duration="3129000" />
-      <workItem from="1781020797936" duration="2724000" />
+      <workItem from="1781020797936" duration="4686000" />
     </task>
     <servers />
   </component>

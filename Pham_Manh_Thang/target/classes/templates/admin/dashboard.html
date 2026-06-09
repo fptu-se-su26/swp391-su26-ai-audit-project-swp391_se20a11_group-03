@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>LuxeAuction Admin - Revenue Analytics</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        background: "#fbf9fb",
+                        surface: "#fbf9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f5f3f5",
+                        "surface-container": "#efedef",
+                        "surface-container-high": "#eae7ea",
+                        "surface-container-highest": "#e4e2e4",
+                        "surface-dim": "#dbd9db",
+                        primary: "#000000",
+                        "primary-container": "#0d1c32",
+                        "primary-fixed": "#d6e3ff",
+                        "primary-fixed-dim": "#b9c7e4",
+                        secondary: "#775a19",
+                        "secondary-container": "#fed488",
+                        tertiary: "#000000",
+                        "tertiary-fixed": "#a6f2d1",
+                        "on-surface": "#1b1b1d",
+                        "on-surface-variant": "#44474d",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#76849f",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-container": "#785a1a",
+                        "on-tertiary-container": "#479175",
+                        outline: "#75777e",
+                        "outline-variant": "#c5c6cd",
+                        error: "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "on-error": "#ffffff"
+                    },
+                    spacing: {
+                        xs: "4px",
+                        base: "8px",
+                        sm: "12px",
+                        md: "24px",
+                        lg: "48px",
+                        xl: "80px",
+                        gutter: "24px",
+                        "margin-desktop": "64px"
+                    },
+                    fontFamily: {
+                        "body-md": ["Inter"],
+                        "headline-md": ["Montserrat"],
+                        "headline-sm": ["Montserrat"],
+                        "label-md": ["Inter"]
+                    },
+                    fontSize: {
+                        "body-md": ["16px", {lineHeight: "24px", fontWeight: "400"}],
+                        "headline-md": ["24px", {lineHeight: "32px", fontWeight: "600"}],
+                        "headline-sm": ["20px", {lineHeight: "28px", fontWeight: "600"}],
+                        "label-md": ["14px", {lineHeight: "20px", fontWeight: "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #fbf9fb;
+            color: #1b1b1d;
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c5c6cd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex overflow-hidden">
+<aside class="h-screen w-80 fixed left-0 top-0 flex flex-col bg-surface-container border-r border-outline-variant shadow-sm z-40">
+    <div class="flex flex-col h-full py-lg px-md">
+        <div class="mb-xl px-sm">
+            <h1 class="font-headline-md text-headline-md font-bold tracking-tight text-primary">LuxeAuction</h1>
+            <p class="font-label-md text-label-md text-on-surface-variant">Admin Control Center</p>
+        </div>
+        <div class="flex items-center gap-sm px-sm mb-lg">
+            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary overflow-hidden">
+                <span class="material-symbols-outlined">person</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-label-md text-label-md text-on-surface">System Administrator</span>
+                <span class="text-[10px] text-on-surface-variant uppercase tracking-widest">Active Status</span>
+            </div>
+        </div>
+        <nav class="flex-1 flex flex-col gap-xs overflow-y-auto custom-scrollbar">
+            <a class="flex items-center gap-base bg-primary-container text-on-primary rounded-lg px-md py-sm shadow-sm transition-all duration-200" th:href="@{/admin/dashboard}">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">payments</span>
+                <span class="font-label-md text-label-md">Revenue &amp; Analytics</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">history_edu</span>
+                <span class="font-label-md text-label-md">Auction History</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" th:href="@{/admin/products/pending}">
+                <span class="material-symbols-outlined">inventory_2</span>
+                <span class="font-label-md text-label-md">Pending Product Approvals</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" th:href="@{/admin/categories}">
+                <span class="material-symbols-outlined">category</span>
+                <span class="font-label-md text-label-md">Categories</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">campaign</span>
+                <span class="font-label-md text-label-md">Broadcasts</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#export-tools">
+                <span class="material-symbols-outlined">assessment</span>
+                <span class="font-label-md text-label-md">Reports</span>
+            </a>
+        </nav>
+        <div class="mt-lg pt-lg border-t border-outline-variant/30 flex flex-col gap-xs">
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="font-label-md text-label-md">System Settings</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-error hover:bg-error-container/20 transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="font-label-md text-label-md">Logout</span>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<main class="ml-80 flex-1 h-screen overflow-y-auto bg-background">
+    <header class="sticky top-0 w-full z-30 bg-surface/70 backdrop-blur-xl border-b border-outline-variant/30 px-margin-desktop h-20 flex items-center justify-between">
+        <div>
+            <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">System Analytics &amp; Revenue</h2>
+            <p class="text-sm text-on-surface-variant">Thong ke doanh thu, giao dich va cong cu export du lieu</p>
+        </div>
+        <div class="flex items-center gap-sm">
+            <div class="flex items-center gap-sm bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm">
+                <span class="material-symbols-outlined text-on-surface-variant">calendar_today</span>
+                <input id="fromDate" type="date" class="bg-transparent outline-none text-sm text-on-surface"/>
+                <span class="text-on-surface-variant">-</span>
+                <input id="toDate" type="date" class="bg-transparent outline-none text-sm text-on-surface"/>
+            </div>
+            <button id="applyFilterBtn" class="bg-primary text-white px-md py-sm rounded-lg font-label-md hover:opacity-90 transition-opacity">
+                Apply Filter
+            </button>
+        </div>
+    </header>
+
+    <div class="px-margin-desktop py-lg max-w-[1600px] mx-auto space-y-lg">
+        <div id="statusMessage" class="hidden p-4 rounded-lg"></div>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
+            <div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/20">
+                <div class="flex items-center justify-between mb-sm">
+                    <div class="p-sm bg-primary-container rounded-lg text-white">
+                        <span class="material-symbols-outlined">payments</span>
+                    </div>
+                    <span class="text-xs text-on-surface-variant">All time</span>
+                </div>
+                <p class="font-label-md text-label-md text-on-surface-variant">Tong doanh thu</p>
+                <h3 id="totalRevenueValue" class="font-headline-md text-headline-md font-bold text-on-surface mt-xs">0 VND</h3>
+            </div>
+            <div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/20">
+                <div class="flex items-center justify-between mb-sm">
+                    <div class="p-sm bg-secondary-container rounded-lg text-on-secondary-container">
+                        <span class="material-symbols-outlined">receipt_long</span>
+                    </div>
+                    <span class="text-xs text-on-surface-variant">All time</span>
+                </div>
+                <p class="font-label-md text-label-md text-on-surface-variant">Tong so giao dich</p>
+                <h3 id="totalTransactionsValue" class="font-headline-md text-headline-md font-bold text-on-surface mt-xs">0</h3>
+            </div>
+            <div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/20">
+                <div class="flex items-center justify-between mb-sm">
+                    <div class="p-sm bg-tertiary-fixed rounded-lg text-on-tertiary-container">
+                        <span class="material-symbols-outlined">check_circle</span>
+                    </div>
+                    <span class="text-xs text-on-surface-variant">All time</span>
+                </div>
+                <p class="font-label-md text-label-md text-on-surface-variant">Giao dich thanh cong</p>
+                <h3 id="successfulTransactionsValue" class="font-headline-md text-headline-md font-bold text-on-surface mt-xs">0</h3>
+            </div>
+            <div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/20">
+                <div class="flex items-center justify-between mb-sm">
+                    <div class="p-sm bg-error-container rounded-lg text-error">
+                        <span class="material-symbols-outlined">cancel</span>
+                    </div>
+                    <span class="text-xs text-on-surface-variant">All time</span>
+                </div>
+                <p class="font-label-md text-label-md text-on-surface-variant">Giao dich that bai</p>
+                <h3 id="failedTransactionsValue" class="font-headline-md text-headline-md font-bold text-on-surface mt-xs">0</h3>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 xl:grid-cols-3 gap-gutter">
+            <div class="xl:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-lg">
+                <div class="flex items-start justify-between gap-md mb-lg">
+                    <div>
+                        <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">Revenue &amp; Transaction Detail</h3>
+                        <p class="text-sm text-on-surface-variant">Du lieu duoc tai truc tiep tu API dashboard theo bo loc ngay</p>
+                    </div>
+                    <div id="currentRangeLabel" class="text-sm bg-surface-container-low px-sm py-xs rounded-full text-on-surface-variant">
+                        All time
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-md mb-lg">
+                    <div class="bg-surface-container-low rounded-xl p-md">
+                        <p class="text-sm text-on-surface-variant mb-xs">Doanh thu da loc</p>
+                        <div id="filteredRevenueValue" class="text-2xl font-bold text-on-surface">0 VND</div>
+                    </div>
+                    <div class="bg-surface-container-low rounded-xl p-md">
+                        <p class="text-sm text-on-surface-variant mb-xs">So giao dich da loc</p>
+                        <div id="filteredTransactionsValue" class="text-2xl font-bold text-on-surface">0</div>
+                    </div>
+                    <div class="bg-surface-container-low rounded-xl p-md">
+                        <p class="text-sm text-on-surface-variant mb-xs">Ti le thanh cong</p>
+                        <div id="successRateValue" class="text-2xl font-bold text-on-surface">0%</div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                        <tr class="bg-surface-container-low border-b border-outline-variant">
+                            <th class="px-6 py-4 font-label-md text-on-surface-variant">TRANSACTION ID</th>
+                            <th class="px-6 py-4 font-label-md text-on-surface-variant">USERNAME</th>
+                            <th class="px-6 py-4 font-label-md text-on-surface-variant">AMOUNT</th>
+                            <th class="px-6 py-4 font-label-md text-on-surface-variant">TYPE</th>
+                            <th class="px-6 py-4 font-label-md text-on-surface-variant">STATUS</th>
+                            <th class="px-6 py-4 font-label-md text-on-surface-variant">CREATED AT</th>
+                        </tr>
+                        </thead>
+                        <tbody id="transactionTableBody" class="divide-y divide-outline-variant">
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-on-surface-variant font-label-md">Loading transactions...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="export-tools" class="space-y-gutter">
+                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-lg">
+                    <div class="flex items-center gap-md mb-md">
+                        <div class="p-sm bg-primary-container rounded-lg text-white">
+                            <span class="material-symbols-outlined">download</span>
+                        </div>
+                        <div>
+                            <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">Export Tools</h3>
+                            <p class="text-sm text-on-surface-variant">Tai file theo khoang ngay dang chon</p>
+                        </div>
+                    </div>
+                    <div class="space-y-md">
+                        <a id="excelExportLink" class="w-full inline-flex items-center justify-center gap-sm bg-primary text-white py-md rounded-lg font-label-md hover:opacity-90 transition-opacity" href="/api/admin/dashboard/export/excel">
+                            <span class="material-symbols-outlined">table_view</span>
+                            Export Excel
+                        </a>
+                        <a id="csvExportLink" class="w-full inline-flex items-center justify-center gap-sm bg-surface-container-low text-on-surface py-md rounded-lg font-label-md border border-outline-variant hover:bg-surface-container-high transition-colors" href="/api/admin/dashboard/export/csv">
+                            <span class="material-symbols-outlined">description</span>
+                            Export CSV
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-lg">
+                    <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface mb-md">API Mapping</h3>
+                    <div class="space-y-sm text-sm text-on-surface-variant">
+                        <div class="p-sm rounded-lg bg-surface-container-low">GET /api/admin/dashboard/summary</div>
+                        <div class="p-sm rounded-lg bg-surface-container-low">GET /api/admin/dashboard/revenue?from=&amp;to=</div>
+                        <div class="p-sm rounded-lg bg-surface-container-low">GET /api/admin/dashboard/transactions?from=&amp;to=</div>
+                        <div class="p-sm rounded-lg bg-surface-container-low">GET /api/admin/dashboard/export/excel?from=&amp;to=</div>
+                        <div class="p-sm rounded-lg bg-surface-container-low">GET /api/admin/dashboard/export/csv?from=&amp;to=</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script>
+    const summaryUrl = '/api/admin/dashboard/summary';
+    const revenueUrl = '/api/admin/dashboard/revenue';
+    const transactionsUrl = '/api/admin/dashboard/transactions';
+    const excelExportLink = document.getElementById('excelExportLink');
+    const csvExportLink = document.getElementById('csvExportLink');
+    const fromDateInput = document.getElementById('fromDate');
+    const toDateInput = document.getElementById('toDate');
+    const applyFilterBtn = document.getElementById('applyFilterBtn');
+    const statusMessage = document.getElementById('statusMessage');
+    const transactionTableBody = document.getElementById('transactionTableBody');
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadSummary();
+        await loadFilteredData();
+    });
+
+    applyFilterBtn.addEventListener('click', async () => {
+        await loadFilteredData();
+    });
+
+    async function loadSummary() {
+        try {
+            const response = await fetch(summaryUrl);
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Failed to load summary');
+            }
+
+            const data = result.data || {};
+            document.getElementById('totalRevenueValue').textContent = formatCurrency(data.totalRevenue || 0);
+            document.getElementById('totalTransactionsValue').textContent = formatInteger(data.totalTransactions || 0);
+            document.getElementById('successfulTransactionsValue').textContent = formatInteger(data.successfulTransactions || 0);
+            document.getElementById('failedTransactionsValue').textContent = formatInteger(data.failedTransactions || 0);
+        } catch (error) {
+            showMessage(error.message, 'error');
+        }
+    }
+
+    async function loadFilteredData() {
+        try {
+            const query = buildDateQuery();
+            updateRangeLabel();
+            updateExportLinks(query);
+            clearMessage();
+
+            transactionTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="px-6 py-12 text-center text-on-surface-variant font-label-md">Loading transactions...</td>
+                </tr>
+            `;
+
+            const [revenueResponse, transactionsResponse] = await Promise.all([
+                fetch(`${revenueUrl}${query}`),
+                fetch(`${transactionsUrl}${query}`)
+            ]);
+
+            const revenueResult = await revenueResponse.json();
+            const transactionsResult = await transactionsResponse.json();
+
+            if (!revenueResponse.ok || !revenueResult.success) {
+                throw new Error(revenueResult.message || 'Failed to load revenue data');
+            }
+            if (!transactionsResponse.ok || !transactionsResult.success) {
+                throw new Error(transactionsResult.message || 'Failed to load transaction data');
+            }
+
+            renderRevenue(revenueResult.data || {});
+            renderTransactions(transactionsResult.data || {});
+        } catch (error) {
+            renderEmptyTransactions('Khong tai duoc du lieu giao dich');
+            showMessage(error.message, 'error');
+        }
+    }
+
+    function renderRevenue(data) {
+        document.getElementById('filteredRevenueValue').textContent = formatCurrency(data.totalRevenue || 0);
+    }
+
+    function renderTransactions(data) {
+        const totalTransactions = data.totalTransactions || 0;
+        const successfulTransactions = data.successfulTransactions || 0;
+        const failedTransactions = data.failedTransactions || 0;
+        const transactions = data.transactions || [];
+        const successRate = totalTransactions === 0 ? 0 : Math.round((successfulTransactions / totalTransactions) * 100);
+
+        document.getElementById('filteredTransactionsValue').textContent = formatInteger(totalTransactions);
+        document.getElementById('successRateValue').textContent = `${successRate}%`;
+
+        if (transactions.length === 0) {
+            renderEmptyTransactions('Khong co giao dich trong khoang ngay da chon');
+            return;
+        }
+
+        transactionTableBody.innerHTML = transactions.map(transaction => `
+            <tr class="hover:bg-surface-bright transition-colors">
+                <td class="px-6 py-4 font-label-md text-on-surface">#TX-${transaction.transactionId ?? ''}</td>
+                <td class="px-6 py-4 text-on-surface">${escapeHtml(transaction.username || 'N/A')}</td>
+                <td class="px-6 py-4 text-on-surface">${formatCurrency(transaction.amount || 0)}</td>
+                <td class="px-6 py-4 text-on-surface-variant">${escapeHtml(transaction.transactionType || '')}</td>
+                <td class="px-6 py-4">
+                    <span class="${statusBadgeClass(transaction.status)} px-2 py-1 rounded-full text-xs font-semibold">
+                        ${escapeHtml(transaction.status || '')}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-on-surface-variant">${formatDateTime(transaction.createdAt)}</td>
+            </tr>
+        `).join('');
+
+        showMessage(`Da tai ${formatInteger(totalTransactions)} giao dich. Completed: ${formatInteger(successfulTransactions)}, Failed: ${formatInteger(failedTransactions)}.`, 'success');
+    }
+
+    function renderEmptyTransactions(message) {
+        transactionTableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-12 text-center text-on-surface-variant font-label-md">${message}</td>
+            </tr>
+        `;
+        document.getElementById('filteredTransactionsValue').textContent = '0';
+        document.getElementById('successRateValue').textContent = '0%';
+    }
+
+    function buildDateQuery() {
+        const params = new URLSearchParams();
+        if (fromDateInput.value) {
+            params.set('from', fromDateInput.value);
+        }
+        if (toDateInput.value) {
+            params.set('to', toDateInput.value);
+        }
+        const query = params.toString();
+        return query ? `?${query}` : '';
+    }
+
+    function updateExportLinks(query) {
+        excelExportLink.href = `/api/admin/dashboard/export/excel${query}`;
+        csvExportLink.href = `/api/admin/dashboard/export/csv${query}`;
+    }
+
+    function updateRangeLabel() {
+        const from = fromDateInput.value;
+        const to = toDateInput.value;
+        const label = (!from && !to) ? 'All time' : `${from || '...'} -> ${to || '...'}`;
+        document.getElementById('currentRangeLabel').textContent = label;
+    }
+
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('vi-VN').format(value) + ' VND';
+    }
+
+    function formatInteger(value) {
+        return new Intl.NumberFormat('vi-VN').format(value);
+    }
+
+    function formatDateTime(value) {
+        if (!value) {
+            return '';
+        }
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return value;
+        }
+        return new Intl.DateTimeFormat('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        }).format(date);
+    }
+
+    function statusBadgeClass(status) {
+        if (status === 'COMPLETED') {
+            return 'bg-green-100 text-green-700';
+        }
+        if (status === 'FAILED') {
+            return 'bg-red-100 text-red-700';
+        }
+        return 'bg-surface-container-high text-on-surface-variant';
+    }
+
+    function showMessage(message, type) {
+        statusMessage.textContent = message;
+        statusMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+        if (type === 'success') {
+            statusMessage.classList.add('bg-green-100', 'text-green-800');
+        } else {
+            statusMessage.classList.add('bg-red-100', 'text-red-800');
+        }
+    }
+
+    function clearMessage() {
+        statusMessage.classList.add('hidden');
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+</body>
+</html>
