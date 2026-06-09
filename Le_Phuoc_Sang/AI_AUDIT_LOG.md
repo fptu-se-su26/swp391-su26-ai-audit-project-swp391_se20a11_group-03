@@ -4,16 +4,16 @@
 
 | Thông tin | Nội dung |
 |---|---|
-| Môn học |  | Software development project
-| Mã môn học |  |SWP391
-| Lớp |  |SE20A11
-| Học kỳ |  |Sum26
-| Tên bài tập / Project |  |Realtime Bidding System
-| Tên sinh viên / Nhóm |  |Lê Phước Sang - Nhóm 3
-| MSSV / Danh sách MSSV |  |DE190062
-| Giảng viên hướng dẫn |  |Lê Thiện Nhật Quang
-| Ngày bắt đầu |  |18/05/2026
-| Ngày hoàn thành |  |12/07/2026
+| Môn học | Software development project | 
+| Mã môn học |SWP391 |
+| Lớp | SE20A11 |
+| Học kỳ |Sum26  |
+| Tên bài tập / Project |Realtime Bidding System  |
+| Tên sinh viên / Nhóm | Lê Phước Sang - Nhóm 3 |
+| MSSV / Danh sách MSSV | DE190062 |
+| Giảng viên hướng dẫn | Lê Thiện Nhật Quang |
+| Ngày bắt đầu | 18/05/2026 |
+| Ngày hoàn thành | 12/07/2026 |
 
 ---
 
@@ -80,11 +80,10 @@ Sử dụng Cursor viết Code và Debug
 
 ```text
 Dán nguyên văn prompt đã hỏi AI tại đây.
-```
 Forntend : Bạn là chuyên gia thiết kế UX/UI có 20 năm kinh nghiệm. Sử dụng mẫu hình tôi gửi và design 1 trang đăng nhập/ đăng ký tài khoản hiện đại và tối giản nhưng đẹp. 
 
 Database: Bạn là chuyên gia phân tích xử lí dữ liệu tạo database bằng SQL Server về lưu trữ thông tin tài khoàn mật khẩu, bảo mật thông tin đăng ký/ đăng nhập tài khoản
-
+```
 
 #### 4.2. Kết quả AI gợi ý
 
@@ -92,16 +91,17 @@ Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
 
 ```text
 Viết tại đây...
-```
 AI đọc code và xử lí ngay trên Cursor
+```
 #### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
 
 Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
 
 ```text
 Viết tại đây...
-```
 Ai đã gợi ý : Cách connect với API ORC không bị lỗi và sử dụng mượt mà khi nhiều tài khoàn cùng đăng kí 
+```
+
 
 #### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
 
@@ -109,8 +109,8 @@ Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải
 
 ```text
 Viết tại đây...
-```
 Từ gợi ý của AI em đã sáng tạo thêm cách cải tiến, bảo mật và mã hóa thông tin của member
+```
 
 #### 4.5. Minh chứng
 
