@@ -1,4 +1,5 @@
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\dto\AttributeOptionDTO.java
+C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\config\DataInitializer.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\entity\CategoryAttribute.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\entity\ProductAttributeValue.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\service\ContractService.java
@@ -32,6 +33,7 @@ C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-0
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\util\ThymeleafPDFUtil.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\exception\ResourceNotFoundException.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\service\EmailService.java
+C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\repository\RoleRepository.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\service\impl\EmailServiceImpl.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\entity\Category.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\dto\CategoryAttributeDTO.java

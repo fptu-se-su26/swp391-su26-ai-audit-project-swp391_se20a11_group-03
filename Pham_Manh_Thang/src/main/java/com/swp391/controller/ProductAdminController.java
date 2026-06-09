@@ -1,6 +1,8 @@
 package com.swp391.controller;
 
 import com.swp391.dto.*;
+import com.swp391.entity.User;
+import com.swp391.repository.UserRepository;
 import com.swp391.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.List;
 public class ProductAdminController {
 
     private final ProductService productService;
+    private final UserRepository userRepository;
 
     @GetMapping("/pending")
     public ResponseEntity<ApiResponse<List<ProductResponseDTO>>> getPendingProducts() {
@@ -38,8 +41,9 @@ public class ProductAdminController {
         if (request == null) {
             request = new ProductApprovalRequestDTO();
         }
-        // TODO: Replace with actual authenticated user ID from Spring Security
-        Long reviewerId = 1L;
+        // Get first admin user as reviewer
+        List<User> admins = userRepository.findByRole_RoleName("Admin");
+        Long reviewerId = admins.isEmpty() ? 1L : admins.get(0).getUserId();
         ProductResponseDTO product = productService.approveProduct(productId, request, reviewerId);
         return ResponseEntity.ok(ApiResponse.success("Product approved successfully", product));
     }
@@ -48,8 +52,9 @@ public class ProductAdminController {
     public ResponseEntity<ApiResponse<ProductResponseDTO>> rejectProduct(
             @PathVariable Long productId,
             @Valid @RequestBody ProductApprovalRequestDTO request) {
-        // TODO: Replace with actual authenticated user ID from Spring Security
-        Long reviewerId = 1L;
+        // Get first admin user as reviewer
+        List<User> admins = userRepository.findByRole_RoleName("Admin");
+        Long reviewerId = admins.isEmpty() ? 1L : admins.get(0).getUserId();
         ProductResponseDTO product = productService.rejectProduct(productId, request, reviewerId);
         return ResponseEntity.ok(ApiResponse.success("Product rejected successfully", product));
     }

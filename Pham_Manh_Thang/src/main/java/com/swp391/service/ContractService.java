@@ -7,4 +7,5 @@ import com.swp391.entity.Contract;
  */
 public interface ContractService {
     Contract createListingContract(Long productId, Long generatedBy);
+    byte[] generateListingContractPdf(Long productId);
 }

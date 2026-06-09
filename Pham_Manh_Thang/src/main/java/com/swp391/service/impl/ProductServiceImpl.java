@@ -6,8 +6,10 @@ import com.swp391.exception.BusinessException;
 import com.swp391.exception.ResourceNotFoundException;
 import com.swp391.repository.*;
 import com.swp391.service.ContractService;
+import com.swp391.service.EmailService;
 import com.swp391.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +23,11 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductServiceImpl implements ProductService {
+
+    private static final String ADMIN_NOTIFICATION_EMAIL = "binbin233444@gmail.com";
+    private static final String SELLER_NOTIFICATION_EMAIL = "thuhuongiuudau1@gmail.com";
 
     private final ProductRepository productRepository;
     private final ProductApprovalRepository productApprovalRepository;
@@ -31,6 +37,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryAttributeRepository categoryAttributeRepository;
     private final UserRepository userRepository;
     private final ContractService contractService;
+    private final EmailService emailService;
 
     @Override
     public List<ProductResponseDTO> getPendingProducts() {
@@ -69,8 +76,12 @@ public class ProductServiceImpl implements ProductService {
         // Create listing contract
         contractService.createListingContract(productId, reviewerId);
 
+        // Generate PDF and send emails
+        byte[] pdfBytes = contractService.generateListingContractPdf(productId);
+        
+        sendApprovalNotifications(product, productId, pdfBytes);
+
         // TODO: Integrate AuctionService after merge
-        // TODO: Integrate NotificationService after merge to notify seller and admin
 
         return convertToDTO(product);
     }
@@ -95,7 +106,7 @@ public class ProductServiceImpl implements ProductService {
 
         saveApprovalHistory(product, reviewerId, "REJECTED", request.getReason(), request.getApprovalNote());
 
-        // TODO: Integrate NotificationService after merge to notify seller
+        sendRejectionNotification(product, productId, request.getReason());
 
         return convertToDTO(product);
     }
@@ -182,6 +193,40 @@ public class ProductServiceImpl implements ProductService {
         approval.setApprovalNote(approvalNote);
         approval.setReviewedAt(LocalDateTime.now());
         productApprovalRepository.save(approval);
+    }
+
+    private void sendApprovalNotifications(Product product, Long productId, byte[] pdfBytes) {
+        try {
+            emailService.sendListingContractEmail(ADMIN_NOTIFICATION_EMAIL, productId, pdfBytes);
+        } catch (Exception e) {
+            log.warn("Failed to send approval contract email to admin {} for product {}", ADMIN_NOTIFICATION_EMAIL, productId, e);
+        }
+
+        try {
+            emailService.sendProductApprovalEmail(SELLER_NOTIFICATION_EMAIL, productId, product.getProductName());
+        } catch (Exception e) {
+            log.warn("Failed to send approval email to seller {} for product {}", SELLER_NOTIFICATION_EMAIL, productId, e);
+        }
+
+        try {
+            emailService.sendListingContractEmail(SELLER_NOTIFICATION_EMAIL, productId, pdfBytes);
+        } catch (Exception e) {
+            log.warn("Failed to send contract email to seller {} for product {}", SELLER_NOTIFICATION_EMAIL, productId, e);
+        }
+    }
+
+    private void sendRejectionNotification(Product product, Long productId, String reason) {
+        try {
+            emailService.sendProductRejectionEmail(SELLER_NOTIFICATION_EMAIL, productId, product.getProductName(), reason);
+        } catch (Exception e) {
+            log.warn("Failed to send rejection email to seller {} for product {}", SELLER_NOTIFICATION_EMAIL, productId, e);
+        }
+
+        try {
+            emailService.sendProductRejectionEmail(ADMIN_NOTIFICATION_EMAIL, productId, product.getProductName(), reason);
+        } catch (Exception e) {
+            log.warn("Failed to send rejection email to admin {} for product {}", ADMIN_NOTIFICATION_EMAIL, productId, e);
+        }
     }
 
     private void checkRequiredAttributes(Integer categoryId, List<ProductAttributeValue> productAttributes) {

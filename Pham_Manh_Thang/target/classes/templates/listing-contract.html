@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Hợp Đồng Ủy Quyền Đăng Sản Phẩm</title>
+    <style>
+        body {
+            font-family: 'Arial', 'Times New Roman', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 40px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .section {
+            margin-top: 20px;
+        }
+        .label {
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>HỢP ĐỒNG ỦY QUYỀN ĐĂNG SẢN PHẨM</h1>
+    <div class="section">
+        <p><span class="label">Ngày lập hợp đồng:</span> <span th:text="${contractDate}"></span></p>
+    </div>
+    <div class="section">
+        <h3>Thông Tin Người Bán:</h3>
+        <p><span class="label">Họ tên:</span> <span th:text="${sellerName}"></span></p>
+        <p><span class="label">Email:</span> <span th:text="${sellerEmail}"></span></p>
+    </div>
+    <div class="section">
+        <h3>Thông Tin Sản Phẩm:</h3>
+        <table>
+            <tr>
+                <th>Trường</th>
+                <th>Giá trị</th>
+            </tr>
+            <tr>
+                <td>Mã Đăng Ký</td>
+                <td th:text="${productId}"></td>
+            </tr>
+            <tr>
+                <td>Tên Sản Phẩm</td>
+                <td th:text="${productName}"></td>
+            </tr>
+            <tr>
+                <td>Giá Khởi Điểm</td>
+                <td th:text="${#numbers.formatDecimal(productStartingPrice, 0, 'COMMA', 0, 'POINT')}"></td>
+            </tr>
+            <tr>
+                <td>Giá Bước</td>
+                <td th:text="${#numbers.formatDecimal(productStepPrice, 0, 'COMMA', 0, 'POINT')}"></td>
+            </tr>
+            <tr>
+                <td>Thuế (%)</td>
+                <td th:text="${productTaxPercent}"></td>
+            </tr>
+        </table>
+    </div>
+    <div class="section">
+        <h3>Điều Khoản:</h3>
+        <p>1. Người bán đồng ý ủy quyền cho hệ thống quản lý và đăng sản phẩm lên sàn đấu giá.</p>
+        <p>2. Người bán cam kết tất cả thông tin về sản phẩm là chính xác và hợp pháp.</p>
+        <p>3. Hệ thống có quyền từ chối hoặc gỡ sản phẩm nếu phát hiện vi phạm quy định.</p>
+    </div>
+    <div style="margin-top: 50px; text-align: right;">
+        <p><span class="label">Người đại diện hệ thống:</span></p>
+        <p style="margin-top: 80px;">(Đã ký điện tử)</p>
+    </div>
+</body>
+</html>

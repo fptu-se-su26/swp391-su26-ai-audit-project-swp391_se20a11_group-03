@@ -176,9 +176,9 @@
         </div>
         <div class="flex items-center gap-gutter">
             <!-- Search -->
-            <div class="relative w-64">
+            <div class="relative w-96">
                 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-                <input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary outline-none text-body-md" placeholder="Search approvals..." type="text"/>
+                <input id="searchInput" class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary outline-none text-body-md" placeholder="Search by ID, name, category..." type="text"/>
             </div>
         </div>
     </header>
@@ -201,16 +201,17 @@
                 </thead>
                 <tbody class="divide-y divide-outline-variant">
                 <!-- Loop through products -->
-                <tr th:each="product : ${products}" class="hover:bg-surface-bright transition-colors group">
+                <tr th:each="product : ${products}" class="product-row hover:bg-surface-bright transition-colors group">
                     <td class="px-6 py-5 font-label-md text-primary" th:text="'#SUB-' + ${product.productId}">#SUB-0000</td>
                     <td class="px-6 py-5 font-body-md" th:text="${product.productName}">Product Name</td>
                     <td class="px-6 py-5">
-                        <span class="px-2 py-1 bg-surface-container-high rounded text-label-sm font-medium" th:text="${product.categoryId}">Category</span>
+                        <span class="px-2 py-1 bg-surface-container-high rounded text-label-sm font-medium" th:text="${categoryNames[product.categoryId]}">Category</span>
                     </td>
                     <td class="px-6 py-5 font-body-md font-bold text-primary" th:text="${product.startingPrice}">$0</td>
                     <td class="px-6 py-5 text-right space-x-2">
                         <!-- Approve Form -->
                         <form th:action="@{/admin/products/{id}/approve(id=${product.productId})}" method="post" style="display: inline;">
+                            <input type="hidden" name="page" th:value="${currentPage}">
                             <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-label-md transition-colors">Approve</button>
                         </form>
                         <!-- Reject Button - Opens Modal -->
@@ -224,6 +225,31 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="flex items-center justify-between gap-4">
+            <p class="text-sm text-on-surface-variant" th:text="'Tong ' + ${totalItems} + ' san pham pending - Trang ' + (${totalPages == 0} ? 0 : ${currentPage + 1}) + '/' + (${totalPages == 0} ? 1 : ${totalPages})">
+                Tong 0 san pham pending
+            </p>
+            <div class="flex items-center gap-2" th:if="${totalPages > 1}">
+                <a th:href="@{/admin/products/pending(page=${currentPage - 1})}"
+                   th:classappend="${currentPage == 0} ? 'pointer-events-none opacity-50' : ''"
+                   class="px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-low hover:bg-surface-container-high transition-colors">
+                    Previous
+                </a>
+                <a th:each="pageNumber : ${#numbers.sequence(0, totalPages - 1)}"
+                   th:href="@{/admin/products/pending(page=${pageNumber})}"
+                   th:text="${pageNumber + 1}"
+                   th:classappend="${pageNumber == currentPage} ? ' bg-primary text-white border-primary' : ' bg-surface-container-low text-on-surface border-outline-variant hover:bg-surface-container-high'"
+                   class="px-4 py-2 rounded-lg border transition-colors">
+                    1
+                </a>
+                <a th:href="@{/admin/products/pending(page=${currentPage + 1})}"
+                   th:classappend="${currentPage >= totalPages - 1} ? 'pointer-events-none opacity-50' : ''"
+                   class="px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-low hover:bg-surface-container-high transition-colors">
+                    Next
+                </a>
+            </div>
+        </div>
     </div>
 </main>
 
@@ -232,6 +258,7 @@
     <div class="bg-white rounded-xl p-6 w-96 shadow-2xl">
         <h3 class="font-headline-sm mb-4 text-on-surface">Reject Product</h3>
         <form id="rejectForm" method="post">
+            <input type="hidden" name="page" th:value="${currentPage}">
             <div class="mb-4">
                 <label class="font-label-sm text-on-surface-variant mb-2 block">Reason for Rejection</label>
                 <textarea name="reason" required class="w-full p-3 border border-outline-variant rounded-lg focus:ring-1 focus:ring-error outline-none" rows="3" placeholder="Enter rejection reason..."></textarea>
@@ -262,6 +289,31 @@
         if (e.target === this) {
             closeRejectModal();
         }
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.querySelector('tbody');
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const rows = tableBody.querySelectorAll('.product-row');
+        
+        rows.forEach(row => {
+            const productId = row.children[0]?.textContent.toLowerCase() || '';
+            const productName = row.children[1]?.textContent.toLowerCase() || '';
+            const category = row.children[2]?.textContent.toLowerCase() || '';
+            const matchesSearch =
+                productId.includes(searchTerm) ||
+                productName.includes(searchTerm) ||
+                category.includes(searchTerm);
+
+            if (matchesSearch) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
     });
 </script>
 </body>

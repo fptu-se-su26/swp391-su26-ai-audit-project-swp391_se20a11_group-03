@@ -1,18 +1,27 @@
 package com.swp391.util;
 
 import com.lowagie.text.DocumentException;
+import com.lowagie.text.pdf.BaseFont;
+import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 /**
  * @author Pham Manh Thang
- * TODO: Integrate with actual PDF generation library
  */
+@Component
 public class ThymeleafPDFUtil {
+
+    private static final String[] VIETNAMESE_FONT_PATHS = {
+            "C:\\Windows\\Fonts\\arial.ttf",
+            "C:\\Windows\\Fonts\\times.ttf"
+    };
 
     private final TemplateEngine templateEngine;
 
@@ -27,9 +36,22 @@ public class ThymeleafPDFUtil {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ITextRenderer renderer = new ITextRenderer();
+        registerVietnameseFonts(renderer);
         renderer.setDocumentFromString(html);
         renderer.layout();
         renderer.createPDF(outputStream);
         return outputStream.toByteArray();
+    }
+
+    private void registerVietnameseFonts(ITextRenderer renderer) throws DocumentException {
+        for (String fontPath : VIETNAMESE_FONT_PATHS) {
+            if (new File(fontPath).exists()) {
+                try {
+                    renderer.getFontResolver().addFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+                } catch (IOException e) {
+                    throw new DocumentException(e);
+                }
+            }
+        }
     }
 }

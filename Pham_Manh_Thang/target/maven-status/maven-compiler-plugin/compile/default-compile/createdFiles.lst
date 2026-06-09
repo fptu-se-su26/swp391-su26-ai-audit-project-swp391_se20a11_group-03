@@ -15,6 +15,7 @@ com\swp391\dto\ProductAttributeValueDTO.class
 com\swp391\service\ProductService.class
 com\swp391\exception\BusinessException.class
 com\swp391\repository\AttributeOptionRepository.class
+com\swp391\config\DataInitializer.class
 com\swp391\entity\AttributeOption.class
 com\swp391\entity\ProductApproval.class
 com\swp391\repository\ContractRepository.class
@@ -46,6 +47,7 @@ com\swp391\repository\UserRepository.class
 com\swp391\dto\CreateProductAttributeValueDTO.class
 com\swp391\dto\CreateProductImageDTO.class
 com\swp391\controller\StaffProductController.class
+com\swp391\repository\RoleRepository.class
 com\swp391\util\ThymeleafPDFUtil.class
 com\swp391\service\EmailService.class
 com\swp391\entity\ProductAttributeValue.class
