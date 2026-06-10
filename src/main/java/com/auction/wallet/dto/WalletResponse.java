@@ -1,4 +1,4 @@
-package com.hoangxuananhtuan.auction.dto;
+package com.auction.wallet.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -12,5 +12,3 @@ public class WalletResponse {
     private Long holdBalance;
     private String status;
 }
-
-

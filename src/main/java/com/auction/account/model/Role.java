@@ -1,4 +1,4 @@
-package com.swp391.entity;
+package com.auction.account.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -22,4 +22,3 @@ public class Role {
     @Column(name = "RoleName", nullable = false, unique = true, length = 50)
     private String roleName;
 }
-

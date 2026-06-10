@@ -1,6 +1,6 @@
-package com.auction.account.service;
+package com.auction.common.service;
 
-import com.auction.account.util.AppConfig;
+import com.auction.common.util.AppConfig;
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
@@ -64,5 +64,3 @@ public class MailService {
                 + "</div>";
     }
 }
-
-

@@ -1,4 +1,4 @@
-package com.auction.account.util;
+package com.auction.common.util;
 
 import com.auction.account.dao.AuditLogDAO;
 import com.auction.account.model.AuditLog;
@@ -44,5 +44,3 @@ public final class AuditLogUtil {
         return value == null ? "-" : value.replaceAll("[\r\n]+", " ").trim();
     }
 }
-
-

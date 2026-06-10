@@ -1,10 +1,10 @@
-package com.auction.account.service;
+package com.auction.common.service;
 
 import com.auction.account.model.IdentityDocument;
 import com.auction.account.model.User;
 import com.auction.account.model.VerificationStatus;
-import com.auction.account.util.AppConfig;
-import com.auction.account.util.TokenUtil;
+import com.auction.common.util.AppConfig;
+import com.auction.common.util.TokenUtil;
 
 public class OcrService {
     public String getProviderName() {
@@ -44,5 +44,3 @@ public class OcrService {
 
     public record OcrResult(String providerName, String status, String rawJson) {}
 }
-
-

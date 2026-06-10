@@ -1,4 +1,4 @@
-package org.example.backend.dto;
+package com.auction.chat.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

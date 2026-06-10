@@ -1,4 +1,4 @@
-package com.hoangxuananhtuan.auction.domain;
+package com.auction.wallet.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -38,5 +38,3 @@ public class Transaction {
     @Column(name = "CreatedAt", nullable = false)
     private LocalDateTime createdAt;
 }
-
-

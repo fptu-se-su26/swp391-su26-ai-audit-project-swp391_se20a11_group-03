@@ -1,10 +1,10 @@
-package org.example.backend.controller;
+package com.auction.chat.controller;
 
+import com.auction.chat.dto.LoginRequest;
+import com.auction.chat.dto.LoginResponse;
+import com.auction.chat.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.backend.dto.LoginRequest;
-import org.example.backend.dto.LoginResponse;
-import org.example.backend.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

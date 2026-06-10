@@ -1,4 +1,4 @@
-package com.auction.account.util;
+package com.auction.common.util;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -34,5 +34,3 @@ public final class TokenUtil {
         return sb.toString();
     }
 }
-
-

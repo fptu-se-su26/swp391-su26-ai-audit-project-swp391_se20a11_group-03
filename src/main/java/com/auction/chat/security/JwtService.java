@@ -1,4 +1,4 @@
-package org.example.backend.security;
+package com.auction.chat.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

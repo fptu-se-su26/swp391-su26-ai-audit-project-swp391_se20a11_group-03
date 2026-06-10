@@ -1,4 +1,4 @@
-package com.hoangxuananhtuan.auction.exception;
+package com.auction.common.exception;
 
 public class ResourceNotFoundException extends RuntimeException {
     public ResourceNotFoundException(String message) {

@@ -1,4 +1,4 @@
-package org.example.backend.exception;
+package com.auction.common.exception;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -56,4 +56,3 @@ public class GlobalExceptionHandler {
                 "timestamp", LocalDateTime.now().toString()));
     }
 }
-

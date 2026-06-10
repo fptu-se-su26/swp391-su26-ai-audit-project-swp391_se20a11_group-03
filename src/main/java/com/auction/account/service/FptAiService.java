@@ -1,6 +1,6 @@
 package com.auction.account.service;
 
-import com.auction.account.util.FptAiConfig;
+import com.auction.common.util.FptAiConfig;
 
 import java.net.URI;
 import java.net.http.HttpClient;

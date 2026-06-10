@@ -1,7 +1,7 @@
-package org.example.backend.security;
+package com.auction.chat.security;
 
+import com.auction.chat.entity.User;
 import lombok.Getter;
-import org.example.backend.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

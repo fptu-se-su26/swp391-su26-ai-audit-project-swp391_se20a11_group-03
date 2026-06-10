@@ -1,6 +1,6 @@
-package com.hoangxuananhtuan.auction.service;
+package com.auction.wallet.service;
 
-import com.hoangxuananhtuan.auction.dto.WalletResponse;
+import com.auction.wallet.dto.WalletResponse;
 
 public interface WalletService {
     WalletResponse getWalletByUserId(Long userId);

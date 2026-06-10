@@ -1,7 +1,7 @@
-package com.hoangxuananhtuan.auction.controller;
+package com.auction.wallet.controller;
 
-import com.hoangxuananhtuan.auction.dto.WalletResponse;
-import com.hoangxuananhtuan.auction.service.WalletService;
+import com.auction.wallet.dto.WalletResponse;
+import com.auction.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,5 +21,3 @@ public class WalletController {
         return ResponseEntity.ok(walletService.getWalletByUserId(userId));
     }
 }
-
-

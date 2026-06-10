@@ -1,4 +1,4 @@
-package org.example.backend.security;
+package com.auction.chat.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

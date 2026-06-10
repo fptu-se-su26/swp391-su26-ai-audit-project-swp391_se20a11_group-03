@@ -1,4 +1,4 @@
-package org.example.backend.dto;
+package com.auction.chat.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

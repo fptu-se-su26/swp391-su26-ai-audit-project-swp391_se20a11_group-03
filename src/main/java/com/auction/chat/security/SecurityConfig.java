@@ -1,4 +1,4 @@
-package org.example.backend.security;
+package com.auction.chat.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

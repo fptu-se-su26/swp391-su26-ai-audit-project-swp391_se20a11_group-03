@@ -1,19 +1,15 @@
-package com.swp391.entity;
+package com.auction.product.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
-/**
- * @author Pham Manh Thang
- */
 @Entity
 @Table(name = "Products")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,4 +49,3 @@ public class Product {
     @Column(name = "RejectionReason", length = 500)
     private String rejectionReason;
 }
-

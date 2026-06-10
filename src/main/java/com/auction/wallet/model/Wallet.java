@@ -1,5 +1,6 @@
-package com.hoangxuananhtuan.auction.domain;
+package com.auction.wallet.model;
 
+import com.auction.account.model.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,5 +30,3 @@ public class Wallet {
     @Column(name = "UpdatedAt", nullable = false)
     private LocalDateTime updatedAt;
 }
-
-

@@ -1,4 +1,4 @@
-package org.example.backend.entity;
+package com.auction.chat.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

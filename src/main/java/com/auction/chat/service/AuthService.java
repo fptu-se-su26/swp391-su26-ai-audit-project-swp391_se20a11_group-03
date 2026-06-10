@@ -1,13 +1,13 @@
-package org.example.backend.service;
+package com.auction.chat.service;
 
+import com.auction.chat.dto.LoginRequest;
+import com.auction.chat.dto.LoginResponse;
+import com.auction.chat.entity.User;
+import com.auction.chat.repository.UserRepository;
+import com.auction.chat.security.JwtService;
+import com.auction.chat.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.backend.dto.LoginRequest;
-import org.example.backend.dto.LoginResponse;
-import org.example.backend.entity.User;
-import org.example.backend.repository.UserRepository;
-import org.example.backend.security.JwtService;
-import org.example.backend.security.UserDetailsImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;

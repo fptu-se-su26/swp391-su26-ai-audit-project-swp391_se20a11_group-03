@@ -1,4 +1,4 @@
-package com.hoangxuananhtuan.auction.domain;
+package com.auction.account.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -64,4 +64,3 @@ public class KycProfile {
     @Column(name = "ProcessedAt")
     private LocalDateTime processedAt;
 }
-

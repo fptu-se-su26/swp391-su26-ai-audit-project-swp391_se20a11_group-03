@@ -1,6 +1,6 @@
-package com.auction.account.service;
+package com.auction.common.service;
 
-import com.auction.account.util.AuditLogUtil;
+import com.auction.common.util.AuditLogUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -21,6 +21,3 @@ public final class AuthAuditService {
         AuditLogUtil.authEvent("REGISTER", false, email, message, request.getRemoteAddr(), request.getHeader("User-Agent"));
     }
 }
-
-
-

@@ -1,4 +1,4 @@
-package com.auction.account.util;
+package com.auction.common.util;
 
 public final class FptAiConfig {
     private static final String API_KEY_ENV = "FPT_AI_API_KEY";
@@ -32,6 +32,3 @@ public final class FptAiConfig {
         return null;
     }
 }
-
-
-

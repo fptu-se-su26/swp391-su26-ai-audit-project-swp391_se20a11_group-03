@@ -1,10 +1,10 @@
-package com.hoangxuananhtuan.auction.service.impl;
+package com.auction.wallet.service;
 
-import com.hoangxuananhtuan.auction.domain.Wallet;
-import com.hoangxuananhtuan.auction.dto.WalletResponse;
-import com.hoangxuananhtuan.auction.exception.ResourceNotFoundException;
-import com.hoangxuananhtuan.auction.repository.WalletRepository;
-import com.hoangxuananhtuan.auction.service.WalletService;
+import com.auction.common.exception.ResourceNotFoundException;
+import com.auction.wallet.dto.WalletResponse;
+import com.auction.wallet.model.Wallet;
+import com.auction.wallet.repository.WalletRepository;
+import com.auction.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

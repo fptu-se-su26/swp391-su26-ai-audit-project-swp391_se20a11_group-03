@@ -1,8 +1,8 @@
-package org.example.backend.security;
+package com.auction.chat.security;
 
+import com.auction.chat.entity.User;
+import com.auction.chat.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.example.backend.entity.User;
-import org.example.backend.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
