@@ -4,229 +4,180 @@
 
 | Thông tin | Nội dung |
 |---|---|
-| Môn học |  |
-| Mã môn học |  |
-| Lớp |  |
-| Học kỳ |  |
-| Tên bài tập / Project |  |
-| Tên sinh viên / Nhóm |  |
-| MSSV / Danh sách MSSV |  |
-| Giảng viên hướng dẫn |  |
-| Ngày hoàn thành reflection |  |
+| Môn học | Software Development Project |
+| Mã môn học | SWP391 |
+| Lớp | SE20A11 |
+| Học kỳ | 5 |
+| Tên bài tập / Project | Realtime Bidding System |
+| Tên sinh viên / Nhóm | Phạm Mạnh Thắng – Nhóm 5 |
+| MSSV | DE190404 |
+| Giảng viên hướng dẫn | Lê Thiện Nhật Quang |
+| Ngày hoàn thành reflection | 12/07/2026 |
 
 ---
 
 ## 2. Mục đích Reflection
 
-File này dùng để sinh viên/nhóm tự đánh giá quá trình sử dụng AI trong học tập và thực hiện bài tập, lab, assignment hoặc project.
+Tự đánh giá quá trình sử dụng AI khi phát triển **5 chức năng phụ trách** trong folder `Pham_Manh_Thang`:
 
-Reflection cần thể hiện:
-
-- AI đã hỗ trợ gì trong quá trình học.
-- Sinh viên/nhóm đã kiểm chứng kết quả AI như thế nào.
-- Sinh viên/nhóm đã tự chỉnh sửa, cải tiến ra sao.
-- Sinh viên/nhóm học được gì về môn học.
-- Sinh viên/nhóm học được gì về cách sử dụng AI minh bạch và có trách nhiệm.
+| Mã | Chức năng |
+|:---:|---|
+| M2.1 | Xác thực & Duyệt sản phẩm đấu giá |
+| M2.2 | Tự động ký & gửi Hợp đồng ủy quyền lên sàn (Listing Contract) |
+| M2.3 | Quản lý danh mục & Thuộc tính SP |
+| M8.1 | Thống kê doanh thu & Giao dịch |
+| M8.2 | Xuất báo cáo dữ liệu (Excel/CSV) |
 
 ---
 
 ## 3. Tóm tắt quá trình sử dụng AI
 
-Mô tả ngắn gọn quá trình sử dụng AI trong bài tập/project này.
+Em bắt đầu dùng ChatGPT từ Phase 01–02 để hỏi lý thuyết Spring Boot, JPA, và thiết kế entity cho M2.1/M2.3. Từ Phase 03 trở đi em chuyển sang dùng Cursor nhiều hơn vì nó đọc được toàn bộ project và gợi ý code phù hợp với cấu trúc sẵn có.
 
-```text
-Viết tại đây...
-```
+AI được dùng xuyên suốt 5 chức năng: **M2.1** approve/reject + UI admin, **M2.2** PDF contract + email, **M2.3** CRUD category/attribute + validation, **M8.1** thống kê doanh thu + Chart.js, **M8.2** export Excel/CSV. Mức độ sử dụng ở mức **trung bình đến nhiều**, nhưng em luôn tự chạy thử và chỉnh sửa trước khi coi là xong.
 
-Gợi ý:
-
-- Em/nhóm đã dùng AI ở giai đoạn nào?
-- Dùng AI để hỗ trợ việc gì?
-- Công cụ AI nào được sử dụng nhiều nhất?
-- AI có giúp cải thiện chất lượng bài làm không?
-- Có phần nào AI gợi ý nhưng em/nhóm không sử dụng không?
+Có một số gợi ý AI em **không** áp dụng, ví dụ implement Spring Security JWT ngay trong module vì nhóm chưa thống nhất phần authentication – em chỉ ghi TODO trong `INTEGRATION_NOTE.md`.
 
 ---
 
 ## 4. Công cụ AI đã sử dụng
 
-Đánh dấu các công cụ AI đã sử dụng.
-
-- [ ] ChatGPT
+- [x] ChatGPT
 - [ ] Gemini
 - [ ] Claude
 - [ ] GitHub Copilot
-- [ ] Cursor
-- [ ] Antigravity
-- [ ] Microsoft Copilot
-- [ ] Perplexity
-- [ ] Công cụ khác: ....................................
+- [x] Cursor
 
 ### Công cụ được sử dụng nhiều nhất
 
-```text
-Viết tại đây...
-```
+**Cursor** – vì tích hợp IDE, đọc multi-file context, phù hợp khi sửa code trực tiếp trong `Pham_Manh_Thang`.
 
 ### Lý do sử dụng công cụ đó
 
-```text
-Viết tại đây...
-```
+Cursor giúp em implement nhanh các module lớn (dashboard, category UI) mà vẫn giữ đúng package structure `com.swp391`. ChatGPT dùng khi em cần giải thích khái niệm hoặc hỏi nhanh không cần mở project.
 
 ---
 
 ## 5. AI đã hỗ trợ em/nhóm ở điểm nào?
 
-Đánh dấu các nội dung phù hợp.
-
-- [ ] Hiểu yêu cầu đề bài
-- [ ] Phân tích bài toán
-- [ ] Tìm ý tưởng giải pháp
-- [ ] Thiết kế database
-- [ ] Thiết kế giao diện
-- [ ] Thiết kế kiến trúc hệ thống
-- [ ] Viết code mẫu
-- [ ] Debug lỗi
-- [ ] Viết test case
-- [ ] Review code
-- [ ] Tối ưu code
+- [x] Hiểu yêu cầu đề bài
+- [x] Phân tích bài toán
+- [ ] Tìm ý tưởng giải pháp (một phần – em tự quyết flow chính)
+- [x] Thiết kế database
+- [x] Thiết kế giao diện
+- [x] Thiết kế kiến trúc hệ thống
+- [x] Viết code mẫu
+- [x] Debug lỗi
+- [ ] Viết test case (chưa đầy đủ)
+- [ ] Review code (một phần)
+- [x] Tối ưu code (một phần)
 - [ ] Kiểm tra bảo mật
-- [ ] Viết báo cáo
+- [x] Viết báo cáo
 - [ ] Chuẩn bị thuyết trình
-- [ ] Tìm hiểu công nghệ mới
-- [ ] Khác: ....................................
+- [x] Tìm hiểu công nghệ mới (Apache POI, Flying Saucer PDF)
 
-### Mô tả chi tiết
+### Mô tả chi tiết theo từng chức năng
 
-```text
-Viết tại đây...
-```
+| Chức năng | AI hỗ trợ | Em tự làm |
+|---|---|---|
+| **M2.1** Duyệt SP | Khung API approve/reject, UI `product-approvals.html` | Validation PENDING, flow lưu `ProductApprovals` |
+| **M2.2** Listing Contract | Flying Saucer PDF, template `listing-contract.html` | Tích hợp sau approve, cấu hình Spring Mail |
+| **M2.3** Danh mục | CRUD category/attribute, regex validation | CASCADE delete, test FK trên SSMS |
+| **M8.1** Thống kê | JPQL summary, native query group by date | Chart.js UI, date filter validation |
+| **M8.2** Export | Apache POI, CSV UTF-8 BOM | UI `/admin/reports`, filename `transactions.xlsx` |
+
+**Debug:** Khi gặp lỗi FK xóa category (M2.3), lỗi JPQL group by date (M8.1), hoặc lỗi autowire bean (M2.1), AI gợi ý hướng xử lý. Em vẫn phải tự đọc log và test lại.
+
+**Báo cáo:** AI hỗ trợ format AI Audit docs từ source code; em tự verify nội dung kỹ thuật theo đúng 5 chức năng.
 
 ---
 
 ## 6. AI có giúp em/nhóm học tốt hơn không?
 
-### 6.1. Những điểm AI giúp em/nhóm học tốt hơn
+### 6.1. Những điểm AI giúp em học tốt hơn
 
-```text
-Viết tại đây...
-```
-
-Gợi ý:
-
-- Hiểu bài nhanh hơn.
-- Có thêm ví dụ minh họa.
-- Biết cách debug lỗi.
-- Biết thêm cách tổ chức code.
-- Biết thêm cách thiết kế giải pháp.
-- Biết cách viết test case.
-- Biết cách cải thiện báo cáo hoặc slide.
+- Hiểu nhanh hơn cách map JPA với SQL Server (PascalCase columns).
+- Biết thêm pattern layered architecture và `GlobalExceptionHandler`.
+- Học cách dùng Apache POI export Excel và native query cho thống kê.
+- Có thêm ví dụ Thymeleaf admin UI thực tế.
+- Biết cách debug có hệ thống hơn thay vì trial-and-error mù quáng.
 
 ### 6.2. Những điểm AI chưa giúp tốt hoặc gây khó khăn
 
-```text
-Viết tại đây...
-```
-
-Gợi ý:
-
-- AI trả lời sai.
-- AI sinh code không chạy.
-- AI hiểu sai yêu cầu đề bài.
-- AI đưa giải pháp quá phức tạp.
-- AI thiếu ngữ cảnh môn học.
-- AI trả lời chung chung.
-- AI khiến em/nhóm dễ phụ thuộc.
+- Đôi khi AI gợi ý `@ManyToOne` không khớp schema nhóm (FK dạng ID).
+- JPQL cast date không luôn chạy trên SQL Server – em phải tự đổi native query.
+- Prompt ngắn thì AI trả lời chung chung, mất thời gian hỏi lại.
+- Có lúc AI sinh code "đẹp" nhưng thừa so với yêu cầu môn học.
+- Dễ có cảm giác xong nhanh nhưng chưa chắc đã hiểu nếu không tự test.
 
 ### 6.3. Em/nhóm có bị phụ thuộc vào AI không?
 
 - [ ] Không phụ thuộc
 - [ ] Phụ thuộc ít
-- [ ] Phụ thuộc trung bình
+- [x] Phụ thuộc trung bình
 - [ ] Phụ thuộc nhiều
 
-Giải thích:
-
-```text
-Viết tại đây...
-```
+**Giải thích:** Em dùng AI khá nhiều cho code boilerplate và query phức tạp, nhưng phần business logic (approve chỉ khi PENDING, validate category, date filter) em tự nghĩ và tự test. Nếu không có AI em vẫn làm được nhưng chậm hơn đáng kể, đặc biệt phần dashboard và export.
 
 ---
 
 ## 7. Em/nhóm đã kiểm tra kết quả AI như thế nào?
 
-Đánh dấu các cách đã sử dụng.
-
-- [ ] Chạy thử chương trình
-- [ ] Kiểm tra output
+- [x] Chạy thử chương trình
+- [x] Kiểm tra output
 - [ ] Viết test case
-- [ ] So sánh với yêu cầu đề bài
-- [ ] Đối chiếu với tài liệu môn học
-- [ ] Review code
+- [x] So sánh với yêu cầu đề bài
+- [x] Đối chiếu với tài liệu môn học
+- [x] Review code
 - [ ] Hỏi lại giảng viên
-- [ ] Tra cứu tài liệu chính thống
-- [ ] Thảo luận với thành viên nhóm
-- [ ] Kiểm tra bằng dữ liệu mẫu
-- [ ] So sánh trước và sau khi dùng AI
-- [ ] Khác: ....................................
+- [x] Tra cứu tài liệu chính thống
+- [x] Thảo luận với thành viên nhóm
+- [x] Kiểm tra bằng dữ liệu mẫu
+- [x] So sánh trước và sau khi dùng AI
 
 ### Mô tả quá trình kiểm chứng
 
-```text
-Viết tại đây...
-```
+Sau mỗi lần AI sinh code, em chạy `mvn compile` và `mvn spring-boot:run`. Với API em test bằng browser/Postman. Với dashboard em tạo sample transactions trong `DataInitializer` để chart có dữ liệu. Với category em test xóa/sửa trên UI và xem SSMS. Em đọc lại từng Service để chắc không có SQL trong Controller.
 
 ### Ví dụ cụ thể về một lần kiểm chứng
 
 | Nội dung | Mô tả |
 |---|---|
-| AI đã gợi ý gì? |  |
-| Em/nhóm đã kiểm tra bằng cách nào? |  |
-| Kết quả kiểm tra | Đúng / Sai / Cần chỉnh sửa |
-| Em/nhóm đã xử lý tiếp như thế nào? |  |
+| AI đã gợi ý gì? | JPQL group revenue by `cast(createdAt as localdate)` |
+| Em đã kiểm tra bằng cách nào? | Gọi `GET /api/admin/dashboard/revenue` → lỗi query |
+| Kết quả kiểm tra | Sai – cần chỉnh sửa |
+| Em đã xử lý tiếp như thế nào? | Đổi sang native query `CAST(t.CreatedAt AS DATE)` trong `TransactionRepository`, test lại OK |
 
 ---
 
 ## 8. Ví dụ AI gợi ý sai hoặc chưa phù hợp
 
-Ghi lại ít nhất một ví dụ nếu có.
-
 | Nội dung | Mô tả |
 |---|---|
-| AI đã gợi ý gì? |  |
-| Vì sao gợi ý đó sai/chưa phù hợp? |  |
-| Em/nhóm phát hiện bằng cách nào? |  |
-| Em/nhóm đã sửa như thế nào? |  |
-| Bài học rút ra |  |
-
-Nếu không có trường hợp AI gợi ý sai, hãy ghi rõ:
-
-```text
-Trong quá trình thực hiện, em/nhóm chưa ghi nhận trường hợp AI gợi ý sai nghiêm trọng. Tuy nhiên, em/nhóm vẫn kiểm tra lại kết quả AI trước khi sử dụng.
-```
+| AI đã gợi ý gì? | Map `Product.seller` bằng `@ManyToOne User` |
+| Vì sao gợi ý đó sai/chưa phù hợp? | Schema `SWP_Nhom3` dùng cột `SellerId BIGINT` trực tiếp, không phải quan hệ JPA object |
+| Em phát hiện bằng cách nào? | So sánh entity với script SQL database nhóm |
+| Em đã sửa như thế nào? | Dùng `private Long sellerId` trong `Product.java` |
+| Bài học rút ra | Luôn mở script DB trước khi tin entity AI sinh ra |
 
 ---
 
 ## 9. Phần đóng góp thật sự của sinh viên/nhóm
 
-Mô tả rõ phần nào là đóng góp chính của sinh viên/nhóm, không phải chỉ copy từ AI.
+**Em tự làm (theo 5 chức năng):**
 
-```text
-Viết tại đây...
-```
+- **M2.1:** Flow approve/reject, kiểm tra status PENDING, UI admin/staff.
+- **M2.2:** Tích hợp tạo contract + PDF + email ngay sau approve.
+- **M2.3:** CRUD category/attribute, validation tên, xử lý CASCADE delete.
+- **M8.1:** Native query SQL Server, Chart.js, date filter validation.
+- **M8.2:** Export Excel/CSV, UI `/admin/reports`.
+- Cấu hình `application.properties`, Spring Mail, `DataInitializer` seed demo.
+- Quyết định không implement Security/Auction vì ngoài phạm vi 5 chức năng.
+- Đọc lại và verify tài liệu AI Audit trước khi nộp.
 
-Gợi ý:
+**AI hỗ trợ:** sinh khung code, gợi ý query, gợi ý UI, hỗ trợ debug hướng, format tài liệu.
 
-- Tự phân tích yêu cầu.
-- Tự chọn giải pháp.
-- Tự chỉnh sửa code.
-- Tự kiểm tra output.
-- Tự thiết kế logic.
-- Tự sửa lỗi.
-- Tự viết báo cáo theo hiểu biết của mình.
-- Tự đánh giá ưu/nhược điểm của sản phẩm.
-- Tự thuyết trình và giải thích sản phẩm.
+**Em không copy nguyên văn** – mọi file đều qua ít nhất một vòng em tự chạy và sửa.
 
 ---
 
@@ -234,156 +185,115 @@ Gợi ý:
 
 | Nội dung | Trước khi dùng AI | Sau khi dùng AI | Cải thiện đạt được |
 |---|---|---|---|
-| Hiểu yêu cầu |  |  |  |
-| Phân tích bài toán |  |  |  |
-| Thiết kế giải pháp |  |  |  |
-| Code/Implementation |  |  |  |
-| Debug/Testing |  |  |  |
-| Báo cáo/Thuyết trình |  |  |  |
-| Làm việc nhóm |  |  |  |
+| Hiểu yêu cầu | Đọc đề nhiều lần | AI gợi ý use case nhanh | Tiết kiệm ~1–2 ngày phân tích |
+| Phân tích bài toán | Tự vẽ flow | AI gợi ý layered arch | Rõ cấu trúc package hơn |
+| Thiết kế giải pháp | Tự nghĩ | AI + tự chọn | Cân bằng tốc độ và kiểm soát |
+| Code/Implementation | Chậm, hay sai cú pháp | Nhanh hơn với boilerplate | Hoàn thành nhiều module hơn |
+| Debug/Testing | Mất nhiều thời gian | AI gợi ý hướng | Giảm thời gian "mò" lỗi |
+| Báo cáo/Thuyết trình | Format thủ công | AI hỗ trợ structure | Tập trung verify nội dung |
+| Làm việc nhóm | `INTEGRATION_NOTE.md` tự viết | AI gợi ý TODO rõ | Dễ handoff cho thành viên khác |
 
 ---
 
 ## 11. Bài học về môn học
 
-Sau bài tập/project này, em/nhóm học được gì về kiến thức môn học?
+Sau project này em hiểu rõ hơn:
 
-```text
-Viết tại đây...
-```
+- **Spring Boot layered architecture**: tách Controller, Service, Repository, DTO.
+- **JPA/Hibernate** với SQL Server: naming strategy, native query khi cần.
+- **Exception handling** tập trung với `@RestControllerAdvice`.
+- **Thymeleaf** kết hợp REST API trong cùng project.
+- **Tích hợp module nhóm**: ghi TODO, không implement phần không thuộc scope.
+- **Validation** cả server và client.
+- **Export dữ liệu** với Apache POI và CSV encoding.
 
-Gợi ý:
-
-- Kiến thức kỹ thuật đã hiểu rõ hơn.
-- Kỹ năng lập trình đã cải thiện.
-- Cách thiết kế hệ thống.
-- Cách kiểm thử.
-- Cách phân tích yêu cầu.
-- Cách làm việc nhóm.
-- Cách giải quyết lỗi.
-- Cách trình bày sản phẩm.
-- Cách đọc và hiểu tài liệu kỹ thuật.
+Em cũng nhận ra môn SWP391 không chỉ là viết code mà còn là quản lý phạm vi, tài liệu, và làm việc nhóm.
 
 ---
 
 ## 12. Bài học về sử dụng AI có trách nhiệm
 
-Sau bài tập/project này, em/nhóm học được gì về việc sử dụng AI một cách minh bạch, có trách nhiệm?
-
-```text
-Viết tại đây...
-```
-
-Gợi ý:
-
-- Không nên copy nguyên kết quả AI.
-- Cần kiểm tra lại mọi kết quả AI.
-- Cần hiểu nội dung trước khi nộp.
-- Cần ghi nhận việc sử dụng AI.
-- Cần biết AI có thể sai.
-- Cần tự chịu trách nhiệm với sản phẩm cuối cùng.
-- Cần dùng AI như công cụ hỗ trợ học tập, không thay thế hoàn toàn việc học.
+- AI có thể sai – đặc biệt với database schema cụ thể.
+- Phải ghi nhận trung thực trong AI Audit Log.
+- Không nộp code mình không giải thích được.
+- Prompt càng cụ thể càng hiệu quả.
+- AI là trợ lý, không thay thế tư duy và trách nhiệm cá nhân.
+- Kiểm tra bằng chạy thử quan trọng hơn tin AI "code đã OK".
 
 ---
 
 ## 13. Điều em/nhóm sẽ không làm khi sử dụng AI
 
-Đánh dấu các cam kết phù hợp.
+- [x] Không dùng AI để làm toàn bộ bài mà không hiểu nội dung.
+- [x] Không nộp nguyên văn kết quả AI nếu chưa kiểm tra.
+- [x] Không che giấu việc sử dụng AI trong các phần quan trọng.
+- [x] Không dùng AI để tạo nội dung sai lệch hoặc gian lận.
+- [x] Không dùng AI thay thế hoàn toàn quá trình học.
+- [x] Không bỏ qua yêu cầu, rubric hoặc hướng dẫn của giảng viên.
 
-- [ ] Không dùng AI để làm toàn bộ bài mà không hiểu nội dung.
-- [ ] Không nộp nguyên văn kết quả AI nếu chưa kiểm tra.
-- [ ] Không che giấu việc sử dụng AI trong các phần quan trọng.
-- [ ] Không dùng AI để tạo nội dung sai lệch hoặc gian lận.
-- [ ] Không dùng AI thay thế hoàn toàn quá trình học.
-- [ ] Không bỏ qua yêu cầu, rubric hoặc hướng dẫn của giảng viên.
+### Giải thích thêm
 
-### Giải thích thêm nếu có
-
-```text
-Viết tại đây...
-```
+Em dùng AI nhiều nhưng vẫn coi đây là **công cụ học tập**. Phần quan trọng nhất là em hiểu flow approve product, cách query dashboard, và lý do chưa có authentication trong module mình.
 
 ---
 
 ## 14. Kế hoạch cải thiện lần sau
 
-Lần sau em/nhóm sẽ sử dụng AI tốt hơn bằng cách nào?
-
-```text
-Viết tại đây...
-```
-
-Gợi ý:
-
-- Viết prompt rõ hơn.
-- Cung cấp nhiều ngữ cảnh hơn cho AI.
-- Không hỏi AI làm toàn bộ bài.
-- Tập trung hỏi AI giải thích, gợi ý, review.
-- Tự kiểm tra kỹ hơn.
-- Ghi log thường xuyên hơn.
-- Liên kết log với commit/screenshot rõ hơn.
-- Thảo luận với nhóm trước khi áp dụng kết quả AI.
-- Đối chiếu kết quả AI với tài liệu môn học.
+- Viết prompt kèm stack trace và file path ngay từ đầu.
+- Hỏi AI giải thích trước khi sinh code dài.
+- Bổ sung unit test thay vì chỉ test thủ công.
+- Ghi prompt log ngay khi dùng AI, không để cuối kỳ mới nhớ.
+- Đối chiếu AI output với tài liệu Spring chính thống.
+- Thảo luận nhóm trước khi merge code AI vào repo chung.
 
 ---
 
 ## 15. Tự đánh giá mức độ hoàn thành
 
-Sinh viên/nhóm tự đánh giá theo thang 1-5.
-
-| Tiêu chí | Điểm tự đánh giá 1-5 | Ghi chú |
+| Tiêu chí | Điểm 1-5 | Ghi chú |
 |---|:---:|---|
-| Ghi nhận việc dùng AI trung thực |  |  |
-| Prompt có mục tiêu rõ ràng |  |  |
-| Kiểm chứng kết quả AI |  |  |
-| Tự chỉnh sửa/cải tiến |  |  |
-| Hiểu nội dung đã nộp |  |  |
-| Reflection có chiều sâu |  |  |
-| Sử dụng AI có trách nhiệm |  |  |
+| Ghi nhận việc dùng AI trung thực | 5 | Đầy đủ 4 file audit |
+| Prompt có mục tiêu rõ ràng | 4 | Cải thiện dần qua project |
+| Kiểm chứng kết quả AI | 4 | Test thủ công, chưa có auto test |
+| Tự chỉnh sửa/cải tiến | 5 | Luôn review code AI |
+| Hiểu nội dung đã nộp | 4 | Tự tin giải thích module mình |
+| Reflection có chiều sâu | 4 | Dựa trên trải nghiệm thực |
+| Sử dụng AI có trách nhiệm | 5 | Ghi log, không copy mù |
 
 ---
 
 ## 16. Câu hỏi tự vấn cuối bài
 
-Trả lời ngắn gọn các câu hỏi sau.
-
 ### 16.1. Nếu giảng viên hỏi về phần AI đã hỗ trợ, em/nhóm có giải thích lại được không?
 
-```text
-Viết tại đây...
-```
+Có. Em có thể chỉ rõ file nào AI hỗ trợ nhiều (dashboard, category UI) và file nào em tự thiết kế logic chính (approve flow, validation). Em có `AI_AUDIT_LOG.md` và `PROMPTS.md` làm minh chứng.
 
 ### 16.2. Nếu không có AI, em/nhóm có thể tự làm lại phần quan trọng nhất không?
 
-```text
-Viết tại đây...
-```
+Có, nhưng mất nhiều thời gian hơn. Phần CRUD cơ bản em tự làm được. Phần khó nhất nếu không có AI là native query thống kê và export Excel.
 
 ### 16.3. Phần nào trong bài thể hiện rõ nhất năng lực thật sự của em/nhóm?
 
-```text
-Viết tại đây...
-```
+- **M2.1:** `ProductServiceImpl.approveProduct()` – kiểm tra PENDING, lưu lịch sử approval.
+- **M2.2:** Tích hợp contract → PDF → email trong một flow sau approve.
+- **M2.3:** Validation `CategoryServiceImpl` – regex tên category, xử lý CASCADE.
+- **M8.1:** Đổi JPQL sang native query `CAST(CreatedAt AS DATE)` sau khi test thất bại.
+- **M8.2:** Export Excel/CSV với encoding đúng cho tiếng Việt.
+- Quyết định kiến trúc: không nhét SQL vào Controller, ghi TODO Security thay vì implement nửa vời.
 
 ### 16.4. Em/nhóm muốn cải thiện kỹ năng nào sau bài này?
 
-```text
-Viết tại đây...
-```
+- Viết unit test tự động (JUnit, MockMvc).
+- Spring Security / JWT khi nhóm tích hợp.
+- Prompt engineering – viết prompt cụ thể hơn ngay từ đầu.
+- Đọc tài liệu SQL Server/JPA sâu hơn thay vì phụ thuộc AI cho query phức tạp.
 
 ---
 
 ## 17. Cam kết Reflection
 
-Em/nhóm cam kết rằng nội dung reflection này phản ánh trung thực quá trình sử dụng AI và quá trình học tập trong bài tập/project.
-
-Sinh viên/nhóm hiểu rằng:
-
-- AI là công cụ hỗ trợ học tập, không thay thế hoàn toàn năng lực cá nhân.
-- Mọi kết quả AI gợi ý cần được kiểm tra trước khi sử dụng.
-- Sinh viên/nhóm chịu trách nhiệm với sản phẩm cuối cùng.
-- Sinh viên/nhóm cần giải thích được các phần đã nộp.
+Em cam kết nội dung reflection này phản ánh trung thực quá trình sử dụng AI và học tập trong project SWP391.
 
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
-|  |  |
+| Phạm Mạnh Thắng – DE190404 | 12/07/2026 |

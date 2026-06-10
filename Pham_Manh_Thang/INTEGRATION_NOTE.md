@@ -1,98 +1,127 @@
-# Integration Note - Pham Manh Thang
+# Integration Note - Pham Manh Thang (DE190404)
 
-## Module: Product Management, Category Management, Listing Contract
+## Assigned Functions (Phạm vi phụ trách)
+
+| Mã | Module | Chức năng |
+|:---:|---|---|
+| M2.1 | Module 2: Quản lý Sản phẩm | Xác thực & Duyệt sản phẩm đấu giá |
+| M2.2 | Module 2: Quản lý Sản phẩm | Tự động ký & gửi Hợp đồng ủy quyền lên sàn (Listing Contract) |
+| M2.3 | Module 2: Quản lý Sản phẩm | Quản lý danh mục & Thuộc tính SP |
+| M8.1 | Module 8: Admin Dashboard & Báo cáo | Thống kê doanh thu & Giao dịch |
+| M8.2 | Module 8: Admin Dashboard & Báo cáo | Xuất báo cáo dữ liệu (Excel/CSV) |
 
 ### Overview
-This module implements the Product Approval, Category Management, and Listing Contract features as per the requirements.
 
-### Generated Components
+Folder `Pham_Manh_Thang` implements the 5 functions above for the Realtime Bidding System (SWP391, Group 5). Database: `SWP_Nhom3` (SQL Server).
 
-#### Entities (com.swp391.entity)
-- `Role.java`
-- `User.java`
-- `Category.java`
-- `Product.java`
-- `ProductApproval.java`
-- `Contract.java`
+---
 
-#### DTOs (com.swp391.dto)
-- `ApiResponse.java` - Standard API response wrapper
-- `ProductResponseDTO.java` - Product response DTO
-- `ProductApprovalRequestDTO.java` - Request DTO for product approval/rejection
-- `CategoryDTO.java` - Category request/response DTO
+## M2.1 – Product Approval
 
-#### Exceptions (com.swp391.exception)
-- `ResourceNotFoundException.java` - 404 not found
-- `BusinessException.java` - 400 business logic errors
-- `GlobalExceptionHandler.java` - Global exception handler
+**Flow:** Seller submits product (PENDING) → Admin/Staff approves or rejects → status updated, `ProductApprovals` record saved.
 
-#### Repositories (com.swp391.repository)
-- `UserRepository.java`
-- `CategoryRepository.java` - With search functionality
-- `ProductRepository.java`
-- `ProductApprovalRepository.java`
-- `ContractRepository.java`
+**Key files:**
+- `ProductServiceImpl.java`, `ProductAdminController.java`
+- `AdminProductViewController.java`, `StaffProductController.java`
+- `product-approvals.html`, `staff/product-approvals.html`
 
-#### Services (com.swp391.service & com.swp391.service.impl)
-- `CategoryService.java` + `CategoryServiceImpl.java` - CRUD + search categories
-- `ProductService.java` + `ProductServiceImpl.java` - Product approval/rejection flow
-- `ContractService.java` + `ContractServiceImpl.java` - Create listing contracts
+**APIs:**
+- `GET /api/admin/products/pending`
+- `GET /api/admin/products/{productId}`
+- `POST /api/admin/products/{productId}/approve`
+- `POST /api/admin/products/{productId}/reject`
 
-#### Controllers (com.swp391.controller)
-- `CategoryController.java` - Category CRUD API
-- `ProductAdminController.java` - Product approval API
+**UI:** `/admin/products/pending`, `/staff/products/pending`
 
-### APIs Provided
+---
 
-#### Product Approval Module
-- `GET /admin/products/pending` - Get all pending products
-- `GET /admin/products/{productId}` - Get product details
-- `POST /admin/products/{productId}/approve` - Approve product
-- `POST /admin/products/{productId}/reject` - Reject product
+## M2.2 – Listing Contract (auto after approve)
 
-#### Category Management Module
-- `GET /admin/categories` - Get all categories
-- `GET /admin/categories/{categoryId}` - Get category by id
-- `GET /admin/categories/search?keyword=...` - Search categories
-- `POST /admin/categories` - Create category
-- `PUT /admin/categories/{categoryId}` - Update category
-- `DELETE /admin/categories/{categoryId}` - Delete category
+**Flow:** On approve → create `Contracts` (LISTING) → generate PDF (Flying Saucer) → send email with PDF attachment.
 
-### External Dependencies & TODOs
+**Key files:**
+- `ContractServiceImpl.java`, `ThymeleafPDFUtil.java`, `EmailServiceImpl.java`
+- `listing-contract.html`
 
-1. **Spring Security (JWT)** - TODO
-   - Replace hardcoded `reviewerId = 1L` with actual authenticated user
-   - Add authorization checks for admin/staff roles
+**Note:** `FileUrl` may be placeholder until cloud upload is integrated (see TODOs).
 
-2. **Auction Service** - TODO (other team member)
-   - When product is approved, automatically create an auction
-   - Location: `ProductServiceImpl.approveProduct()`
+---
 
-3. **Notification Service** - TODO (other team member)
-   - Notify seller when product is approved/rejected
-   - Location: `ProductServiceImpl.approveProduct()`, `ProductServiceImpl.rejectProduct()`
+## M2.3 – Category & Product Attributes
 
-4. **PDF Generation Service** - TODO
-   - Generate actual PDF contract file
-   - Upload to cloud storage (Cloudinary/S3)
-   - Location: `ContractServiceImpl.createListingContract()`
+**Flow:** Admin CRUD categories; define attributes/options per category; validation on category name.
 
-5. **Cloud Storage Service** - TODO
-   - Store generated PDF files
-   - Location: `ContractServiceImpl.createListingContract()`
+**Key files:**
+- `CategoryServiceImpl.java`, `CategoryController.java`, `CategoryAttributeController.java`
+- `category-management.html`
 
-### Database Tables Used
-- `Roles`
-- `Users`
-- `Categories`
-- `Products`
-- `ProductApprovals`
-- `Contracts`
+**APIs:**
+- `GET/POST/PUT/DELETE /api/admin/categories`
+- `GET/POST/PUT/DELETE /api/admin/attributes/...`
+- `POST /api/admin/categories/attributes`, `/attributes/options`
 
-### Configuration
-- Spring Boot 3.2.0
-- Java 21
-- SQL Server (configurable in `application.properties`)
-- Spring Data JPA
-- Lombok
-- Jakarta Validation
+**UI:** `/admin/categories`
+
+---
+
+## M8.1 – Revenue & Transaction Statistics
+
+**Flow:** Dashboard summary cards, revenue chart by day, paginated transaction table with date filter.
+
+**Key files:**
+- `AdminDashboardController.java`, `StatisticsServiceImpl.java`, `TransactionRepository.java`
+- `revenue-analytics.html`, `AdminDashboardViewController.java`
+
+**APIs:**
+- `GET /api/admin/dashboard/summary`
+- `GET /api/admin/dashboard/revenue?from=&to=`
+- `GET /api/admin/dashboard/transactions?page=&size=&from=&to=`
+
+**UI:** `/admin/revenue`
+
+---
+
+## M8.2 – Data Export (Excel/CSV)
+
+**Flow:** Admin selects date range → download `transactions.xlsx` or `transactions.csv`.
+
+**Key files:**
+- `StatisticsServiceImpl.java` (Apache POI, CSV UTF-8 BOM)
+- `data-reports.html`
+
+**APIs:**
+- `GET /api/admin/dashboard/export/excel?from=&to=`
+- `GET /api/admin/dashboard/export/csv?from=&to=`
+
+**UI:** `/admin/reports`
+
+---
+
+## External Dependencies & TODOs
+
+1. **Spring Security (JWT)** – TODO
+   - Replace hardcoded `reviewerId = 1L` with authenticated user
+   - Add `@PreAuthorize` for admin/staff APIs
+
+2. **Auction Service** – TODO (other team member)
+   - Create auction when product is APPROVED
+   - Hook: `ProductServiceImpl.approveProduct()`
+
+3. **Cloud Storage** – TODO
+   - Upload generated PDF to Cloudinary/S3 instead of placeholder URL
+   - Hook: `ContractServiceImpl.createListingContract()`
+
+---
+
+## Database Tables Used
+
+`Roles`, `Users`, `Categories`, `CategoryAttributes`, `AttributeOptions`, `Products`, `ProductImages`, `ProductAttributeValues`, `ProductApprovals`, `Contracts`, `Wallets`, `Transactions`
+
+---
+
+## Configuration
+
+- Spring Boot 3.2, Java 21
+- SQL Server (`application.properties`)
+- Spring Data JPA, Thymeleaf, Lombok, Jakarta Validation
+- Apache POI (Excel export), Flying Saucer (PDF), Spring Mail (email)

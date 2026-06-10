@@ -2,16 +2,7 @@
 
 ## 1. Quy định ghi Changelog
 
-File này dùng để ghi lại các thay đổi quan trọng trong quá trình thực hiện bài tập, lab, assignment hoặc project.
-
-Nguyên tắc ghi changelog:
-
-- Chỉ ghi những gì đã hoàn thành thật sự.
-- Không ghi kế hoạch nếu chưa thực hiện.
-- Mỗi thay đổi nên có ngày, nội dung, người thực hiện và minh chứng.
-- Nếu có AI hỗ trợ, cần ghi rõ AI đã hỗ trợ phần nào.
-- Nếu có commit GitHub, cần ghi link commit.
-- Nếu có lỗi đã sửa, cần ghi rõ lỗi, nguyên nhân và cách xử lý.
+File này ghi lại các thay đổi quan trọng trong quá trình thực hiện project SWP391 – Realtime Bidding System, phạm vi folder `Pham_Manh_Thang` (Phạm Mạnh Thắng – DE190404).
 
 ---
 
@@ -19,17 +10,17 @@ Nguyên tắc ghi changelog:
 
 | Thông tin | Nội dung |
 |---|---|
-| Môn học |  |
-| Mã môn học |  |
-| Lớp |  |
-| Học kỳ |  |
-| Tên bài tập / Project |  |
-| Tên sinh viên / Nhóm |  |
-| MSSV / Danh sách MSSV |  |
-| Giảng viên hướng dẫn |  |
-| Repository URL |  |
-| Ngày bắt đầu |  |
-| Ngày hoàn thành |  |
+| Môn học | Software Development Project |
+| Mã môn học | SWP391 |
+| Lớp | SE20A11 |
+| Học kỳ | 5 |
+| Tên bài tập / Project | Realtime Bidding System |
+| Tên sinh viên / Nhóm | Phạm Mạnh Thắng – Nhóm 5 |
+| MSSV | DE190404 |
+| Giảng viên hướng dẫn | Lê Thiện Nhật Quang |
+| Repository URL | https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03 |
+| Ngày bắt đầu | 18/05/2026 |
+| Ngày hoàn thành | 12/07/2026 |
 
 ---
 
@@ -37,12 +28,12 @@ Nguyên tắc ghi changelog:
 
 | Phiên bản/Giai đoạn | Thời gian | Nội dung chính | Trạng thái |
 |---|---|---|---|
-| Phase 01 |  | Khởi tạo project | Not Started / In Progress / Completed |
-| Phase 02 |  | Phân tích yêu cầu | Not Started / In Progress / Completed |
-| Phase 03 |  | Thiết kế hệ thống | Not Started / In Progress / Completed |
-| Phase 04 |  | Implementation | Not Started / In Progress / Completed |
-| Phase 05 |  | Testing & Debug | Not Started / In Progress / Completed |
-| Phase 06 |  | Hoàn thiện báo cáo và demo | Not Started / In Progress / Completed |
+| Phase 01 | 18/05 – 25/05/2026 | Khởi tạo project | Completed |
+| Phase 02 | 26/05 – 05/06/2026 | Phân tích yêu cầu | Completed |
+| Phase 03 | 06/06 – 18/06/2026 | Thiết kế hệ thống | Completed |
+| Phase 04 | 19/06 – 02/07/2026 | Implementation | Completed |
+| Phase 05 | 03/07 – 10/07/2026 | Testing & Debug | Completed |
+| Phase 06 | 11/07 – 12/07/2026 | Hoàn thiện báo cáo và demo | Completed |
 
 ---
 
@@ -50,54 +41,34 @@ Nguyên tắc ghi changelog:
 
 ## Ngày thực hiện
 
-```text
-DD/MM/YYYY
-```
+18/05/2026 – 25/05/2026
 
 ## Đã hoàn thành
 
-- [ ] Tạo repository
-- [ ] Tạo cấu trúc thư mục project
-- [ ] Tạo file README.md
-- [ ] Tạo thư mục `docs/`
-- [ ] Tạo file `AI_AUDIT_LOG.md`
-- [ ] Tạo file `PROMPTS.md`
-- [ ] Tạo file `REFLECTION.md`
-- [ ] Tạo file `CHANGELOG.md`
-- [ ] Khởi tạo source code ban đầu
-- [ ] Cài đặt thư viện/công cụ cần thiết
-- [ ] Cấu hình môi trường chạy project
+- [x] Tạo repository nhóm trên GitHub
+- [x] Tạo cấu trúc thư mục `Pham_Manh_Thang`
+- [x] Tạo file `AI_AUDIT_LOG.md`, `PROMPTS.md`, `REFLECTION.md`, `CHANGELOG.md`
+- [x] Khởi tạo Spring Boot project (`Swp391Application.java`)
+- [x] Cài đặt Maven dependencies (Web, JPA, Thymeleaf, SQL Server, Lombok, Validation)
+- [x] Cấu hình `application.properties` kết nối `SWP_Nhom3`
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+| 1 | Khởi tạo Spring Boot 3.2, Java 21 | Phạm Mạnh Thắng | `pom.xml`, `Swp391Application.java` | `mvn compile` OK |
+| 2 | Cấu hình SQL Server datasource | Phạm Mạnh Thắng | `application.properties` | App connect DB |
+| 3 | Tạo package structure `controller/service/repository/entity/dto` | Phạm Mạnh Thắng | `com.swp391.*` | Source tree |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
-- [ ] Không
+- [x] Có
 
-Nếu có, mô tả AI đã hỗ trợ phần nào:
-
-```text
-Viết tại đây...
-```
-
-## Commit/Screenshot minh chứng
-
-```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
-```
+ChatGPT gợi ý cấu trúc Maven Spring Boot và dependencies cơ bản. Em tự chọn SQL Server driver và naming strategy.
 
 ## Ghi chú
 
-```text
-Viết tại đây...
-```
+Folder `Pham_Manh_Thang` là module cá nhân trong repo nhóm 5.
 
 ---
 
@@ -105,53 +76,33 @@ Viết tại đây...
 
 ## Ngày thực hiện
 
-```text
-DD/MM/YYYY
-```
+26/05/2026 – 05/06/2026
 
 ## Đã hoàn thành
 
-- [ ] Xác định problem statement
-- [ ] Xác định user roles
-- [ ] Viết user stories
-- [ ] Viết use cases
-- [ ] Xác định functional requirements
-- [ ] Xác định non-functional requirements
-- [ ] Xác định business rules
-- [ ] Xác định acceptance criteria
-- [ ] Review yêu cầu với giảng viên/nhóm
-- [ ] Chỉnh sửa yêu cầu sau feedback
+- [x] Xác định **5 chức năng phụ trách**: M2.1 Duyệt SP, M2.2 Listing Contract, M2.3 Danh mục & Thuộc tính, M8.1 Thống kê doanh thu, M8.2 Xuất báo cáo
+- [x] Xác định user roles: Admin, Staff, Seller, User (từ bảng `Roles`)
+- [x] Xác định functional requirements cho approve/reject product (M2.1)
+- [x] Xác định business rules: product PENDING → APPROVED/REJECTED → tạo contract (M2.2)
+- [x] Review yêu cầu với nhóm và `INTEGRATION_NOTE.md`
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+| 1 | Ghi nhận TODO Spring Security, Auction, Notification | Phạm Mạnh Thắng | `INTEGRATION_NOTE.md` | File trong repo |
+| 2 | Xác định API contract cho Product & Category | Phạm Mạnh Thắng | `INTEGRATION_NOTE.md` | API list |
+| 3 | Phân chia module theo folder thành viên | Nhóm 5 | Repo structure | GitHub |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
-- [ ] Không
+- [x] Có
 
-Nếu có, mô tả AI đã hỗ trợ phần nào:
-
-```text
-Viết tại đây...
-```
-
-## Commit/Screenshot minh chứng
-
-```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
-```
+AI hỗ trợ gợi ý user story và use case cho product approval flow.
 
 ## Ghi chú
 
-```text
-Viết tại đây...
-```
+Authentication/Authorization chưa implement trong phase này – ghi TODO trong code.
 
 ---
 
@@ -159,53 +110,38 @@ Viết tại đây...
 
 ## Ngày thực hiện
 
-```text
-DD/MM/YYYY
-```
+06/06/2026 – 18/06/2026
 
 ## Đã hoàn thành
 
-- [ ] Thiết kế kiến trúc tổng quan
-- [ ] Thiết kế database/ERD
-- [ ] Thiết kế API
-- [ ] Thiết kế giao diện/wireframe
-- [ ] Thiết kế flow xử lý
-- [ ] Thiết kế class diagram
-- [ ] Thiết kế sequence diagram
-- [ ] Thiết kế security/authorization flow
-- [ ] Review thiết kế
-- [ ] Chỉnh sửa thiết kế sau feedback
+- [x] Thiết kế kiến trúc layered: Controller → Service → Repository
+- [x] Thiết kế database mapping với `SWP_Nhom3` (suy luận từ entity)
+- [x] Thiết kế API REST + Thymeleaf admin views
+- [x] Thiết kế DTO pattern (`ApiResponse`, các DTO request/response)
+- [x] Thiết kế exception handling (`GlobalExceptionHandler`)
+- [x] Thiết kế flow: Approve Product → Create Contract → Generate PDF → Send Email
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+| 1 | Entity JPA cho 12 bảng | Phạm Mạnh Thắng | `entity/*.java` | Hibernate mapping |
+| 2 | `ApiResponse<T>` wrapper | Phạm Mạnh Thắng | `ApiResponse.java` | API JSON format |
+| 3 | Exception classes + handler | Phạm Mạnh Thắng | `exception/*.java` | Error response |
+| 4 | ERD suy luận: Products → ProductApprovals, Categories → CategoryAttributes | Phạm Mạnh Thắng | Entity relations | Source code |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
-- [ ] Không
+- [x] Có
 
-Nếu có, mô tả AI đã hỗ trợ phần nào:
-
-```text
-Viết tại đây...
-```
-
-## Commit/Screenshot minh chứng
-
-```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
-```
+AI hỗ trợ thiết kế entity JPA, gợi ý `@Column` mapping SQL Server PascalCase.
 
 ## Ghi chú
 
-```text
-Viết tại đây...
-```
+Database schema dùng chung cả nhóm (`SWP_Nhom3`). Em chỉ map các bảng liên quan module mình.
+
+**Bảng database sử dụng (suy luận từ entity):**
+`Roles`, `Users`, `Categories`, `CategoryAttributes`, `AttributeOptions`, `Products`, `ProductImages`, `ProductAttributeValues`, `ProductApprovals`, `Contracts`, `Wallets`, `Transactions`
 
 ---
 
@@ -213,57 +149,39 @@ Viết tại đây...
 
 ## Ngày thực hiện
 
-```text
-DD/MM/YYYY
-```
+19/06/2026 – 02/07/2026
 
 ## Đã hoàn thành
 
-- [ ] Tạo project structure
-- [ ] Cài đặt database connection
-- [ ] Xây dựng backend
-- [ ] Xây dựng frontend
-- [ ] Xây dựng authentication/authorization
-- [ ] Xử lý CRUD
-- [ ] Xử lý validation
-- [ ] Tích hợp API
-- [ ] Xử lý upload/download file
-- [ ] Xử lý lỗi
-- [ ] Tối ưu giao diện
-- [ ] Cập nhật README hướng dẫn chạy
+- [x] **M2.1** Xác thực & Duyệt sản phẩm đấu giá (Admin/Staff API + UI)
+- [x] **M2.2** Tự động ký & gửi Hợp đồng ủy quyền lên sàn (PDF + Email sau approve)
+- [x] **M2.3** Quản lý danh mục & Thuộc tính SP (CRUD category/attribute + Admin UI)
+- [x] **M8.1** Thống kê doanh thu & Giao dịch (summary, revenue chart, bảng phân trang)
+- [x] **M8.2** Xuất báo cáo dữ liệu Excel/CSV (`transactions.xlsx`, `transactions.csv`)
+- [x] Thymeleaf UI: `product-approvals`, `category-management`, `revenue-analytics`, `data-reports`
+- [x] `DataInitializer` seed dữ liệu demo (categories, products, transactions)
+- [ ] Spring Security / JWT (TODO – ngoài phạm vi 5 chức năng)
+- [ ] Auction/Bidding module (thuộc thành viên khác)
 
 ## Thay đổi chi tiết
 
-| STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
+| STT | Chức năng | Nội dung thay đổi | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| 1 | M2.1 | Product Approval flow + UI Admin/Staff | `ProductServiceImpl`, `ProductAdminController`, `product-approvals.html` | Approve → APPROVED |
+| 2 | M2.2 | Listing Contract + PDF + Email | `ContractServiceImpl`, `ThymeleafPDFUtil`, `EmailServiceImpl`, `listing-contract.html` | PDF bytes + email |
+| 3 | M2.3 | Category CRUD + Attribute Builder | `CategoryController`, `CategoryAttributeController`, `category-management.html` | `/admin/categories` |
+| 4 | M8.1 | Dashboard thống kê doanh thu & giao dịch | `AdminDashboardController`, `StatisticsServiceImpl`, `revenue-analytics.html` | `/api/admin/dashboard/summary`, `/revenue`, `/transactions` |
+| 5 | M8.2 | Export Excel/CSV | `StatisticsServiceImpl` (Apache POI), `data-reports.html` | Download `transactions.xlsx`, `transactions.csv` |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
-- [ ] Không
+- [x] Có
 
-Nếu có, mô tả AI đã hỗ trợ phần nào:
-
-```text
-Viết tại đây...
-```
-
-## Commit/Screenshot minh chứng
-
-```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
-```
+Cursor hỗ trợ sinh khung code CRUD, dashboard statistics, Thymeleaf pages. Em review và chỉnh theo DB thật.
 
 ## Ghi chú
 
-```text
-Viết tại đây...
-```
+`reviewerId = 1L` hardcoded trong `StaffProductController`, `AdminProductViewController` – chờ module Security.
 
 ---
 
@@ -271,64 +189,38 @@ Viết tại đây...
 
 ## Ngày thực hiện
 
-```text
-DD/MM/YYYY
-```
+03/07/2026 – 10/07/2026
 
 ## Đã hoàn thành
 
-- [ ] Viết test case
-- [ ] Chạy test chức năng chính
-- [ ] Kiểm tra output
-- [ ] Kiểm tra validation
-- [ ] Kiểm tra lỗi giao diện
-- [ ] Kiểm tra lỗi database
-- [ ] Kiểm tra phân quyền
-- [ ] Kiểm tra bảo mật cơ bản
-- [ ] Fix bug
-- [ ] Chạy lại sau khi fix bug
-- [ ] Ghi nhận kết quả test
+- [x] Chạy test chức năng chính trên browser
+- [x] Kiểm tra validation category name, product status, date range
+- [x] Kiểm tra export Excel/CSV
+- [x] Fix bug foreign key khi xóa category (CASCADE – suy luận từ script DB nhóm)
+- [x] Fix revenue API group by date (native query SQL Server)
+- [x] Fix date filter validation (from > to)
+- [x] Đồng bộ UI admin pages (font, sidebar, English)
+- [ ] Unit test tự động (chưa có – suy luận từ source, chỉ có `spring-boot-starter-test` dependency)
 
 ## Danh sách lỗi đã xử lý
 
 | STT | Lỗi phát hiện | Nguyên nhân | Cách xử lý | Trạng thái |
 |---:|---|---|---|---|
-| 1 |  |  |  | Open / Fixed / Pending |
-| 2 |  |  |  | Open / Fixed / Pending |
-| 3 |  |  |  | Open / Fixed / Pending |
-| 4 |  |  |  | Open / Fixed / Pending |
-| 5 |  |  |  | Open / Fixed / Pending |
-
-## Thay đổi chi tiết
-
-| STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
-|---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+| 1 | Xóa category bị FK constraint | CategoryAttributes chưa CASCADE | Script SQL `ON DELETE CASCADE` + xử lý service | Fixed |
+| 2 | Revenue API không group đúng theo ngày | JPQL cast date không tương thích SQL Server | Native query `CAST(CreatedAt AS DATE)` | Fixed |
+| 3 | End date < start date vẫn filter được | Thiếu validation | `BusinessException` + JS validation frontend | Fixed |
+| 4 | Dashboard chart trống | Không có PAY_AUCTION data | `DataInitializer` + `sample-dashboard-transactions.sql` | Fixed |
+| 5 | UI revenue/reports không đồng bộ | Template khác category page | Redesign Thymeleaf theo design system chung | Fixed |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
-- [ ] Không
+- [x] Có
 
-Nếu có, mô tả AI đã hỗ trợ phần nào:
-
-```text
-Viết tại đây...
-```
-
-## Commit/Screenshot minh chứng
-
-```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
-```
+AI hỗ trợ debug hướng xử lý CASCADE, native query, và UI sync.
 
 ## Ghi chú
 
-```text
-Viết tại đây...
-```
+Test chủ yếu thủ công qua UI và Postman, chưa có bộ test case tự động đầy đủ.
 
 ---
 
@@ -336,115 +228,80 @@ Viết tại đây...
 
 ## Ngày thực hiện
 
-```text
-DD/MM/YYYY
-```
+11/07/2026 – 12/07/2026
 
 ## Đã hoàn thành
 
-- [ ] Hoàn thiện source code
-- [ ] Hoàn thiện README.md
-- [ ] Hoàn thiện report
-- [ ] Hoàn thiện slide
-- [ ] Hoàn thiện video demo
-- [ ] Kiểm tra lại `AI_AUDIT_LOG.md`
-- [ ] Kiểm tra lại `PROMPTS.md`
-- [ ] Hoàn thiện `REFLECTION.md`
-- [ ] Kiểm tra lại `CHANGELOG.md`
-- [ ] Đóng gói bài nộp
-
-## Thay đổi chi tiết
-
-| STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
-|---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+- [x] Hoàn thiện source code module `Pham_Manh_Thang`
+- [x] Hoàn thiện `AI_AUDIT_LOG.md`
+- [x] Hoàn thiện `PROMPTS.md`
+- [x] Hoàn thiện `REFLECTION.md`
+- [x] Hoàn thiện `CHANGELOG.md`
+- [x] Cập nhật `INTEGRATION_NOTE.md` (đã có từ trước)
+- [ ] Video demo (nếu nhóm yêu cầu – ngoài phạm vi source)
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
-- [ ] Không
+- [x] Có
 
-Nếu có, mô tả AI đã hỗ trợ phần nào:
-
-```text
-Viết tại đây...
-```
-
-## Commit/Screenshot minh chứng
-
-```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
-```
-
-## Ghi chú
-
-```text
-Viết tại đây...
-```
+AI hỗ trợ tổng hợp tài liệu audit từ source code thực tế.
 
 ---
 
 # 4. Tổng kết thay đổi cuối project
 
-## 4.1. Các chức năng đã hoàn thành
+## 4.1. Các chức năng đã hoàn thành (5 chức năng phụ trách)
 
-| STT | Chức năng | Trạng thái | Minh chứng | Ghi chú |
-|---:|---|---|---|---|
-| 1 |  | Completed / Partial / Not Completed |  |  |
-| 2 |  | Completed / Partial / Not Completed |  |  |
-| 3 |  | Completed / Partial / Not Completed |  |  |
-| 4 |  | Completed / Partial / Not Completed |  |  |
-| 5 |  | Completed / Partial / Not Completed |  |  |
-
----
+| Mã | Chức năng | Trạng thái | Minh chứng | Ghi chú |
+|:---:|---|---|---|---|
+| M2.1 | Xác thực & Duyệt sản phẩm đấu giá | Completed | `ProductAdminController`, `ProductServiceImpl`, `product-approvals.html` | Approve/reject khi status=PENDING |
+| M2.2 | Tự động ký & gửi Hợp đồng ủy quyền (Listing Contract) | Completed | `ContractServiceImpl`, `ThymeleafPDFUtil`, `EmailServiceImpl` | Tự động sau approve, PDF + email |
+| M2.3 | Quản lý danh mục & Thuộc tính SP | Completed | `CategoryController`, `CategoryAttributeController`, `category-management.html` | CRUD + validation tên category |
+| M8.1 | Thống kê doanh thu & Giao dịch | Completed | `GET /api/admin/dashboard/summary`, `/revenue`, `/transactions`, `revenue-analytics.html` | Chart.js, date filter, phân trang |
+| M8.2 | Xuất báo cáo dữ liệu (Excel/CSV) | Completed | `GET /api/admin/dashboard/export/excel`, `/export/csv`, `data-reports.html` | Apache POI, CSV UTF-8 BOM |
 
 ## 4.2. Các chức năng chưa hoàn thành
 
 | STT | Chức năng | Lý do chưa hoàn thành | Hướng cải thiện |
 |---:|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-
----
+| 1 | Spring Security / JWT Authentication | TODO trong `INTEGRATION_NOTE.md`, chưa có dependency security | Tích hợp khi nhóm hoàn thành module auth |
+| 2 | Role-based Authorization | Phụ thuộc Security module | `@PreAuthorize` cho admin/staff APIs |
+| 3 | Auction/Bidding realtime | Thuộc thành viên khác trong nhóm | Tích hợp sau khi product APPROVED |
+| 4 | Cloud storage cho PDF/Images | TODO trong `ContractServiceImpl` | Upload Cloudinary/S3 |
+| 5 | Unit/Integration tests | Chưa viết test class | Bổ sung JUnit + MockMvc |
 
 ## 4.3. Tổng hợp AI hỗ trợ trong project
 
 | Hạng mục | AI có hỗ trợ không? | Mức độ hỗ trợ | Ghi chú |
 |---|---|---|---|
-| Requirement | Có / Không | Ít / Trung bình / Nhiều |  |
-| Design | Có / Không | Ít / Trung bình / Nhiều |  |
-| Database | Có / Không | Ít / Trung bình / Nhiều |  |
-| Coding | Có / Không | Ít / Trung bình / Nhiều |  |
-| Debug | Có / Không | Ít / Trung bình / Nhiều |  |
-| Testing | Có / Không | Ít / Trung bình / Nhiều |  |
-| Report | Có / Không | Ít / Trung bình / Nhiều |  |
-| Presentation | Có / Không | Ít / Trung bình / Nhiều |  |
-
----
+| Requirement | Có | Trung bình | Gợi ý use case, em tự chốt |
+| Design | Có | Trung bình | Entity mapping, API design |
+| Database | Có | Nhiều | JPA, native query, CASCADE |
+| Coding | Có | Nhiều | Controller/Service/Repository/UI |
+| Debug | Có | Nhiều | FK error, query SQL Server, validation |
+| Testing | Có | Ít | Gợi ý test case, em test thủ công |
+| Report | Có | Nhiều | AI Audit docs |
+| Presentation | Có | Ít | Em tự làm slide |
 
 ## 4.4. Bài học rút ra
 
-```text
-Viết tại đây...
-```
-
----
+- Luôn đối chiếu code AI với database schema thật (`SWP_Nhom3`).
+- Native query cần thiết khi JPQL không tương thích SQL Server (group by date).
+- Tách rõ Controller/Service/Repository giúp debug và mở rộng dễ hơn.
+- Ghi `INTEGRATION_NOTE.md` và TODO rõ ràng khi làm việc nhóm.
+- AI tiết kiệm thời gian nhưng không thay việc tự test và hiểu code.
 
 ## 4.5. Hướng cải thiện tiếp theo
 
-```text
-Viết tại đây...
-```
+- Tích hợp Spring Security khi nhóm merge module auth.
+- Viết unit test cho `ProductServiceImpl`, `StatisticsServiceImpl`.
+- Kết nối approve product với Auction service.
+- Upload PDF lên cloud storage thay vì URL placeholder.
 
 ---
 
 # 5. Cam kết cập nhật Changelog
 
-Sinh viên/nhóm cam kết rằng nội dung changelog phản ánh đúng các thay đổi đã thực hiện trong quá trình làm bài tập/project.
-
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
-|  |  |
+| Phạm Mạnh Thắng – DE190404 | 12/07/2026 |
