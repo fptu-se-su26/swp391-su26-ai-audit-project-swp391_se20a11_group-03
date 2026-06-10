@@ -32,6 +32,7 @@ C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-0
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\dto\CategoryDTO.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\dto\CreateProductRequestDTO.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\repository\CategoryRepository.java
+C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\repository\WalletRepository.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\entity\Transaction.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\service\impl\CategoryServiceImpl.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\dto\ApiResponse.java
@@ -52,6 +53,7 @@ C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-0
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\entity\Contract.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\service\impl\StatisticsServiceImpl.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\controller\ProductController.java
+C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\dto\dashboard\TransactionReportResponse.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\service\impl\ProductServiceImpl.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\controller\ProductAdminController.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\entity\ProductApproval.java
@@ -62,3 +64,4 @@ C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-0
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\Swp391Application.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\service\CategoryService.java
 C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\dto\ProductResponseDTO.java
+C:\Users\HP\Documents\GitHub\swp391-su26-ai-audit-project-swp391_se20a11_group-03\Pham_Manh_Thang\src\main\java\com\swp391\dto\dashboard\RevenueStatisticResponse.java

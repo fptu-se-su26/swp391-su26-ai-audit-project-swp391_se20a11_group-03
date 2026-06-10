@@ -8,20 +8,29 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * Admin dashboard page mapping for revenue analytics and export tools.
  */
 @Controller
-@RequestMapping("/admin/dashboard")
 public class AdminDashboardViewController {
 
-    @GetMapping
-    public String getDashboardPage() {
-        return "redirect:/admin/dashboard/revenue";
+    @GetMapping("/admin/dashboard")
+    public String redirectLegacyDashboard() {
+        return "redirect:/admin/revenue";
     }
 
-    @GetMapping("/revenue")
+    @GetMapping("/admin/dashboard/revenue")
+    public String redirectLegacyRevenue() {
+        return "redirect:/admin/revenue";
+    }
+
+    @GetMapping("/admin/dashboard/reports")
+    public String redirectLegacyReports() {
+        return "redirect:/admin/reports";
+    }
+
+    @GetMapping("/admin/revenue")
     public String getRevenuePage() {
         return "admin/revenue-analytics";
     }
 
-    @GetMapping("/reports")
+    @GetMapping("/admin/reports")
     public String getReportsPage() {
         return "admin/data-reports";
     }

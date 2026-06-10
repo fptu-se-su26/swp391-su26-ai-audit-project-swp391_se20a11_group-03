@@ -6,12 +6,26 @@
   <component name="ChangeListManager">
     <list default="true" id="8016cddf-37bb-48a6-bf2e-43e917db549e" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/config/DataInitializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/config/DataInitializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/controller/AdminDashboardController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/controller/AdminDashboardController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/controller/AdminDashboardViewController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/controller/AdminDashboardViewController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/repository/TransactionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/repository/TransactionRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/StatisticsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/StatisticsService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/impl/StatisticsServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/java/com/swp391/service/impl/StatisticsServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/templates/admin/category-management.html" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/templates/admin/category-management.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/templates/admin/product-approvals.html" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/templates/admin/product-approvals.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/ContractServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/ContractServiceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/ProductServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/ProductServiceImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/templates/admin/revenue-analytics.html" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/src/main/resources/templates/admin/revenue-analytics.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/config/DataInitializer.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/config/DataInitializer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/AdminDashboardController.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/AdminDashboardController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/AdminDashboardViewController.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/AdminDashboardViewController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/exception/GlobalExceptionHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/exception/GlobalExceptionHandler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/TransactionRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/TransactionRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/StatisticsService.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/StatisticsService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/StatisticsServiceImpl$DateRange.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/StatisticsServiceImpl$DateRange.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/StatisticsServiceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/StatisticsServiceImpl.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/templates/admin/product-approvals.html" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/templates/admin/product-approvals.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/templates/admin/revenue-analytics.html" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/templates/admin/revenue-analytics.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -128,7 +142,8 @@
       <workItem from="1780877563556" duration="5239000" />
       <workItem from="1780919113478" duration="3537000" />
       <workItem from="1780978169991" duration="3129000" />
-      <workItem from="1781020797936" duration="4686000" />
+      <workItem from="1781020797936" duration="5061000" />
+      <workItem from="1781119908717" duration="622000" />
     </task>
     <servers />
   </component>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>LuxeAuction Admin Control Center</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-fixed-dim": "#b9c7e4",
+                        "on-primary-fixed": "#0d1c32",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#1b1b1d",
+                        "on-primary-container": "#76849f",
+                        "primary": "#515f78",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#efedef",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "on-surface-variant": "#44474d",
+                        "background": "#fbf9fb",
+                        "outline": "#75777e",
+                        "outline-variant": "#c5c6cd",
+                        "surface-container-low": "#f5f3f5",
+                        "surface": "#fbf9fb",
+                        "surface-container-high": "#eae7ea",
+                        "primary-container": "#0d1c32",
+                        "surface-container-highest": "#e4e2e4"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px"
+                    },
+                    spacing: {
+                        base: "8px",
+                        xs: "4px",
+                        "margin-desktop": "64px",
+                        lg: "48px",
+                        md: "24px",
+                        sm: "12px",
+                        gutter: "24px"
+                    },
+                    fontFamily: {
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Montserrat"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Montserrat"]
+                    },
+                    fontSize: {
+                        "body-md": ["16px", {lineHeight: "24px", fontWeight: "400"}],
+                        "headline-sm": ["20px", {lineHeight: "28px", fontWeight: "600"}],
+                        "label-sm": ["12px", {lineHeight: "16px", fontWeight: "500"}],
+                        "label-md": ["14px", {lineHeight: "20px", letterSpacing: "0.01em", fontWeight: "600"}],
+                        "headline-md": ["24px", {lineHeight: "32px", fontWeight: "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #fbf9fb;
+            color: #1b1b1d;
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c5c6cd;
+            border-radius: 4px;
+        }
+        .status-banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid;
+            box-shadow: 0 4px 16px rgba(13, 28, 50, 0.1);
+            animation: bannerFadeIn 0.25s ease-out;
+        }
+        .status-banner-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .status-banner-text {
+            font-size: 15px;
+            line-height: 22px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+        .status-banner.info {
+            background: linear-gradient(135deg, #eef2ff 0%, #dbeafe 100%);
+            border-color: #515f78;
+            color: #0d1c32;
+        }
+        .status-banner.info .status-banner-icon {
+            color: #515f78;
+        }
+        .status-banner.success {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-color: #10b981;
+            color: #065f46;
+        }
+        .status-banner.success .status-banner-icon {
+            color: #059669;
+        }
+        .status-banner.error {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        .status-banner.error .status-banner-icon {
+            color: #dc2626;
+        }
+        @keyframes bannerFadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="flex overflow-hidden">
+<aside class="h-screen w-80 fixed left-0 top-0 flex flex-col bg-surface-container border-r border-outline-variant shadow-sm z-40">
+    <div class="flex flex-col h-full py-lg px-md">
+        <div class="mb-xl px-sm">
+            <h1 class="font-headline-md text-headline-md font-bold tracking-tight text-primary">LuxeAuction</h1>
+            <p class="font-label-md text-label-md text-on-surface-variant">Admin Control Center</p>
+        </div>
+        <div class="flex items-center gap-sm px-sm mb-lg">
+            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container overflow-hidden">
+                <span class="material-symbols-outlined">person</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-label-md text-label-md text-on-surface">System Administrator</span>
+                <span class="text-[10px] text-on-surface-variant uppercase tracking-widest">Active Status</span>
+            </div>
+        </div>
+        <nav class="flex-1 flex flex-col gap-xs overflow-y-auto custom-scrollbar">
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" th:href="@{/admin/revenue}">
+                <span class="material-symbols-outlined">payments</span>
+                <span class="font-label-md text-label-md">Revenue &amp; Analytics</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">history_edu</span>
+                <span class="font-label-md text-label-md">Auction History</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" th:href="@{/admin/categories}">
+                <span class="material-symbols-outlined">category</span>
+                <span class="font-label-md text-label-md">Categories</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" th:href="@{/admin/products/pending}">
+                <span class="material-symbols-outlined">inventory_2</span>
+                <span class="font-label-md text-label-md">Pending Product Approvals</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">campaign</span>
+                <span class="font-label-md text-label-md">Broadcasts</span>
+            </a>
+            <a class="flex items-center gap-base transition-all duration-200 px-md py-sm rounded-lg bg-primary-container text-on-primary-container" th:href="@{/admin/reports}">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">assessment</span>
+                <span class="font-label-md text-label-md">Reports</span>
+            </a>
+        </nav>
+        <div class="mt-lg pt-lg border-t border-outline-variant/30 flex flex-col gap-xs">
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="font-label-md text-label-md">System Settings</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-error hover:bg-error-container/20 transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="font-label-md text-label-md">Logout</span>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<main class="ml-80 flex-1 h-screen overflow-y-auto bg-background">
+    <header class="sticky top-0 w-full z-30 bg-surface/70 backdrop-blur-xl border-b border-outline-variant/30 px-margin-desktop h-20 flex items-center justify-between">
+        <div>
+            <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Data Reports Export</h2>
+            <p class="text-sm text-on-surface-variant mt-1">Download transaction reports by date range</p>
+        </div>
+        <div class="flex items-center gap-base border-l border-outline-variant/30 pl-md">
+            <button class="p-sm rounded-full text-on-surface-variant hover:bg-surface-container-highest transition-colors relative">
+                <span class="material-symbols-outlined">notifications</span>
+                <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+            </button>
+        </div>
+    </header>
+
+    <div class="px-margin-desktop py-lg max-w-[1200px] mx-auto space-y-lg">
+        <div id="statusMessage" class="hidden status-banner info" role="alert">
+            <span id="statusMessageIcon" class="material-symbols-outlined status-banner-icon">info</span>
+            <p id="statusMessageText" class="status-banner-text"></p>
+        </div>
+
+        <section class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
+            <div class="p-md border-b border-outline-variant/30 bg-surface-container-low">
+                <h4 class="font-label-md text-label-md font-bold text-on-surface">Date Range Filter</h4>
+                <p class="text-sm text-on-surface-variant mt-1">Select a range to filter exported transactions. Leave empty to export all data.</p>
+            </div>
+            <div class="p-md flex flex-wrap items-end gap-md">
+                <div>
+                    <label class="font-label-sm text-on-surface-variant mb-2 block" for="fromDate">From Date</label>
+                    <input id="fromDate" type="date" class="w-full p-3 border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary outline-none bg-white font-body-md"/>
+                </div>
+                <div>
+                    <label class="font-label-sm text-on-surface-variant mb-2 block" for="toDate">To Date</label>
+                    <input id="toDate" type="date" class="w-full p-3 border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary outline-none bg-white font-body-md"/>
+                </div>
+                <button id="applyFilterBtn" class="bg-primary text-white px-md py-3 rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity">
+                    Apply Filter
+                </button>
+                <button id="clearFilterBtn" class="px-md py-3 border border-outline-variant rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors">
+                    Clear Filter
+                </button>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
+                <div class="p-md border-b border-outline-variant/30 bg-surface-container-low flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-primary">table_view</span>
+                    <h4 class="font-label-md text-label-md font-bold text-on-surface">Export Excel</h4>
+                </div>
+                <div class="p-md">
+                    <p class="text-sm text-on-surface-variant font-body-md mb-lg">
+                        Download <strong>transactions.xlsx</strong> with columns: Transaction ID, Username, Amount, Transaction Type, Status, Created At.
+                    </p>
+                    <button id="exportExcelBtn" class="w-full bg-primary text-white py-md rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity flex items-center justify-center gap-sm">
+                        <span class="material-symbols-outlined">download</span>
+                        Download Excel
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden">
+                <div class="p-md border-b border-outline-variant/30 bg-surface-container-low flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-primary">csv</span>
+                    <h4 class="font-label-md text-label-md font-bold text-on-surface">Export CSV</h4>
+                </div>
+                <div class="p-md">
+                    <p class="text-sm text-on-surface-variant font-body-md mb-lg">
+                        Download <strong>transactions.csv</strong> with UTF-8 BOM encoding for direct Excel compatibility.
+                    </p>
+                    <button id="exportCsvBtn" class="w-full bg-primary-container text-on-primary-container py-md rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity flex items-center justify-center gap-sm">
+                        <span class="material-symbols-outlined">download</span>
+                        Download CSV
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script>
+    const excelUrl = '/api/admin/dashboard/export/excel';
+    const csvUrl = '/api/admin/dashboard/export/csv';
+    const fromDateInput = document.getElementById('fromDate');
+    const toDateInput = document.getElementById('toDate');
+    const statusMessage = document.getElementById('statusMessage');
+
+    document.addEventListener('DOMContentLoaded', () => {
+        syncDateConstraints();
+        fromDateInput.addEventListener('change', syncDateConstraints);
+        toDateInput.addEventListener('change', syncDateConstraints);
+    });
+
+    document.getElementById('applyFilterBtn').addEventListener('click', () => {
+        if (!validateDateRange()) return;
+        showMessage(buildFilterReportMessage(), 'info');
+    });
+    document.getElementById('exportExcelBtn').addEventListener('click', () => {
+        if (!validateDateRange()) return;
+        downloadFile(excelUrl, 'transactions.xlsx');
+    });
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        if (!validateDateRange()) return;
+        downloadFile(csvUrl, 'transactions.csv');
+    });
+    document.getElementById('clearFilterBtn').addEventListener('click', () => {
+        fromDateInput.value = '';
+        toDateInput.value = '';
+        syncDateConstraints();
+        const applyBtn = document.getElementById('applyFilterBtn');
+        applyBtn.disabled = false;
+        applyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        clearMessage();
+        showMessage('Date filter cleared.', 'success');
+    });
+
+    function syncDateConstraints() {
+        if (fromDateInput.value) {
+            toDateInput.min = fromDateInput.value;
+        } else {
+            toDateInput.removeAttribute('min');
+        }
+        if (toDateInput.value) {
+            fromDateInput.max = toDateInput.value;
+        } else {
+            fromDateInput.removeAttribute('max');
+        }
+        validateDateRange();
+    }
+
+    function validateDateRange() {
+        const from = fromDateInput.value;
+        const to = toDateInput.value;
+        const applyBtn = document.getElementById('applyFilterBtn');
+        const exportExcelBtn = document.getElementById('exportExcelBtn');
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
+        const invalid = from && to && from > to;
+
+        applyBtn.disabled = invalid;
+        exportExcelBtn.disabled = invalid;
+        exportCsvBtn.disabled = invalid;
+        applyBtn.classList.toggle('opacity-50', invalid);
+        applyBtn.classList.toggle('cursor-not-allowed', invalid);
+        exportExcelBtn.classList.toggle('opacity-50', invalid);
+        exportExcelBtn.classList.toggle('cursor-not-allowed', invalid);
+        exportCsvBtn.classList.toggle('opacity-50', invalid);
+        exportCsvBtn.classList.toggle('cursor-not-allowed', invalid);
+
+        if (invalid) {
+            showMessage('End date cannot be earlier than start date.', 'error');
+            return false;
+        }
+        return true;
+    }
+
+    function formatDisplayDate(isoDate) {
+        const date = new Date(`${isoDate}T00:00:00`);
+        return new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }).format(date);
+    }
+
+    function buildFilterReportMessage() {
+        const from = fromDateInput.value;
+        const to = toDateInput.value;
+
+        if (from && to) {
+            return `This report is from ${formatDisplayDate(from)} to ${formatDisplayDate(to)}.`;
+        }
+        if (from) {
+            return `This report is from ${formatDisplayDate(from)} onward.`;
+        }
+        if (to) {
+            return `This report is from the beginning to ${formatDisplayDate(to)}.`;
+        }
+        return 'This report includes all available data.';
+    }
+
+    function buildDateQuery() {
+        const params = new URLSearchParams();
+        if (fromDateInput.value) params.set('from', fromDateInput.value);
+        if (toDateInput.value) params.set('to', toDateInput.value);
+        const query = params.toString();
+        return query ? `?${query}` : '';
+    }
+
+    async function downloadFile(baseUrl, filename) {
+        try {
+            clearMessage();
+            const response = await fetch(`${baseUrl}${buildDateQuery()}`);
+            if (!response.ok) {
+                let message = 'Export failed';
+                try {
+                    const errorBody = await response.json();
+                    message = errorBody.message || message;
+                } catch (e) {
+                    message = await response.text() || message;
+                }
+                throw new Error(message);
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            showMessage(`${buildFilterReportMessage()} Successfully downloaded ${filename}.`, 'info');
+        } catch (error) {
+            showMessage(error.message, 'error');
+        }
+    }
+
+    function showMessage(message, type) {
+        const iconEl = document.getElementById('statusMessageIcon');
+        const textEl = document.getElementById('statusMessageText');
+
+        statusMessage.classList.remove('hidden', 'info', 'success', 'error');
+        statusMessage.classList.add(type === 'error' ? 'error' : type === 'success' ? 'success' : 'info');
+        iconEl.textContent = type === 'error' ? 'error' : type === 'success' ? 'check_circle' : 'info';
+        textEl.textContent = message;
+        statusMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function clearMessage() {
+        statusMessage.classList.add('hidden');
+    }
+</script>
+</body>
+</html>

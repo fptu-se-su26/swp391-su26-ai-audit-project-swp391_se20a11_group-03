@@ -1,9 +1,9 @@
 package com.swp391.service.impl;
 
 import com.swp391.dto.dashboard.DashboardSummaryDTO;
-import com.swp391.dto.dashboard.RevenueStatisticsDTO;
+import com.swp391.dto.dashboard.RevenueStatisticResponse;
 import com.swp391.dto.dashboard.TransactionReportItemDTO;
-import com.swp391.dto.dashboard.TransactionStatisticsDTO;
+import com.swp391.dto.dashboard.TransactionReportResponse;
 import com.swp391.exception.BusinessException;
 import com.swp391.repository.TransactionRepository;
 import com.swp391.service.StatisticsService;
@@ -14,15 +14,20 @@ import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -44,34 +49,55 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final TransactionRepository transactionRepository;
 
     @Override
-    public RevenueStatisticsDTO getRevenueStatistics(LocalDate from, LocalDate to) {
+    public List<RevenueStatisticResponse> getRevenueStatistics(LocalDate from, LocalDate to) {
         DateRange dateRange = buildDateRange(from, to);
-        DashboardSummaryDTO summary = transactionRepository.getDashboardSummary(
+        List<Object[]> rows = transactionRepository.findRevenueGroupedByDate(
                 dateRange.fromDateTime(),
                 dateRange.toDateTime()
         );
-        return new RevenueStatisticsDTO(dateRange.from(), dateRange.to(), summary.getTotalRevenue());
+
+        List<RevenueStatisticResponse> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            LocalDate date = toLocalDate(row[0]);
+            Long revenue = row[1] != null ? ((Number) row[1]).longValue() : 0L;
+            result.add(new RevenueStatisticResponse(date, revenue));
+        }
+        return result;
     }
 
     @Override
-    public TransactionStatisticsDTO getTransactionStatistics(LocalDate from, LocalDate to) {
+    public TransactionReportResponse getTransactionReport(LocalDate from, LocalDate to, int page, int size) {
+        if (page < 0) {
+            throw new BusinessException("Page index must be greater than or equal to 0");
+        }
+        if (size <= 0 || size > 100) {
+            throw new BusinessException("Page size must be between 1 and 100");
+        }
+
         DateRange dateRange = buildDateRange(from, to);
         DashboardSummaryDTO summary = transactionRepository.getDashboardSummary(
                 dateRange.fromDateTime(),
                 dateRange.toDateTime()
         );
-        List<TransactionReportItemDTO> transactions = transactionRepository.findTransactionReportItems(
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<TransactionReportItemDTO> transactionPage = transactionRepository.findTransactionReportItems(
                 dateRange.fromDateTime(),
-                dateRange.toDateTime()
+                dateRange.toDateTime(),
+                pageable
         );
 
-        return new TransactionStatisticsDTO(
+        return new TransactionReportResponse(
                 dateRange.from(),
                 dateRange.to(),
                 summary.getTotalTransactions(),
                 summary.getSuccessfulTransactions(),
                 summary.getFailedTransactions(),
-                transactions
+                transactionPage.getNumber(),
+                transactionPage.getSize(),
+                transactionPage.getTotalElements(),
+                transactionPage.getTotalPages(),
+                transactionPage.getContent()
         );
     }
 
@@ -83,7 +109,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public byte[] exportTransactionsToExcel(LocalDate from, LocalDate to) {
         DateRange dateRange = buildDateRange(from, to);
-        List<TransactionReportItemDTO> transactions = transactionRepository.findTransactionReportItems(
+        List<TransactionReportItemDTO> transactions = transactionRepository.findTransactionReportItemsForExport(
                 dateRange.fromDateTime(),
                 dateRange.toDateTime()
         );
@@ -97,14 +123,14 @@ public class StatisticsServiceImpl implements StatisticsService {
             workbook.write(outputStream);
             return outputStream.toByteArray();
         } catch (IOException e) {
-            throw new BusinessException("Failed to export Excel file");
+            throw new BusinessException("Failed to export Excel file: " + e.getMessage());
         }
     }
 
     @Override
     public byte[] exportTransactionsToCsv(LocalDate from, LocalDate to) {
         DateRange dateRange = buildDateRange(from, to);
-        List<TransactionReportItemDTO> transactions = transactionRepository.findTransactionReportItems(
+        List<TransactionReportItemDTO> transactions = transactionRepository.findTransactionReportItemsForExport(
                 dateRange.fromDateTime(),
                 dateRange.toDateTime()
         );
@@ -132,12 +158,28 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     private DateRange buildDateRange(LocalDate from, LocalDate to) {
         if (from != null && to != null && from.isAfter(to)) {
-            throw new BusinessException("'from' date must be before or equal to 'to' date");
+            throw new BusinessException("End date cannot be earlier than start date");
         }
 
         LocalDateTime fromDateTime = from != null ? from.atStartOfDay() : null;
         LocalDateTime toDateTime = to != null ? to.atTime(LocalTime.MAX) : null;
         return new DateRange(from, to, fromDateTime, toDateTime);
+    }
+
+    private LocalDate toLocalDate(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof LocalDate localDate) {
+            return localDate;
+        }
+        if (value instanceof Date sqlDate) {
+            return sqlDate.toLocalDate();
+        }
+        if (value instanceof java.util.Date utilDate) {
+            return new Date(utilDate.getTime()).toLocalDate();
+        }
+        return LocalDate.parse(value.toString());
     }
 
     private void createExcelHeader(XSSFWorkbook workbook, XSSFSheet sheet) {

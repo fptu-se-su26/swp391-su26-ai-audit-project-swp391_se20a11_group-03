@@ -3,8 +3,9 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>LuxeAuction Admin - Revenue Analytics</title>
+    <title>LuxeAuction Admin Control Center</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <script id="tailwind-config">
@@ -13,52 +14,69 @@
             theme: {
                 extend: {
                     colors: {
-                        background: "#fbf9fb",
-                        surface: "#fbf9fb",
-                        "surface-container-lowest": "#ffffff",
-                        "surface-container-low": "#f5f3f5",
-                        "surface-container": "#efedef",
-                        "surface-container-high": "#eae7ea",
-                        "surface-container-highest": "#e4e2e4",
-                        "surface-dim": "#dbd9db",
-                        primary: "#000000",
-                        "primary-container": "#0d1c32",
-                        secondary: "#775a19",
-                        "secondary-container": "#fed488",
-                        tertiary: "#000000",
+                        "primary-fixed-dim": "#b9c7e4",
+                        "on-primary-fixed": "#0d1c32",
                         "tertiary-fixed": "#a6f2d1",
-                        "on-surface": "#1b1b1d",
-                        "on-surface-variant": "#44474d",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#e4e2e4",
                         "on-primary": "#ffffff",
+                        "on-surface": "#1b1b1d",
                         "on-primary-container": "#76849f",
+                        "primary": "#515f78",
+                        "tertiary": "#000000",
                         "on-secondary-container": "#785a1a",
-                        "on-tertiary-container": "#479175",
-                        outline: "#75777e",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#efedef",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#515f78",
+                        "inverse-surface": "#303032",
+                        "surface-container-highest": "#e4e2e4",
+                        "on-surface-variant": "#44474d",
+                        "background": "#fbf9fb",
+                        "outline": "#75777e",
+                        "secondary": "#775a19",
                         "outline-variant": "#c5c6cd",
-                        error: "#ba1a1a",
-                        "error-container": "#ffdad6"
+                        "surface-container-low": "#f5f3f5",
+                        "surface": "#fbf9fb",
+                        "on-background": "#1b1b1d",
+                        "surface-container-high": "#eae7ea",
+                        "primary-container": "#0d1c32",
+                        "surface-dim": "#dbd9db",
+                        "on-tertiary-container": "#479175"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px"
                     },
                     spacing: {
-                        xs: "4px",
                         base: "8px",
-                        sm: "12px",
-                        md: "24px",
+                        xs: "4px",
+                        "margin-desktop": "64px",
                         lg: "48px",
                         xl: "80px",
+                        md: "24px",
+                        sm: "12px",
                         gutter: "24px",
-                        "margin-desktop": "64px"
+                        "margin-mobile": "16px"
                     },
                     fontFamily: {
                         "body-md": ["Inter"],
-                        "headline-md": ["Montserrat"],
+                        "body-lg": ["Inter"],
                         "headline-sm": ["Montserrat"],
-                        "label-md": ["Inter"]
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Montserrat"]
                     },
                     fontSize: {
                         "body-md": ["16px", {lineHeight: "24px", fontWeight: "400"}],
-                        "headline-md": ["24px", {lineHeight: "32px", fontWeight: "600"}],
+                        "body-lg": ["18px", {lineHeight: "28px", fontWeight: "400"}],
                         "headline-sm": ["20px", {lineHeight: "28px", fontWeight: "600"}],
-                        "label-md": ["14px", {lineHeight: "20px", fontWeight: "600"}]
+                        "label-sm": ["12px", {lineHeight: "16px", fontWeight: "500"}],
+                        "label-md": ["14px", {lineHeight: "20px", letterSpacing: "0.01em", fontWeight: "600"}],
+                        "headline-md": ["24px", {lineHeight: "32px", fontWeight: "600"}]
                     }
                 }
             }
@@ -81,6 +99,54 @@
             background: #c5c6cd;
             border-radius: 4px;
         }
+        .status-banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid;
+            box-shadow: 0 4px 16px rgba(13, 28, 50, 0.1);
+            animation: bannerFadeIn 0.25s ease-out;
+        }
+        .status-banner-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .status-banner-text {
+            font-size: 15px;
+            line-height: 22px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+        .status-banner.info {
+            background: linear-gradient(135deg, #eef2ff 0%, #dbeafe 100%);
+            border-color: #515f78;
+            color: #0d1c32;
+        }
+        .status-banner.info .status-banner-icon {
+            color: #515f78;
+        }
+        .status-banner.success {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-color: #10b981;
+            color: #065f46;
+        }
+        .status-banner.success .status-banner-icon {
+            color: #059669;
+        }
+        .status-banner.error {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        .status-banner.error .status-banner-icon {
+            color: #dc2626;
+        }
+        @keyframes bannerFadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="flex overflow-hidden">
@@ -91,7 +157,7 @@
             <p class="font-label-md text-label-md text-on-surface-variant">Admin Control Center</p>
         </div>
         <div class="flex items-center gap-sm px-sm mb-lg">
-            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-white overflow-hidden">
+            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container overflow-hidden">
                 <span class="material-symbols-outlined">person</span>
             </div>
             <div class="flex flex-col">
@@ -100,7 +166,7 @@
             </div>
         </div>
         <nav class="flex-1 flex flex-col gap-xs overflow-y-auto custom-scrollbar">
-            <a class="flex items-center gap-base bg-primary-container text-white rounded-lg px-md py-sm shadow-sm transition-all duration-200" th:href="@{/admin/dashboard/revenue}">
+            <a class="flex items-center gap-base transition-all duration-200 px-md py-sm rounded-lg bg-primary-container text-on-primary-container" th:href="@{/admin/revenue}">
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">payments</span>
                 <span class="font-label-md text-label-md">Revenue &amp; Analytics</span>
             </a>
@@ -108,132 +174,164 @@
                 <span class="material-symbols-outlined">history_edu</span>
                 <span class="font-label-md text-label-md">Auction History</span>
             </a>
-            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" th:href="@{/admin/products/pending}">
-                <span class="material-symbols-outlined">inventory_2</span>
-                <span class="font-label-md text-label-md">Pending Product Approvals</span>
-            </a>
             <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" th:href="@{/admin/categories}">
                 <span class="material-symbols-outlined">category</span>
                 <span class="font-label-md text-label-md">Categories</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" th:href="@{/admin/products/pending}">
+                <span class="material-symbols-outlined">inventory_2</span>
+                <span class="font-label-md text-label-md">Pending Product Approvals</span>
             </a>
             <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
                 <span class="material-symbols-outlined">campaign</span>
                 <span class="font-label-md text-label-md">Broadcasts</span>
             </a>
-            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" th:href="@{/admin/dashboard/reports}">
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" th:href="@{/admin/reports}">
                 <span class="material-symbols-outlined">assessment</span>
                 <span class="font-label-md text-label-md">Reports</span>
             </a>
         </nav>
+        <div class="mt-lg pt-lg border-t border-outline-variant/30 flex flex-col gap-xs">
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="font-label-md text-label-md">System Settings</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-error hover:bg-error-container/20 transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="font-label-md text-label-md">Logout</span>
+            </a>
+        </div>
     </div>
 </aside>
 
 <main class="ml-80 flex-1 h-screen overflow-y-auto bg-background">
     <header class="sticky top-0 w-full z-30 bg-surface/70 backdrop-blur-xl border-b border-outline-variant/30 px-margin-desktop h-20 flex items-center justify-between">
         <div>
-            <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Revenue Analytics</h2>
-            <p class="text-sm text-on-surface-variant">Theo doi doanh thu va giao dich theo khoang ngay</p>
+            <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Revenue &amp; Analytics</h2>
+            <p class="text-sm text-on-surface-variant mt-1">Track revenue and transactions by date range</p>
         </div>
-        <div class="flex items-center gap-sm">
+        <div class="flex items-center gap-md">
             <div class="flex items-center gap-sm bg-surface-container-low border border-outline-variant rounded-lg px-md py-sm">
-                <span class="material-symbols-outlined text-on-surface-variant">calendar_today</span>
-                <input id="fromDate" type="date" class="bg-transparent outline-none text-sm text-on-surface"/>
-                <span class="text-on-surface-variant">-</span>
-                <input id="toDate" type="date" class="bg-transparent outline-none text-sm text-on-surface"/>
+                <span class="material-symbols-outlined text-on-surface-variant text-sm">calendar_today</span>
+                <input id="fromDate" type="date" class="bg-transparent outline-none text-sm text-on-surface font-label-md"/>
+                <span class="text-on-surface-variant">–</span>
+                <input id="toDate" type="date" class="bg-transparent outline-none text-sm text-on-surface font-label-md"/>
             </div>
-            <button id="applyFilterBtn" class="bg-primary text-white px-md py-sm rounded-lg font-label-md hover:opacity-90 transition-opacity">
+            <button id="applyFilterBtn" class="bg-primary text-white px-md py-sm rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity">
                 Apply Filter
             </button>
+            <div class="flex items-center gap-base border-l border-outline-variant/30 pl-md">
+                <button class="p-sm rounded-full text-on-surface-variant hover:bg-surface-container-highest transition-colors relative">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+                </button>
+            </div>
         </div>
     </header>
 
     <div class="px-margin-desktop py-lg max-w-[1600px] mx-auto space-y-lg">
-        <div id="statusMessage" class="hidden p-4 rounded-lg"></div>
+        <div id="statusMessage" class="hidden status-banner info" role="alert">
+            <span id="statusMessageIcon" class="material-symbols-outlined status-banner-icon">info</span>
+            <p id="statusMessageText" class="status-banner-text"></p>
+        </div>
 
         <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
-            <div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/20">
-                <p class="font-label-md text-label-md text-on-surface-variant">Tong doanh thu</p>
+            <div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/30">
+                <p class="font-label-md text-label-md text-on-surface-variant">Total Revenue</p>
                 <h3 id="totalRevenueValue" class="font-headline-md text-headline-md font-bold text-on-surface mt-xs">0 VND</h3>
             </div>
-            <div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/20">
-                <p class="font-label-md text-label-md text-on-surface-variant">Tong so giao dich</p>
+            <div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/30">
+                <p class="font-label-md text-label-md text-on-surface-variant">Total Transactions</p>
                 <h3 id="totalTransactionsValue" class="font-headline-md text-headline-md font-bold text-on-surface mt-xs">0</h3>
             </div>
-            <div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/20">
-                <p class="font-label-md text-label-md text-on-surface-variant">Giao dich thanh cong</p>
+            <div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/30">
+                <p class="font-label-md text-label-md text-on-surface-variant">Successful Transactions</p>
                 <h3 id="successfulTransactionsValue" class="font-headline-md text-headline-md font-bold text-on-surface mt-xs">0</h3>
             </div>
-            <div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/20">
-                <p class="font-label-md text-label-md text-on-surface-variant">Giao dich that bai</p>
+            <div class="bg-surface-container-lowest p-md rounded-xl shadow-sm border border-outline-variant/30">
+                <p class="font-label-md text-label-md text-on-surface-variant">Failed Transactions</p>
                 <h3 id="failedTransactionsValue" class="font-headline-md text-headline-md font-bold text-on-surface mt-xs">0</h3>
             </div>
         </section>
 
         <section class="grid grid-cols-1 xl:grid-cols-3 gap-gutter">
-            <div class="xl:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-lg">
-                <div class="flex items-start justify-between gap-md mb-lg">
+            <div class="xl:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col">
+                <div class="p-md border-b border-outline-variant/30 bg-surface-container-low flex items-start justify-between gap-md">
                     <div>
-                        <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">Revenue Overview</h3>
-                        <p class="text-sm text-on-surface-variant">Du lieu duoc nap tu revenue API va transactions API</p>
+                        <h4 class="font-label-md text-label-md font-bold text-on-surface">Revenue Overview</h4>
+                        <p class="text-sm text-on-surface-variant mt-1">Completed PAY_AUCTION revenue grouped by day</p>
                     </div>
-                    <div id="currentRangeLabel" class="text-sm bg-surface-container-low px-sm py-xs rounded-full text-on-surface-variant">
-                        All time
-                    </div>
+                    <div id="currentRangeLabel" class="text-sm bg-surface-container px-sm py-xs rounded-full text-on-surface-variant font-label-md">All time</div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-md mb-lg">
-                    <div class="bg-surface-container-low rounded-xl p-md">
-                        <p class="text-sm text-on-surface-variant mb-xs">Doanh thu da loc</p>
-                        <div id="filteredRevenueValue" class="text-2xl font-bold text-on-surface">0 VND</div>
+                <div class="p-md">
+                    <div class="h-72 mb-lg">
+                        <canvas id="revenueChart"></canvas>
                     </div>
-                    <div class="bg-surface-container-low rounded-xl p-md">
-                        <p class="text-sm text-on-surface-variant mb-xs">So giao dich da loc</p>
-                        <div id="filteredTransactionsValue" class="text-2xl font-bold text-on-surface">0</div>
-                    </div>
-                    <div class="bg-surface-container-low rounded-xl p-md">
-                        <p class="text-sm text-on-surface-variant mb-xs">Ti le thanh cong</p>
-                        <div id="successRateValue" class="text-2xl font-bold text-on-surface">0%</div>
-                    </div>
-                </div>
 
-                <div class="overflow-x-auto custom-scrollbar">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                        <tr class="bg-surface-container-low border-b border-outline-variant">
-                            <th class="px-6 py-4 font-label-md text-on-surface-variant">TRANSACTION ID</th>
-                            <th class="px-6 py-4 font-label-md text-on-surface-variant">USERNAME</th>
-                            <th class="px-6 py-4 font-label-md text-on-surface-variant">AMOUNT</th>
-                            <th class="px-6 py-4 font-label-md text-on-surface-variant">TYPE</th>
-                            <th class="px-6 py-4 font-label-md text-on-surface-variant">STATUS</th>
-                            <th class="px-6 py-4 font-label-md text-on-surface-variant">CREATED AT</th>
-                        </tr>
-                        </thead>
-                        <tbody id="transactionTableBody" class="divide-y divide-outline-variant">
-                        <tr>
-                            <td colspan="6" class="px-6 py-12 text-center text-on-surface-variant font-label-md">Loading transactions...</td>
-                        </tr>
-                        </tbody>
-                    </table>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-md mb-lg">
+                        <div class="bg-surface-container-low rounded-xl p-md border border-outline-variant/20">
+                            <p class="text-sm text-on-surface-variant font-label-md">Filtered Revenue</p>
+                            <div id="filteredRevenueValue" class="text-2xl font-bold text-on-surface mt-xs">0 VND</div>
+                        </div>
+                        <div class="bg-surface-container-low rounded-xl p-md border border-outline-variant/20">
+                            <p class="text-sm text-on-surface-variant font-label-md">Filtered Transactions</p>
+                            <div id="filteredTransactionsValue" class="text-2xl font-bold text-on-surface mt-xs">0</div>
+                        </div>
+                        <div class="bg-surface-container-low rounded-xl p-md border border-outline-variant/20">
+                            <p class="text-sm text-on-surface-variant font-label-md">Success Rate</p>
+                            <div id="successRateValue" class="text-2xl font-bold text-on-surface mt-xs">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto custom-scrollbar rounded-xl border border-outline-variant/30">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                            <tr class="bg-surface-container-low border-b border-outline-variant">
+                                <th class="px-6 py-4 font-label-md text-on-surface-variant">TRANSACTION ID</th>
+                                <th class="px-6 py-4 font-label-md text-on-surface-variant">USERNAME</th>
+                                <th class="px-6 py-4 font-label-md text-on-surface-variant">AMOUNT</th>
+                                <th class="px-6 py-4 font-label-md text-on-surface-variant">TYPE</th>
+                                <th class="px-6 py-4 font-label-md text-on-surface-variant">STATUS</th>
+                                <th class="px-6 py-4 font-label-md text-on-surface-variant">CREATED AT</th>
+                            </tr>
+                            </thead>
+                            <tbody id="transactionTableBody" class="divide-y divide-outline-variant">
+                            <tr>
+                                <td colspan="6" class="px-6 py-12 text-center text-on-surface-variant font-label-md">Loading transactions...</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex items-center justify-between mt-md">
+                        <p id="paginationInfo" class="text-sm text-on-surface-variant font-label-md">Page 1 of 1</p>
+                        <div class="flex gap-sm">
+                            <button id="prevPageBtn" class="px-md py-sm border border-outline-variant rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-40" disabled>Previous</button>
+                            <button id="nextPageBtn" class="px-md py-sm border border-outline-variant rounded-lg font-label-md text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-40" disabled>Next</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="space-y-gutter">
-                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-lg">
-                    <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface mb-md">Thong ke nhanh</h3>
-                    <div class="space-y-md">
-                        <div class="bg-surface-container-low rounded-lg p-md">
-                            <div class="text-sm text-on-surface-variant">Completed sau khi loc</div>
-                            <div id="completedFilteredValue" class="text-2xl font-bold text-on-surface mt-xs">0</div>
-                        </div>
-                        <div class="bg-surface-container-low rounded-lg p-md">
-                            <div class="text-sm text-on-surface-variant">Failed sau khi loc</div>
-                            <div id="failedFilteredValue" class="text-2xl font-bold text-on-surface mt-xs">0</div>
-                        </div>
-                        <a class="w-full inline-flex items-center justify-center gap-sm bg-primary text-white py-md rounded-lg font-label-md hover:opacity-90 transition-opacity" th:href="@{/admin/dashboard/reports}">
-                            <span class="material-symbols-outlined">assessment</span>
-                            Mo trang Reports
-                        </a>
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden flex flex-col">
+                <div class="p-md border-b border-outline-variant/30 bg-surface-container-low">
+                    <h4 class="font-label-md text-label-md font-bold text-on-surface">Quick Stats</h4>
+                    <p class="text-sm text-on-surface-variant mt-1">Filtered transaction breakdown</p>
+                </div>
+                <div class="p-md space-y-md flex-1">
+                    <div class="bg-surface-container-low rounded-lg p-md border border-outline-variant/20">
+                        <div class="text-sm text-on-surface-variant font-label-md">Completed (Filtered)</div>
+                        <div id="completedFilteredValue" class="text-2xl font-bold text-on-surface mt-xs">0</div>
                     </div>
+                    <div class="bg-surface-container-low rounded-lg p-md border border-outline-variant/20">
+                        <div class="text-sm text-on-surface-variant font-label-md">Failed (Filtered)</div>
+                        <div id="failedFilteredValue" class="text-2xl font-bold text-on-surface mt-xs">0</div>
+                    </div>
+                    <a class="w-full inline-flex items-center justify-center gap-sm bg-primary text-white py-md rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity" th:href="@{/admin/reports}">
+                        <span class="material-symbols-outlined">assessment</span>
+                        Open Reports Export
+                    </a>
                 </div>
             </div>
         </section>
@@ -246,27 +344,86 @@
     const transactionsUrl = '/api/admin/dashboard/transactions';
     const fromDateInput = document.getElementById('fromDate');
     const toDateInput = document.getElementById('toDate');
-    const applyFilterBtn = document.getElementById('applyFilterBtn');
-    const statusMessage = document.getElementById('statusMessage');
     const transactionTableBody = document.getElementById('transactionTableBody');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let currentPage = 0;
+    const pageSize = 10;
+    let revenueChart = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
+        initChart();
+        syncDateConstraints();
+        fromDateInput.addEventListener('change', syncDateConstraints);
+        toDateInput.addEventListener('change', syncDateConstraints);
         await loadSummary();
         await loadFilteredData();
     });
 
-    applyFilterBtn.addEventListener('click', async () => {
-        await loadFilteredData();
+    document.getElementById('applyFilterBtn').addEventListener('click', async () => {
+        if (!validateDateRange()) return;
+        currentPage = 0;
+        await loadFilteredData(true);
     });
+    document.getElementById('prevPageBtn').addEventListener('click', async () => {
+        if (currentPage > 0) {
+            currentPage -= 1;
+            await loadTransactions();
+        }
+    });
+    document.getElementById('nextPageBtn').addEventListener('click', async () => {
+        currentPage += 1;
+        await loadTransactions();
+    });
+
+    function initChart() {
+        const ctx = document.getElementById('revenueChart');
+        revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Revenue (VND)',
+                    data: [],
+                    borderColor: '#515f78',
+                    backgroundColor: 'rgba(81, 95, 120, 0.12)',
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: '#0d1c32',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { font: { family: 'Inter', size: 12 } }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { font: { family: 'Inter' } },
+                        grid: { color: 'rgba(197, 198, 205, 0.3)' }
+                    },
+                    y: {
+                        ticks: {
+                            font: { family: 'Inter' },
+                            callback: value => new Intl.NumberFormat('en-US').format(value)
+                        },
+                        grid: { color: 'rgba(197, 198, 205, 0.3)' }
+                    }
+                }
+            }
+        });
+    }
 
     async function loadSummary() {
         try {
             const response = await fetch(summaryUrl);
             const result = await response.json();
-            if (!response.ok || !result.success) {
-                throw new Error(result.message || 'Failed to load summary');
-            }
-
+            if (!response.ok || !result.success) throw new Error(result.message || 'Failed to load summary');
             const data = result.data || {};
             document.getElementById('totalRevenueValue').textContent = formatCurrency(data.totalRevenue || 0);
             document.getElementById('totalTransactionsValue').textContent = formatInteger(data.totalTransactions || 0);
@@ -277,43 +434,57 @@
         }
     }
 
-    async function loadFilteredData() {
-        try {
-            const query = buildDateQuery();
-            updateRangeLabel();
-            clearMessage();
+    async function loadFilteredData(showReportNotice = false) {
+        if (!validateDateRange()) return;
+        updateRangeLabel();
+        if (!showReportNotice) clearMessage();
 
-            transactionTableBody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="px-6 py-12 text-center text-on-surface-variant font-label-md">Loading transactions...</td>
-                </tr>
-            `;
-
-            const [revenueResponse, transactionsResponse] = await Promise.all([
-                fetch(`${revenueUrl}${query}`),
-                fetch(`${transactionsUrl}${query}`)
-            ]);
-
-            const revenueResult = await revenueResponse.json();
-            const transactionsResult = await transactionsResponse.json();
-
-            if (!revenueResponse.ok || !revenueResult.success) {
-                throw new Error(revenueResult.message || 'Failed to load revenue data');
-            }
-            if (!transactionsResponse.ok || !transactionsResult.success) {
-                throw new Error(transactionsResult.message || 'Failed to load transaction data');
-            }
-
-            renderRevenue(revenueResult.data || {});
-            renderTransactions(transactionsResult.data || {});
-        } catch (error) {
-            renderEmptyTransactions('Khong tai duoc du lieu giao dich');
-            showMessage(error.message, 'error');
+        const [revenueOk, transactionsOk] = await Promise.all([loadRevenue(), loadTransactions()]);
+        if (showReportNotice && revenueOk && transactionsOk) {
+            showMessage(buildFilterReportMessage(), 'info');
         }
     }
 
-    function renderRevenue(data) {
-        document.getElementById('filteredRevenueValue').textContent = formatCurrency(data.totalRevenue || 0);
+    async function loadRevenue() {
+        try {
+            const response = await fetch(`${revenueUrl}${buildDateQuery()}`);
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.message || 'Failed to load revenue data');
+            renderRevenue(result.data || []);
+            return true;
+        } catch (error) {
+            renderRevenue([]);
+            showMessage(error.message, 'error');
+            return false;
+        }
+    }
+
+    async function loadTransactions() {
+        if (!validateDateRange()) return false;
+        try {
+            transactionTableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-12 text-center text-on-surface-variant font-label-md">Loading transactions...</td></tr>';
+            const response = await fetch(`${transactionsUrl}${buildDateQuery(true)}`);
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.message || 'Failed to load transaction data');
+            renderTransactions(result.data || {});
+            return true;
+        } catch (error) {
+            renderEmptyTransactions('Unable to load transaction data');
+            showMessage(error.message, 'error');
+            return false;
+        }
+    }
+
+    function renderRevenue(items) {
+        const labels = items.map(item => item.date);
+        const values = items.map(item => item.revenue || 0);
+        const total = values.reduce((sum, value) => sum + value, 0);
+
+        revenueChart.data.labels = labels;
+        revenueChart.data.datasets[0].data = values;
+        revenueChart.update();
+
+        document.getElementById('filteredRevenueValue').textContent = formatCurrency(total);
     }
 
     function renderTransactions(data) {
@@ -323,53 +494,54 @@
         const transactions = data.transactions || [];
         const successRate = totalTransactions === 0 ? 0 : Math.round((successfulTransactions / totalTransactions) * 100);
 
+        currentPage = data.page ?? currentPage;
         document.getElementById('filteredTransactionsValue').textContent = formatInteger(totalTransactions);
         document.getElementById('completedFilteredValue').textContent = formatInteger(successfulTransactions);
         document.getElementById('failedFilteredValue').textContent = formatInteger(failedTransactions);
         document.getElementById('successRateValue').textContent = `${successRate}%`;
+        document.getElementById('paginationInfo').textContent =
+            `Page ${(data.page ?? 0) + 1} of ${Math.max(data.totalPages ?? 1, 1)} (${formatInteger(data.totalElements ?? 0)} records)`;
+
+        document.getElementById('prevPageBtn').disabled = currentPage <= 0;
+        document.getElementById('nextPageBtn').disabled = (data.page ?? 0) >= (data.totalPages ?? 1) - 1;
 
         if (transactions.length === 0) {
-            renderEmptyTransactions('Khong co giao dich trong khoang ngay da chon');
+            renderEmptyTransactions('No transactions found for the selected date range');
             return;
         }
 
         transactionTableBody.innerHTML = transactions.map(transaction => `
             <tr class="hover:bg-surface-container-low transition-colors">
-                <td class="px-6 py-4 font-label-md text-on-surface">#TX-${transaction.transactionId ?? ''}</td>
-                <td class="px-6 py-4 text-on-surface">${escapeHtml(transaction.username || 'N/A')}</td>
-                <td class="px-6 py-4 text-on-surface">${formatCurrency(transaction.amount || 0)}</td>
-                <td class="px-6 py-4 text-on-surface-variant">${escapeHtml(transaction.transactionType || '')}</td>
-                <td class="px-6 py-4">
-                    <span class="${statusBadgeClass(transaction.status)} px-2 py-1 rounded-full text-xs font-semibold">
-                        ${escapeHtml(transaction.status || '')}
-                    </span>
+                <td class="px-6 py-5 font-body-md text-on-surface">#TX-${transaction.transactionId ?? ''}</td>
+                <td class="px-6 py-5 font-body-md text-on-surface">${escapeHtml(transaction.username || 'N/A')}</td>
+                <td class="px-6 py-5 font-body-md text-on-surface">${formatCurrency(transaction.amount || 0)}</td>
+                <td class="px-6 py-5 font-body-md text-on-surface-variant">${escapeHtml(transaction.transactionType || '')}</td>
+                <td class="px-6 py-5">
+                    <span class="${statusBadgeClass(transaction.status)} px-2 py-1 rounded-full text-xs font-semibold">${escapeHtml(transaction.status || '')}</span>
                 </td>
-                <td class="px-6 py-4 text-on-surface-variant">${formatDateTime(transaction.createdAt)}</td>
+                <td class="px-6 py-5 font-body-md text-on-surface-variant">${formatDateTime(transaction.createdAt)}</td>
             </tr>
         `).join('');
-
-        showMessage(`Da tai ${formatInteger(totalTransactions)} giao dich theo bo loc ngay.`, 'success');
     }
 
     function renderEmptyTransactions(message) {
-        transactionTableBody.innerHTML = `
-            <tr>
-                <td colspan="6" class="px-6 py-12 text-center text-on-surface-variant font-label-md">${message}</td>
-            </tr>
-        `;
+        transactionTableBody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-on-surface-variant font-label-md">${message}</td></tr>`;
         document.getElementById('filteredTransactionsValue').textContent = '0';
         document.getElementById('completedFilteredValue').textContent = '0';
         document.getElementById('failedFilteredValue').textContent = '0';
         document.getElementById('successRateValue').textContent = '0%';
+        document.getElementById('paginationInfo').textContent = 'Page 1 of 1 (0 records)';
+        document.getElementById('prevPageBtn').disabled = true;
+        document.getElementById('nextPageBtn').disabled = true;
     }
 
-    function buildDateQuery() {
+    function buildDateQuery(includePagination = false) {
         const params = new URLSearchParams();
-        if (fromDateInput.value) {
-            params.set('from', fromDateInput.value);
-        }
-        if (toDateInput.value) {
-            params.set('to', toDateInput.value);
+        if (fromDateInput.value) params.set('from', fromDateInput.value);
+        if (toDateInput.value) params.set('to', toDateInput.value);
+        if (includePagination) {
+            params.set('page', String(currentPage));
+            params.set('size', String(pageSize));
         }
         const query = params.toString();
         return query ? `?${query}` : '';
@@ -378,54 +550,100 @@
     function updateRangeLabel() {
         const from = fromDateInput.value;
         const to = toDateInput.value;
-        const label = (!from && !to) ? 'All time' : `${from || '...'} -> ${to || '...'}`;
-        document.getElementById('currentRangeLabel').textContent = label;
+        document.getElementById('currentRangeLabel').textContent =
+            (!from && !to) ? 'All time' : `${from || '...'} – ${to || '...'}`;
+    }
+
+    function formatDisplayDate(isoDate) {
+        const date = new Date(`${isoDate}T00:00:00`);
+        return new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }).format(date);
+    }
+
+    function buildFilterReportMessage() {
+        const from = fromDateInput.value;
+        const to = toDateInput.value;
+
+        if (from && to) {
+            return `This report is from ${formatDisplayDate(from)} to ${formatDisplayDate(to)}.`;
+        }
+        if (from) {
+            return `This report is from ${formatDisplayDate(from)} onward.`;
+        }
+        if (to) {
+            return `This report is from the beginning to ${formatDisplayDate(to)}.`;
+        }
+        return 'This report includes all available data.';
+    }
+
+    function syncDateConstraints() {
+        if (fromDateInput.value) {
+            toDateInput.min = fromDateInput.value;
+        } else {
+            toDateInput.removeAttribute('min');
+        }
+        if (toDateInput.value) {
+            fromDateInput.max = toDateInput.value;
+        } else {
+            fromDateInput.removeAttribute('max');
+        }
+        validateDateRange();
+    }
+
+    function validateDateRange() {
+        const from = fromDateInput.value;
+        const to = toDateInput.value;
+        const applyBtn = document.getElementById('applyFilterBtn');
+
+        if (from && to && from > to) {
+            showMessage('End date cannot be earlier than start date.', 'error');
+            applyBtn.disabled = true;
+            applyBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            return false;
+        }
+
+        applyBtn.disabled = false;
+        applyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        clearMessage();
+        return true;
     }
 
     function formatCurrency(value) {
-        return new Intl.NumberFormat('vi-VN').format(value) + ' VND';
+        return new Intl.NumberFormat('en-US').format(value) + ' VND';
     }
 
     function formatInteger(value) {
-        return new Intl.NumberFormat('vi-VN').format(value);
+        return new Intl.NumberFormat('en-US').format(value);
     }
 
     function formatDateTime(value) {
-        if (!value) {
-            return '';
-        }
+        if (!value) return '';
         const date = new Date(value);
-        if (Number.isNaN(date.getTime())) {
-            return value;
-        }
-        return new Intl.DateTimeFormat('vi-VN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
+        return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('en-US', {
+            year: 'numeric', month: 'short', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
         }).format(date);
     }
 
     function statusBadgeClass(status) {
-        if (status === 'COMPLETED') {
-            return 'bg-green-100 text-green-700';
-        }
-        if (status === 'FAILED') {
-            return 'bg-red-100 text-red-700';
-        }
+        if (status === 'COMPLETED') return 'bg-green-100 text-green-700';
+        if (status === 'FAILED') return 'bg-red-100 text-red-700';
+        if (status === 'PENDING') return 'bg-amber-100 text-amber-700';
         return 'bg-surface-container-high text-on-surface-variant';
     }
 
     function showMessage(message, type) {
-        statusMessage.textContent = message;
-        statusMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
-        if (type === 'success') {
-            statusMessage.classList.add('bg-green-100', 'text-green-800');
-        } else {
-            statusMessage.classList.add('bg-red-100', 'text-red-800');
-        }
+        const iconEl = document.getElementById('statusMessageIcon');
+        const textEl = document.getElementById('statusMessageText');
+
+        statusMessage.classList.remove('hidden', 'info', 'success', 'error');
+        statusMessage.classList.add(type === 'error' ? 'error' : type === 'success' ? 'success' : 'info');
+        iconEl.textContent = type === 'error' ? 'error' : type === 'success' ? 'check_circle' : 'info';
+        textEl.textContent = message;
+        statusMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function clearMessage() {

@@ -23,6 +23,8 @@ public class DataInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
+    private final WalletRepository walletRepository;
+    private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
@@ -193,6 +195,63 @@ public class DataInitializer implements CommandLineRunner {
         if (seller != null) {
             initializeBulkTestProducts(seller);
         }
+
+        initializeDashboardSampleTransactions();
+    }
+
+    private void initializeDashboardSampleTransactions() {
+        if (transactionRepository.existsByTransactionType("PAY_AUCTION")) {
+            return;
+        }
+
+        User demoUser = userRepository.findByUsername("admin")
+                .or(() -> userRepository.findByUsername("seller_thuhuong"))
+                .orElse(null);
+        if (demoUser == null) {
+            log.warn("Skipping dashboard sample transactions: no demo user found");
+            return;
+        }
+
+        Wallet wallet = walletRepository.findByUser_UserId(demoUser.getUserId())
+                .orElseGet(() -> {
+                    Wallet newWallet = new Wallet();
+                    newWallet.setUser(demoUser);
+                    newWallet.setBalance(0L);
+                    newWallet.setHoldBalance(0L);
+                    newWallet.setUpdatedAt(LocalDateTime.now());
+                    return walletRepository.save(newWallet);
+                });
+
+        LocalDateTime now = LocalDateTime.now();
+        List<Transaction> sampleTransactions = List.of(
+                buildTransaction(wallet, 15_000_000L, "PAY_AUCTION", "COMPLETED", now.minusDays(10)),
+                buildTransaction(wallet, 5_000_000L, "PAY_AUCTION", "COMPLETED", now.minusDays(8)),
+                buildTransaction(wallet, 8_000_000L, "PAY_AUCTION", "FAILED", now.minusDays(7)),
+                buildTransaction(wallet, 20_000_000L, "PAY_AUCTION", "COMPLETED", now.minusDays(5)),
+                buildTransaction(wallet, 7_000_000L, "DEPOSIT", "COMPLETED", now.minusDays(4)),
+                buildTransaction(wallet, 12_000_000L, "PAY_AUCTION", "COMPLETED", now.minusDays(2)),
+                buildTransaction(wallet, 3_000_000L, "WITHDRAW", "PENDING", now.minusDays(1)),
+                buildTransaction(wallet, 9_500_000L, "PAY_AUCTION", "COMPLETED", now.minusHours(6))
+        );
+
+        transactionRepository.saveAll(sampleTransactions);
+        log.info("Dashboard sample transactions initialized for wallet {}", wallet.getWalletId());
+    }
+
+    private Transaction buildTransaction(
+            Wallet wallet,
+            long amount,
+            String type,
+            String status,
+            LocalDateTime createdAt
+    ) {
+        Transaction transaction = new Transaction();
+        transaction.setWallet(wallet);
+        transaction.setAmount(amount);
+        transaction.setTransactionType(type);
+        transaction.setStatus(status);
+        transaction.setCreatedAt(createdAt);
+        return transaction;
     }
 
     private void addProductImage(Product product, String imageUrl, boolean isPrimary) {
