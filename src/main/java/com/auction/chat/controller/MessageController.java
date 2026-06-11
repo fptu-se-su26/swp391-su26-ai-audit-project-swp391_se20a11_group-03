@@ -1,11 +1,11 @@
-package org.example.backend.controller;
+package com.auction.chat.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.backend.dto.request.SendMessageRequest;
-import org.example.backend.dto.response.MessageResponse;
-import org.example.backend.security.UserDetailsImpl;
-import org.example.backend.service.MessageService;
+import com.auction.chat.dto.request.SendMessageRequest;
+import com.auction.chat.dto.response.MessageResponse;
+import com.auction.account.security.UserDetailsImpl;
+import com.auction.chat.service.MessageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

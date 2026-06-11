@@ -1,11 +1,11 @@
-package com.swp391.service.impl;
+package com.auction.product.service.impl;
 
-import com.swp391.dto.*;
-import com.swp391.entity.*;
-import com.swp391.exception.BusinessException;
-import com.swp391.exception.ResourceNotFoundException;
-import com.swp391.repository.*;
-import com.swp391.service.CategoryService;
+import com.auction.product.dto.*;
+import com.auction.product.entity.*;
+import com.auction.common.exception.BusinessException;
+import com.auction.common.exception.ResourceNotFoundException;
+import com.auction.product.repository.*;
+import com.auction.product.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

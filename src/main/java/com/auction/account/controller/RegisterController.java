@@ -1,7 +1,7 @@
 package com.auction.account.controller;
 
-import com.auction.account.model.User;
-import com.auction.account.service.AuthAuditService;
+import com.auction.account.entity.User;
+import com.auction.common.service.AuthAuditService;
 import com.auction.account.service.AuthService;
 import com.auction.account.service.AuthSessionService;
 import jakarta.servlet.http.HttpServletRequest;

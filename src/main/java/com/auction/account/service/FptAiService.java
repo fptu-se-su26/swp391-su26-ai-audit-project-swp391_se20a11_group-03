@@ -1,6 +1,6 @@
 package com.auction.account.service;
 
-import com.auction.common.util.FptAiConfig;
+import com.auction.config.FptAiConfig;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -8,7 +8,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import org.springframework.stereotype.Service;
 
+@Service
 public class FptAiService {
     private final HttpClient httpClient;
 
@@ -25,7 +27,7 @@ public class FptAiService {
     public FptAiResult healthCheck() {
         String apiKey = FptAiConfig.getApiKey();
         if (apiKey == null) {
-            return FptAiResult.missingKey();
+            return FptAiResult.missingKeyResult();
         }
 
         String endpoint = FptAiConfig.getApiUrl() + "/health";
@@ -53,7 +55,7 @@ public class FptAiService {
             return new FptAiResult(true, false, "OK", payload);
         }
 
-        public static FptAiResult missingKey() {
+        public static FptAiResult missingKeyResult() {
             return new FptAiResult(false, true, "Missing FPT_AI_API_KEY environment variable", null);
         }
 

@@ -1,17 +1,17 @@
-package org.example.backend.service.impl;
+package com.auction.chat.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.example.backend.dto.request.SendMessageRequest;
-import org.example.backend.dto.response.MessageResponse;
-import org.example.backend.entity.Conversation;
-import org.example.backend.entity.Message;
-import org.example.backend.entity.User;
-import org.example.backend.enums.ConversationStatus;
-import org.example.backend.exception.ResourceNotFoundException;
-import org.example.backend.repository.ConversationRepository;
-import org.example.backend.repository.MessageRepository;
-import org.example.backend.repository.UserRepository;
-import org.example.backend.service.MessageService;
+import com.auction.chat.dto.request.SendMessageRequest;
+import com.auction.chat.dto.response.MessageResponse;
+import com.auction.chat.entity.Conversation;
+import com.auction.chat.entity.Message;
+import com.auction.account.entity.User;
+import com.auction.chat.enums.ConversationStatus;
+import com.auction.common.exception.ResourceNotFoundException;
+import com.auction.chat.repository.ConversationRepository;
+import com.auction.chat.repository.MessageRepository;
+import com.auction.account.dao.UserRepository;
+import com.auction.chat.service.MessageService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +38,7 @@ public class MessageServiceImpl implements MessageService {
             throw new IllegalStateException("Conversation đã đóng, không thể gửi tin nhắn");
         }
 
-        User sender = userRepository.findById(senderId)
+        User sender = userRepository.findById(Math.toIntExact(senderId))
                 .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
 
         Message msg = messageRepository.save(
@@ -63,7 +63,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public void markAsRead(Long conversationId, Long userId) {
-        messageRepository.markAllAsRead(conversationId, userId);
+        messageRepository.markAllAsRead(conversationId, Math.toIntExact(userId));
     }
 
     private MessageResponse toResponse(Message m) {

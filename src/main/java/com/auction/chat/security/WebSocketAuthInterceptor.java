@@ -1,5 +1,9 @@
 package com.auction.chat.security;
 
+import com.auction.account.security.JwtService;
+import com.auction.account.security.UserDetailsImpl;
+import com.auction.account.security.UserDetailsServiceImpl;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;

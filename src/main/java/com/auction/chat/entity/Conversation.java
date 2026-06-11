@@ -1,8 +1,10 @@
-package org.example.backend.entity;
+package com.auction.chat.entity;
+
+import com.auction.account.entity.User;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.example.backend.enums.ConversationStatus;
+import com.auction.chat.enums.ConversationStatus;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

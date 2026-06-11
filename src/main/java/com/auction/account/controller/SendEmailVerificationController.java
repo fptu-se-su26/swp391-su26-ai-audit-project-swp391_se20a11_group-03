@@ -1,9 +1,9 @@
 package com.auction.account.controller;
 
-import com.auction.account.model.User;
+import com.auction.account.entity.User;
 import com.auction.account.service.EmailVerificationService;
-import com.auction.account.util.AppConfig;
-import com.auction.account.util.AuditLogUtil;
+import com.auction.config.AppConfig;
+import com.auction.common.util.AuditLogUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.auction.account.controller;
 
-import com.auction.account.model.User;
+import com.auction.account.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;

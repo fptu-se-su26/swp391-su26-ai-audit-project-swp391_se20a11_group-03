@@ -1,8 +1,11 @@
-package com.example.biddingmodule.repository;
+package com.auction.bidding.repository;
 
-import com.example.biddingmodule.entity.Bid;
+import com.auction.bidding.entity.Bid;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface BidRepository {
-    Bid save(Bid bid);
+import java.util.List;
+
+public interface BidRepository extends JpaRepository<Bid, Long> {
+    List<Bid> findByAuctionIdOrderByBidAmountDesc(Long auctionId);
 }
 

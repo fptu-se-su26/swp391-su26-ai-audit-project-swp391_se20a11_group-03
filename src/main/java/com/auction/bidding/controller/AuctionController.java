@@ -1,7 +1,7 @@
-package com.hoangxuananhtuan.auction.controller;
+package com.auction.bidding.controller;
 
-import com.hoangxuananhtuan.auction.dto.AuctionEligibilityResponse;
-import com.hoangxuananhtuan.auction.service.AuctionService;
+import com.auction.bidding.dto.AuctionEligibilityResponse;
+import com.auction.bidding.service.AuctionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

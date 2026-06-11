@@ -1,6 +1,6 @@
-package com.example.biddingmodule.dto;
+package com.auction.bidding.dto;
 
-import com.example.biddingmodule.entity.AuctionStatus;
+import com.auction.bidding.entity.AuctionStatus;
 
 import java.time.LocalDateTime;
 

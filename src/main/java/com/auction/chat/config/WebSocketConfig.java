@@ -1,7 +1,7 @@
-package org.example.backend.config;
+package com.auction.chat.config;
 
 import lombok.RequiredArgsConstructor;
-import org.example.backend.security.WebSocketAuthInterceptor;
+import com.auction.chat.security.WebSocketAuthInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

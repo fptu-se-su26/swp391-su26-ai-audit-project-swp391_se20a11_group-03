@@ -22,6 +22,10 @@ public class Product {
     @Column(name = "CategoryId", nullable = false)
     private Integer categoryId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CategoryId", insertable = false, updatable = false)
+    private Category category;
+
     @Column(name = "ProductName", nullable = false, length = 255)
     private String productName;
 

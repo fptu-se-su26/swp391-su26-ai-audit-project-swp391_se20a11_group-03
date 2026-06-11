@@ -1,9 +1,11 @@
 package com.auction.account.service;
 
 import com.auction.account.dao.UserDAO;
-import com.auction.account.model.User;
+import com.auction.account.entity.User;
 import com.auction.account.util.PasswordUtil;
+import org.springframework.stereotype.Service;
 
+@Service
 public class AuthService {
     private final UserDAO userDAO;
     private final AuthValidator authValidator;

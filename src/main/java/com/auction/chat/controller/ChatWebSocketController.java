@@ -1,9 +1,9 @@
-package org.example.backend.controller;
+package com.auction.chat.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.backend.dto.request.SendMessageRequest;
-import org.example.backend.security.UserDetailsImpl;
-import org.example.backend.service.MessageService;
+import com.auction.chat.dto.request.SendMessageRequest;
+import com.auction.account.security.UserDetailsImpl;
+import com.auction.chat.service.MessageService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.security.core.Authentication;

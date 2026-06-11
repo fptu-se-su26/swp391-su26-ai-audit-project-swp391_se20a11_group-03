@@ -1,7 +1,9 @@
-package com.swp391.controller;
+package com.auction.product.controller;
 
-import com.swp391.dto.*;
-import com.swp391.service.CategoryService;
+import com.auction.common.dto.ApiResponse;
+
+import com.auction.product.dto.*;
+import com.auction.product.service.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

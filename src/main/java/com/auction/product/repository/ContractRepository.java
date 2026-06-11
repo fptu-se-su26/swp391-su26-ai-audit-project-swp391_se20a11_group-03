@@ -1,6 +1,6 @@
-package com.swp391.repository;
+package com.auction.product.repository;
 
-import com.swp391.entity.Contract;
+import com.auction.product.entity.Contract;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

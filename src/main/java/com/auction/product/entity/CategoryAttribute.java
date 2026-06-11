@@ -1,4 +1,4 @@
-package com.swp391.entity;
+package com.auction.product.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

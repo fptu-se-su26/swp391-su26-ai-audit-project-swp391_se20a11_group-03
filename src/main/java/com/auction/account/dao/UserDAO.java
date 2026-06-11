@@ -1,10 +1,12 @@
 package com.auction.account.dao;
 
-import com.auction.account.model.User;
-import com.auction.account.util.JpaUtil;
+import com.auction.account.entity.User;
+import com.auction.common.util.JpaUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public class UserDAO {
     public boolean existsByEmail(String email) {
         EntityManager em = JpaUtil.createEntityManager();

@@ -1,9 +1,9 @@
-package com.swp391.controller;
+package com.auction.product.controller;
 
-import com.swp391.dto.CategoryDTO;
-import com.swp391.entity.Category;
-import com.swp391.repository.CategoryRepository;
-import com.swp391.service.CategoryService;
+import com.auction.product.dto.CategoryDTO;
+import com.auction.product.entity.Category;
+import com.auction.product.repository.CategoryRepository;
+import com.auction.product.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

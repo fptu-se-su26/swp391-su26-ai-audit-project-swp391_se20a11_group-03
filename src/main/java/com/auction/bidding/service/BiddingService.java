@@ -1,20 +1,22 @@
-package com.example.biddingmodule.service;
+package com.auction.bidding.service;
 
-import com.example.biddingmodule.dto.AuctionSessionDto;
-import com.example.biddingmodule.dto.BidRequest;
-import com.example.biddingmodule.dto.BidResponse;
-import com.example.biddingmodule.entity.AuctionSession;
-import com.example.biddingmodule.entity.AuctionStatus;
-import com.example.biddingmodule.entity.Bid;
-import com.example.biddingmodule.repository.AuctionSessionRepository;
-import com.example.biddingmodule.repository.BidRepository;
+import com.auction.bidding.dto.AuctionSessionDto;
+import com.auction.bidding.dto.BidRequest;
+import com.auction.bidding.dto.BidResponse;
+import com.auction.bidding.entity.AuctionSession;
+import com.auction.bidding.entity.AuctionStatus;
+import com.auction.bidding.entity.Bid;
+import com.auction.bidding.repository.AuctionSessionRepository;
+import com.auction.bidding.repository.BidRepository;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
 
+@Service
 public class BiddingService {
     public static final long MIN_BID_INCREMENT = 1_000_000L;
     public static final long INITIAL_AUCTION_DURATION_SECONDS = 120L;

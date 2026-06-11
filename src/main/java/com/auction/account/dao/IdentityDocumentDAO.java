@@ -1,9 +1,11 @@
 package com.auction.account.dao;
 
-import com.auction.account.model.IdentityDocument;
-import com.auction.account.util.JpaUtil;
+import com.auction.account.entity.IdentityDocument;
+import com.auction.common.util.JpaUtil;
 import jakarta.persistence.EntityManager;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public class IdentityDocumentDAO {
     public void save(IdentityDocument document) {
         EntityManager em = JpaUtil.createEntityManager();

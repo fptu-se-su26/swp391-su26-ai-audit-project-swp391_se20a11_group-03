@@ -1,4 +1,4 @@
-package com.swp391.service;
+package com.auction.product.service;
 
 /**
  * @author Pham Manh Thang

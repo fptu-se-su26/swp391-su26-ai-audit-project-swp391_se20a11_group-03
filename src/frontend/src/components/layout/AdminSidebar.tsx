@@ -24,7 +24,7 @@ export default function AdminSidebar() {
         </div>
 
         {/* Profile */}
-        <div className="flex items-center gap-sm px-sm mb-lg">
+        <Link href="/" className="flex items-center gap-sm rounded-lg px-sm py-xs mb-lg hover:bg-surface-container-high transition-colors">
           <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
             <img
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-z1iwi2tB3iSLzXubYanrlgOXXB0y4Og3bMPRT9g2tiWAvNTHUTqJ6jaSEpp_vOxGstCGOGHBxBgrk3NCOXj8aEE-qbr7ZTpUzHXXn2DJRRhepekMD7rcBKlCuw4RTcviRs97ygQvVu_2IJmGkpiMdN5zFTfIPLyo6UNl-ggg-H8pz8oZFyIeAMIGS1AeTLEmXbHORD3uXlhPOf5BRyvielQmQGt3lGOHWKRZHWiqw9acH7xFfHKMd0ixAa9VLo1DBUgXodILB3Pw"
@@ -36,7 +36,7 @@ export default function AdminSidebar() {
             <span className="font-label-md text-label-md text-on-surface">System Administrator</span>
             <span className="block text-[10px] text-on-surface-variant uppercase tracking-widest">Active Status</span>
           </div>
-        </div>
+        </Link>
 
         {/* Nav */}
         <nav className="flex-1 flex flex-col gap-xs overflow-y-auto custom-scrollbar">

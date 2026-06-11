@@ -1,6 +1,6 @@
-package com.swp391.repository;
+package com.auction.product.repository;
 
-import com.swp391.entity.ProductImage;
+import com.auction.product.entity.ProductImage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,9 +1,11 @@
 package com.auction.account.dao;
 
-import com.auction.account.model.AuditLog;
-import com.auction.account.util.JpaUtil;
+import com.auction.account.entity.AuditLog;
+import com.auction.common.util.JpaUtil;
 import jakarta.persistence.EntityManager;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public class AuditLogDAO {
     public void save(AuditLog auditLog) {
         EntityManager em = JpaUtil.createEntityManager();

@@ -1,11 +1,13 @@
 package com.auction.common.service;
 
-import com.auction.account.model.IdentityDocument;
-import com.auction.account.model.User;
-import com.auction.account.model.VerificationStatus;
-import com.auction.common.util.AppConfig;
+import com.auction.account.entity.IdentityDocument;
+import com.auction.account.entity.User;
+import com.auction.account.entity.VerificationStatus;
+import com.auction.config.AppConfig;
 import com.auction.common.util.TokenUtil;
+import org.springframework.stereotype.Service;
 
+@Service
 public class OcrService {
     public String getProviderName() {
         return AppConfig.get("vnec.ocr.provider", "fpt.ai");

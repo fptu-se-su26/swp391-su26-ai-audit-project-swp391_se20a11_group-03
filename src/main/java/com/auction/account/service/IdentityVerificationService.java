@@ -1,10 +1,14 @@
 package com.auction.account.service;
 
-import com.auction.account.model.IdentityDocument;
-import com.auction.account.model.User;
-import com.auction.account.model.VerificationStatus;
-import com.auction.account.util.AppConfig;
+import com.auction.common.service.OcrService;
 
+import com.auction.account.entity.IdentityDocument;
+import com.auction.account.entity.User;
+import com.auction.account.entity.VerificationStatus;
+import com.auction.config.AppConfig;
+import org.springframework.stereotype.Service;
+
+@Service
 public class IdentityVerificationService {
     private final ProfileService profileService = new ProfileService();
     private final OcrService ocrService = new OcrService();

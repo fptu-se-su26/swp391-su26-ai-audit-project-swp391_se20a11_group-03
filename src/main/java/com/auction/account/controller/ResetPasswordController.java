@@ -2,11 +2,11 @@ package com.auction.account.controller;
 
 import com.auction.account.dao.PasswordResetTokenDAO;
 import com.auction.account.dao.UserDAO;
-import com.auction.account.model.PasswordResetToken;
-import com.auction.account.model.User;
-import com.auction.account.util.AuditLogUtil;
+import com.auction.account.entity.PasswordResetToken;
+import com.auction.account.entity.User;
+import com.auction.common.util.AuditLogUtil;
 import com.auction.account.util.PasswordUtil;
-import com.auction.account.util.TokenUtil;
+import com.auction.common.util.TokenUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;

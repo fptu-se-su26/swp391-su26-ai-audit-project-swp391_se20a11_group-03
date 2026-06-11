@@ -1,8 +1,10 @@
-package com.swp391.controller;
+package com.auction.product.controller;
 
-import com.swp391.dto.ApiResponse;
-import com.swp391.entity.Contract;
-import com.swp391.repository.ContractRepository;
+import com.auction.common.dto.ApiResponse;
+
+import com.auction.common.dto.ApiResponse;
+import com.auction.product.entity.Contract;
+import com.auction.product.repository.ContractRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

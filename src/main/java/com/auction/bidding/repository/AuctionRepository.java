@@ -1,6 +1,6 @@
-package com.hoangxuananhtuan.auction.repository;
+package com.auction.bidding.repository;
 
-import com.hoangxuananhtuan.auction.domain.Auction;
+import com.auction.bidding.entity.Auction;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

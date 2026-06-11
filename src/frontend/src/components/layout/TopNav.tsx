@@ -5,7 +5,7 @@ export default function TopNav() {
     <nav className="sticky top-0 w-full z-50 bg-surface/90 backdrop-blur-xl border-b border-outline-variant/20 shadow-sm">
       <div className="flex items-center justify-between px-margin-mobile md:px-margin-desktop h-20 max-w-screen-2xl mx-auto">
         <div className="flex items-center gap-8">
-          <Link href="/storefront" className="font-headline-md text-headline-md font-bold tracking-tight text-primary">
+          <Link href="/" className="font-headline-md text-headline-md font-bold tracking-tight text-primary">
             LuxeAuction
           </Link>
           <div className="hidden md:flex gap-6 items-center">

@@ -1,7 +1,7 @@
-package com.hoangxuananhtuan.auction.controller;
+package com.auction.bidding.controller;
 
-import com.hoangxuananhtuan.auction.dto.DepositResponse;
-import com.hoangxuananhtuan.auction.service.DepositService;
+import com.auction.bidding.dto.DepositResponse;
+import com.auction.bidding.service.DepositService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

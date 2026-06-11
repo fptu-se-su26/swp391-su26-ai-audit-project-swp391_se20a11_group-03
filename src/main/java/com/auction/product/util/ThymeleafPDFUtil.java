@@ -1,4 +1,4 @@
-package com.swp391.util;
+package com.auction.product.util;
 
 import com.lowagie.text.DocumentException;
 import org.thymeleaf.TemplateEngine;

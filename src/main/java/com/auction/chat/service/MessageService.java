@@ -1,7 +1,7 @@
-package org.example.backend.service;
+package com.auction.chat.service;
 
-import org.example.backend.dto.request.SendMessageRequest;
-import org.example.backend.dto.response.MessageResponse;
+import com.auction.chat.dto.request.SendMessageRequest;
+import com.auction.chat.dto.response.MessageResponse;
 
 import java.util.List;
 

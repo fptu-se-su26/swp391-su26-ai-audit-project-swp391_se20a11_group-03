@@ -1,8 +1,8 @@
 package com.auction.account.controller;
 
 import com.auction.account.service.PasswordResetService;
-import com.auction.account.util.AppConfig;
-import com.auction.account.util.AuditLogUtil;
+import com.auction.config.AppConfig;
+import com.auction.common.util.AuditLogUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;

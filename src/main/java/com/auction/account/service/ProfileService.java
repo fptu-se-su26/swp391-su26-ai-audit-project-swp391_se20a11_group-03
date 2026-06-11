@@ -3,14 +3,16 @@ package com.auction.account.service;
 import com.auction.account.dao.IdentityDocumentDAO;
 import com.auction.account.dao.UserDAO;
 import com.auction.account.dao.UserVerificationTokenDAO;
-import com.auction.account.model.IdentityDocument;
-import com.auction.account.model.User;
-import com.auction.account.model.UserVerificationToken;
-import com.auction.account.model.VerificationStatus;
-import com.auction.account.model.VerificationType;
+import com.auction.account.entity.IdentityDocument;
+import com.auction.account.entity.User;
+import com.auction.account.entity.UserVerificationToken;
+import com.auction.account.entity.VerificationStatus;
+import com.auction.account.entity.VerificationType;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Service
 public class ProfileService {
     private final UserDAO userDAO = new UserDAO();
     private final UserVerificationTokenDAO tokenDAO = new UserVerificationTokenDAO();
@@ -54,7 +56,7 @@ public class ProfileService {
         User user = token.getUser();
         user.setEmailVerified(true);
         user.setEmailVerifiedAt(LocalDateTime.now());
-        user.setVerificationLevel(Math.max(user.getVerificationLevel(), 1));
+        user.setVerificationLevel((byte) Math.max(user.getVerificationLevel(), 1));
         user.setProfileStatus(VerificationStatus.PENDING_IDENTITY_VERIFY.name());
         userDAO.update(user);
         return true;
@@ -77,7 +79,7 @@ public class ProfileService {
         }
         user.setIdentityVerified(true);
         user.setIdentityVerifiedAt(LocalDateTime.now());
-        user.setVerificationLevel(Math.max(user.getVerificationLevel(), 2));
+        user.setVerificationLevel((byte) Math.max(user.getVerificationLevel(), 2));
         user.setProfileStatus(VerificationStatus.ACTIVE.name());
         userDAO.update(user);
     }

@@ -1,11 +1,11 @@
-package com.hoangxuananhtuan.auction.repository;
+package com.auction.bidding.repository;
 
-import com.hoangxuananhtuan.auction.domain.AuctionDeposit;
+import com.auction.bidding.entity.AuctionDeposit;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
 public interface AuctionDepositRepository extends JpaRepository<AuctionDeposit, Long> {
-    Optional<AuctionDeposit> findByAuction_AuctionIdAndUser_UserId(Long auctionId, Long userId);
+    Optional<AuctionDeposit> findByAuction_AuctionIdAndUser_Id(Long auctionId, Integer userId);
 }
 

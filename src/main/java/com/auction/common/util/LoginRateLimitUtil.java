@@ -23,8 +23,35 @@ public final class LoginRateLimitUtil {
         return window.counter.incrementAndGet() <= MAX_ATTEMPTS;
     }
 
+    public static RateLimitStatus checkAllowed(String key) {
+        boolean allowed = allow(key);
+        AttemptWindow window = ATTEMPTS.get(key);
+        Duration retryAfter = window == null ? Duration.ZERO : Duration.between(Instant.now(), window.startedAt.plus(WINDOW));
+        if (retryAfter.isNegative()) {
+            retryAfter = Duration.ZERO;
+        }
+        return new RateLimitStatus(allowed, retryAfter);
+    }
+
+    public static void recordSuccess(String key) {
+        reset(key);
+    }
+
+    public static void recordFailure(String key) {
+    }
+
     public static void reset(String key) {
         ATTEMPTS.remove(key);
+    }
+
+    public record RateLimitStatus(boolean allowed, Duration retryAfter) {
+        public boolean isAllowed() {
+            return allowed;
+        }
+
+        public Duration getRetryAfter() {
+            return retryAfter;
+        }
     }
 
     private record AttemptWindow(Instant startedAt, AtomicInteger counter) {}

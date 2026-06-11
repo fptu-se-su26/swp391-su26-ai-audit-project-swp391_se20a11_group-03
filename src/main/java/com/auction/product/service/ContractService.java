@@ -1,6 +1,6 @@
-package com.swp391.service;
+package com.auction.product.service;
 
-import com.swp391.entity.Contract;
+import com.auction.product.entity.Contract;
 
 /**
  * @author Pham Manh Thang

@@ -20,7 +20,7 @@ export default function StaffSidebar() {
           <p className="font-label-md text-label-md text-on-surface-variant">Staff Operations</p>
         </div>
 
-        <div className="flex items-center gap-sm px-sm mb-lg">
+        <Link href="/" className="flex items-center gap-sm rounded-lg px-sm py-xs mb-lg hover:bg-surface-container-high transition-colors">
           <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
             <span className="material-symbols-outlined text-on-primary-container">manage_accounts</span>
           </div>
@@ -28,7 +28,7 @@ export default function StaffSidebar() {
             <span className="font-label-md text-label-md text-on-surface">Staff Member</span>
             <span className="block text-[10px] text-on-surface-variant uppercase tracking-widest">On Duty</span>
           </div>
-        </div>
+        </Link>
 
         <nav className="flex-1 flex flex-col gap-xs">
           {NAV_ITEMS.map((item) => {

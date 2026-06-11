@@ -1,6 +1,6 @@
-package org.example.backend.repository;
+package com.auction.chat.repository;
 
-import org.example.backend.entity.Message;
+import com.auction.chat.entity.Message;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,15 +19,15 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query("SELECT COUNT(m) FROM Message m " +
            "WHERE m.conversation.conversationId = :conversationId " +
-           "AND m.isRead = false AND m.sender.userId != :userId")
+           "AND m.isRead = false AND m.sender.id != :userId")
     int countUnread(@Param("conversationId") Long conversationId,
-                    @Param("userId") Long userId);
+                    @Param("userId") Integer userId);
 
     @Modifying
     @Query("UPDATE Message m SET m.isRead = true " +
            "WHERE m.conversation.conversationId = :conversationId " +
-           "AND m.sender.userId != :userId")
+           "AND m.sender.id != :userId")
     void markAllAsRead(@Param("conversationId") Long conversationId,
-                       @Param("userId") Long userId);
+                       @Param("userId") Integer userId);
 }
 

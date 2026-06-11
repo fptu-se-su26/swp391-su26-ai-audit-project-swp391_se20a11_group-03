@@ -1,11 +1,13 @@
 package com.auction.account.dao;
 
-import com.auction.account.model.PasswordResetToken;
-import com.auction.account.util.JpaUtil;
+import com.auction.account.entity.PasswordResetToken;
+import com.auction.common.util.JpaUtil;
 import jakarta.persistence.EntityManager;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 
+@Repository
 public class PasswordResetTokenDAO {
     public void save(PasswordResetToken token) {
         EntityManager em = JpaUtil.createEntityManager();

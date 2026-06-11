@@ -1,9 +1,9 @@
 package com.auction.account.controller;
 
-import com.auction.account.service.AuthAuditService;
+import com.auction.common.service.AuthAuditService;
 import com.auction.account.service.AuthService;
 import com.auction.account.service.AuthSessionService;
-import com.auction.account.util.LoginRateLimitUtil;
+import com.auction.common.util.LoginRateLimitUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;

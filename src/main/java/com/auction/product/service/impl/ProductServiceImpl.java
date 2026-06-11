@@ -1,12 +1,12 @@
-package com.swp391.service.impl;
+package com.auction.product.service.impl;
 
-import com.swp391.dto.*;
-import com.swp391.entity.*;
-import com.swp391.exception.BusinessException;
-import com.swp391.exception.ResourceNotFoundException;
-import com.swp391.repository.*;
-import com.swp391.service.ContractService;
-import com.swp391.service.ProductService;
+import com.auction.product.dto.*;
+import com.auction.product.entity.*;
+import com.auction.common.exception.BusinessException;
+import com.auction.common.exception.ResourceNotFoundException;
+import com.auction.product.repository.*;
+import com.auction.product.service.ContractService;
+import com.auction.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductAttributeValueRepository productAttributeValueRepository;
     private final CategoryRepository categoryRepository;
     private final CategoryAttributeRepository categoryAttributeRepository;
-    private final UserRepository userRepository;
+    private final com.auction.account.dao.UserRepository userRepository;
     private final ContractService contractService;
 
     @Override
@@ -56,7 +56,7 @@ public class ProductServiceImpl implements ProductService {
             throw new BusinessException("Product is already " + product.getStatus());
         }
 
-        if (!userRepository.existsById(reviewerId)) {
+        if (!userRepository.existsById(Math.toIntExact(reviewerId))) {
             throw new ResourceNotFoundException("Reviewer not found with id: " + reviewerId);
         }
 
@@ -85,7 +85,7 @@ public class ProductServiceImpl implements ProductService {
             throw new BusinessException("Product is already " + product.getStatus());
         }
 
-        if (!userRepository.existsById(reviewerId)) {
+        if (!userRepository.existsById(Math.toIntExact(reviewerId))) {
             throw new ResourceNotFoundException("Reviewer not found with id: " + reviewerId);
         }
 
@@ -111,7 +111,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         // Verify user exists
-        if (!userRepository.existsById(sellerId)) {
+        if (!userRepository.existsById(Math.toIntExact(sellerId))) {
             throw new ResourceNotFoundException("Seller not found with id: " + sellerId);
         }
 

@@ -1,6 +1,6 @@
-package com.swp391.repository;
+package com.auction.product.repository;
 
-import com.swp391.entity.Category;
+import com.auction.product.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

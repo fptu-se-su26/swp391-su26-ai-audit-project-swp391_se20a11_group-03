@@ -1,13 +1,64 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { type FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { login } from "@/lib/services/authService";
 
 export default function AuthPage() {
+  const router = useRouter();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [showPass, setShowPass] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isLogin = mode === "login";
+
+  function getRedirectPath(roleName?: string) {
+    const role = roleName?.toLowerCase();
+
+    if (role?.includes("admin")) {
+      return "/admin/revenue";
+    }
+
+    if (role?.includes("staff")) {
+      return "/staff/approvals";
+    }
+
+    return "/dashboard";
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setErrorMessage("");
+
+    if (!isLogin) {
+      setErrorMessage("Account registration is not connected yet. Please log in with an existing account.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await login({
+        usernameOrEmail: email.trim(),
+        password,
+      });
+
+      if (!response.token) {
+        throw new Error("The login response did not include an access token.");
+      }
+
+      localStorage.setItem("token", response.token);
+      localStorage.setItem("currentUser", JSON.stringify(response));
+      router.push(getRedirectPath(response.roleName));
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Invalid email or password.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <main className="flex min-h-screen">
@@ -51,8 +102,12 @@ export default function AuthPage() {
             <div className="flex p-xs bg-surface-container-low rounded-lg mb-md flex-shrink-0">
               {(["login", "signup"] as const).map((m) => (
                 <button
+                  type="button"
                   key={m}
-                  onClick={() => setMode(m)}
+                  onClick={() => {
+                    setMode(m);
+                    setErrorMessage("");
+                  }}
                   className={`flex-1 py-3 text-label-md font-label-md rounded-md transition-all ${
                     mode === m
                       ? "bg-surface shadow-sm text-primary"
@@ -76,7 +131,7 @@ export default function AuthPage() {
             </div>
 
             {/* Form */}
-            <form className="space-y-3 flex-grow" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-3 flex-grow" onSubmit={handleSubmit}>
               {!isLogin && (
                 <div>
                   <label className="block font-label-md text-label-md text-on-surface-variant mb-1">Full Name</label>
@@ -93,6 +148,10 @@ export default function AuthPage() {
                 <input
                   type="email"
                   placeholder="collector@luxe.com"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  autoComplete="email"
+                  required
                   className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
                 />
               </div>
@@ -107,6 +166,10 @@ export default function AuthPage() {
                 <div className="relative">
                   <input
                     type={showPass ? "text" : "password"}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    autoComplete={isLogin ? "current-password" : "new-password"}
+                    required
                     placeholder="••••••••"
                     className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
                   />
@@ -131,18 +194,23 @@ export default function AuthPage() {
                 </div>
               )}
 
+              {errorMessage && (
+                <div className="rounded-lg border border-error/30 bg-error-container/20 px-4 py-3 text-label-md text-error">
+                  {errorMessage}
+                </div>
+              )}
+
               <div className="pt-2">
-                <Link href="/auth/onboarding">
-                  <button
-                    type="button"
-                    className="w-full bg-primary-container text-white py-3.5 rounded-lg font-label-md text-label-md hover:shadow-lg hover:shadow-primary-container/20 active:scale-[0.98] transition-all flex items-center justify-center gap-sm group"
-                  >
-                    <span>{isLogin ? "Access Account" : "Create Account"}</span>
-                    <span className="material-symbols-outlined text-[18px] text-secondary-fixed-dim group-hover:translate-x-1 transition-transform">
-                      arrow_forward
-                    </span>
-                  </button>
-                </Link>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-primary-container text-white py-3.5 rounded-lg font-label-md text-label-md hover:shadow-lg hover:shadow-primary-container/20 active:scale-[0.98] transition-all flex items-center justify-center gap-sm group disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  <span>{isSubmitting ? "Checking credentials..." : isLogin ? "Access Account" : "Create Account"}</span>
+                  <span className="material-symbols-outlined text-[18px] text-secondary-fixed-dim group-hover:translate-x-1 transition-transform">
+                    arrow_forward
+                  </span>
+                </button>
               </div>
             </form>
 

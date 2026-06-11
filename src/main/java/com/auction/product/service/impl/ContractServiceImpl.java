@@ -1,9 +1,9 @@
-package com.swp391.service.impl;
+package com.auction.product.service.impl;
 
-import com.swp391.entity.Contract;
-import com.swp391.exception.BusinessException;
-import com.swp391.repository.ContractRepository;
-import com.swp391.service.ContractService;
+import com.auction.product.entity.Contract;
+import com.auction.common.exception.BusinessException;
+import com.auction.product.repository.ContractRepository;
+import com.auction.product.service.ContractService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

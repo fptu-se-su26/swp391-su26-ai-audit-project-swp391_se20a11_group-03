@@ -1,6 +1,6 @@
-package com.example.biddingmodule.repository;
+package com.auction.bidding.repository;
 
-import com.example.biddingmodule.entity.AuctionSession;
+import com.auction.bidding.entity.AuctionSession;
 
 import java.util.List;
 import java.util.Optional;

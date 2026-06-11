@@ -1,12 +1,13 @@
-package com.example.biddingmodule.service;
+package com.auction.bidding;
 
-import com.example.biddingmodule.dto.BidRequest;
-import com.example.biddingmodule.dto.BidResponse;
-import com.example.biddingmodule.entity.AuctionSession;
-import com.example.biddingmodule.entity.AuctionStatus;
-import com.example.biddingmodule.entity.Bid;
-import com.example.biddingmodule.repository.AuctionSessionRepository;
-import com.example.biddingmodule.repository.BidRepository;
+import com.auction.bidding.dto.BidRequest;
+import com.auction.bidding.dto.BidResponse;
+import com.auction.bidding.entity.AuctionSession;
+import com.auction.bidding.entity.AuctionStatus;
+import com.auction.bidding.entity.Bid;
+import com.auction.bidding.repository.AuctionSessionRepository;
+import com.auction.bidding.repository.BidRepository;
+import com.auction.bidding.service.BiddingService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -19,13 +20,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 class BiddingServiceTest {
 
     @Test
     // Test 2 người cùng đặt cùng một mức giá: request vào trước sẽ thắng, request vào sau bị reject.
     void sameBidAmount_firstRequestWins_secondRejected() throws Exception {
         InMemoryAuctionSessionRepository auctionRepo = new InMemoryAuctionSessionRepository();
-        InMemoryBidRepository bidRepo = new InMemoryBidRepository();
+        BidRepository bidRepo = mockBidRepository();
         BiddingService service = new BiddingService(auctionRepo, bidRepo);
 
         AuctionSession auction = service.createDefaultAuctionSession(1L, 10L, LocalDateTime.now().minusSeconds(30));
@@ -44,7 +51,7 @@ class BiddingServiceTest {
 
         Assertions.assertEquals(1, successCount.get());
         Assertions.assertEquals(1, failCount.get());
-        Assertions.assertEquals(1, bidRepo.savedCount);
+        verify(bidRepo, times(1)).save(any(Bid.class));
         Assertions.assertEquals(11_000_000L, auctionRepo.savedAuction.getCurrentHighestBid());
         Assertions.assertEquals(Long.valueOf(1L), auctionRepo.savedAuction.getCurrentWinnerUserId());
     }
@@ -53,7 +60,7 @@ class BiddingServiceTest {
     // Test trường hợp bid cao hơn đến trước: bid thấp hơn đến sau phải bị reject.
     void higherBidFirst_lowerBidRejected() throws Exception {
         InMemoryAuctionSessionRepository auctionRepo = new InMemoryAuctionSessionRepository();
-        InMemoryBidRepository bidRepo = new InMemoryBidRepository();
+        BidRepository bidRepo = mockBidRepository();
         BiddingService service = new BiddingService(auctionRepo, bidRepo);
 
         AuctionSession auction = service.createDefaultAuctionSession(2L, 20L, LocalDateTime.now().minusSeconds(30));
@@ -72,7 +79,7 @@ class BiddingServiceTest {
 
         Assertions.assertEquals(1, successCount.get());
         Assertions.assertEquals(1, failCount.get());
-        Assertions.assertEquals(1, bidRepo.savedCount);
+        verify(bidRepo, times(1)).save(any(Bid.class));
         Assertions.assertEquals(12_000_000L, auctionRepo.savedAuction.getCurrentHighestBid());
         Assertions.assertEquals(Long.valueOf(3L), auctionRepo.savedAuction.getCurrentWinnerUserId());
     }
@@ -81,7 +88,7 @@ class BiddingServiceTest {
     // Test trường hợp bid thấp hơn đến trước nhưng vẫn hợp lệ, sau đó bid cao hơn đến sau vẫn tiếp tục được nhận nếu còn hợp lệ.
     void lowerBidFirst_thenHigherBidStillAccepted_ifMeetsMinimumIncrement() throws Exception {
         InMemoryAuctionSessionRepository auctionRepo = new InMemoryAuctionSessionRepository();
-        InMemoryBidRepository bidRepo = new InMemoryBidRepository();
+        BidRepository bidRepo = mockBidRepository();
         BiddingService service = new BiddingService(auctionRepo, bidRepo);
 
         AuctionSession auction = service.createDefaultAuctionSession(3L, 30L, LocalDateTime.now().minusSeconds(30));
@@ -100,7 +107,7 @@ class BiddingServiceTest {
 
         Assertions.assertEquals(2, successCount.get());
         Assertions.assertEquals(0, failCount.get());
-        Assertions.assertEquals(2, bidRepo.savedCount);
+        verify(bidRepo, times(2)).save(any(Bid.class));
         Assertions.assertEquals(12_000_000L, auctionRepo.savedAuction.getCurrentHighestBid());
         Assertions.assertEquals(Long.valueOf(6L), auctionRepo.savedAuction.getCurrentWinnerUserId());
     }
@@ -109,7 +116,7 @@ class BiddingServiceTest {
     // Test anti-sniper: bid hợp lệ gần cuối phiên sẽ kéo dài thời gian đấu giá thêm 10 giây.
     void successfulBid_extendsEndTimeBy10Seconds() {
         InMemoryAuctionSessionRepository auctionRepo = new InMemoryAuctionSessionRepository();
-        InMemoryBidRepository bidRepo = new InMemoryBidRepository();
+        BidRepository bidRepo = mockBidRepository();
         BiddingService service = new BiddingService(auctionRepo, bidRepo);
 
         LocalDateTime start = LocalDateTime.now().minusSeconds(10);
@@ -129,7 +136,7 @@ class BiddingServiceTest {
     // Test validation bước nhảy: bid thấp hơn mức tối thiểu phải bị reject với đúng message.
     void bidBelowMinimumIncrement_isRejectedWithCorrectMessage() {
         InMemoryAuctionSessionRepository auctionRepo = new InMemoryAuctionSessionRepository();
-        InMemoryBidRepository bidRepo = new InMemoryBidRepository();
+        BidRepository bidRepo = mockBidRepository();
         BiddingService service = new BiddingService(auctionRepo, bidRepo);
 
         AuctionSession auction = service.createDefaultAuctionSession(5L, 50L, LocalDateTime.now().minusSeconds(10));
@@ -147,7 +154,7 @@ class BiddingServiceTest {
     // Test điều kiện vào phòng: phải có deposit confirmed và trước deadline 30 phút.
     void canJoinRoom_requiresConfirmedDepositBeforeDeadline() {
         InMemoryAuctionSessionRepository auctionRepo = new InMemoryAuctionSessionRepository();
-        BiddingService service = new BiddingService(auctionRepo, new InMemoryBidRepository());
+        BiddingService service = new BiddingService(auctionRepo, mockBidRepository());
 
         LocalDateTime startTime = LocalDateTime.now().plusHours(2);
         AuctionSession auction = service.createDefaultAuctionSession(6L, 60L, startTime);
@@ -196,6 +203,12 @@ class BiddingServiceTest {
         return request;
     }
 
+    private BidRepository mockBidRepository() {
+        BidRepository bidRepository = mock(BidRepository.class);
+        when(bidRepository.save(any(Bid.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        return bidRepository;
+    }
+
     private static class BidAttempt {
         private final Long auctionId;
         private final Long userId;
@@ -233,13 +246,4 @@ class BiddingServiceTest {
         }
     }
 
-    private static class InMemoryBidRepository implements BidRepository {
-        private int savedCount = 0;
-
-        @Override
-        public synchronized Bid save(Bid bid) {
-            savedCount++;
-            return bid;
-        }
-    }
 }

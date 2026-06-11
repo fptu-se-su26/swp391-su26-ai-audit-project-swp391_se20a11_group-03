@@ -1,6 +1,6 @@
-package com.hoangxuananhtuan.auction.service;
+package com.auction.bidding.service;
 
-import com.hoangxuananhtuan.auction.dto.AuctionEligibilityResponse;
+import com.auction.bidding.dto.AuctionEligibilityResponse;
 
 public interface AuctionService {
     AuctionEligibilityResponse getEligibility(Long auctionId, Long userId);

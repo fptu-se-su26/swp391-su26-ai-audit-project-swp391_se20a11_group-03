@@ -1,6 +1,6 @@
-package com.swp391.service;
+package com.auction.product.service;
 
-import com.swp391.dto.*;
+import com.auction.product.dto.*;
 import java.util.List;
 
 /**

@@ -1,19 +1,19 @@
-package org.example.backend.service.impl;
+package com.auction.chat.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.example.backend.dto.request.CreateConversationRequest;
-import org.example.backend.dto.response.ConversationDetailResponse;
-import org.example.backend.dto.response.ConversationResponse;
-import org.example.backend.dto.response.MessageResponse;
-import org.example.backend.entity.Conversation;
-import org.example.backend.entity.Message;
-import org.example.backend.entity.User;
-import org.example.backend.enums.ConversationStatus;
-import org.example.backend.exception.ResourceNotFoundException;
-import org.example.backend.repository.ConversationRepository;
-import org.example.backend.repository.MessageRepository;
-import org.example.backend.repository.UserRepository;
-import org.example.backend.service.ConversationService;
+import com.auction.chat.dto.request.CreateConversationRequest;
+import com.auction.chat.dto.response.ConversationDetailResponse;
+import com.auction.chat.dto.response.ConversationResponse;
+import com.auction.chat.dto.response.MessageResponse;
+import com.auction.chat.entity.Conversation;
+import com.auction.chat.entity.Message;
+import com.auction.account.entity.User;
+import com.auction.chat.enums.ConversationStatus;
+import com.auction.common.exception.ResourceNotFoundException;
+import com.auction.chat.repository.ConversationRepository;
+import com.auction.chat.repository.MessageRepository;
+import com.auction.account.dao.UserRepository;
+import com.auction.chat.service.ConversationService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     public ConversationResponse createConversation(Long userId, CreateConversationRequest req) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(Math.toIntExact(userId))
                 .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại: " + userId));
 
         Conversation conv = conversationRepository.save(
@@ -51,14 +51,14 @@ public class ConversationServiceImpl implements ConversationService {
     @Override
     @Transactional(readOnly = true)
     public List<ConversationResponse> getMyConversations(Long userId) {
-        return conversationRepository.findByUser_UserIdOrderByUpdatedAtDesc(userId)
+        return conversationRepository.findByUser_IdOrderByUpdatedAtDesc(Math.toIntExact(userId))
                 .stream().map(c -> toResponse(c, userId)).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ConversationResponse> getConversationsAssignedToStaff(Long staffId) {
-        return conversationRepository.findByAssignedStaff_UserIdOrderByUpdatedAtDesc(staffId)
+        return conversationRepository.findByAssignedStaff_IdOrderByUpdatedAtDesc(Math.toIntExact(staffId))
                 .stream().map(c -> toResponse(c, staffId)).toList();
     }
 
@@ -73,7 +73,7 @@ public class ConversationServiceImpl implements ConversationService {
     @Override
     public ConversationResponse assignConversationToStaff(Long conversationId, Long staffId) {
         Conversation conv = findConvOrThrow(conversationId);
-        User staff = userRepository.findById(staffId)
+        User staff = userRepository.findById(Math.toIntExact(staffId))
                 .orElseThrow(() -> new ResourceNotFoundException("Staff không tồn tại: " + staffId));
 
         conv.setAssignedStaff(staff);
@@ -99,7 +99,7 @@ public class ConversationServiceImpl implements ConversationService {
     public ConversationDetailResponse getConversationDetail(Long conversationId, Long requesterId) {
         Conversation conv = findConvOrThrow(conversationId);
         validateAccess(conv, requesterId);
-        messageRepository.markAllAsRead(conversationId, requesterId);
+        messageRepository.markAllAsRead(conversationId, Math.toIntExact(requesterId));
 
         List<MessageResponse> messages = messageRepository
                 .findByConversation_ConversationIdOrderBySentAtAsc(conversationId)
@@ -132,7 +132,7 @@ public class ConversationServiceImpl implements ConversationService {
                 .findTopByConversation_ConversationIdOrderBySentAtDesc(c.getConversationId())
                 .map(Message::getContent).orElse(null);
         int unread = (requesterId > 0)
-                ? messageRepository.countUnread(c.getConversationId(), requesterId)
+                ? messageRepository.countUnread(c.getConversationId(), Math.toIntExact(requesterId))
                 : 0;
 
         return ConversationResponse.builder()

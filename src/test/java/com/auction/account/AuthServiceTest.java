@@ -1,7 +1,10 @@
-package com.vnec.service;
+package com.auction.account;
 
-import com.vnec.dao.UserDAO;
-import com.vnec.model.User;
+import com.auction.account.dao.UserDAO;
+import com.auction.account.entity.User;
+import com.auction.account.service.AuthService;
+import com.auction.account.service.AuthValidator;
+import com.auction.account.util.PasswordUtil;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -78,8 +81,8 @@ class AuthServiceTest {
 
     private User buildUser(String email, String phone, String identity, String password) {
         String salt = "00112233445566778899aabbccddeeff";
-        String hash = com.vnec.util.PasswordUtil.hashPassword(password, salt, com.vnec.util.PasswordUtil.getIterations());
-        return new User("Nguyen Van A", email, phone, identity, hash, salt, com.vnec.util.PasswordUtil.getIterations());
+        String hash = PasswordUtil.hashPassword(password, salt, PasswordUtil.getIterations());
+        return new User("Nguyen Van A", email, phone, identity, hash, salt, PasswordUtil.getIterations());
     }
 
     private static final class FakeUserDAO extends UserDAO {

@@ -1,9 +1,11 @@
 package com.auction.account.service;
 
-import com.auction.account.model.User;
+import com.auction.account.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.stereotype.Service;
 
+@Service
 public final class AuthSessionService {
     private static final int SESSION_TIMEOUT_SECONDS = 30 * 60;
 

@@ -1,6 +1,6 @@
-package com.swp391.service.impl;
+package com.auction.product.service.impl;
 
-import com.swp391.service.EmailService;
+import com.auction.product.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

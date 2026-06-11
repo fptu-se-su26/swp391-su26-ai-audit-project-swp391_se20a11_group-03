@@ -1,8 +1,8 @@
-package org.example.backend.service;
+package com.auction.chat.service;
 
-import org.example.backend.dto.request.CreateConversationRequest;
-import org.example.backend.dto.response.ConversationDetailResponse;
-import org.example.backend.dto.response.ConversationResponse;
+import com.auction.chat.dto.request.CreateConversationRequest;
+import com.auction.chat.dto.response.ConversationDetailResponse;
+import com.auction.chat.dto.response.ConversationResponse;
 
 import java.util.List;
 

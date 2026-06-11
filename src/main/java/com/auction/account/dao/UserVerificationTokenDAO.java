@@ -1,11 +1,13 @@
 package com.auction.account.dao;
 
-import com.auction.account.model.UserVerificationToken;
-import com.auction.account.util.JpaUtil;
+import com.auction.account.entity.UserVerificationToken;
+import com.auction.common.util.JpaUtil;
 import jakarta.persistence.EntityManager;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 
+@Repository
 public class UserVerificationTokenDAO {
     public void save(UserVerificationToken token) {
         EntityManager em = JpaUtil.createEntityManager();

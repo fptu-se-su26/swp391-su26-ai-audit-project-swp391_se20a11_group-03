@@ -1,6 +1,8 @@
 package com.auction.common.service;
 
-import com.auction.common.util.AppConfig;
+import com.auction.config.AppConfig;
+import org.springframework.stereotype.Service;
+
 import jakarta.mail.Authenticator;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
@@ -12,6 +14,7 @@ import jakarta.mail.internet.MimeMessage;
 
 import java.util.Properties;
 
+@Service
 public class MailService {
     private final Session session;
     private final String fromAddress;

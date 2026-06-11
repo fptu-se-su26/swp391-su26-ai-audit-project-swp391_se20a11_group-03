@@ -1,4 +1,4 @@
-package com.hoangxuananhtuan.auction.dto;
+package com.auction.bidding.dto;
 
 import lombok.Builder;
 import lombok.Data;

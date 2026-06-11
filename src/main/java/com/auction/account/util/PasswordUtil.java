@@ -1,5 +1,7 @@
 package com.auction.account.util;
 
+import com.auction.config.AppConfig;
+
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import java.security.MessageDigest;

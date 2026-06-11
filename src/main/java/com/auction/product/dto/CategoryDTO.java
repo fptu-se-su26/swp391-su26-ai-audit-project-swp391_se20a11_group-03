@@ -1,4 +1,4 @@
-package com.swp391.dto;
+package com.auction.product.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

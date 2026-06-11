@@ -1,4 +1,4 @@
-package com.example.biddingmodule.config;
+package com.auction.bidding.config;
 
 /**
  * TODO: Đợi Đức làm xong / hoặc tích hợp lại WebSocket khi dự án đã có Spring dependency.

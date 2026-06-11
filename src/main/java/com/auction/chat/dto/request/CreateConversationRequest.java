@@ -1,4 +1,4 @@
-package org.example.backend.dto.request;
+package com.auction.chat.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

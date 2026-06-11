@@ -1,4 +1,4 @@
-package org.example.backend.dto.response;
+package com.auction.chat.dto.response;
 
 import lombok.Builder;
 import lombok.Data;

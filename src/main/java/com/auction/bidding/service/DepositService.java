@@ -1,6 +1,6 @@
-package com.hoangxuananhtuan.auction.service;
+package com.auction.bidding.service;
 
-import com.hoangxuananhtuan.auction.dto.DepositResponse;
+import com.auction.bidding.dto.DepositResponse;
 
 public interface DepositService {
     DepositResponse createDeposit(Long auctionId, Long userId);

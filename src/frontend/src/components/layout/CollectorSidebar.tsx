@@ -76,7 +76,7 @@ export default function CollectorSidebar() {
     <>
       <nav className="bg-surface-container-low shadow-md h-screen w-64 fixed left-0 top-0 flex flex-col border-r border-outline-variant z-40 hidden md:flex">
         {/* Profile */}
-        <div className="p-lg flex flex-col items-center border-b border-outline-variant">
+        <Link href="/" className="p-lg flex flex-col items-center border-b border-outline-variant hover:bg-surface-container-high transition-colors">
           <div className="w-16 h-16 rounded-full bg-surface-variant overflow-hidden mb-sm soft-shadow">
             <img
               src={mockUser.avatar}
@@ -86,7 +86,7 @@ export default function CollectorSidebar() {
           </div>
           <h2 className="font-headline-sm text-headline-sm text-primary text-center">{mockUser.name}</h2>
           <p className="font-label-sm text-label-sm text-secondary mt-xs">{mockUser.role}</p>
-        </div>
+        </Link>
 
         {/* Nav Links */}
         <div className="flex-1 py-md overflow-y-auto custom-scrollbar">
@@ -142,10 +142,12 @@ export default function CollectorSidebar() {
 
       {/* Mobile Header */}
       <header className="md:hidden bg-surface shadow-sm sticky top-0 z-30 px-margin-mobile py-sm flex justify-between items-center">
-        <h1 className="font-headline-md text-headline-md text-primary font-bold">LuxeAuction</h1>
-        <div className="w-10 h-10 rounded-full bg-surface-variant overflow-hidden">
+        <Link href="/" className="font-headline-md text-headline-md text-primary font-bold">
+          LuxeAuction
+        </Link>
+        <Link href="/" className="w-10 h-10 rounded-full bg-surface-variant overflow-hidden">
           <img src={mockUser.avatar} alt="Profile" className="w-full h-full object-cover" />
-        </div>
+        </Link>
       </header>
 
       <LiveChat />

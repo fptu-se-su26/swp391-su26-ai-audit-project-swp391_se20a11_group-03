@@ -1,4 +1,4 @@
-package com.example.biddingmodule.dto;
+package com.auction.bidding.dto;
 
 public class BidRequest {
     private Long auctionId;

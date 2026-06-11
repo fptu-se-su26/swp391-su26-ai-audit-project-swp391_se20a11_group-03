@@ -3,7 +3,9 @@ package com.auction.common.service;
 import com.auction.common.util.AuditLogUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.stereotype.Service;
 
+@Service
 public final class AuthAuditService {
     public void logLoginSuccess(String loginId, HttpServletRequest request) {
         AuditLogUtil.authEvent("LOGIN", true, loginId, "success", request.getRemoteAddr(), request.getHeader("User-Agent"));

@@ -1,8 +1,12 @@
 package com.auction.account.service;
 
-import com.auction.account.model.User;
-import com.auction.account.util.TokenUtil;
+import com.auction.common.service.MailService;
 
+import com.auction.account.entity.User;
+import com.auction.common.util.TokenUtil;
+import org.springframework.stereotype.Service;
+
+@Service
 public class EmailVerificationService {
     private final ProfileService profileService = new ProfileService();
     private final MailService mailService = new MailService();

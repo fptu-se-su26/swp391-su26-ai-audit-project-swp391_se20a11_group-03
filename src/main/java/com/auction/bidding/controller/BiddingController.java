@@ -1,10 +1,10 @@
-package com.example.biddingmodule.controller;
+package com.auction.bidding.controller;
 
-import com.example.biddingmodule.config.WebSocketConfig;
-import com.example.biddingmodule.dto.AuctionSessionDto;
-import com.example.biddingmodule.dto.BidRequest;
-import com.example.biddingmodule.dto.BidResponse;
-import com.example.biddingmodule.service.BiddingService;
+import com.auction.bidding.config.WebSocketConfig;
+import com.auction.bidding.dto.AuctionSessionDto;
+import com.auction.bidding.dto.BidRequest;
+import com.auction.bidding.dto.BidResponse;
+import com.auction.bidding.service.BiddingService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.GetMapping;

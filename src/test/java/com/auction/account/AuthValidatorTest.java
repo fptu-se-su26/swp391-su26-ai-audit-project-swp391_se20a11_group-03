@@ -1,5 +1,6 @@
-package com.vnec.service;
+package com.auction.account;
 
+import com.auction.account.service.AuthValidator;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

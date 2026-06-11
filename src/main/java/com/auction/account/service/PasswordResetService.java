@@ -1,13 +1,17 @@
 package com.auction.account.service;
 
+import com.auction.common.service.MailService;
+
 import com.auction.account.dao.PasswordResetTokenDAO;
 import com.auction.account.dao.UserDAO;
-import com.auction.account.model.PasswordResetToken;
-import com.auction.account.model.User;
-import com.auction.account.util.TokenUtil;
+import com.auction.account.entity.PasswordResetToken;
+import com.auction.account.entity.User;
+import com.auction.common.util.TokenUtil;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Service
 public class PasswordResetService {
     private final UserDAO userDAO = new UserDAO();
     private final PasswordResetTokenDAO tokenDAO = new PasswordResetTokenDAO();

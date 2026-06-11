@@ -1,7 +1,7 @@
 package com.auction.common.util;
 
 import com.auction.account.dao.AuditLogDAO;
-import com.auction.account.model.AuditLog;
+import com.auction.account.entity.AuditLog;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
