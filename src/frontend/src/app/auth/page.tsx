@@ -2,15 +2,20 @@
 
 import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/lib/services/authService";
+import { login, register } from "@/lib/services/authService";
 
 export default function AuthPage() {
   const router = useRouter();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [showPass, setShowPass] = useState(false);
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [identityNumber, setIdentityNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isLogin = mode === "login";
@@ -32,15 +37,35 @@ export default function AuthPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage("");
-
-    if (!isLogin) {
-      setErrorMessage("Account registration is not connected yet. Please log in with an existing account.");
-      return;
-    }
+    setSuccessMessage("");
 
     setIsSubmitting(true);
 
     try {
+      if (!isLogin) {
+        const response = await register({
+          fullName: fullName.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          identityNumber: identityNumber.trim(),
+          password,
+          confirmPassword,
+        });
+
+        if (!response.success) {
+          throw new Error(response.message || "Registration failed.");
+        }
+
+        setSuccessMessage(response.message || "Account created successfully. Please log in.");
+        setMode("login");
+        setFullName("");
+        setPhone("");
+        setIdentityNumber("");
+        setPassword("");
+        setConfirmPassword("");
+        return;
+      }
+
       const response = await login({
         usernameOrEmail: email.trim(),
         password,
@@ -107,6 +132,7 @@ export default function AuthPage() {
                   onClick={() => {
                     setMode(m);
                     setErrorMessage("");
+                    setSuccessMessage("");
                   }}
                   className={`flex-1 py-3 text-label-md font-label-md rounded-md transition-all ${
                     mode === m
@@ -138,8 +164,41 @@ export default function AuthPage() {
                   <input
                     type="text"
                     placeholder="Alexander Sterling"
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                    autoComplete="name"
+                    required={!isLogin}
                     className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
                   />
+                </div>
+              )}
+
+              {!isLogin && (
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div>
+                    <label className="block font-label-md text-label-md text-on-surface-variant mb-1">Phone Number</label>
+                    <input
+                      type="tel"
+                      placeholder="+1 212 555 0182"
+                      value={phone}
+                      onChange={(event) => setPhone(event.target.value)}
+                      autoComplete="tel"
+                      required={!isLogin}
+                      className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-label-md text-label-md text-on-surface-variant mb-1">Identity Number</label>
+                    <input
+                      type="text"
+                      placeholder="A1234567"
+                      value={identityNumber}
+                      onChange={(event) => setIdentityNumber(event.target.value)}
+                      autoComplete="off"
+                      required={!isLogin}
+                      className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
+                    />
+                  </div>
                 </div>
               )}
 
@@ -188,9 +247,19 @@ export default function AuthPage() {
                   <label className="block font-label-md text-label-md text-on-surface-variant mb-1">Confirm Password</label>
                   <input
                     type="password"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    autoComplete="new-password"
+                    required={!isLogin}
                     placeholder="••••••••"
                     className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
                   />
+                </div>
+              )}
+
+              {successMessage && (
+                <div className="rounded-lg border border-secondary/30 bg-secondary/10 px-4 py-3 text-label-md text-secondary">
+                  {successMessage}
                 </div>
               )}
 
@@ -206,7 +275,7 @@ export default function AuthPage() {
                   disabled={isSubmitting}
                   className="w-full bg-primary-container text-white py-3.5 rounded-lg font-label-md text-label-md hover:shadow-lg hover:shadow-primary-container/20 active:scale-[0.98] transition-all flex items-center justify-center gap-sm group disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  <span>{isSubmitting ? "Checking credentials..." : isLogin ? "Access Account" : "Create Account"}</span>
+                  <span>{isSubmitting ? (isLogin ? "Checking credentials..." : "Creating account...") : isLogin ? "Access Account" : "Create Account"}</span>
                   <span className="material-symbols-outlined text-[18px] text-secondary-fixed-dim group-hover:translate-x-1 transition-transform">
                     arrow_forward
                   </span>

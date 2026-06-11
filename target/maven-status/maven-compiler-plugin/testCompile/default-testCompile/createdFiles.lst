@@ -1,0 +1,6 @@
+com\auction\account\AuthServiceTest$FakeUserDAO.class
+com\auction\account\AuthValidatorTest.class
+com\auction\bidding\BiddingServiceTest$BidAttempt.class
+com\auction\bidding\BiddingServiceTest.class
+com\auction\account\AuthServiceTest.class
+com\auction\bidding\BiddingServiceTest$InMemoryAuctionSessionRepository.class

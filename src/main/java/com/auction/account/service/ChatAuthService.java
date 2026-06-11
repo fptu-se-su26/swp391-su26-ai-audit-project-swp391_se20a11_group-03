@@ -6,6 +6,7 @@ import com.auction.account.dto.LoginResponse;
 import com.auction.account.entity.User;
 import com.auction.account.security.JwtService;
 import com.auction.account.security.UserDetailsImpl;
+import com.auction.account.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -34,8 +35,7 @@ public class ChatAuthService {
                     "Tài khoản bị khoá hoặc chưa được kích hoạt");
         }
 
-        String storedHash = user.getPasswordHash();
-        if (!passwordEncoder.matches(request.getPassword(), storedHash)) {
+        if (!passwordMatches(request.getPassword(), user)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sai mật khẩu");
         }
 
@@ -52,6 +52,19 @@ public class ChatAuthService {
                 .status(user.getStatus())
                 .token(token)
                 .build();
+    }
+
+    private boolean passwordMatches(String rawPassword, User user) {
+        String storedHash = user.getPasswordHash();
+        if (storedHash == null) {
+            return false;
+        }
+
+        if (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$") || storedHash.startsWith("$2y$")) {
+            return passwordEncoder.matches(rawPassword, storedHash);
+        }
+
+        return PasswordUtil.matches(rawPassword, user.getSalt(), storedHash, user.getPasswordIterations());
     }
 }
 

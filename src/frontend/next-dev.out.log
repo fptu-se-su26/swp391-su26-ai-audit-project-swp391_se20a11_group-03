@@ -33,3 +33,17 @@
  GET / 200 in 174ms
  ✓ Compiled /auth in 227ms (269 modules)
  GET /auth 200 in 405ms
+ GET /dashboard 200 in 64ms
+ ✓ Compiled in 695ms (547 modules)
+ ✓ Compiled /messages in 125ms (273 modules)
+ ✓ Compiled in 453ms (551 modules)
+ ✓ Compiled in 436ms (549 modules)
+ ✓ Compiled /dashboard in 212ms (273 modules)
+ GET /auth 200 in 142ms
+ ✓ Compiled in 668ms (551 modules)
+ ✓ Compiled in 624ms (551 modules)
+ ✓ Compiled in 394ms (551 modules)
+ GET /auth 200 in 122ms
+ GET /auth 200 in 42ms
+ GET / 200 in 78ms
+ GET /auth 200 in 64ms
