@@ -14,7 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.util.List;
 
 @Configuration("chatDataSeeder")
-@ConditionalOnProperty(prefix = "app.seed", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "app.chat.seed", name = "enabled", havingValue = "true")
 @RequiredArgsConstructor
 @Slf4j
 public class DataSeeder {

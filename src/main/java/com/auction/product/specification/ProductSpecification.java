@@ -13,9 +13,9 @@ public class ProductSpecification {
                         : cb.like(cb.lower(root.get("productName")), "%" + productName.toLowerCase() + "%");
     }
 
-    public static Specification<Product> hasCategoryId(Long categoryId) {
+    public static Specification<Product> hasCategoryId(Integer categoryId) {
         return (root, query, cb) ->
-                categoryId == null ? cb.conjunction() : cb.equal(root.get("category").get("categoryId"), categoryId);
+                categoryId == null ? cb.conjunction() : cb.equal(root.get("categoryId"), categoryId);
     }
 
     public static Specification<Product> hasMinStartingPrice(Long minStartingPrice) {

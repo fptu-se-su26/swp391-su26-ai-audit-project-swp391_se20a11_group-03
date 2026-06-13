@@ -1,0 +1,86 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------------< com.vnec:vnec-auth >-------------------------
+[INFO] Building vnec-auth 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ war ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.3.6:run (default-cli) > test-compile @ vnec-auth >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ vnec-auth ---
+[INFO] Copying 64 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ vnec-auth ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 172 source files with javac [debug release 17] to target\classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ vnec-auth ---
+[INFO] skip non existing resourceDirectory C:\Users\Acer\Desktop\SWP391\Project\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ vnec-auth ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 3 source files with javac [debug release 17] to target\test-classes
+[INFO] 
+[INFO] <<< spring-boot:3.3.6:run (default-cli) < test-compile @ vnec-auth <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.3.6:run (default-cli) @ vnec-auth ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.6)
+
+2026-06-12T07:46:11.773+07:00  INFO 39808 --- [auction-backend] [           main] com.auction.AuctionApplication           : Starting AuctionApplication using Java 17.0.12 with PID 39808 (C:\Users\Acer\Desktop\SWP391\Project\swp391-su26-ai-audit-project-swp391_se20a11_group-03\target\classes started by Acer in C:\Users\Acer\Desktop\SWP391\Project\swp391-su26-ai-audit-project-swp391_se20a11_group-03)
+2026-06-12T07:46:11.775+07:00  INFO 39808 --- [auction-backend] [           main] com.auction.AuctionApplication           : No active profile set, falling back to 1 default profile: "default"
+2026-06-12T07:46:12.539+07:00  INFO 39808 --- [auction-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-06-12T07:46:12.704+07:00  INFO 39808 --- [auction-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 148 ms. Found 18 JPA repository interfaces.
+2026-06-12T07:46:13.409+07:00  INFO 39808 --- [auction-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8096 (http)
+2026-06-12T07:46:13.420+07:00  INFO 39808 --- [auction-backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-12T07:46:13.421+07:00  INFO 39808 --- [auction-backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.33]
+2026-06-12T07:46:13.469+07:00  INFO 39808 --- [auction-backend] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-06-12T07:46:13.471+07:00  INFO 39808 --- [auction-backend] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1656 ms
+2026-06-12T07:46:13.668+07:00  INFO 39808 --- [auction-backend] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-06-12T07:46:13.717+07:00  INFO 39808 --- [auction-backend] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.2.Final
+2026-06-12T07:46:13.747+07:00  INFO 39808 --- [auction-backend] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-06-12T07:46:14.020+07:00  INFO 39808 --- [auction-backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-06-12T07:46:14.047+07:00  INFO 39808 --- [auction-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-06-12T07:46:14.281+07:00  INFO 39808 --- [auction-backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection ConnectionID:1 ClientConnectionId: 9061757d-20b5-48fe-b43c-f823c283f198
+2026-06-12T07:46:14.283+07:00  INFO 39808 --- [auction-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-06-12T07:46:15.559+07:00  INFO 39808 --- [auction-backend] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-06-12T07:46:15.562+07:00  INFO 39808 --- [auction-backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-06-12T07:46:15.735+07:00  INFO 39808 --- [auction-backend] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-06-12T07:46:16.950+07:00  INFO 39808 --- [auction-backend] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+2026-06-12T07:46:17.006+07:00  INFO 39808 --- [auction-backend] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2026-06-12T07:46:17.409+07:00  INFO 39808 --- [auction-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8096 (http) with context path '/'
+2026-06-12T07:46:17.412+07:00  INFO 39808 --- [auction-backend] [           main] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-06-12T07:46:17.413+07:00  INFO 39808 --- [auction-backend] [           main] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@29957fe0]]
+2026-06-12T07:46:17.413+07:00  INFO 39808 --- [auction-backend] [           main] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-06-12T07:46:17.420+07:00  INFO 39808 --- [auction-backend] [           main] com.auction.AuctionApplication           : Started AuctionApplication in 5.937 seconds (process running for 6.268)
+2026-06-12T07:47:11.949+07:00  INFO 39808 --- [auction-backend] [nio-8096-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-06-12T07:47:11.950+07:00  INFO 39808 --- [auction-backend] [nio-8096-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-06-12T07:47:11.952+07:00  INFO 39808 --- [auction-backend] [nio-8096-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+Hibernate: select p1_0.[ProductId],p1_0.[CategoryId],p1_0.[CreatedAt],p1_0.[Description],p1_0.[ProductName],p1_0.[RejectionReason],p1_0.[SellerId],p1_0.[StartingPrice],p1_0.[Status],p1_0.[StepPrice],p1_0.[SubmittedAt],p1_0.[TaxPercent] from [Products] p1_0 where p1_0.[Status]=? and 1=1 and 1=1 and 1=1 and 1=1 order by p1_0.[ProductId] desc offset ? rows fetch first ? rows only
+Hibernate: select c1_0.[CategoryId],c1_0.[CategoryName],c1_0.[CreatedAt],c1_0.[Description],c1_0.[IsActive] from [Categories] c1_0
+Hibernate: select count_big(p1_0.[ProductId]) from [Products] p1_0 where p1_0.[Status]=? and 1=1 and 1=1 and 1=1 and 1=1
+Hibernate: select c1_0.[CategoryId],c1_0.[CategoryName],c1_0.[CreatedAt],c1_0.[Description],c1_0.[IsActive] from [Categories] c1_0 where c1_0.[CategoryId]=?
+Hibernate: select c1_0.[CategoryId],c1_0.[CategoryName],c1_0.[CreatedAt],c1_0.[Description],c1_0.[IsActive] from [Categories] c1_0 where c1_0.[CategoryId]=?
+2026-06-12T07:47:17.401+07:00  INFO 39808 --- [auction-backend] [MessageBroker-1] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 1, active threads = 1, queued tasks = 0, completed tasks = 0]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:33 min
+[INFO] Finished at: 2026-06-12T07:47:31+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.3.6:run (default-cli) on project vnec-auth: Process terminated with exit code: -1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

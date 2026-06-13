@@ -2,6 +2,7 @@ com\auction\account\dao\AuditLogDAO.class
 com\auction\bidding\entity\Bid.class
 com\auction\account\dao\UserDAO.class
 com\auction\product\repository\ProductApprovalRepository.class
+com\auction\product\controller\PublicCategoryController.class
 com\auction\bidding\service\DepositService.class
 com\auction\bidding\config\WebSocketConfig.class
 com\auction\chat\dto\response\MessageResponse.class
@@ -18,6 +19,7 @@ com\auction\chat\dto\request\SendMessageRequest.class
 com\auction\product\controller\ProductAdminController.class
 com\auction\product\dto\ProductResponseDTO.class
 com\auction\wallet\entity\Transaction.class
+com\auction\wallet\dto\DepositRequest.class
 com\auction\account\service\PasswordResetService.class
 com\auction\product\service\impl\ProductServiceImpl.class
 com\auction\bidding\dto\BidResponse.class
@@ -34,6 +36,7 @@ com\auction\product\service\impl\CategoryServiceImpl.class
 com\auction\chat\dto\request\CreateConversationRequest.class
 com\auction\common\util\LoginRateLimitUtil$RateLimitStatus.class
 com\auction\product\dto\CategoryDTO.class
+com\auction\wallet\repository\WithdrawalRequestRepository.class
 com\auction\config\SecurityConfig.class
 com\auction\common\dto\PageResponse$PageResponseBuilder.class
 com\auction\chat\entity\Conversation.class
@@ -48,6 +51,7 @@ com\auction\account\dao\PasswordResetTokenDAO.class
 com\auction\product\dto\AttributeOptionDTO.class
 com\auction\chat\dto\response\MessageResponse$MessageResponseBuilder.class
 com\auction\bidding\dto\AuctionEligibilityResponse.class
+com\auction\wallet\dto\DepositQrResponse.class
 com\auction\wallet\service\WalletService.class
 com\auction\account\dao\UserVerificationTokenDAO.class
 com\auction\account\entity\Role.class
@@ -87,10 +91,13 @@ com\auction\product\entity\ProductImage.class
 com\auction\config\DataSeeder.class
 com\auction\product\dto\AuctionResponse.class
 com\auction\wallet\entity\Wallet.class
+com\auction\wallet\entity\WithdrawalRequest.class
 com\auction\account\controller\AuthController.class
 com\auction\bidding\controller\DepositController.class
+com\auction\wallet\dto\WithdrawRequest.class
 com\auction\wallet\repository\WalletRepository.class
 com\auction\product\service\EmailService.class
+com\auction\wallet\dto\SepayWebhookRequest.class
 com\auction\chat\dto\response\ConversationResponse$ConversationResponseBuilder.class
 com\auction\product\repository\ContractRepository.class
 com\auction\wallet\dto\WalletResponse.class
@@ -116,6 +123,7 @@ com\auction\chat\dto\response\ConversationDetailResponse$ConversationDetailRespo
 com\auction\config\FptAiConfig.class
 com\auction\bidding\repository\JpaAuctionSessionRepository.class
 com\auction\wallet\controller\WalletController.class
+com\auction\wallet\dto\DepositQrResponse$DepositQrResponseBuilder.class
 com\auction\bidding\repository\CategoryRepository.class
 com\auction\product\repository\ProductRepository.class
 com\auction\product\dto\CategoryAttributeDTO.class
@@ -143,6 +151,7 @@ com\auction\product\service\CategoryService.class
 com\auction\product\service\impl\ContractServiceImpl.class
 com\auction\common\exception\GlobalExceptionHandler.class
 com\auction\common\util\LoginRateLimitUtil$AttemptWindow.class
+com\auction\wallet\dto\WithdrawalStatusRequest.class
 com\auction\account\dto\LoginResponse.class
 com\auction\product\controller\CategoryController.class
 com\auction\bidding\controller\AuctionController.class
@@ -183,8 +192,10 @@ com\auction\account\controller\EmailVerificationController.class
 com\auction\account\service\AuthSessionService.class
 com\auction\product\entity\ProductApproval.class
 com\auction\common\service\OcrService$OcrResult.class
+com\auction\wallet\dto\WithdrawalResponse$WithdrawalResponseBuilder.class
 com\auction\chat\entity\Conversation$ConversationBuilder.class
 com\auction\chat\service\impl\ConversationServiceImpl.class
+com\auction\wallet\dto\WithdrawalResponse.class
 com\auction\bidding\entity\AuctionDeposit.class
 com\auction\chat\enums\ConversationStatus.class
 com\auction\product\entity\CategoryAttribute.class

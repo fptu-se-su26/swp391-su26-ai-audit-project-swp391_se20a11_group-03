@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
   { href: "/staff/approvals", icon: "task_alt", label: "Item Approvals" },
+  { href: "/staff/withdrawals", icon: "payments", label: "Withdrawals" },
   { href: "/staff/kyc-review", icon: "badge", label: "KYC Document Review" },
   { href: "/staff/support", icon: "support_agent", label: "Support Inbox" },
 ];

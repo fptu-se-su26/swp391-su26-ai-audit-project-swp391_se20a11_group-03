@@ -47,3 +47,6 @@
  GET /auth 200 in 42ms
  GET / 200 in 78ms
  GET /auth 200 in 64ms
+ GET / 200 in 62ms
+ ○ Compiling /wallet ...
+ ✓ Compiled /wallet in 834ms (555 modules)

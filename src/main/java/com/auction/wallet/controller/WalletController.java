@@ -1,23 +1,77 @@
 package com.auction.wallet.controller;
 
+import com.auction.account.security.UserDetailsImpl;
+import com.auction.wallet.dto.DepositRequest;
+import com.auction.wallet.dto.DepositQrResponse;
+import com.auction.wallet.dto.SepayWebhookRequest;
 import com.auction.wallet.dto.WalletResponse;
+import com.auction.wallet.dto.WithdrawRequest;
+import com.auction.wallet.dto.WithdrawalResponse;
+import com.auction.wallet.dto.WithdrawalStatusRequest;
 import com.auction.wallet.service.WalletService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
-@RequestMapping("/api/wallets")
 @RequiredArgsConstructor
 public class WalletController {
 
     private final WalletService walletService;
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<WalletResponse> getWallet(@PathVariable Long userId) {
+    @GetMapping("/api/wallet")
+    public ResponseEntity<WalletResponse> getMyWallet(@AuthenticationPrincipal UserDetailsImpl user) {
+        return ResponseEntity.ok(walletService.getWalletByUserId(user.getId()));
+    }
+
+    @GetMapping("/api/wallets/user/{userId}")
+    public ResponseEntity<WalletResponse> getWallet(@PathVariable("userId") Long userId) {
         return ResponseEntity.ok(walletService.getWalletByUserId(userId));
+    }
+
+    @PostMapping("/api/wallet/deposit")
+    public ResponseEntity<DepositQrResponse> createDeposit(
+            @AuthenticationPrincipal UserDetailsImpl user,
+            @Valid @RequestBody DepositRequest request
+    ) {
+        return ResponseEntity.ok(walletService.createDepositQr(user.getId(), request.getAmount()));
+    }
+
+    @PostMapping("/api/wallet/sepay-webhook")
+    public ResponseEntity<Map<String, Object>> receiveSepayWebhook(@RequestBody SepayWebhookRequest request) {
+        return ResponseEntity.ok(walletService.handleSepayWebhook(request));
+    }
+
+    @PostMapping("/api/wallet/withdraw")
+    public ResponseEntity<WithdrawalResponse> createWithdrawal(
+            @AuthenticationPrincipal UserDetailsImpl user,
+            @Valid @RequestBody WithdrawRequest request
+    ) {
+        return ResponseEntity.ok(walletService.createWithdrawal(user.getId(), request));
+    }
+
+    @GetMapping("/api/staff/withdrawals")
+    public ResponseEntity<List<WithdrawalResponse>> getWithdrawals(@RequestParam(name = "status", required = false) String status) {
+        return ResponseEntity.ok(walletService.getWithdrawals(status));
+    }
+
+    @PutMapping("/api/staff/withdrawals/{id}/status")
+    public ResponseEntity<WithdrawalResponse> updateWithdrawalStatus(
+            @PathVariable("id") Long id,
+            @Valid @RequestBody WithdrawalStatusRequest request
+    ) {
+        return ResponseEntity.ok(walletService.updateWithdrawalStatus(id, request));
     }
 }

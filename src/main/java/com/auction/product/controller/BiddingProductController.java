@@ -20,17 +20,20 @@ public class BiddingProductController {
     @GetMapping
     public ResponseEntity<PageResponse<ProductSummaryResponse>> searchProducts(
             @RequestParam(name = "productName", required = false) String productName,
-            @RequestParam(name = "categoryId", required = false) Long categoryId,
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "categoryId", required = false) Integer categoryId,
             @RequestParam(name = "minStartingPrice", required = false) Long minStartingPrice,
+            @RequestParam(name = "minPrice", required = false) Long minPrice,
             @RequestParam(name = "maxStartingPrice", required = false) Long maxStartingPrice,
+            @RequestParam(name = "maxPrice", required = false) Long maxPrice,
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "10") Integer size
     ) {
         ProductSearchRequest request = new ProductSearchRequest();
-        request.setProductName(productName);
+        request.setProductName(productName != null && !productName.isBlank() ? productName : keyword);
         request.setCategoryId(categoryId);
-        request.setMinStartingPrice(minStartingPrice);
-        request.setMaxStartingPrice(maxStartingPrice);
+        request.setMinStartingPrice(minStartingPrice != null ? minStartingPrice : minPrice);
+        request.setMaxStartingPrice(maxStartingPrice != null ? maxStartingPrice : maxPrice);
         request.setPage(page);
         request.setSize(size);
 

@@ -2,9 +2,12 @@ package com.auction.account.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
@@ -59,6 +62,10 @@ public class User {
 
     @Column(name = "IsActive", nullable = false)
     private boolean active = true;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "RoleId")
+    private Role role;
 
     public User() {
     }
@@ -213,9 +220,12 @@ public class User {
         return active ? "ACTIVE" : "LOCKED";
     }
 
-    @Transient
     public Role getRole() {
-        return new Role(1, "USER");
+        return role != null ? role : new Role(1, "User");
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }
 

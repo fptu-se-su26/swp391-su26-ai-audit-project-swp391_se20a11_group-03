@@ -5,7 +5,14 @@ type ApiRequestOptions = Omit<RequestInit, "body"> & {
   token?: string | null;
 };
 
-function getStoredToken(): string | null {
+export class ApiError extends Error {
+  constructor(message: string, public readonly status: number) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+export function getStoredToken(): string | null {
   if (typeof window === "undefined") {
     return null;
   }
@@ -16,6 +23,18 @@ function getStoredToken(): string | null {
     localStorage.getItem("authToken") ??
     localStorage.getItem("jwt")
   );
+}
+
+export function clearStoredAuth(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  localStorage.removeItem("token");
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("jwt");
+  localStorage.removeItem("currentUser");
 }
 
 function buildUrl(path: string): string {
@@ -38,7 +57,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
       typeof payload === "object" && payload !== null && "message" in payload
         ? String(payload.message)
         : response.statusText;
-    throw new Error(message || `Request failed with status ${response.status}`);
+    throw new ApiError(message || `Request failed with status ${response.status}`, response.status);
   }
 
   return payload as T;

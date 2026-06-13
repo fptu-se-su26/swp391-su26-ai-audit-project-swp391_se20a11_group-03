@@ -1,0 +1,17 @@
+
+> luxeauction-frontend@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1733ms
+ ○ Compiling / ...
+ ✓ Compiled / in 5.5s (533 modules)
+ GET / 200 in 5930ms
+ ✓ Compiled in 555ms (266 modules)
+ GET / 200 in 81ms
+ ○ Compiling /storefront ...
+ ✓ Compiled /storefront in 573ms (514 modules)

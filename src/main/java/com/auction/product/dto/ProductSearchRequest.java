@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class ProductSearchRequest {
     private String productName;
-    private Long categoryId;
+    private Integer categoryId;
     private Long minStartingPrice;
     private Long maxStartingPrice;
     private Integer page = 0;

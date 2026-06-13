@@ -3,6 +3,7 @@
 import { type FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { login, register } from "@/lib/services/authService";
+import { useEffect } from "react";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -19,6 +20,13 @@ export default function AuthPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isLogin = mode === "login";
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "signup") {
+      setMode("signup");
+    }
+  }, []);
 
   function getRedirectPath(roleName?: string) {
     const role = roleName?.toLowerCase();
