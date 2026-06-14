@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SWP391 – Chat Support UI</title>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f13;
+      --surface: #1a1a22;
+      --surface2: #22222e;
+      --border: #2e2e3e;
+      --accent: #6c63ff;
+      --accent2: #8b83ff;
+      --text: #e8e8f0;
+      --muted: #888899;
+      --danger: #ff4d6d;
+      --success: #36d399;
+      --warn: #f7c948;
+      --radius: 10px;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── TOP BAR ── */
+    #topbar { display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    #topbar h1 { font-size: 1rem; font-weight: 700; color: var(--accent2); flex: 1; }
+    #user-badge { font-size: 0.8rem; color: var(--muted); }
+    #user-badge span { color: var(--text); font-weight: 600; }
+    #btn-logout { background: none; border: 1px solid var(--border); color: var(--muted); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+    #btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* ── MAIN ── */
+    #main { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── LOGIN PANEL ── */
+    #login-panel { display: flex; align-items: center; justify-content: center; flex: 1; }
+    .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 36px; width: 380px; }
+    .login-card h2 { font-size: 1.3rem; margin-bottom: 6px; }
+    .login-card p { color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; }
+    .field input { width: 100%; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 0.9rem; outline: none; }
+    .field input:focus { border-color: var(--accent); }
+    .btn-primary { width: 100%; padding: 11px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+    .btn-primary:hover { background: var(--accent2); }
+    #login-error { color: var(--danger); font-size: 0.82rem; margin-top: 10px; min-height: 18px; }
+
+    /* ── APP LAYOUT ── */
+    #app-panel { display: none; flex: 1; overflow: hidden; }
+    #app-panel.active { display: flex; }
+
+    /* ── SIDEBAR ── */
+    #sidebar { width: 300px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    #sidebar-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    #sidebar-header h3 { flex: 1; font-size: 0.9rem; font-weight: 600; }
+    #btn-new-conv { background: var(--accent); border: none; color: #fff; padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
+    #btn-new-conv:hover { background: var(--accent2); }
+    #tab-row { display: flex; border-bottom: 1px solid var(--border); }
+    .tab { flex: 1; padding: 9px; text-align: center; font-size: 0.8rem; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; }
+    .tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+    #conv-list { flex: 1; overflow-y: auto; }
+    .conv-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border); }
+    .conv-item:hover { background: var(--surface2); }
+    .conv-item.selected { background: var(--surface2); border-left: 3px solid var(--accent); }
+    .conv-title { font-size: 0.88rem; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .conv-meta { font-size: 0.75rem; color: var(--muted); display: flex; justify-content: space-between; }
+    .badge { display: inline-block; font-size: 0.68rem; padding: 1px 7px; border-radius: 99px; font-weight: 600; }
+    .badge-open { background: #1a3a2a; color: var(--success); }
+    .badge-in_progress { background: #1a2a3a; color: #60b0ff; }
+    .badge-closed { background: #2a1a2a; color: var(--muted); }
+    #sidebar-loading { padding: 16px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+
+    /* ── CHAT AREA ── */
+    #chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    #chat-placeholder { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--muted); flex-direction: column; gap: 8px; }
+    #chat-placeholder svg { opacity: 0.3; }
+    #chat-header { padding: 12px 20px; background: var(--surface); border-bottom: 1px solid var(--border); display: none; align-items: center; gap: 12px; }
+    #chat-header.visible { display: flex; }
+    #chat-subject { font-size: 0.95rem; font-weight: 600; flex: 1; }
+    #chat-status-badge { }
+    #btn-assign { background: none; border: 1px solid var(--accent); color: var(--accent); padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; }
+    #btn-assign:hover { background: var(--accent); color: #fff; }
+    #btn-close-conv { background: none; border: 1px solid var(--danger); color: var(--danger); padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; }
+    #btn-close-conv:hover { background: var(--danger); color: #fff; }
+    #messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+    .msg { display: flex; flex-direction: column; max-width: 72%; }
+    .msg.mine { align-self: flex-end; align-items: flex-end; }
+    .msg.theirs { align-self: flex-start; align-items: flex-start; }
+    .msg-bubble { padding: 10px 14px; border-radius: 14px; font-size: 0.88rem; line-height: 1.5; word-break: break-word; }
+    .msg.mine .msg-bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+    .msg.theirs .msg-bubble { background: var(--surface2); border-bottom-left-radius: 4px; }
+    .msg-info { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+    #chat-input-row { padding: 14px 20px; background: var(--surface); border-top: 1px solid var(--border); display: none; gap: 10px; }
+    #chat-input-row.visible { display: flex; }
+    #msg-input { flex: 1; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 0.9rem; outline: none; resize: none; height: 42px; }
+    #msg-input:focus { border-color: var(--accent); }
+    #btn-send { background: var(--accent); border: none; color: #fff; padding: 0 18px; border-radius: var(--radius); cursor: pointer; font-size: 1rem; }
+    #btn-send:hover { background: var(--accent2); }
+    #ws-indicator { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; align-self: center; }
+    #ws-indicator.connected { background: var(--success); }
+    #ws-indicator.error { background: var(--danger); }
+
+    /* ── NEW CONV MODAL ── */
+    #modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; }
+    #modal-overlay.active { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px 28px 24px; width: 420px; }
+    .modal h3 { font-size: 1.05rem; margin-bottom: 18px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+    .btn-secondary { background: none; border: 1px solid var(--border); color: var(--muted); padding: 8px 18px; border-radius: var(--radius); cursor: pointer; font-size: 0.88rem; }
+    .btn-secondary:hover { border-color: var(--text); color: var(--text); }
+    .modal .btn-primary { width: auto; padding: 8px 20px; }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <h1>SWP391 · Chat Support</h1>
+  <div id="user-badge" style="display:none">
+    Xin chào, <span id="ub-name">–</span> &nbsp;|&nbsp; Vai trò: <span id="ub-role">–</span>
+    &nbsp;<span id="ws-indicator" title="WebSocket"></span>
+  </div>
+  <button id="btn-logout" style="display:none" onclick="logout()">Đăng xuất</button>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- LOGIN -->
+  <div id="login-panel">
+    <div class="login-card">
+      <h2>Đăng nhập</h2>
+      <p>Hệ thống hỗ trợ thời gian thực SWP391</p>
+      <div class="field"><label>Tên đăng nhập</label><input id="inp-user" type="text" placeholder="username" /></div>
+      <div class="field"><label>Mật khẩu</label><input id="inp-pass" type="password" placeholder="••••••••" /></div>
+      <button class="btn-primary" onclick="doLogin()">Đăng nhập</button>
+      <div id="login-error"></div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app-panel">
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+      <div id="sidebar-header">
+        <h3>Hội thoại</h3>
+        <button id="btn-new-conv" onclick="openNewConvModal()">+ Tạo mới</button>
+      </div>
+      <div id="tab-row"></div>
+      <div id="conv-list"><div id="sidebar-loading">Đang tải…</div></div>
+    </div>
+    <!-- CHAT -->
+    <div id="chat-area">
+      <div id="chat-placeholder">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Chọn một hội thoại để bắt đầu</span>
+      </div>
+      <div id="chat-header">
+        <div>
+          <div id="chat-subject">–</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px" id="chat-meta">–</div>
+        </div>
+        <span id="chat-status-badge" class="badge">–</span>
+        <button id="btn-assign" onclick="assignToMe()" style="display:none">Nhận xử lý</button>
+        <button id="btn-close-conv" onclick="closeConv()" style="display:none">Đóng</button>
+      </div>
+      <div id="messages"></div>
+      <div id="chat-input-row">
+        <textarea id="msg-input" placeholder="Nhập tin nhắn… (Enter để gửi)" rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
+        <button id="btn-send" onclick="sendMsg()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW CONV MODAL -->
+<div id="modal-overlay">
+  <div class="modal">
+    <h3>Tạo hội thoại mới</h3>
+    <div class="field"><label>Chủ đề</label><input id="new-subject" type="text" placeholder="Mô tả vấn đề của bạn…" /></div>
+    <div class="field"><label>Tin nhắn đầu tiên</label>
+      <textarea id="new-content" style="width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:0.9rem;outline:none;resize:vertical;min-height:80px" placeholder="Nội dung…"></textarea>
+    </div>
+    <div id="new-conv-error" style="color:var(--danger);font-size:0.82rem;min-height:18px"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Huỷ</button>
+      <button class="btn-primary" onclick="createConv()" style="width:auto;padding:8px 20px">Tạo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let token = null, currentUser = null, stompClient = null;
+let conversations = [], currentConvId = null;
+let activeTab = 'my'; // my | unassigned | assigned
+const API = '';
+
+// ── UTILS ──
+const $ = id => document.getElementById(id);
+const headers = () => ({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token });
+
+async function apiFetch(method, path, body) {
+  const opts = { method, headers: headers() };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  if (!r.ok) { const t = await r.text(); throw new Error(t || r.status); }
+  return r.status === 204 ? null : r.json();
+}
+
+function fmtTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+}
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('vi-VN') + ' ' + fmtTime(iso);
+}
+
+// ── LOGIN ──
+async function doLogin() {
+  const username = $('inp-user').value.trim();
+  const password = $('inp-pass').value;
+  $('login-error').textContent = '';
+  if (!username || !password) { $('login-error').textContent = 'Vui lòng nhập đầy đủ thông tin.'; return; }
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usernameOrEmail: username, password })
+    });
+    if (!res.ok) { $('login-error').textContent = 'Sai tài khoản hoặc mật khẩu.'; return; }
+    const data = await res.json();
+    token = data.token;
+    currentUser = { id: data.userId, username: data.username, role: data.roleName };
+    afterLogin();
+  } catch (e) { $('login-error').textContent = 'Không thể kết nối server.'; }
+}
+
+$('inp-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function afterLogin() {
+  $('login-panel').style.display = 'none';
+  $('app-panel').classList.add('active');
+  $('user-badge').style.display = '';
+  $('btn-logout').style.display = '';
+  $('ub-name').textContent = currentUser.username;
+  $('ub-role').textContent = currentUser.role;
+
+  const isStaff = ['Staff','Admin'].includes(currentUser.role);
+  if (isStaff) activeTab = 'unassigned';
+  else activeTab = 'my';
+
+  buildTabs();
+  connectWS();
+  loadConversations();
+
+  $('btn-new-conv').style.display = isStaff ? 'none' : '';
+
+  // Hiện nút chatbot AI định giá (cho Seller/User/Admin)
+  $('ai-fab').style.display = aiVisibleForRole() ? 'flex' : 'none';
+}
+
+function logout() {
+  if (stompClient) stompClient.deactivate();
+  token = null; currentUser = null; stompClient = null;
+  conversations = []; currentConvId = null;
+  $('login-panel').style.display = '';
+  $('app-panel').classList.remove('active');
+  $('user-badge').style.display = 'none';
+  $('btn-logout').style.display = 'none';
+  $('inp-pass').value = '';
+  $('login-error').textContent = '';
+  $('messages').innerHTML = '';
+  $('chat-header').classList.remove('visible');
+  $('chat-input-row').classList.remove('visible');
+  $('chat-placeholder').style.display = '';
+  $('conv-list').innerHTML = '<div id="sidebar-loading">Đang tải…</div>';
+  resetAiWidget();
+}
+
+// ── TABS ──
+function buildTabs() {
+  const role = currentUser.role?.toUpperCase();
+  const tabs = [];
+  if (!['STAFF','ADMIN'].includes(role)) tabs.push({ id: 'my', label: 'Của tôi' });
+  if (['STAFF','ADMIN'].includes(role)) {
+    tabs.push({ id: 'unassigned', label: 'Chưa xử lý' });
+    tabs.push({ id: 'assigned', label: 'Đã nhận' });
+  }
+  const row = $('tab-row');
+  row.innerHTML = '';
+  tabs.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'tab' + (t.id === activeTab ? ' active' : '');
+    el.textContent = t.label;
+    el.onclick = () => { activeTab = t.id; buildTabs(); loadConversations(); };
+    row.appendChild(el);
+  });
+}
+
+// ── CONVERSATIONS ──
+async function loadConversations() {
+  $('conv-list').innerHTML = '<div id="sidebar-loading">Đang tải…</div>';
+  try {
+    let path = '/api/v1/conversations/my';
+    if (activeTab === 'unassigned') path = '/api/v1/conversations/unassigned';
+    if (activeTab === 'assigned') path = '/api/v1/conversations/assigned';
+    conversations = await apiFetch('GET', path);
+    renderConvList();
+  } catch (e) {
+    $('conv-list').innerHTML = '<div id="sidebar-loading" style="color:var(--danger)">Lỗi tải dữ liệu</div>';
+  }
+}
+
+function renderConvList() {
+  const list = $('conv-list');
+  if (!conversations.length) {
+    list.innerHTML = '<div id="sidebar-loading">Không có hội thoại nào</div>';
+    return;
+  }
+  list.innerHTML = '';
+  conversations.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'conv-item' + (c.conversationId === currentConvId ? ' selected' : '');
+    const statusLabel = { OPEN: 'Mở', IN_PROGRESS: 'Đang xử lý', CLOSED: 'Đã đóng' }[c.status] || c.status;
+    el.innerHTML = `
+      <div class="conv-title">${escHtml(c.subject)}</div>
+      <div class="conv-meta">
+        <span class="badge badge-${c.status?.toLowerCase()}">${statusLabel}</span>
+        <span>${fmtDate(c.createdAt)}</span>
+      </div>`;
+    el.onclick = () => openConv(c.conversationId);
+    list.appendChild(el);
+  });
+}
+
+// ── OPEN CONVERSATION ──
+async function openConv(id) {
+  currentConvId = id;
+  document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.conv-item').forEach(el => {
+    if (el.onclick.toString().includes(id)) el.classList.add('selected');
+  });
+  renderConvList(); // re-render to apply selected
+
+  try {
+    const detail = await apiFetch('GET', '/api/v1/conversations/' + id);
+    renderChatHeader(detail.info);
+    renderMessages(detail.messages || []);
+    subscribeConv(id);
+    await apiFetch('PATCH', '/api/v1/messages/conversation/' + id + '/read');
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+function renderChatHeader(conv) {
+  $('chat-placeholder').style.display = 'none';
+  $('chat-header').classList.add('visible');
+  $('chat-input-row').classList.add('visible');
+  $('chat-subject').textContent = conv.subject || 'Hội thoại #' + conv.conversationId;
+
+  const assigned = conv.assignedStaffName ? 'Nhân viên: ' + conv.assignedStaffName : 'Chưa có nhân viên xử lý';
+  $('chat-meta').textContent = assigned;
+
+  const badge = $('chat-status-badge');
+  badge.className = 'badge badge-' + (conv.status?.toLowerCase());
+  const labels = { OPEN: 'Mở', IN_PROGRESS: 'Đang xử lý', CLOSED: 'Đã đóng' };
+  badge.textContent = labels[conv.status] || conv.status;
+
+  const role = currentUser.role?.toUpperCase();
+  const isStaff = ['Staff','Admin'].includes(role);
+  const isOpen = conv.status === 'OPEN';
+  const isClosed = conv.status === 'CLOSED';
+
+  $('btn-assign').style.display = (isStaff && isOpen) ? '' : 'none';
+  $('btn-close-conv').style.display = (isStaff && !isClosed) ? '' : 'none';
+}
+
+function renderMessages(msgs) {
+  const box = $('messages');
+  box.innerHTML = '';
+  msgs.forEach(m => appendMessage(m));
+  box.scrollTop = box.scrollHeight;
+}
+
+function appendMessage(m) {
+  const box = $('messages');
+  const mine = m.senderId === currentUser.id;
+  const div = document.createElement('div');
+  div.className = 'msg ' + (mine ? 'mine' : 'theirs');
+  div.innerHTML = `
+    <div class="msg-bubble">${escHtml(m.content)}</div>
+    <div class="msg-info">${escHtml(m.senderName || 'Người dùng')} · ${fmtTime(m.sentAt)}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ── SEND MESSAGE ──
+async function sendMsg() {
+  const input = $('msg-input');
+  const content = input.value.trim();
+  if (!content || !currentConvId) return;
+  input.value = '';
+
+  if (stompClient?.connected) {
+    stompClient.publish({
+      destination: '/app/chat.sendMessage',
+      headers: { Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ conversationId: currentConvId, content })
+    });
+  } else {
+    try {
+      await apiFetch('POST', '/api/v1/messages', { conversationId: currentConvId, content });
+    } catch(e) { console.error(e); }
+  }
+}
+
+// ── WEBSOCKET ──
+function connectWS() {
+  const ind = $('ws-indicator');
+  const client = new StompJs.Client({
+    webSocketFactory: () => new SockJS('/ws/chat'),
+    connectHeaders: { Authorization: 'Bearer ' + token },
+    reconnectDelay: 5000,
+    onConnect: () => {
+      ind.className = 'connected';
+      stompClient = client;
+      // global staff notification
+      const role = currentUser.role;
+      if (['Staff','Admin'].includes(role)) {
+        client.subscribe('/topic/staff/new-conversation', frame => {
+          loadConversations();
+        });
+      }
+      // personal assignment notification
+      client.subscribe('/user/' + currentUser.id + '/queue/conversation-assigned', frame => {
+        loadConversations();
+      });
+    },
+    onDisconnect: () => { ind.className = ''; stompClient = null; },
+    onStompError: () => { ind.className = 'error'; }
+  });
+  client.activate();
+}
+
+let subscribedConvId = null;
+let convSubscription = null;
+function subscribeConv(id) {
+  if (!stompClient?.connected) return;
+  if (convSubscription) convSubscription.unsubscribe();
+  subscribedConvId = id;
+  convSubscription = stompClient.subscribe('/topic/conversation/' + id, frame => {
+    const msg = JSON.parse(frame.body);
+    if (msg.conversationId === currentConvId) {
+      appendMessage(msg);
+      apiFetch('PATCH', '/api/v1/messages/conversation/' + id + '/read').catch(()=>{});
+    }
+  });
+}
+
+// ── STAFF ACTIONS ──
+async function assignToMe() {
+  if (!currentConvId) return;
+  try {
+    await apiFetch('PATCH', '/api/v1/conversations/' + currentConvId + '/assign');
+    await openConv(currentConvId);
+    loadConversations();
+  } catch(e) { alert('Lỗi: ' + e.message); }
+}
+
+async function closeConv() {
+  if (!currentConvId) return;
+  if (!confirm('Đóng hội thoại này?')) return;
+  try {
+    await apiFetch('PATCH', '/api/v1/conversations/' + currentConvId + '/close');
+    await openConv(currentConvId);
+    loadConversations();
+  } catch(e) { alert('Lỗi: ' + e.message); }
+}
+
+// ── NEW CONV MODAL ──
+function openNewConvModal() { $('modal-overlay').classList.add('active'); $('new-subject').focus(); }
+function closeModal() { $('modal-overlay').classList.remove('active'); $('new-conv-error').textContent = ''; }
+
+async function createConv() {
+  const subject = $('new-subject').value.trim();
+  const content = $('new-content').value.trim();
+  $('new-conv-error').textContent = '';
+  if (!subject) { $('new-conv-error').textContent = 'Vui lòng nhập chủ đề.'; return; }
+  if (!content) { $('new-conv-error').textContent = 'Vui lòng nhập nội dung.'; return; }
+  try {
+    const conv = await apiFetch('POST', '/api/v1/conversations', { subject, firstMessage: content });
+    closeModal();
+    $('new-subject').value = '';
+    $('new-content').value = '';
+    await loadConversations();
+    openConv(conv.conversationId);
+  } catch(e) { $('new-conv-error').textContent = 'Lỗi: ' + e.message; }
+}
+
+$('modal-overlay').addEventListener('click', e => { if (e.target === $('modal-overlay')) closeModal(); });
+
+// ── AI PRICING CHATBOT ──
+let aiConvId = null, aiOpen = false, aiBusy = false;
+
+function aiVisibleForRole() {
+  const role = currentUser?.role?.toUpperCase();
+  return ['SELLER','USER','ADMIN'].includes(role);
+}
+
+function toggleAiWidget(force) {
+  aiOpen = (force !== undefined) ? force : !aiOpen;
+  $('ai-panel').classList.toggle('open', aiOpen);
+  if (aiOpen) {
+    $('ai-input').focus();
+    if (!$('ai-messages').dataset.greeted) {
+      appendAiMsg('assistant', 'Xin chào 👋 Tôi là trợ lý định giá AI. Hãy mô tả sản phẩm bạn muốn bán (tên, hãng, tình trạng, năm sản xuất, phụ kiện…) để tôi gợi ý mức giá khởi điểm phù hợp nhé!');
+      $('ai-messages').dataset.greeted = '1';
+    }
+  }
+}
+
+function appendAiMsg(role, content, pending) {
+  const box = $('ai-messages');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ai-' + role + (pending ? ' ai-pending' : '');
+  div.innerHTML = `<div class="ai-bubble">${escHtml(content).replace(/\n/g, '<br>')}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  return div;
+}
+
+async function sendAiMsg() {
+  if (aiBusy) return;
+  const input = $('ai-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  appendAiMsg('user', msg);
+  aiBusy = true;
+  const typing = appendAiMsg('assistant', 'Đang soạn câu trả lời…', true);
+  try {
+    const res = await apiFetch('POST', '/api/v1/ai/pricing/chat', { conversationId: aiConvId, message: msg });
+    aiConvId = res.conversationId;
+    typing.remove();
+    appendAiMsg('assistant', res.reply);
+  } catch (e) {
+    typing.remove();
+    appendAiMsg('assistant', '⚠️ Lỗi: ' + (e.message || 'không gửi được tin nhắn'));
+  } finally {
+    aiBusy = false;
+    $('ai-input').focus();
+  }
+}
+
+function aiInputKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAiMsg(); }
+}
+
+function resetAiWidget() {
+  aiConvId = null; aiOpen = false; aiBusy = false;
+  $('ai-panel').classList.remove('open');
+  $('ai-messages').innerHTML = '';
+  delete $('ai-messages').dataset.greeted;
+  $('ai-fab').style.display = 'none';
+}
+
+// ── HELPERS ──
+function escHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+
+<!-- ══════════ AI PRICING CHATBOT WIDGET ══════════ -->
+<style>
+  #ai-fab {
+    position: fixed; right: 24px; bottom: 24px; z-index: 1000;
+    display: none; align-items: center; gap: 8px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 12px 18px; border-radius: 30px; cursor: pointer;
+    font-size: 0.9rem; font-weight: 600;
+    box-shadow: 0 6px 20px rgba(108,99,255,0.45);
+  }
+  #ai-fab:hover { background: var(--accent2); }
+  #ai-panel {
+    position: fixed; right: 24px; bottom: 88px; z-index: 1000;
+    width: 380px; max-width: calc(100vw - 48px); height: 540px; max-height: calc(100vh - 130px);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    display: none; flex-direction: column; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  }
+  #ai-panel.open { display: flex; }
+  #ai-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px; background: var(--surface2); border-bottom: 1px solid var(--border);
+  }
+  #ai-head .ai-avatar {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+  }
+  #ai-head .ai-title { flex: 1; }
+  #ai-head .ai-title b { font-size: 0.92rem; }
+  #ai-head .ai-title small { display: block; color: var(--success); font-size: 0.72rem; }
+  #ai-head button {
+    background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer;
+  }
+  #ai-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .ai-msg { display: flex; max-width: 85%; }
+  .ai-msg.ai-user { align-self: flex-end; }
+  .ai-msg.ai-assistant { align-self: flex-start; }
+  .ai-bubble {
+    padding: 10px 14px; border-radius: 12px; font-size: 0.86rem; line-height: 1.5; white-space: normal;
+  }
+  .ai-user .ai-bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  .ai-assistant .ai-bubble { background: var(--surface2); color: var(--text); border-bottom-left-radius: 4px; }
+  .ai-pending .ai-bubble { color: var(--muted); font-style: italic; }
+  #ai-input-row { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); }
+  #ai-input {
+    flex: 1; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 22px; color: var(--text); font-size: 0.86rem; outline: none; resize: none;
+    font-family: inherit; max-height: 90px;
+  }
+  #ai-input:focus { border-color: var(--accent); }
+  #ai-send {
+    background: var(--accent); border: none; color: #fff; width: 42px; border-radius: 50%;
+    cursor: pointer; font-size: 1.1rem; flex-shrink: 0;
+  }
+  #ai-send:hover { background: var(--accent2); }
+</style>
+
+<button id="ai-fab" onclick="toggleAiWidget()">🤖 Trợ lý định giá AI</button>
+
+<div id="ai-panel">
+  <div id="ai-head">
+    <div class="ai-avatar">🤖</div>
+    <div class="ai-title">
+      <b>Trợ lý định giá AI</b>
+      <small>● Hỗ trợ định giá sản phẩm</small>
+    </div>
+    <button onclick="toggleAiWidget(false)" title="Đóng">✕</button>
+  </div>
+  <div id="ai-messages"></div>
+  <div id="ai-input-row">
+    <textarea id="ai-input" rows="1" placeholder="Mô tả sản phẩm cần định giá…" onkeydown="aiInputKey(event)"></textarea>
+    <button id="ai-send" onclick="sendAiMsg()" title="Gửi">➤</button>
+  </div>
+</div>
+
+</body>
+</html>

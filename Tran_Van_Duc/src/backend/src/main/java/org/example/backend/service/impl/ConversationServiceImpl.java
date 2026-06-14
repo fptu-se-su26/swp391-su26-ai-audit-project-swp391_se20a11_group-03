@@ -51,7 +51,8 @@ public class ConversationServiceImpl implements ConversationService {
     @Override
     @Transactional(readOnly = true)
     public List<ConversationResponse> getMyConversations(Long userId) {
-        return conversationRepository.findByUser_UserIdOrderByUpdatedAtDesc(userId)
+        return conversationRepository
+                .findHumanConversationsByUser(userId, org.example.backend.ai.AiConstants.BOT_USERNAME)
                 .stream().map(c -> toResponse(c, userId)).toList();
     }
 
@@ -119,12 +120,25 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     private void validateAccess(Conversation conv, Long requesterId) {
-        boolean isOwner = conv.getUser().getUserId().equals(requesterId);
-        boolean isStaff = conv.getAssignedStaff() != null
-                && conv.getAssignedStaff().getUserId().equals(requesterId);
-        if (!isOwner && !isStaff) {
-            throw new AccessDeniedException("Bạn không có quyền xem conversation này");
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại: " + requesterId));
+        String role = requester.getRole().getRoleName();
+
+        if ("Admin".equals(role)) {
+            return; // Admin can view all
         }
+        if ("Staff".equals(role)) {
+            boolean isAssignedToMe = conv.getAssignedStaff() != null
+                    && conv.getAssignedStaff().getUserId().equals(requesterId);
+            boolean isUnassigned = conv.getAssignedStaff() == null;
+            if (isAssignedToMe || isUnassigned) {
+                return; // Staff can view unassigned or their own assigned conversations
+            }
+        }
+        if (conv.getUser().getUserId().equals(requesterId)) {
+            return; // Owner can view their own
+        }
+        throw new AccessDeniedException("Bạn không có quyền xem conversation này");
     }
 
     private ConversationResponse toResponse(Conversation c, Long requesterId) {

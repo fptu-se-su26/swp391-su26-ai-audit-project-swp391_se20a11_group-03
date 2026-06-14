@@ -70,6 +70,41 @@ public class DataSeeder {
                 log.info("Created staff user (password: Staff@123)");
             }
 
+            // Seed seller user
+            if (userRepository.findByUsername("seller1").isEmpty()) {
+                Role sellerRole = roleRepository.findByRoleName("Seller")
+                        .orElseThrow();
+                String hash = passwordEncoder.encode("Seller@123");
+                User seller = User.builder()
+                        .username("seller1")
+                        .email("seller1@swp391.com")
+                        .passwordHash(hash.getBytes(StandardCharsets.UTF_8))
+                        .passwordSalt(new byte[0])
+                        .role(sellerRole)
+                        .status("ACTIVE")
+                        .authProvider("LOCAL")
+                        .build();
+                userRepository.save(seller);
+                log.info("Created seller user (password: Seller@123)");
+            }
+
+            // Seed AI bot user (đại diện cho chatbot trong bảng Messages)
+            if (userRepository.findByUsername(org.example.backend.ai.AiConstants.BOT_USERNAME).isEmpty()) {
+                Role userRole = roleRepository.findByRoleName("User")
+                        .orElseThrow();
+                User bot = User.builder()
+                        .username(org.example.backend.ai.AiConstants.BOT_USERNAME)
+                        .email("ai-bot@swp391.com")
+                        .passwordHash(new byte[0])
+                        .passwordSalt(new byte[0])
+                        .role(userRole)
+                        .status("ACTIVE")
+                        .authProvider("LOCAL")
+                        .build();
+                userRepository.save(bot);
+                log.info("Created AI bot user: {}", org.example.backend.ai.AiConstants.BOT_USERNAME);
+            }
+
             // Seed regular user
             if (userRepository.findByUsername("user1").isEmpty()) {
                 Role userRole = roleRepository.findByRoleName("User")
