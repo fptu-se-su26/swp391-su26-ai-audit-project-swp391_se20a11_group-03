@@ -32,9 +32,6 @@ public class ProductApproval {
     @Column(name = "Reason", length = 500)
     private String reason;
 
-    @Column(name = "ApprovalNote", columnDefinition = "NVARCHAR(MAX)")
-    private String approvalNote;
-
     @Column(name = "ReviewedAt", nullable = false)
     private LocalDateTime reviewedAt;
 }

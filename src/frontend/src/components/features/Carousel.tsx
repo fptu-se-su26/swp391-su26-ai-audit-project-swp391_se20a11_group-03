@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import Link from "next/link";
-import { mockStorefrontLots } from "@/lib/mock-data";
+import { searchProducts, ProductSummary } from "@/lib/services/productService";
 
 interface LotCardProps {
   id: number;
@@ -12,6 +12,31 @@ interface LotCardProps {
   timeLeft: string;
   isLive: boolean;
   image: string;
+}
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+function calculateTimeLeft(endTime: string | null): string {
+  if (!endTime) return "N/A";
+  const end = new Date(endTime).getTime();
+  const now = Date.now();
+  const diff = Math.max(0, end - now);
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
 }
 
 function LotCard({ id, lotNumber, title, currentBid, timeLeft, isLive, image }: LotCardProps) {
@@ -32,14 +57,22 @@ function LotCard({ id, lotNumber, title, currentBid, timeLeft, isLive, image }: 
         </span>
       </div>
       <div className="h-64 overflow-hidden">
-        <img src={image} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+        {image ? (
+          <img src={image} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-surface-variant">
+            <span className="material-symbols-outlined text-6xl text-on-surface-variant">image</span>
+          </div>
+        )}
       </div>
       <div className="p-md flex flex-col">
         <h4 className="font-headline-sm text-headline-sm text-primary font-bold mb-2 line-clamp-2">{title}</h4>
         <div className="mt-auto pt-4 border-t border-outline-variant/30 flex justify-between items-end">
           <div>
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase block mb-1">Current Bid</span>
-            <span className="font-headline-md text-headline-md text-primary font-bold">${currentBid.toLocaleString()}</span>
+            <span className="font-headline-md text-headline-md text-primary font-bold">
+              {currentBid > 0 ? formatCurrency(currentBid) : "-"}
+            </span>
           </div>
           <div className="text-right text-error font-bold font-label-md">{timeLeft}</div>
         </div>
@@ -51,17 +84,51 @@ function LotCard({ id, lotNumber, title, currentBid, timeLeft, isLive, image }: 
 interface CarouselProps {
   title: string;
   subtitle?: string;
+  auctionStatus?: string;
   items?: LotCardProps[];
 }
 
-export default function Carousel({ title, subtitle, items = mockStorefrontLots }: CarouselProps) {
+export default function Carousel({ title, subtitle, auctionStatus, items }: CarouselProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const [products, setProducts] = useState<ProductSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await searchProducts({
+          size: 10,
+          status: auctionStatus === "UPCOMING" ? "ACTIVE" : undefined,
+          auctionStatus: auctionStatus,
+        });
+        setProducts(response.content);
+      } catch {
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (items === undefined) {
+      fetchProducts();
+    }
+  }, [items, auctionStatus]);
 
   const scroll = (dir: "left" | "right") => {
     if (!ref.current) return;
     const amount = ref.current.offsetWidth * 0.8;
     ref.current.scrollBy({ left: dir === "left" ? -amount : amount, behavior: "smooth" });
   };
+
+  const displayItems: LotCardProps[] = items || products.map((p) => ({
+    id: p.productId,
+    lotNumber: String(p.productId),
+    title: p.productName,
+    currentBid: p.currentBid || p.startingPrice,
+    timeLeft: calculateTimeLeft(p.auctionEndTime),
+    isLive: p.auctionStatus === "ACTIVE",
+    image: p.imageUrl || "",
+  }));
 
   return (
     <section className="px-margin-mobile md:px-margin-desktop py-xl max-w-7xl mx-auto w-full overflow-hidden">
@@ -70,9 +137,14 @@ export default function Carousel({ title, subtitle, items = mockStorefrontLots }
           <h3 className="font-headline-md text-headline-md text-primary font-bold">{title}</h3>
           {subtitle && <p className="font-body-md text-body-md text-on-surface-variant mt-1">{subtitle}</p>}
         </div>
-        <a href="#" className="text-primary font-bold font-label-md hover:text-secondary transition-colors">
-          View More &gt;
-        </a>
+        {auctionStatus && (
+          <Link
+            href={auctionStatus === "ACTIVE" ? "/" : auctionStatus === "UPCOMING" ? "/upcoming" : "/results"}
+            className="text-primary font-bold font-label-md hover:text-secondary transition-colors"
+          >
+            View More &gt;
+          </Link>
+        )}
       </div>
 
       <div className="relative group">
@@ -93,9 +165,17 @@ export default function Carousel({ title, subtitle, items = mockStorefrontLots }
           ref={ref}
           className="flex gap-gutter overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2"
         >
-          {items.map((item) => (
-            <LotCard key={item.id} {...item} />
-          ))}
+          {loading ? (
+            <div className="min-w-full flex items-center justify-center h-64">
+              <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
+            </div>
+          ) : displayItems.length > 0 ? (
+            displayItems.map((item) => <LotCard key={item.id} {...item} />)
+          ) : (
+            <div className="min-w-full flex items-center justify-center h-64">
+              <p className="text-on-surface-variant">No items available</p>
+            </div>
+          )}
         </div>
       </div>
     </section>

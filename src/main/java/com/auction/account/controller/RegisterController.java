@@ -32,7 +32,6 @@ public class RegisterController {
             @RequestParam("fullName") String fullName,
             @RequestParam("email") String email,
             @RequestParam("phone") String phone,
-            @RequestParam("identity") String identity,
             @RequestParam("password") String password,
             @RequestParam("confirmPassword") String confirmPassword,
             HttpServletRequest request,
@@ -43,7 +42,6 @@ public class RegisterController {
                 normalize(fullName),
                 normalize(email),
                 normalize(phone),
-                normalize(identity),
                 password,
                 confirmPassword
         );

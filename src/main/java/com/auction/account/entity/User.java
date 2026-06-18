@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "UserID")
+    @Column(name = "UserId")
     private int id;
 
     @Column(name = "FullName", nullable = false, length = 150)
@@ -30,7 +30,7 @@ public class User {
     @Column(name = "Phone", nullable = false, unique = true, length = 20)
     private String phone;
 
-    @Column(name = "IdentityNumber", nullable = false, unique = true, length = 20)
+    @Column(name = "IdentityNumber", length = 20)
     private String identityNumber;
 
     @Column(name = "PasswordHash", nullable = false, length = 128)
@@ -63,6 +63,15 @@ public class User {
     @Column(name = "IsActive", nullable = false)
     private boolean active = true;
 
+    @Column(name = "AuthProvider", nullable = false, length = 30)
+    private String authProvider;
+
+    @Column(name = "Status", nullable = false, length = 30)
+    private String status;
+
+    @Column(name = "Username", length = 255)
+    private String username;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "RoleId")
     private Role role;
@@ -83,6 +92,9 @@ public class User {
         this.verificationLevel = 0;
         this.profileStatus = "PENDING_PROFILE";
         this.active = true;
+        this.authProvider = "LOCAL";
+        this.status = "ACTIVE";
+        this.username = email;
     }
 
     public int getId() {
@@ -205,18 +217,35 @@ public class User {
         this.active = active;
     }
 
+    public String getAuthProvider() {
+        return authProvider;
+    }
+
+    public void setAuthProvider(String authProvider) {
+        this.authProvider = authProvider;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     @Transient
     public Long getUserId() {
         return (long) id;
     }
 
-    @Transient
     public String getUsername() {
-        return email;
+        return username != null && !username.isBlank() ? username : email;
     }
 
-    @Transient
     public String getStatus() {
+        if (status != null && !status.isBlank()) {
+            return status;
+        }
         return active ? "ACTIVE" : "LOCKED";
     }
 

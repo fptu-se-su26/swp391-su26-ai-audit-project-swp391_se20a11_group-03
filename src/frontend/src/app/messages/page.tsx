@@ -1,131 +1,609 @@
 "use client";
 
-import { useState } from "react";
-import { mockMessages } from "@/lib/mock-data";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import CollectorShell from "@/components/layout/CollectorShell";
+import { useTranslations } from "@/i18n/I18nProvider";
+import { apiClient } from "@/lib/apiClient";
+import { getStoredUser, isAdmin, isBuyer, isSeller, isStaff } from "@/lib/userSession";
 
-const CHAT_MESSAGES = [
-  { from: "agent" as const, text: "Good evening, Mr. Sterling. How can I assist you with your bids today?", time: "8:42 PM" },
-  { from: "user" as const, text: "I'm interested in the status of Lot #18. Is there any private treaty information available for verified collectors?", time: "8:45 PM" },
-  { from: "agent" as const, text: "Absolutely. Let me fetch the specialist for you. One moment while I pull up the provenance documents.", time: "8:46 PM" },
-];
+type Conversation = {
+  conversationId: number;
+  userId: number;
+  userName: string;
+  assignedStaffId: number | null;
+  assignedStaffName: string | null;
+  sellerId: number | null;
+  sellerName: string | null;
+  productId: number | null;
+  type: "BUYER_SELLER" | "BUYER_STAFF" | "SELLER_STAFF";
+  subject: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  lastMessage: string | null;
+  unreadCount: number;
+};
+
+type ConversationDetail = {
+  info: Conversation;
+  messages: Message[];
+};
+
+type Message = {
+  messageId: number;
+  conversationId: number;
+  senderId: number;
+  senderName: string;
+  senderRole: string;
+  content: string;
+  isRead: boolean;
+  sentAt: string;
+};
+
+type CreateConversationRequest = {
+  subject: string;
+  firstMessage: string;
+  type: "BUYER_SELLER" | "BUYER_STAFF" | "SELLER_STAFF";
+  sellerId?: number;
+  sellerEmail?: string;
+  productId?: number;
+};
 
 export default function MessagesPage() {
-  const [activeId, setActiveId] = useState(mockMessages[0].id);
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState(CHAT_MESSAGES);
+  return (
+    <Suspense fallback={null}>
+      <MessagesPageInner />
+    </Suspense>
+  );
+}
 
-  const send = () => {
-    if (!input.trim()) return;
-    setMessages((prev) => [...prev, { from: "user", text: input, time: "Now" }]);
-    setInput("");
-  };
+function MessagesPageInner() {
+  const t = useTranslations("messagesPage");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedId = searchParams.get("conversationId");
+  const sellerIdParam = searchParams.get("sellerId");
+  const productIdParam = searchParams.get("productId");
+
+  const [activeId, setActiveId] = useState<number | null>(null);
+  const [input, setInput] = useState("");
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [showNewModal, setShowNewModal] = useState(false);
+
+  const currentUser = getStoredUser();
+  const isUserAdmin = isAdmin(currentUser);
+  const isUserStaff = isStaff(currentUser);
+  const isUserBuyer = isBuyer(currentUser);
+  const isUserSeller = isSeller(currentUser);
+
+  const activeConversation = useMemo(
+    () => conversations.find((c) => c.conversationId === activeId) ?? null,
+    [activeId, conversations],
+  );
+
+  const refreshConversations = useCallback(async (preferredId?: number | null) => {
+    try {
+      const data = await apiClient<Conversation[]>("/v1/conversations/my");
+      setConversations(data ?? []);
+      if (data && data.length > 0) {
+        const target = preferredId
+          ?? Number(requestedId)
+          ?? data[0].conversationId;
+        const exists = data.find((c) => c.conversationId === target);
+        setActiveId(exists ? exists.conversationId : data[0].conversationId);
+      } else {
+        setActiveId(null);
+      }
+    } catch {
+      setConversations([]);
+      setActiveId(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [requestedId]);
+
+  useEffect(() => {
+    refreshConversations();
+  }, [refreshConversations]);
+
+  // Auto-open create-staff-support modal if no conversations
+  useEffect(() => {
+    if (!loading && conversations.length === 0 && !isUserStaff && !isUserAdmin) {
+      if (sellerIdParam) {
+        setShowNewModal(true);
+      }
+    }
+  }, [loading, conversations.length, isUserStaff, isUserAdmin, sellerIdParam]);
+
+  useEffect(() => {
+    if (!activeId) {
+      setMessages([]);
+      return;
+    }
+
+    let cancelled = false;
+    async function fetchMessages() {
+      setLoadingMessages(true);
+      try {
+        const data = await apiClient<ConversationDetail>(`/v1/conversations/${activeId}`);
+        if (!cancelled) setMessages(data.messages ?? []);
+      } catch {
+        if (!cancelled) setMessages([]);
+      } finally {
+        if (!cancelled) setLoadingMessages(false);
+      }
+    }
+
+    fetchMessages();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeId]);
+
+  // Update URL khi đổi active conversation
+  useEffect(() => {
+    if (activeId) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("conversationId") !== String(activeId)) {
+        params.set("conversationId", String(activeId));
+        router.replace(`/messages?${params.toString()}`);
+      }
+    }
+  }, [activeId, router]);
+
+  async function send() {
+    if (!input.trim() || !activeId) return;
+    try {
+      const created = await apiClient<Message>("/v1/messages", {
+        method: "POST",
+        body: { conversationId: activeId, content: input.trim() },
+      });
+      setMessages((current) => [...current, created]);
+      setInput("");
+    } catch {
+      // keep page stable
+    }
+  }
+
+  async function handleCreateConversation(req: CreateConversationRequest) {
+    try {
+      const created = await apiClient<Conversation>("/v1/conversations", {
+        method: "POST",
+        body: req,
+      });
+      setShowNewModal(false);
+      await refreshConversations(created.conversationId);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : t("createFailed"));
+    }
+  }
 
   return (
     <CollectorShell mainClass="flex-1 ml-0 md:ml-64 h-screen overflow-hidden flex bg-background">
-      {/* Conversation List */}
       <aside className="w-[30%] border-r border-outline-variant flex flex-col h-full bg-surface-container-low">
-        <div className="p-md border-b border-outline-variant">
-          <h2 className="font-headline-sm text-headline-sm text-primary font-bold">Messages</h2>
-          <div className="mt-sm relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
-            <input
-              type="text"
-              placeholder="Search conversations..."
-              className="w-full pl-10 pr-4 py-2 bg-surface border border-outline-variant rounded-lg font-body-md text-sm focus:border-secondary outline-none"
-            />
-          </div>
+        <div className="p-md border-b border-outline-variant flex items-center justify-between gap-sm">
+          <h2 className="font-headline-sm text-headline-sm text-primary font-bold">{t("title")}</h2>
+          {!isUserStaff && !isUserAdmin && (
+            <button
+              type="button"
+              onClick={() => setShowNewModal(true)}
+              className="flex items-center gap-1 rounded-lg bg-secondary px-3 py-1.5 text-[12px] font-label-md text-on-secondary hover:bg-secondary-fixed-dim transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">add</span>
+              {t("newChat")}
+            </button>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {mockMessages.map((msg) => (
-            <button
-              key={msg.id}
-              onClick={() => setActiveId(msg.id)}
-              className={`w-full flex items-center gap-md p-md border-b border-outline-variant/30 hover:bg-surface-container-high transition-colors text-left ${
-                activeId === msg.id ? "bg-surface-container-high border-r-2 border-r-secondary" : ""
-              }`}
-            >
-              <div className="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-secondary shrink-0">
-                <span className="material-symbols-outlined">{msg.avatar}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-end mb-1">
-                  <span className="font-label-md text-primary truncate">{msg.sender}</span>
-                  <span className="text-[10px] text-outline flex-shrink-0 ml-2">{msg.time}</span>
-                </div>
-                <p className="text-sm text-on-surface-variant truncate">{msg.preview}</p>
-              </div>
-              {msg.unread && <span className="w-2 h-2 rounded-full bg-secondary flex-shrink-0" />}
-            </button>
-          ))}
+          {loading ? (
+            <div className="p-md text-center text-on-surface-variant">{t("loading")}</div>
+          ) : conversations.length === 0 ? (
+            <div className="p-md text-center text-on-surface-variant">
+              <p className="mb-sm">{t("emptyTitle")}</p>
+              <p className="text-sm">{t("emptyDesc")}</p>
+            </div>
+          ) : (
+            conversations.map((c) => (
+              <ConversationListItem
+                key={c.conversationId}
+                conversation={c}
+                active={activeId === c.conversationId}
+                onClick={() => setActiveId(c.conversationId)}
+                currentUserId={currentUser?.userId ?? null}
+                isStaff={isUserStaff}
+              />
+            ))
+          )}
         </div>
       </aside>
 
-      {/* Active Chat */}
-      <section className="flex-1 flex flex-col h-full bg-surface-container-lowest overflow-hidden">
-        <header className="p-md border-b border-outline-variant bg-surface flex justify-between items-center">
-          <div className="flex items-center gap-md">
-            <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-secondary">
-              <span className="material-symbols-outlined">support_agent</span>
-            </div>
-            <div>
-              <h4 className="font-label-md text-primary font-bold">Support Liaison</h4>
-              <div className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-on-tertiary-container animate-pulse" />
-                <span className="text-[10px] text-on-surface-variant">Active Now</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-md">
-            <button className="material-symbols-outlined text-outline hover:text-primary transition-colors">call</button>
-            <button className="material-symbols-outlined text-outline hover:text-primary transition-colors">videocam</button>
-            <button className="material-symbols-outlined text-outline hover:text-primary transition-colors">more_vert</button>
-          </div>
-        </header>
+      <main className="flex-1 flex flex-col bg-surface">
+        {activeConversation ? (
+          <>
+            <ConversationHeader
+              conversation={activeConversation}
+              currentUserId={currentUser?.userId ?? null}
+            />
 
-        <div className="flex-1 overflow-y-auto p-md space-y-lg bg-surface-container-lowest/50 no-scrollbar flex flex-col">
-          <div className="flex justify-center">
-            <span className="px-3 py-1 rounded-full bg-surface-container text-[10px] text-outline uppercase tracking-widest">Today</span>
-          </div>
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex flex-col max-w-[80%] ${msg.from === "user" ? "items-end self-end ml-auto" : "items-start"}`}>
-              <div
-                className={`p-md rounded-2xl soft-shadow ${
-                  msg.from === "user"
-                    ? "bg-secondary text-on-secondary rounded-tr-none glow-accent"
-                    : "bg-surface-container text-on-surface rounded-tl-none border border-outline-variant/20"
-                }`}
-              >
-                <p className="text-sm leading-relaxed">{msg.text}</p>
-              </div>
-              <span className="text-[10px] text-outline mt-1 mx-2">{msg.time}</span>
+            <div className="flex-1 overflow-y-auto p-md space-y-md">
+              {loadingMessages ? (
+                <div className="text-center text-on-surface-variant">{t("loadingMessages")}</div>
+              ) : messages.length === 0 ? (
+                <div className="text-center text-on-surface-variant">
+                  <p>{t("noMessagesYet")}</p>
+                </div>
+              ) : (
+                messages.map((m) => {
+                  const isMe = m.senderId === currentUser?.userId;
+                  return (
+                    <div key={m.messageId} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                          isMe
+                            ? "bg-secondary text-on-secondary rounded-br-md"
+                            : "bg-surface-container-high text-on-surface rounded-bl-md"
+                        }`}
+                      >
+                        {!isMe && (
+                          <p className="mb-1 text-[10px] font-label-sm text-secondary">
+                            {m.senderName} <span className="text-outline">· {m.senderRole}</span>
+                          </p>
+                        )}
+                        <p className="font-body-md whitespace-pre-wrap break-words">{m.content}</p>
+                        <p className={`text-[10px] mt-1 ${isMe ? "text-on-secondary/70" : "text-on-surface-variant"}`}>
+                          {new Date(m.sentAt).toLocaleString("vi-VN")}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
-          ))}
+
+            <div className="p-md border-t border-outline-variant flex gap-md">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && send()}
+                placeholder={t("typeMessage")}
+                className="flex-1 bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2 outline-none focus:border-secondary"
+              />
+              <button
+                type="button"
+                onClick={send}
+                className="bg-secondary text-on-secondary rounded-lg px-4 py-2 hover:bg-secondary-fixed-dim transition-colors"
+              >
+                <span className="material-symbols-outlined">send</span>
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-on-surface-variant p-md gap-md">
+            <span className="material-symbols-outlined text-5xl">chat</span>
+            <p>{t("selectConversation")}</p>
+            {!isUserStaff && !isUserAdmin && (
+              <button
+                type="button"
+                onClick={() => setShowNewModal(true)}
+                className="flex items-center gap-xs rounded-lg bg-secondary px-4 py-2 font-label-md text-on-secondary hover:bg-secondary-fixed-dim"
+              >
+                <span className="material-symbols-outlined text-[18px]">add</span>
+                {t("startNewChat")}
+              </button>
+            )}
+          </div>
+        )}
+      </main>
+
+      {showNewModal && (
+        <NewConversationModal
+          isBuyer={isUserBuyer}
+          isSeller={isUserSeller}
+          preselectedSellerId={sellerIdParam ? Number(sellerIdParam) : undefined}
+          preselectedProductId={productIdParam ? Number(productIdParam) : undefined}
+          onClose={() => setShowNewModal(false)}
+          onSubmit={handleCreateConversation}
+        />
+      )}
+    </CollectorShell>
+  );
+}
+
+function ConversationListItem({
+  conversation: c,
+  active,
+  onClick,
+  currentUserId,
+  isStaff,
+}: {
+  conversation: Conversation;
+  active: boolean;
+  onClick: () => void;
+  currentUserId: number | null;
+  isStaff: boolean;
+}) {
+  const t = useTranslations("messagesPage");
+  const counterpart = resolveCounterpart(c, currentUserId);
+  const isUnassignedStaffCase =
+    isStaff && c.assignedStaffId == null && c.type !== "BUYER_SELLER";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full flex items-center gap-md p-md border-b border-outline-variant/30 hover:bg-surface-container-high transition-colors text-left ${
+        active ? "bg-surface-container-high border-r-2 border-r-secondary" : ""
+      }`}
+    >
+      <ConversationAvatar type={c.type} />
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-end mb-1">
+          <span className="font-label-md text-primary truncate">{counterpart}</span>
+          <span className="text-[10px] text-outline flex-shrink-0 ml-2">
+            {new Date(c.updatedAt).toLocaleString("vi-VN")}
+          </span>
+        </div>
+        <div className="flex items-center gap-xs">
+          <span className="text-[10px] uppercase font-label-sm text-secondary">
+            {labelForType(c.type, t)}
+          </span>
+          <p className="text-sm text-on-surface-variant truncate flex-1">
+            {c.lastMessage || c.subject}
+          </p>
+        </div>
+        {isUnassignedStaffCase && (
+          <span className="mt-1 inline-block rounded-full bg-tertiary-container px-2 py-0.5 text-[10px] font-label-sm text-on-tertiary-container">
+            {t("unassignedBadge")}
+          </span>
+        )}
+      </div>
+      {c.unreadCount > 0 && (
+        <span className="w-2 h-2 rounded-full bg-secondary flex-shrink-0" />
+      )}
+    </button>
+  );
+}
+
+function ConversationHeader({
+  conversation: c,
+  currentUserId,
+}: {
+  conversation: Conversation;
+  currentUserId: number | null;
+}) {
+  const t = useTranslations("messagesPage");
+  const counterpart = resolveCounterpart(c, currentUserId);
+  return (
+    <div className="p-md border-b border-outline-variant flex items-center gap-md">
+      <ConversationAvatar type={c.type} />
+      <div>
+        <p className="font-label-md text-primary">{counterpart}</p>
+        <p className="text-xs text-on-surface-variant">
+          {labelForType(c.type, t)} · {c.subject}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ConversationAvatar({ type }: { type: Conversation["type"] }) {
+  const icon = type === "BUYER_SELLER" ? "handshake" : "support_agent";
+  return (
+    <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-secondary shrink-0">
+      <span className="material-symbols-outlined">{icon}</span>
+    </div>
+  );
+}
+
+function resolveCounterpart(c: Conversation, currentUserId: number | null): string {
+  if (c.type === "BUYER_SELLER") {
+    if (currentUserId !== null && c.userId === currentUserId) {
+      return c.sellerName || "Seller";
+    }
+    return c.userName;
+  }
+  return c.assignedStaffName || "Đội hỗ trợ";
+}
+
+function labelForType(type: Conversation["type"], t: (k: string) => string): string {
+  if (type === "BUYER_SELLER") return t("typeBuyerSeller");
+  if (type === "BUYER_STAFF") return t("typeBuyerStaff");
+  return t("typeSellerStaff");
+}
+
+function NewConversationModal({
+  isBuyer,
+  isSeller,
+  preselectedSellerId,
+  preselectedProductId,
+  onClose,
+  onSubmit,
+}: {
+  isBuyer: boolean;
+  isSeller: boolean;
+  preselectedSellerId?: number;
+  preselectedProductId?: number;
+  onClose: () => void;
+  onSubmit: (req: CreateConversationRequest) => void;
+}) {
+  const t = useTranslations("messagesPage");
+  const [type, setType] = useState<CreateConversationRequest["type"]>(
+    preselectedSellerId ? "BUYER_SELLER" : "BUYER_STAFF",
+  );
+  const [subject, setSubject] = useState("");
+  const [firstMessage, setFirstMessage] = useState("");
+  const [sellerEmail, setSellerEmail] = useState<string>("");
+  const [productId, setProductId] = useState<string>(preselectedProductId ? String(preselectedProductId) : "");
+  const [submitting, setSubmitting] = useState(false);
+
+  const canSubmit = subject.trim() && firstMessage.trim() && (
+    type !== "BUYER_SELLER" || sellerEmail.trim()
+  );
+
+  async function handleSubmit() {
+    if (!canSubmit) return;
+    setSubmitting(true);
+    try {
+      const req: CreateConversationRequest = {
+        subject: subject.trim(),
+        firstMessage: firstMessage.trim(),
+        type,
+        productId: productId ? Number(productId) : undefined,
+      };
+      if (type === "BUYER_SELLER") {
+        const value = sellerEmail.trim();
+        if (/^\d+$/.test(value)) {
+          req.sellerId = Number(value);
+        } else {
+          req.sellerEmail = value;
+        }
+      }
+      await onSubmit(req);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-md" onClick={onClose}>
+      <div
+        className="w-full max-w-md rounded-xl bg-surface shadow-xl border border-outline-variant"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-md border-b border-outline-variant flex items-center justify-between">
+          <h3 className="font-headline-sm text-headline-sm text-primary">{t("newChat")}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-on-surface-variant hover:text-primary"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
         </div>
 
-        <footer className="p-md bg-primary-container border-t border-outline-variant/20">
-          <div className="flex items-center gap-md bg-surface/5 rounded-xl border border-outline-variant/30 px-md py-sm">
-            <button className="text-outline-variant hover:text-secondary transition-colors">
-              <span className="material-symbols-outlined">add_circle</span>
-            </button>
-            <button className="text-outline-variant hover:text-secondary transition-colors">
-              <span className="material-symbols-outlined">image</span>
-            </button>
+        <div className="p-md space-y-md">
+          <div>
+            <label className="mb-xs block font-label-sm text-label-sm text-on-surface-variant">
+              {t("chooseRecipient")}
+            </label>
+            <div className="grid gap-xs">
+              {isBuyer && (
+                <button
+                  type="button"
+                  onClick={() => setType("BUYER_STAFF")}
+                  className={`flex items-center gap-sm rounded-lg border px-3 py-2 text-left ${
+                    type === "BUYER_STAFF" ? "border-secondary bg-secondary-container" : "border-outline-variant"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-secondary">support_agent</span>
+                  <div>
+                    <p className="font-label-md">{t("contactSupport")}</p>
+                    <p className="text-xs text-on-surface-variant">{t("contactSupportDesc")}</p>
+                  </div>
+                </button>
+              )}
+              {isSeller && (
+                <button
+                  type="button"
+                  onClick={() => setType("SELLER_STAFF")}
+                  className={`flex items-center gap-sm rounded-lg border px-3 py-2 text-left ${
+                    type === "SELLER_STAFF" ? "border-secondary bg-secondary-container" : "border-outline-variant"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-secondary">support_agent</span>
+                  <div>
+                    <p className="font-label-md">{t("contactSupport")}</p>
+                    <p className="text-xs text-on-surface-variant">{t("sellerContactSupportDesc")}</p>
+                  </div>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setType("BUYER_SELLER")}
+                className={`flex items-center gap-sm rounded-lg border px-3 py-2 text-left ${
+                  type === "BUYER_SELLER" ? "border-secondary bg-secondary-container" : "border-outline-variant"
+                }`}
+              >
+                <span className="material-symbols-outlined text-secondary">handshake</span>
+                <div>
+                  <p className="font-label-md">{t("contactSeller")}</p>
+                  <p className="text-xs text-on-surface-variant">{t("contactSellerDesc")}</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {type === "BUYER_SELLER" && (
+            <div>
+              <label className="mb-xs block font-label-sm text-label-sm text-on-surface-variant">
+                {t("sellerEmailLabel")}
+              </label>
+              <input
+                type="text"
+                value={sellerEmail}
+                onChange={(e) => setSellerEmail(e.target.value)}
+                placeholder={t("sellerEmailPlaceholder")}
+                className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 outline-none focus:border-secondary"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="mb-xs block font-label-sm text-label-sm text-on-surface-variant">
+              {t("subjectLabel")}
+            </label>
             <input
               type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && send()}
-              placeholder="Write your message..."
-              className="flex-1 bg-transparent border-none focus:ring-0 text-on-primary text-sm p-2 outline-none"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder={t("subjectPlaceholder")}
+              className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 outline-none focus:border-secondary"
             />
-            <button onClick={send} className="text-secondary hover:scale-110 active:scale-95 transition-transform">
-              <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>send</span>
-            </button>
           </div>
-        </footer>
-      </section>
-    </CollectorShell>
+
+          <div>
+            <label className="mb-xs block font-label-sm text-label-sm text-on-surface-variant">
+              {t("firstMessageLabel")}
+            </label>
+            <textarea
+              value={firstMessage}
+              onChange={(e) => setFirstMessage(e.target.value)}
+              rows={4}
+              placeholder={t("firstMessagePlaceholder")}
+              className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 outline-none focus:border-secondary resize-none"
+            />
+          </div>
+
+          {productId && (
+            <p className="text-xs text-on-surface-variant">
+              {t("linkedProduct")}: #{productId}
+            </p>
+          )}
+        </div>
+
+        <div className="p-md border-t border-outline-variant flex justify-end gap-sm">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-outline-variant px-4 py-2 font-label-md text-on-surface hover:bg-surface-container-high"
+          >
+            {t("cancel")}
+          </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!canSubmit || submitting}
+            className="rounded-lg bg-secondary px-4 py-2 font-label-md text-on-secondary hover:bg-secondary-fixed-dim disabled:opacity-50"
+          >
+            {submitting ? t("sending") : t("startChat")}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

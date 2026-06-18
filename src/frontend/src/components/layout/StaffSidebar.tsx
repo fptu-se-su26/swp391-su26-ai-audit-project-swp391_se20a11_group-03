@@ -2,23 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 const NAV_ITEMS = [
-  { href: "/staff/approvals", icon: "task_alt", label: "Item Approvals" },
-  { href: "/staff/withdrawals", icon: "payments", label: "Withdrawals" },
-  { href: "/staff/kyc-review", icon: "badge", label: "KYC Document Review" },
-  { href: "/staff/support", icon: "support_agent", label: "Support Inbox" },
+  { href: "/staff/approvals", icon: "task_alt", labelKey: "itemApprovals" },
+  { href: "/staff/withdrawals", icon: "payments", labelKey: "withdrawals" },
+  { href: "/staff/kyc-review", icon: "badge", labelKey: "kycReview" },
+  { href: "/staff/support", icon: "support_agent", labelKey: "supportInbox" },
 ];
 
 export default function StaffSidebar() {
   const pathname = usePathname();
+  const t = useTranslations("staffSidebar");
 
   return (
     <aside className="h-screen w-72 fixed left-0 top-0 flex flex-col bg-surface-container-low border-r border-outline-variant shadow-sm z-40">
       <div className="flex flex-col h-full py-lg px-md">
         <div className="mb-xl px-sm">
-          <h1 className="font-headline-md text-headline-md font-bold tracking-tight text-primary">LuxeAuction</h1>
-          <p className="font-label-md text-label-md text-on-surface-variant">Staff Operations</p>
+          <h1 className="font-headline-md text-headline-md font-bold tracking-tight text-primary">{t("appName")}</h1>
+          <p className="font-label-md text-label-md text-on-surface-variant">{t("role")}</p>
         </div>
 
         <Link href="/" className="flex items-center gap-sm rounded-lg px-sm py-xs mb-lg hover:bg-surface-container-high transition-colors">
@@ -26,8 +28,8 @@ export default function StaffSidebar() {
             <span className="material-symbols-outlined text-on-primary-container">manage_accounts</span>
           </div>
           <div>
-            <span className="font-label-md text-label-md text-on-surface">Staff Member</span>
-            <span className="block text-[10px] text-on-surface-variant uppercase tracking-widest">On Duty</span>
+            <span className="font-label-md text-label-md text-on-surface">{t("staffMember")}</span>
+            <span className="block text-[10px] text-on-surface-variant uppercase tracking-widest">{t("onDuty")}</span>
           </div>
         </Link>
 
@@ -45,7 +47,7 @@ export default function StaffSidebar() {
                 }`}
               >
                 <span className="material-symbols-outlined">{item.icon}</span>
-                <span className="font-label-md text-label-md">{item.label}</span>
+                <span className="font-label-md text-label-md">{t(item.labelKey)}</span>
               </Link>
             );
           })}
@@ -54,7 +56,7 @@ export default function StaffSidebar() {
         <div className="mt-auto pt-lg border-t border-outline-variant/30 flex flex-col gap-xs">
           <Link href="/auth" className="flex items-center gap-base text-on-surface-variant hover:text-error hover:bg-error-container/20 transition-all px-md py-sm rounded-lg">
             <span className="material-symbols-outlined">logout</span>
-            <span className="font-label-md text-label-md">Logout</span>
+            <span className="font-label-md text-label-md">{t("logout")}</span>
           </Link>
         </div>
       </div>

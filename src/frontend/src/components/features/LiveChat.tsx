@@ -1,20 +1,41 @@
 "use client";
 
-import { useState } from "react";
-
-const INITIAL_MESSAGES = [
-  { from: "agent" as const, text: "Good evening, Mr. Sterling. How can I assist you with your bids today?", time: "8:42 PM" },
-  { from: "user" as const, text: "I'm interested in the status of Lot #18. Is there any private treaty information?", time: "8:45 PM" },
-  { from: "agent" as const, text: "Absolutely. Let me fetch the specialist for you. One moment.", time: "8:46 PM" },
-];
+import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "@/i18n/I18nProvider";
+import { getStoredUser, getUserDisplayName, subscribeStoredUser } from "@/lib/userSession";
 
 export default function LiveChat() {
+  const t = useTranslations("liveChat");
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
+  const [displayName, setDisplayName] = useState("Collector");
+
+  useEffect(() => {
+    const syncUser = () => setDisplayName(getUserDisplayName(getStoredUser()));
+    syncUser();
+    return subscribeStoredUser(syncUser);
+  }, []);
+
+  const initialMessages = useMemo(
+    () => [
+      { from: "agent" as const, text: t("initialAgent1", { name: displayName }), time: "8:42 PM" },
+      { from: "user" as const, text: t("initialUser1"), time: "8:45 PM" },
+      { from: "agent" as const, text: t("initialAgent2"), time: "8:46 PM" },
+    ],
+    [displayName, t],
+  );
+
+  const [messages, setMessages] = useState(initialMessages);
+
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
 
   const send = () => {
-    if (!input.trim()) return;
+    if (!input.trim()) {
+      return;
+    }
+
     setMessages((prev) => [...prev, { from: "user", text: input, time: "Now" }]);
     setInput("");
   };
@@ -22,21 +43,20 @@ export default function LiveChat() {
   return (
     <>
       <button
-        onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-8 right-8 w-14 h-14 bg-secondary text-on-secondary rounded-full flex items-center justify-center soft-shadow glow-accent hover:scale-105 transition-transform z-50"
+        onClick={() => setOpen((value) => !value)}
+        className="fixed bottom-8 right-8 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-on-secondary soft-shadow transition-transform hover:scale-105"
       >
         <span className="material-symbols-outlined text-[28px]">forum</span>
       </button>
 
       {open && (
-        <div className="fixed bottom-24 right-8 w-80 md:w-96 h-[500px] bg-primary-container border border-secondary/30 rounded-xl soft-shadow flex flex-col z-50 overflow-hidden">
-          {/* Header */}
-          <div className="bg-secondary p-md flex justify-between items-center">
+        <div className="fixed bottom-24 right-8 z-50 flex h-[500px] w-80 flex-col overflow-hidden rounded-xl border border-secondary/30 bg-primary-container soft-shadow md:w-96">
+          <div className="flex items-center justify-between bg-secondary p-md">
             <div className="flex items-center gap-sm">
               <span className="material-symbols-outlined text-on-secondary">support_agent</span>
               <div>
-                <p className="font-label-md text-on-secondary">Live Support</p>
-                <p className="text-[10px] text-on-secondary/80">Auction Concierge</p>
+                <p className="font-label-md text-on-secondary">{t("liveSupport")}</p>
+                <p className="text-[10px] text-on-secondary/80">{t("auctionConcierge")}</p>
               </div>
             </div>
             <button onClick={() => setOpen(false)} className="text-on-secondary">
@@ -44,34 +64,32 @@ export default function LiveChat() {
             </button>
           </div>
 
-          {/* Messages */}
-          <div className="flex-1 p-md space-y-md overflow-y-auto bg-[#0d1c32] bg-opacity-95 no-scrollbar">
-            {messages.map((msg, i) => (
-              <div key={i} className={`flex flex-col ${msg.from === "user" ? "items-end" : "items-start"}`}>
+          <div className="no-scrollbar flex-1 space-y-md overflow-y-auto bg-[#0d1c32] bg-opacity-95 p-md">
+            {messages.map((message, index) => (
+              <div key={index} className={`flex flex-col ${message.from === "user" ? "items-end" : "items-start"}`}>
                 <div
-                  className={`p-sm rounded-lg max-w-[80%] shadow-sm ${
-                    msg.from === "user"
-                      ? "bg-secondary text-on-secondary rounded-tr-none"
-                      : "bg-surface-container text-on-surface rounded-tl-none"
+                  className={`max-w-[80%] rounded-lg p-sm shadow-sm ${
+                    message.from === "user"
+                      ? "rounded-tr-none bg-secondary text-on-secondary"
+                      : "rounded-tl-none bg-surface-container text-on-surface"
                   }`}
                 >
-                  <p className="text-xs">{msg.text}</p>
+                  <p className="text-xs">{message.text}</p>
                 </div>
-                <span className="text-[10px] text-outline-variant mt-1 mx-1">{msg.time}</span>
+                <span className="mx-1 mt-1 text-[10px] text-outline-variant">{message.time}</span>
               </div>
             ))}
           </div>
 
-          {/* Input */}
-          <div className="p-md bg-primary-container border-t border-outline-variant/30">
-            <div className="flex items-center gap-sm bg-on-primary/5 rounded-lg border border-outline-variant/30 px-3 py-1">
+          <div className="border-t border-outline-variant/30 bg-primary-container p-md">
+            <div className="flex items-center gap-sm rounded-lg border border-outline-variant/30 bg-on-primary/5 px-3 py-1">
               <input
                 type="text"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && send()}
-                placeholder="Type a message..."
-                className="flex-1 bg-transparent border-none focus:ring-0 text-on-primary text-sm p-2 outline-none"
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={(event) => event.key === "Enter" && send()}
+                placeholder={t("typeMessage")}
+                className="flex-1 border-none bg-transparent p-2 text-sm text-on-primary outline-none focus:ring-0"
               />
               <button onClick={send} className="text-secondary">
                 <span className="material-symbols-outlined">send</span>

@@ -32,7 +32,22 @@ public class AuctionDeposit {
     @Column(name = "Status", nullable = false)
     private String status;
 
+    @Column(name = "SettlementType", length = 20)
+    private String settlementType;
+
+    @Column(name = "SettledAt")
+    private LocalDateTime settledAt;
+
     @Column(name = "CreatedAt", nullable = false)
     private LocalDateTime createdAt;
-}
 
+    public AuctionDeposit() {}
+
+    public AuctionDeposit(Auction auction, User user, Long depositAmount, String status, LocalDateTime createdAt) {
+        this.auction = auction;
+        this.user = user;
+        this.depositAmount = depositAmount;
+        this.status = status;
+        this.createdAt = createdAt;
+    }
+}

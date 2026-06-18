@@ -13,5 +13,7 @@ public class LoginResponse {
     private String roleName;
     private String status;
     private String token;
+    private boolean identityVerified;
+    private String profileStatus;
 }
 

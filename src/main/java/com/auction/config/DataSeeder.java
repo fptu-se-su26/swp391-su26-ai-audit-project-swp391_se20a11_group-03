@@ -23,6 +23,7 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
+        ensureCoreTables();
         ensureRole("Admin");
         ensureRole("Staff");
         ensureRole("Seller");
@@ -30,10 +31,15 @@ public class DataSeeder implements CommandLineRunner {
         ensureProductSchemaColumns();
         ensureCategorySchemaColumns();
         ensureUserPasswordHashColumn();
+        ensureWatchlistTable();
+        ensureKycProfileTable();
+        ensureCategoryAttributesTables();
+        seedCategoryAttributes();
 
         Long sellerRoleId = jdbcTemplate.queryForObject("SELECT TOP 1 RoleId FROM Roles WHERE RoleName = ?", Long.class, "Seller");
         Long userRoleId = jdbcTemplate.queryForObject("SELECT TOP 1 RoleId FROM Roles WHERE RoleName = ?", Long.class, "User");
         Long staffRoleId = jdbcTemplate.queryForObject("SELECT TOP 1 RoleId FROM Roles WHERE RoleName = ?", Long.class, "Staff");
+        Long adminRoleId = jdbcTemplate.queryForObject("SELECT TOP 1 RoleId FROM Roles WHERE RoleName = ?", Long.class, "Admin");
 
         ensureCategory("Art", "Artwork and paintings");
         ensureCategory("Luxury Watch", "Premium watches");
@@ -51,11 +57,12 @@ public class DataSeeder implements CommandLineRunner {
 
         LocalDateTime now = LocalDateTime.now();
 
-        ensureUser("Seller One", "seller1", "seller1@example.com", "0900000101", "SELLER001", sellerRoleId, "password", now);
-        ensureUser("Alice Bidder", "alice", "alice@example.com", "0900000102", "ALICE001", userRoleId, "password", now);
-        ensureUser("Bob Bidder", "bob", "bob@example.com", "0900000103", "BOB001", userRoleId, "password", now);
-        ensureUser("Wallet Test User", "walletuser", "user@example.com", "0900000201", "WALLETUSER001", userRoleId, "password", now);
-        ensureUser("Wallet Staff", "walletstaff", "staff@example.com", "0900000202", "WALLETSTAFF001", staffRoleId, "password", now);
+        ensureUser("Seller One", "seller1", "seller1@example.com", "0900000101", "SELLER001", sellerRoleId, "password", now, false);
+        ensureUser("Alice Bidder", "alice", "alice@example.com", "0900000102", "ALICE001", userRoleId, "password", now, false);
+        ensureUser("Bob Bidder", "bob", "bob@example.com", "0900000103", "BOB001", userRoleId, "password", now, false);
+        ensureUser("Wallet Test User", "walletuser", "user@example.com", "0900000201", "WALLETUSER001", userRoleId, "password", now, false);
+        ensureUser("Wallet Staff", "walletstaff", "staff@example.com", "0900000202", "WALLETSTAFF001", staffRoleId, "password", now, true);
+        ensureUser("System Admin", "admin", "admin@example.com", "0900000203", "ADMIN001", adminRoleId, "password", now, true);
 
         Long sellerId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Username = ?", Long.class, "seller1");
         Long aliceId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Username = ?", Long.class, "alice");
@@ -118,6 +125,348 @@ public class DataSeeder implements CommandLineRunner {
         );
     }
 
+    private void ensureCoreTables() {
+        if (!hasTable("Roles")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE Roles (" +
+                            "RoleId INT IDENTITY(1,1) PRIMARY KEY, " +
+                            "RoleName NVARCHAR(50) NOT NULL UNIQUE" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("Users")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE Users (" +
+                            "UserId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "RoleId INT NULL, " +
+                            "Username NVARCHAR(255) NULL, " +
+                            "FullName NVARCHAR(150) NOT NULL, " +
+                            "Email NVARCHAR(255) NOT NULL UNIQUE, " +
+                            "Phone NVARCHAR(20) NOT NULL UNIQUE, " +
+                            "IdentityNumber NVARCHAR(20) NULL, " +
+                            "PasswordHash NVARCHAR(128) NOT NULL, " +
+                            "Salt NVARCHAR(32) NOT NULL, " +
+                            "PasswordIterations INT NOT NULL, " +
+                            "EmailVerified BIT NOT NULL DEFAULT 0, " +
+                            "EmailVerifiedAt DATETIME2 NULL, " +
+                            "IdentityVerified BIT NOT NULL DEFAULT 0, " +
+                            "IdentityVerifiedAt DATETIME2 NULL, " +
+                            "VerificationLevel TINYINT NOT NULL DEFAULT 0, " +
+                            "ProfileStatus NVARCHAR(30) NOT NULL DEFAULT 'PENDING_PROFILE', " +
+                            "IsActive BIT NOT NULL DEFAULT 1, " +
+                            "AuthProvider NVARCHAR(30) NOT NULL DEFAULT 'LOCAL', " +
+                            "Status NVARCHAR(30) NOT NULL DEFAULT 'ACTIVE', " +
+                            "CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES Roles(RoleId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("AuditLogs")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE AuditLogs (" +
+                            "AuditLogID BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "Action NVARCHAR(30) NOT NULL, " +
+                            "Success BIT NOT NULL, " +
+                            "Subject NVARCHAR(255) NULL, " +
+                            "Detail NVARCHAR(500) NULL, " +
+                            "IpAddress NVARCHAR(64) NULL, " +
+                            "UserAgent NVARCHAR(500) NULL, " +
+                            "CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME()" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("IdentityDocuments")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE IdentityDocuments (" +
+                            "IdentityDocumentID BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "UserID BIGINT NOT NULL, " +
+                            "DocumentType NVARCHAR(20) NOT NULL, " +
+                            "DocumentNumber NVARCHAR(20) NOT NULL, " +
+                            "FullName NVARCHAR(150) NOT NULL, " +
+                            "DateOfBirth DATE NULL, " +
+                            "FrontImagePath NVARCHAR(500) NULL, " +
+                            "BackImagePath NVARCHAR(500) NULL, " +
+                            "OcrProvider NVARCHAR(50) NULL, " +
+                            "OcrResultJson NVARCHAR(MAX) NULL, " +
+                            "Status NVARCHAR(30) NOT NULL, " +
+                            "ReviewedBy NVARCHAR(100) NULL, " +
+                            "ReviewedAt DATETIME2 NULL, " +
+                            "CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "UpdatedAt DATETIME2 NULL, " +
+                            "CONSTRAINT FK_IdentityDocuments_Users FOREIGN KEY (UserID) REFERENCES Users(UserId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("UserVerificationTokens")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE UserVerificationTokens (" +
+                            "VerificationTokenID BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "UserID BIGINT NOT NULL, " +
+                            "TokenHash NVARCHAR(128) NOT NULL, " +
+                            "TokenType NVARCHAR(30) NOT NULL, " +
+                            "ExpiresAt DATETIME2 NOT NULL, " +
+                            "UsedAt DATETIME2 NULL, " +
+                            "CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CONSTRAINT FK_UserVerificationTokens_Users FOREIGN KEY (UserID) REFERENCES Users(UserId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("PasswordResetTokens")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE PasswordResetTokens (" +
+                            "PasswordResetTokenID BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "UserID BIGINT NOT NULL, " +
+                            "TokenHash NVARCHAR(128) NOT NULL, " +
+                            "ExpiresAt DATETIME2 NOT NULL, " +
+                            "UsedAt DATETIME2 NULL, " +
+                            "CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CONSTRAINT FK_PasswordResetTokens_Users FOREIGN KEY (UserID) REFERENCES Users(UserId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("Categories")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE Categories (" +
+                            "CategoryId INT IDENTITY(1,1) PRIMARY KEY, " +
+                            "CategoryName NVARCHAR(100) NOT NULL UNIQUE, " +
+                            "Description NVARCHAR(500) NULL, " +
+                            "IsActive BIT NOT NULL DEFAULT 1, " +
+                            "CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME()" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("Products")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE Products (" +
+                            "ProductId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "SellerId BIGINT NOT NULL, " +
+                            "CategoryId INT NOT NULL, " +
+                            "ProductName NVARCHAR(255) NOT NULL, " +
+                            "Description NVARCHAR(MAX) NULL, " +
+                            "ImagesUrl NVARCHAR(MAX) NULL, " +
+                            "[Condition] NVARCHAR(100) NULL, " +
+                            "Brand NVARCHAR(150) NULL, " +
+                            "Origin NVARCHAR(150) NULL, " +
+                            "WeightSize NVARCHAR(150) NULL, " +
+                            "StartingPrice BIGINT NOT NULL, " +
+                            "StepPrice BIGINT NOT NULL DEFAULT 1000000, " +
+                            "TaxPercent INT NOT NULL DEFAULT 5, " +
+                            "Status NVARCHAR(30) NOT NULL DEFAULT 'PENDING', " +
+                            "AuctionMode NVARCHAR(10) NULL, " +
+                            "ScheduledStartTime DATETIME2 NULL, " +
+                            "ScheduledDurationSeconds BIGINT NULL, " +
+                            "SubmittedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "RejectionReason NVARCHAR(500) NULL, " +
+                            "CONSTRAINT FK_Products_Users FOREIGN KEY (SellerId) REFERENCES Users(UserId), " +
+                            "CONSTRAINT FK_Products_Categories FOREIGN KEY (CategoryId) REFERENCES Categories(CategoryId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("ProductImages")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE ProductImages (" +
+                            "ImageId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "ProductId BIGINT NOT NULL, " +
+                            "ImageUrl NVARCHAR(500) NOT NULL, " +
+                            "IsPrimary BIT NOT NULL DEFAULT 0, " +
+                            "CONSTRAINT FK_ProductImages_Products FOREIGN KEY (ProductId) REFERENCES Products(ProductId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("ProductApprovals")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE ProductApprovals (" +
+                            "ApprovalId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "ProductId BIGINT NOT NULL, " +
+                            "ReviewedBy BIGINT NOT NULL, " +
+                            "Status NVARCHAR(30) NOT NULL, " +
+                            "Reason NVARCHAR(500) NULL, " +
+                            "ReviewedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CONSTRAINT FK_ProductApprovals_Products FOREIGN KEY (ProductId) REFERENCES Products(ProductId), " +
+                            "CONSTRAINT FK_ProductApprovals_Users FOREIGN KEY (ReviewedBy) REFERENCES Users(UserId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("Contracts")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE Contracts (" +
+                            "ContractId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "ContractType NVARCHAR(50) NOT NULL, " +
+                            "ReferenceId BIGINT NOT NULL, " +
+                            "FileUrl NVARCHAR(500) NOT NULL, " +
+                            "CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME()" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("Wallets")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE Wallets (" +
+                            "WalletId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "UserId BIGINT NOT NULL UNIQUE, " +
+                            "Balance BIGINT NOT NULL DEFAULT 0, " +
+                            "HoldBalance BIGINT NOT NULL DEFAULT 0, " +
+                            "UpdatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CONSTRAINT FK_Wallets_Users FOREIGN KEY (UserId) REFERENCES Users(UserId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("Transactions")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE Transactions (" +
+                            "TransactionId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "WalletId BIGINT NOT NULL, " +
+                            "Amount BIGINT NOT NULL, " +
+                            "TransactionType NVARCHAR(40) NOT NULL, " +
+                            "Status NVARCHAR(30) NOT NULL, " +
+                            "ReferenceCode NVARCHAR(120) NULL, " +
+                            "Description NVARCHAR(500) NULL, " +
+                            "CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CONSTRAINT FK_Transactions_Wallets FOREIGN KEY (WalletId) REFERENCES Wallets(WalletId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("WithdrawalRequests")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE WithdrawalRequests (" +
+                            "WithdrawalRequestId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "UserId BIGINT NOT NULL, " +
+                            "WalletId BIGINT NOT NULL, " +
+                            "Amount BIGINT NOT NULL, " +
+                            "BankName NVARCHAR(120) NOT NULL, " +
+                            "AccountNumber NVARCHAR(60) NOT NULL, " +
+                            "AccountName NVARCHAR(150) NOT NULL, " +
+                            "Status NVARCHAR(30) NOT NULL, " +
+                            "StaffNote NVARCHAR(500) NULL, " +
+                            "CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "UpdatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CONSTRAINT FK_WithdrawalRequests_Users FOREIGN KEY (UserId) REFERENCES Users(UserId), " +
+                            "CONSTRAINT FK_WithdrawalRequests_Wallets FOREIGN KEY (WalletId) REFERENCES Wallets(WalletId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("Auctions")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE Auctions (" +
+                            "AuctionId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "ProductId BIGINT NOT NULL UNIQUE, " +
+                            "AuctionMode NVARCHAR(10) NOT NULL DEFAULT 'TIMED', " +
+                            "ScheduledDurationSeconds BIGINT NULL, " +
+                            "StartTime DATETIME2 NOT NULL, " +
+                            "EndTime DATETIME2 NOT NULL, " +
+                            "CurrentHighestBid BIGINT NOT NULL DEFAULT 0, " +
+                            "CurrentWinnerUserId BIGINT NULL, " +
+                            "Status NVARCHAR(30) NOT NULL, " +
+                            "PaymentStatus NVARCHAR(20) NULL DEFAULT 'PENDING', " +
+                            "PaymentDeadline DATETIME2 NULL, " +
+                            "SettledAt DATETIME2 NULL, " +
+                            "CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CONSTRAINT FK_Auctions_Products FOREIGN KEY (ProductId) REFERENCES Products(ProductId), " +
+                            "CONSTRAINT FK_Auctions_Winner FOREIGN KEY (CurrentWinnerUserId) REFERENCES Users(UserId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("Auction_Deposits")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE Auction_Deposits (" +
+                            "DepositId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "AuctionId BIGINT NOT NULL, " +
+                            "UserId BIGINT NOT NULL, " +
+                            "DepositAmount BIGINT NOT NULL, " +
+                            "Status NVARCHAR(30) NOT NULL, " +
+                            "SettlementType NVARCHAR(20) NULL, " +
+                            "SettledAt DATETIME2 NULL, " +
+                            "CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CONSTRAINT UQ_AuctionDeposits_Auction_User UNIQUE (AuctionId, UserId), " +
+                            "CONSTRAINT FK_AuctionDeposits_Auctions FOREIGN KEY (AuctionId) REFERENCES Auctions(AuctionId), " +
+                            "CONSTRAINT FK_AuctionDeposits_Users FOREIGN KEY (UserId) REFERENCES Users(UserId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("Bids")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE Bids (" +
+                            "BidId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "AuctionId BIGINT NOT NULL, " +
+                            "UserId BIGINT NOT NULL, " +
+                            "BidAmount BIGINT NOT NULL, " +
+                            "BidTime DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CONSTRAINT FK_Bids_Auctions FOREIGN KEY (AuctionId) REFERENCES Auctions(AuctionId), " +
+                            "CONSTRAINT FK_Bids_Users FOREIGN KEY (UserId) REFERENCES Users(UserId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("Conversations")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE Conversations (" +
+                            "ConversationId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "UserId BIGINT NOT NULL, " +
+                            "AssignedStaff BIGINT NULL, " +
+                            "SellerId BIGINT NULL, " +
+                            "ProductId BIGINT NULL, " +
+                            "ConversationType NVARCHAR(30) NOT NULL, " +
+                            "subject NVARCHAR(255) NOT NULL, " +
+                            "status NVARCHAR(30) NOT NULL, " +
+                            "createdAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "updatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CONSTRAINT FK_Conversations_User FOREIGN KEY (UserId) REFERENCES Users(UserId), " +
+                            "CONSTRAINT FK_Conversations_AssignedStaff FOREIGN KEY (AssignedStaff) REFERENCES Users(UserId), " +
+                            "CONSTRAINT FK_Conversations_Seller FOREIGN KEY (SellerId) REFERENCES Users(UserId), " +
+                            "CONSTRAINT FK_Conversations_Product FOREIGN KEY (ProductId) REFERENCES Products(ProductId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("Messages")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE Messages (" +
+                            "MessageId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "ConversationId BIGINT NOT NULL, " +
+                            "SenderId BIGINT NOT NULL, " +
+                            "content NVARCHAR(MAX) NOT NULL, " +
+                            "isRead BIT NOT NULL DEFAULT 0, " +
+                            "sentAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CONSTRAINT FK_Messages_Conversations FOREIGN KEY (ConversationId) REFERENCES Conversations(ConversationId), " +
+                            "CONSTRAINT FK_Messages_Users FOREIGN KEY (SenderId) REFERENCES Users(UserId)" +
+                            ")"
+            );
+        }
+
+        if (!hasTable("Notifications")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE Notifications (" +
+                            "NotificationId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "UserId BIGINT NOT NULL, " +
+                            "Title NVARCHAR(200) NOT NULL, " +
+                            "Message NVARCHAR(1000) NOT NULL, " +
+                            "Type NVARCHAR(50) NOT NULL, " +
+                            "ReferenceId BIGINT NULL, " +
+                            "ReferenceType NVARCHAR(50) NULL, " +
+                            "IsRead BIT NOT NULL DEFAULT 0, " +
+                            "CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(), " +
+                            "CONSTRAINT FK_Notifications_Users FOREIGN KEY (UserId) REFERENCES Users(UserId)" +
+                            ")"
+            );
+        }
+    }
+
     private void ensureRole(String roleName) {
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM Roles WHERE RoleName = ?", Integer.class, roleName);
         if (count != null && count > 0) return;
@@ -157,6 +506,175 @@ public class DataSeeder implements CommandLineRunner {
         jdbcTemplate.execute("ALTER TABLE " + tableName + " ADD " + columnName + " " + definition);
     }
 
+    private void ensureWatchlistTable() {
+        Integer tableCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Watchlist'",
+                Integer.class
+        );
+        if (tableCount != null && tableCount > 0) return;
+
+        jdbcTemplate.execute(
+                "CREATE TABLE Watchlist (" +
+                "watchlist_id INT IDENTITY(1,1) PRIMARY KEY, " +
+                "user_id BIGINT NOT NULL, " +
+                "product_id BIGINT NOT NULL, " +
+                "created_at DATETIME2 NULL, " +
+                "FOREIGN KEY (user_id) REFERENCES Users(UserId), " +
+                "FOREIGN KEY (product_id) REFERENCES Products(ProductId)" +
+                ")"
+        );
+    }
+
+    private void ensureKycProfileTable() {
+        // Idempotent schema bootstrap: the KYC flow was added after the initial
+        // release and a fresh install won't have the table yet, so we create it
+        // here the first time the seeder runs. The column set mirrors
+        // com.auction.account.entity.KycProfile so JPA reads and JDBC writes
+        // both target the same physical schema.
+        if (!hasTable("KycProfiles")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE KycProfiles (" +
+                            "KycId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "UserId BIGINT NOT NULL UNIQUE, " +
+                            "Phone NVARCHAR(30) NOT NULL, " +
+                            "CccdNumber NVARCHAR(20) NOT NULL UNIQUE, " +
+                            "FullName NVARCHAR(255) NOT NULL, " +
+                            "Dob DATE NOT NULL, " +
+                            "Gender NVARCHAR(20) NOT NULL, " +
+                            "IssueDate DATE NOT NULL, " +
+                            "IssuePlace NVARCHAR(255) NOT NULL, " +
+                            "FrontImageUrl NVARCHAR(500) NOT NULL, " +
+                            "BackImageUrl NVARCHAR(500) NOT NULL, " +
+                            "SelfieImageUrl NVARCHAR(500) NOT NULL, " +
+                            "Status NVARCHAR(20) NOT NULL, " +
+                            "SubmittedAt DATETIME2 NOT NULL, " +
+                            "ProcessedBy BIGINT NULL, " +
+                            "ProcessedAt DATETIME2 NULL, " +
+                            "RejectionReason NVARCHAR(500) NULL, " +
+                            "FOREIGN KEY (UserId) REFERENCES Users(UserId), " +
+                            "FOREIGN KEY (ProcessedBy) REFERENCES Users(UserId)" +
+                            ")"
+            );
+            return;
+        }
+        // Pre-existing table from an earlier install may be missing the
+        // RejectionReason column that the staff review flow writes to. Add it
+        // on the fly so the JDBC queries don't fail with "Invalid column name".
+        if (!hasColumn("KycProfiles", "RejectionReason")) {
+            jdbcTemplate.execute("ALTER TABLE KycProfiles ADD RejectionReason NVARCHAR(500) NULL");
+        }
+    }
+
+    private void ensureCategoryAttributesTables() {
+        if (!hasTable("CategoryAttributes")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE CategoryAttributes (" +
+                            "AttributeId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "CategoryId INT NOT NULL, " +
+                            "AttributeName NVARCHAR(100) NOT NULL, " +
+                            "DataType NVARCHAR(50) NOT NULL, " +
+                            "IsRequired BIT NOT NULL DEFAULT 0, " +
+                            "DisplayOrder INT NOT NULL DEFAULT 0, " +
+                            "FOREIGN KEY (CategoryId) REFERENCES Categories(CategoryId)" +
+                            ")"
+            );
+        }
+        if (!hasTable("ProductAttributeValues")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE ProductAttributeValues (" +
+                            "ValueId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "ProductId BIGINT NOT NULL, " +
+                            "AttributeId BIGINT NOT NULL, " +
+                            "AttributeValue NVARCHAR(500) NOT NULL, " +
+                            "FOREIGN KEY (ProductId) REFERENCES Products(ProductId), " +
+                            "FOREIGN KEY (AttributeId) REFERENCES CategoryAttributes(AttributeId)" +
+                            ")"
+            );
+        }
+        if (!hasTable("attribute_options")) {
+            jdbcTemplate.execute(
+                    "CREATE TABLE attribute_options (" +
+                            "OptionId BIGINT IDENTITY(1,1) PRIMARY KEY, " +
+                            "AttributeId BIGINT NOT NULL, " +
+                            "OptionValue NVARCHAR(100) NOT NULL, " +
+                            "FOREIGN KEY (AttributeId) REFERENCES CategoryAttributes(AttributeId)" +
+                            ")"
+            );
+        }
+    }
+
+    private void seedCategoryAttributes() {
+        // Idempotent: only insert if the table is empty.
+        Integer total = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM CategoryAttributes", Integer.class);
+        if (total != null && total > 0) return;
+
+        Object[][] seeds = new Object[][] {
+                { "Art", "Artist", "TEXT", true, 1 },
+                { "Art", "Year", "NUMBER", true, 2 },
+                { "Art", "Medium", "TEXT", true, 3 },
+                { "Art", "Dimensions (cm)", "TEXT", false, 4 },
+                { "Art", "Style", "TEXT", false, 5 },
+
+                { "Luxury Watch", "Brand", "TEXT", true, 1 },
+                { "Luxury Watch", "Model", "TEXT", true, 2 },
+                { "Luxury Watch", "Reference Number", "TEXT", true, 3 },
+                { "Luxury Watch", "Year", "NUMBER", true, 4 },
+                { "Luxury Watch", "Movement", "TEXT", true, 5 },
+                { "Luxury Watch", "Case Material", "TEXT", true, 6 },
+                { "Luxury Watch", "Box & Papers", "TEXT", false, 7 },
+
+                { "Jewelry", "Material", "TEXT", true, 1 },
+                { "Jewelry", "Gemstone", "TEXT", false, 2 },
+                { "Jewelry", "Carat Weight", "NUMBER", false, 3 },
+                { "Jewelry", "Ring Size", "TEXT", false, 4 },
+
+                { "Automotive", "Make", "TEXT", true, 1 },
+                { "Automotive", "Model", "TEXT", true, 2 },
+                { "Automotive", "Year", "NUMBER", true, 3 },
+                { "Automotive", "Mileage (km)", "NUMBER", true, 4 },
+                { "Automotive", "VIN", "TEXT", false, 5 },
+                { "Automotive", "Transmission", "TEXT", true, 6 },
+
+                { "Furniture", "Designer", "TEXT", false, 1 },
+                { "Furniture", "Year", "NUMBER", false, 2 },
+                { "Furniture", "Material", "TEXT", true, 3 },
+                { "Furniture", "Dimensions (cm)", "TEXT", false, 4 },
+                { "Furniture", "Condition", "TEXT", true, 5 },
+
+                { "Ceramics", "Origin", "TEXT", true, 1 },
+                { "Ceramics", "Period", "TEXT", false, 2 },
+                { "Ceramics", "Material", "TEXT", true, 3 },
+                { "Ceramics", "Height (cm)", "NUMBER", false, 4 }
+        };
+
+        for (Object[] row : seeds) {
+            String categoryName = (String) row[0];
+            String attributeName = (String) row[1];
+            String dataType = (String) row[2];
+            boolean isRequired = (boolean) row[3];
+            int displayOrder = (int) row[4];
+
+            Integer categoryId = jdbcTemplate.queryForObject(
+                    "SELECT TOP 1 CategoryId FROM Categories WHERE CategoryName = ?",
+                    Integer.class, categoryName);
+            if (categoryId == null) continue;
+
+            jdbcTemplate.update(
+                    "INSERT INTO CategoryAttributes (CategoryId, AttributeName, DataType, IsRequired, DisplayOrder) VALUES (?, ?, ?, ?, ?)",
+                    categoryId, attributeName, dataType, isRequired, displayOrder
+            );
+        }
+    }
+
+    private boolean hasTable(String tableName) {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = ?",
+                Integer.class, tableName
+        );
+        return count != null && count > 0;
+    }
+
     private void ensureUserPasswordHashColumn() {
         if (!hasColumn("Users", "PasswordHash") || !isBinaryColumn("Users", "PasswordHash")) {
             return;
@@ -171,22 +689,37 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void ensureUser(String fullName, String username, String email, String phone, String identityNumber,
-                            Long roleId, String password, LocalDateTime now) {
+                            Long roleId, String password, LocalDateTime now, boolean identityVerified) {
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM Users WHERE Email = ?", Integer.class, email);
         String salt = PasswordUtil.generateSalt();
         int iterations = PasswordUtil.getIterations();
         String passwordHash = PasswordUtil.hashPassword(password, salt, iterations);
 
+        // Staff/admin are pre-verified so they can sign in and moderate.
+        // Regular users must complete the KYC submission flow before they
+        // can be marked as identity verified.
+        String profileStatus = identityVerified ? "VERIFIED" : "PENDING_IDENTITY_VERIFY";
+        int verificationLevel = identityVerified ? 2 : 1;
+
         if (count != null && count > 0) {
             jdbcTemplate.update(
                     "UPDATE Users SET " + passwordHashAssignment() + ", Salt = ?, PasswordIterations = ?, IsActive = 1, ProfileStatus = ?, VerificationLevel = ?, RoleId = ? WHERE Email = ?",
-                    passwordHash, salt, iterations, "VERIFIED", 2, roleId, email
+                    passwordHash, salt, iterations, profileStatus, verificationLevel, roleId, email
             );
             if (hasColumn("Users", "Username")) {
                 jdbcTemplate.update("UPDATE Users SET Username = ? WHERE Email = ?", username, email);
             }
             if (hasColumn("Users", "Status")) {
                 jdbcTemplate.update("UPDATE Users SET Status = ? WHERE Email = ?", "ACTIVE", email);
+            }
+            // Re-sync the identity-verified flag every time the seeder runs.
+            if (hasColumn("Users", "IdentityVerified")) {
+                jdbcTemplate.update("UPDATE Users SET IdentityVerified = ?, IdentityVerifiedAt = ? WHERE Email = ?",
+                        identityVerified, identityVerified ? now : null, email);
+            }
+            if (hasColumn("Users", "EmailVerified")) {
+                jdbcTemplate.update("UPDATE Users SET EmailVerified = ?, EmailVerifiedAt = ? WHERE Email = ?",
+                        true, now, email);
             }
             return;
         }
@@ -205,10 +738,10 @@ public class DataSeeder implements CommandLineRunner {
         addColumnValue(columns, values, "PasswordIterations", iterations);
         addColumnValue(columns, values, "EmailVerified", true);
         addColumnValue(columns, values, "EmailVerifiedAt", now);
-        addColumnValue(columns, values, "IdentityVerified", true);
-        addColumnValue(columns, values, "IdentityVerifiedAt", now);
-        addColumnValue(columns, values, "VerificationLevel", 2);
-        addColumnValue(columns, values, "ProfileStatus", "VERIFIED");
+        addColumnValue(columns, values, "IdentityVerified", identityVerified);
+        addColumnValue(columns, values, "IdentityVerifiedAt", identityVerified ? now : null);
+        addColumnValue(columns, values, "VerificationLevel", verificationLevel);
+        addColumnValue(columns, values, "ProfileStatus", profileStatus);
         addColumnValue(columns, values, "IsActive", true);
         addColumnValue(columns, values, "AuthProvider", "LOCAL");
         addColumnValue(columns, values, "Status", "ACTIVE");

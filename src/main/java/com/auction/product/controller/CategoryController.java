@@ -41,6 +41,12 @@ public class CategoryController {
         return ResponseEntity.ok(ApiResponse.success(categories));
     }
 
+    @GetMapping("/{categoryId}/attributes")
+    public ResponseEntity<ApiResponse<List<CategoryAttributeDTO>>> getAttributesByCategory(@PathVariable Integer categoryId) {
+        List<CategoryAttributeDTO> attributes = categoryService.getAttributesByCategoryId(categoryId);
+        return ResponseEntity.ok(ApiResponse.success(attributes));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(@Valid @RequestBody CategoryDTO categoryDTO) {
         CategoryDTO created = categoryService.createCategory(categoryDTO);

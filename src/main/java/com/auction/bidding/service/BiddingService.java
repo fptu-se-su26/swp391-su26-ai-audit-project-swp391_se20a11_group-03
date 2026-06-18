@@ -3,39 +3,74 @@ package com.auction.bidding.service;
 import com.auction.bidding.dto.AuctionSessionDto;
 import com.auction.bidding.dto.BidRequest;
 import com.auction.bidding.dto.BidResponse;
+import com.auction.bidding.entity.Auction;
+import com.auction.bidding.entity.AuctionDeposit;
 import com.auction.bidding.entity.AuctionSession;
 import com.auction.bidding.entity.AuctionStatus;
 import com.auction.bidding.entity.Bid;
+import com.auction.product.entity.Product;
+import com.auction.product.entity.ProductImage;
+import com.auction.bidding.repository.AuctionDepositRepository;
+import com.auction.bidding.repository.AuctionRepository;
 import com.auction.bidding.repository.AuctionSessionRepository;
 import com.auction.bidding.repository.BidRepository;
+import com.auction.product.repository.ProductImageRepository;
+import com.auction.product.repository.ProductRepository;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class BiddingService {
-    public static final long MIN_BID_INCREMENT = 1_000_000L;
-    public static final long INITIAL_AUCTION_DURATION_SECONDS = 120L;
-    public static final long ANTI_SNIPER_EXTENSION_SECONDS = 10L;
+    /** Minimum bid increment (VND). */
+    public static final long MIN_BID_INCREMENT = 50_000L;
+    /** LIVE: total window opened once the auction goes ACTIVE. */
+    public static final long INITIAL_AUCTION_DURATION_SECONDS = 180L;
+    /** LIVE: timer extension applied on each successful bid. */
+    public static final long ANTI_SNIPER_EXTENSION_SECONDS = 2L;
+    /** LIVE: hard cap so a room cannot run longer than 3 minutes from start. */
+    public static final long MAX_LIVE_DURATION_SECONDS = 180L;
     public static final long DEPOSIT_DEADLINE_BEFORE_START_MINUTES = 30L;
 
     private final AuctionSessionRepository auctionSessionRepository;
+    private final AuctionRepository auctionRepository;
     private final BidRepository bidRepository;
+    private final ProductRepository productRepository;
+    private final ProductImageRepository productImageRepository;
+    private final AuctionDepositRepository auctionDepositRepository;
     private final ReentrantLock auctionLock = new ReentrantLock(true);
 
-    public BiddingService(AuctionSessionRepository auctionSessionRepository, BidRepository bidRepository) {
+    public BiddingService(
+            AuctionSessionRepository auctionSessionRepository,
+            AuctionRepository auctionRepository,
+            BidRepository bidRepository,
+            ProductRepository productRepository,
+            ProductImageRepository productImageRepository,
+            AuctionDepositRepository auctionDepositRepository
+    ) {
         this.auctionSessionRepository = auctionSessionRepository;
+        this.auctionRepository = auctionRepository;
         this.bidRepository = bidRepository;
+        this.productRepository = productRepository;
+        this.productImageRepository = productImageRepository;
+        this.auctionDepositRepository = auctionDepositRepository;
     }
 
     public List<AuctionSessionDto> getOpenRooms() {
         return auctionSessionRepository.findOpenRooms().stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    @Transactional
     public BidResponse placeBid(BidRequest request) {
         auctionLock.lock();
         try {
@@ -43,9 +78,18 @@ public class BiddingService {
                     .orElseThrow(() -> new IllegalArgumentException("Phiên đấu giá không tồn tại"));
 
             LocalDateTime now = LocalDateTime.now();
-            if (auction.getStatus() != AuctionStatus.ACTIVE || auction.getEndTime() == null || !now.isBefore(auction.getEndTime())) {
-                auction.setStatus(AuctionStatus.ENDED);
-                auctionSessionRepository.save(auction);
+            // Bidding is only allowed inside the [startTime, endTime) window.
+            if (auction.getStartTime() == null || auction.getEndTime() == null
+                    || now.isBefore(auction.getStartTime())
+                    || !now.isBefore(auction.getEndTime())) {
+                if (auction.getEndTime() != null && !now.isBefore(auction.getEndTime())) {
+                    auction.setStatus(AuctionStatus.ENDED);
+                    auctionSessionRepository.save(auction);
+                    syncLegacyAuctionStatus(auction.getAuctionId(), "ENDED");
+                }
+                if (now.isBefore(auction.getStartTime())) {
+                    return BidResponse.fail("Phiên đấu giá chưa bắt đầu (bắt đầu lúc " + auction.getStartTime() + ")");
+                }
                 return BidResponse.fail("Phiên đấu giá đã kết thúc");
             }
 
@@ -66,13 +110,44 @@ public class BiddingService {
 
             auction.setCurrentHighestBid(request.getBidAmount());
             auction.setCurrentWinnerUserId(request.getUserId());
-            auction.setEndTime(auction.getEndTime().plusSeconds(ANTI_SNIPER_EXTENSION_SECONDS));
+
+            // LIVE mode: extend the timer by ANTI_SNIPER_EXTENSION_SECONDS but cap at MAX_LIVE_DURATION_SECONDS
+            // from startTime. TIMED mode: endTime is fixed, never extend.
+            if (auction.getAuctionMode() == com.auction.bidding.entity.AuctionMode.LIVE) {
+                LocalDateTime ceiling = auction.getStartTime().plusSeconds(MAX_LIVE_DURATION_SECONDS);
+                LocalDateTime proposed = auction.getEndTime().plusSeconds(ANTI_SNIPER_EXTENSION_SECONDS);
+                auction.setEndTime(proposed.isAfter(ceiling) ? ceiling : proposed);
+            }
+
             auctionSessionRepository.save(auction);
+
+            // First valid bid moves the legacy Auction row from UPCOMING to ACTIVE so the
+            // storefront badges reflect the real-time state.
+            syncLegacyAuctionStatus(auction.getAuctionId(), "ACTIVE");
 
             return BidResponse.success(auction.getAuctionId(), request.getUserId(), request.getBidAmount(), auction.getCurrentHighestBid(), auction.getEndTime());
         } finally {
             auctionLock.unlock();
         }
+    }
+
+    /**
+     * Mirror the lifecycle status onto the legacy {@link Auction} row that
+     * {@code BiddingProductServiceImpl} exposes to the storefront. The two
+     * entities share the same primary key, so we just look up the legacy row
+     * by id and overwrite its status string.
+     */
+    @Transactional
+    protected void syncLegacyAuctionStatus(Long auctionId, String newStatus) {
+        if (auctionId == null || newStatus == null) {
+            return;
+        }
+        auctionRepository.findById(auctionId).ifPresent(legacy -> {
+            if (!newStatus.equalsIgnoreCase(legacy.getStatus())) {
+                legacy.setStatus(newStatus);
+                auctionRepository.save(legacy);
+            }
+        });
     }
 
     public boolean canJoinRoom(AuctionSession auctionSession, boolean depositConfirmed, LocalDateTime depositConfirmedAt) {
@@ -103,6 +178,7 @@ public class BiddingService {
             if (auction.getEndTime() != null && !LocalDateTime.now().isBefore(auction.getEndTime())) {
                 auction.setStatus(AuctionStatus.ENDED);
                 auctionSessionRepository.save(auction);
+                syncLegacyAuctionStatus(auction.getAuctionId(), "ENDED");
             }
         }
     }
@@ -124,6 +200,124 @@ public class BiddingService {
         dto.setCurrentWinnerUserId(auctionSession.getCurrentWinnerUserId());
         dto.setStatus(auctionSession.getStatus());
         return dto;
+    }
+
+    public List<Map<String, Object>> getUserBids(Integer userId) {
+        Map<Long, Map<String, Object>> resultByAuction = new LinkedHashMap<>();
+
+        // 1) Auctions where the user has actually placed bids
+        for (Bid bid : bidRepository.findByUserId(userId)) {
+            AuctionSession auction = auctionSessionRepository.findById(bid.getAuctionId()).orElse(null);
+            if (auction == null) continue;
+            Map<String, Object> map = buildBidMap(auction, userId, bid.getBidId(), bid.getBidAmount());
+            resultByAuction.put(auction.getAuctionId(), map);
+        }
+
+        // 2) Auctions where the user has only deposited (no bid yet) and auction is not ended
+        for (AuctionDeposit deposit : auctionDepositRepository.findByUser_Id(userId)) {
+            if (deposit.getAuction() == null) continue;
+            Long auctionId = deposit.getAuction().getAuctionId();
+            if (resultByAuction.containsKey(auctionId)) continue;
+            AuctionSession auction = auctionSessionRepository.findById(auctionId).orElse(null);
+            if (auction == null) continue;
+            if (auction.getStatus() == AuctionStatus.ENDED) continue;
+            Product product = productRepository.findById(auction.getProductId()).orElse(null);
+            // currentBid: currentHighestBid if any, otherwise starting price
+            Long currentBidAmount = auction.getCurrentHighestBid() != null && auction.getCurrentHighestBid() > 0
+                    ? auction.getCurrentHighestBid()
+                    : (product != null ? product.getStartingPrice() : 0L);
+            Map<String, Object> map = buildBidMap(auction, userId, null, currentBidAmount);
+            // Mark status as "deposited" so user sees they have not bid yet
+            map.put("status", "deposited");
+            resultByAuction.put(auctionId, map);
+        }
+
+        return new ArrayList<>(resultByAuction.values());
+    }
+
+    private Map<String, Object> buildBidMap(AuctionSession auction, Integer userId, Long bidId, Long currentBidAmount) {
+        Map<String, Object> map = new HashMap<>();
+        Product product = productRepository.findById(auction.getProductId()).orElse(null);
+
+        map.put("bidId", bidId);
+        map.put("productId", product != null ? product.getProductId() : auction.getAuctionId());
+        map.put("productName", product != null ? product.getProductName() : "Unknown");
+        map.put("lotNumber", "LOT-" + (product != null ? product.getProductId() : auction.getAuctionId()));
+        map.put("image", product != null ? getPrimaryImageUrl(product.getProductId()) : null);
+        map.put("currentBid", currentBidAmount);
+
+        if (auction.getEndTime() != null) {
+            long seconds = Duration.between(LocalDateTime.now(), auction.getEndTime()).getSeconds();
+            if (seconds > 0 && auction.getStatus() != AuctionStatus.ENDED) {
+                map.put("timeLeft", formatDuration(seconds));
+            } else {
+                map.put("timeLeft", "Ended");
+            }
+            map.put("auctionEndTime", auction.getEndTime().toString());
+            if (bidId == null) {
+                // No actual bid — keep status as set by caller (e.g. "deposited")
+            } else {
+                map.put("status", resolveBidStatus(auction, userId));
+            }
+        } else {
+            map.put("timeLeft", "Unknown");
+            if (bidId == null) {
+                map.put("status", "deposited");
+            } else {
+                map.put("status", "outbid");
+            }
+        }
+
+        return map;
+    }
+
+    public List<Map<String, Object>> getWonItems(Integer userId) {
+        List<AuctionSession> wonAuctions = auctionSessionRepository.findByCurrentWinnerUserId(userId);
+
+        return wonAuctions.stream().filter(auction -> auction.getStatus() == AuctionStatus.ENDED).map(auction -> {
+            Map<String, Object> map = new HashMap<>();
+            Product product = productRepository.findById(auction.getProductId()).orElse(null);
+            map.put("id", auction.getAuctionId());
+            map.put("productId", auction.getProductId());
+            map.put("productName", product != null ? product.getProductName() : "Auction #" + auction.getAuctionId());
+            map.put("lotNumber", "LOT-" + auction.getProductId());
+            map.put("image", getPrimaryImageUrl(auction.getProductId()));
+            map.put("finalPrice", auction.getCurrentHighestBid());
+            map.put("wonDate", auction.getEndTime() != null ? auction.getEndTime().toString() : LocalDateTime.now().toString());
+            map.put("status", "pending_payment");
+            return map;
+        }).collect(Collectors.toList());
+    }
+
+    private String getPrimaryImageUrl(Long productId) {
+        return productImageRepository.findByProductId(productId).stream()
+                .sorted(Comparator.comparing((ProductImage image) -> !Boolean.TRUE.equals(image.getIsPrimary())))
+                .map(ProductImage::getImageUrl)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String resolveBidStatus(AuctionSession auction, Integer userId) {
+        if (auction.getStatus() == AuctionStatus.ENDED) {
+            return auction.getCurrentWinnerUserId() != null && auction.getCurrentWinnerUserId().equals(userId.longValue())
+                    ? "won"
+                    : "lost";
+        }
+        return auction.getCurrentWinnerUserId() != null && auction.getCurrentWinnerUserId().equals(userId.longValue())
+                ? "leading"
+                : "outbid";
+    }
+
+    private String formatDuration(long seconds) {
+        if (seconds < 60) {
+            return seconds + "s";
+        } else if (seconds < 3600) {
+            return (seconds / 60) + "m";
+        } else if (seconds < 86400) {
+            return (seconds / 3600) + "h";
+        } else {
+            return (seconds / 86400) + "d";
+        }
     }
 }
 

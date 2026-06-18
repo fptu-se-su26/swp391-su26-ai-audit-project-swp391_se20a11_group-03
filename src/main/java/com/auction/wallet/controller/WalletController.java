@@ -62,6 +62,11 @@ public class WalletController {
         return ResponseEntity.ok(walletService.createWithdrawal(user.getId(), request));
     }
 
+    @GetMapping("/api/wallet/withdrawals")
+    public ResponseEntity<List<WithdrawalResponse>> getMyWithdrawals(@AuthenticationPrincipal UserDetailsImpl user) {
+        return ResponseEntity.ok(walletService.getWithdrawalsByUserId(user.getId()));
+    }
+
     @GetMapping("/api/staff/withdrawals")
     public ResponseEntity<List<WithdrawalResponse>> getWithdrawals(@RequestParam(name = "status", required = false) String status) {
         return ResponseEntity.ok(walletService.getWithdrawals(status));

@@ -91,6 +91,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    public List<CategoryAttributeDTO> getAttributesByCategoryId(Integer categoryId) {
+        return categoryAttributeRepository.findByCategoryId(categoryId).stream()
+                .map(this::convertToAttributeDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public CategoryAttributeDTO addCategoryAttribute(CategoryAttributeDTO dto) {
         if (!categoryRepository.existsById(dto.getCategoryId())) {

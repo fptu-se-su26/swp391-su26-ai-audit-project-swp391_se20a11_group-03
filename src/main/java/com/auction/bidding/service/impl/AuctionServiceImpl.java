@@ -1,7 +1,10 @@
 package com.auction.bidding.service.impl;
 
+import com.auction.account.dao.UserRepository;
+import com.auction.account.entity.User;
 import com.auction.bidding.entity.Auction;
 import com.auction.bidding.dto.AuctionEligibilityResponse;
+import com.auction.bidding.util.DepositCalculator;
 import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.bidding.repository.AuctionDepositRepository;
 import com.auction.bidding.repository.AuctionRepository;
@@ -19,6 +22,7 @@ public class AuctionServiceImpl implements AuctionService {
 
     private final AuctionRepository auctionRepository;
     private final AuctionDepositRepository auctionDepositRepository;
+    private final UserRepository userRepository;
 
     @Override
     public AuctionEligibilityResponse getEligibility(Long auctionId, Long userId) {
@@ -27,9 +31,21 @@ public class AuctionServiceImpl implements AuctionService {
 
         LocalDateTime deadline = auction.getStartTime().minusMinutes(30);
         boolean allowed = LocalDateTime.now().isBefore(deadline);
+        long depositAmount = DepositCalculator.calculate(auction.getProduct().getStartingPrice());
         boolean alreadyDeposited = userId != null && auctionDepositRepository
                 .findByAuction_AuctionIdAndUser_Id(auctionId, Math.toIntExact(userId))
                 .isPresent();
+
+        // KYC state for the current viewer (null if anonymous)
+        boolean kycVerified = false;
+        String profileStatus = null;
+        if (userId != null) {
+            User u = userRepository.findById(Math.toIntExact(userId)).orElse(null);
+            if (u != null) {
+                kycVerified = u.isIdentityVerified();
+                profileStatus = u.getProfileStatus();
+            }
+        }
 
         String message;
         if (alreadyDeposited) {
@@ -45,10 +61,13 @@ public class AuctionServiceImpl implements AuctionService {
                 .auctionId(auction.getAuctionId())
                 .productId(auction.getProduct() != null ? auction.getProduct().getProductId() : null)
                 .depositAllowed(allowed)
+                .alreadyDeposited(alreadyDeposited)
+                .depositAmount(depositAmount)
                 .startTime(auction.getStartTime())
                 .depositDeadline(deadline)
                 .message(message)
+                .kycVerified(kycVerified)
+                .profileStatus(profileStatus)
                 .build();
     }
 }
-

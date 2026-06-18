@@ -13,6 +13,8 @@ public interface ProductService {
     ProductResponseDTO rejectProduct(Long productId, ProductApprovalRequestDTO request, Long reviewerId);
 
     ProductResponseDTO createProduct(CreateProductRequestDTO request, Long sellerId);
-    List<ProductResponseDTO> getProductsBySellerId(Long sellerId);
+    List<ProductSummaryResponse> getProductsBySellerId(Long sellerId);
+    void deleteProduct(Long productId, Long sellerId);
+    ProductResponseDTO updateProduct(Long productId, UpdateProductRequestDTO request, Long sellerId);
 }
 

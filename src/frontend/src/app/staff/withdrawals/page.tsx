@@ -7,11 +7,13 @@ import {
   updateWithdrawalStatus,
   Withdrawal,
 } from "@/lib/services/walletService";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 const formatVnd = (value: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
 
 export default function StaffWithdrawalsPage() {
+  const t = useTranslations("staffWithdrawals");
   const [items, setItems] = useState<Withdrawal[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -24,7 +26,7 @@ export default function StaffWithdrawalsPage() {
 
   useEffect(() => {
     loadWithdrawals()
-      .catch((err) => setError(err instanceof Error ? err.message : "Unable to load withdrawals"))
+      .catch((err) => setError(err instanceof Error ? err.message : t("loadError")))
       .finally(() => setLoading(false));
   }, []);
 
@@ -35,7 +37,7 @@ export default function StaffWithdrawalsPage() {
       await updateWithdrawalStatus(id, status);
       setItems((prev) => prev.filter((item) => item.id !== id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update withdrawal");
+      setError(err instanceof Error ? err.message : t("updateError"));
     } finally {
       setUpdatingId(null);
     }
@@ -45,8 +47,8 @@ export default function StaffWithdrawalsPage() {
     <StaffShell>
       <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg">
         <div>
-          <h1 className="font-display-lg-mobile md:font-display-lg text-primary">Withdrawal Approvals</h1>
-          <p className="font-body-lg text-on-surface-variant mt-xs">Review pending wallet withdrawals after manual bank transfer.</p>
+          <h1 className="font-display-lg-mobile md:font-display-lg text-primary">{t("pageTitle")}</h1>
+          <p className="font-body-lg text-on-surface-variant mt-xs">{t("pageSubtitle")}</p>
         </div>
 
         {error && (
@@ -59,7 +61,7 @@ export default function StaffWithdrawalsPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-surface-container-low border-b border-surface-variant">
-                {["User", "Amount", "Bank", "Account No.", "Account Name", "Requested", "Actions"].map((h) => (
+                {[t("tableUser"), t("tableAmount"), t("tableBank"), t("tableAccountNo"), t("tableAccountName"), t("tableRequested"), t("tableActions")].map((h) => (
                   <th key={h} className="p-md font-label-sm text-label-sm text-on-surface-variant whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -67,12 +69,12 @@ export default function StaffWithdrawalsPage() {
             <tbody>
               {loading && (
                 <tr>
-                  <td className="p-md text-on-surface-variant" colSpan={7}>Loading withdrawals...</td>
+                  <td className="p-md text-on-surface-variant" colSpan={7}>{t("loading")}</td>
                 </tr>
               )}
               {!loading && items.length === 0 && (
                 <tr>
-                  <td className="p-md text-on-surface-variant" colSpan={7}>No pending withdrawals.</td>
+                  <td className="p-md text-on-surface-variant" colSpan={7}>{t("noWithdrawals")}</td>
                 </tr>
               )}
               {items.map((item) => (
@@ -92,14 +94,14 @@ export default function StaffWithdrawalsPage() {
                         disabled={updatingId === item.id}
                         className="px-3 py-1 rounded bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-[10px] uppercase font-bold hover:opacity-80 disabled:opacity-50"
                       >
-                        Mark as Transferred
+                        {t("markTransferred")}
                       </button>
                       <button
                         onClick={() => updateStatus(item.id, "REJECTED")}
                         disabled={updatingId === item.id}
                         className="px-3 py-1 rounded bg-error-container text-on-error-container font-label-sm text-[10px] uppercase font-bold hover:opacity-80 disabled:opacity-50"
                       >
-                        Reject
+                        {t("reject")}
                       </button>
                     </div>
                   </td>

@@ -37,4 +37,16 @@ public class Transaction {
 
     @Column(name = "CreatedAt", nullable = false)
     private LocalDateTime createdAt;
+
+    public Transaction() {}
+
+    public Transaction(Wallet wallet, Long amount, String transactionType, String status, String referenceCode, String description, LocalDateTime createdAt) {
+        this.wallet = wallet;
+        this.amount = amount;
+        this.transactionType = transactionType;
+        this.status = status;
+        this.referenceCode = referenceCode;
+        this.description = description;
+        this.createdAt = createdAt;
+    }
 }

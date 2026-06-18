@@ -104,28 +104,92 @@ feat, fix, docs, test, refactor, style, chore
 
 ---
 
-## 8. SQL Server Setup for Authentication
+## 8. SQL Server Setup
 
-The login/register flow now uses SQL Server as the primary persistence layer.
+The application uses Microsoft SQL Server. For local development, create the database first:
 
-### Database
-- Database name: `VNEC_Auth`
-- Script path: `sql/VNEC_Auth.sql`
+```sql
+IF DB_ID(N'SWP_Nhom3') IS NULL
+BEGIN
+    CREATE DATABASE SWP_Nhom3;
+END;
+GO
+```
 
-### Tables
-- `dbo.Users` stores account data with hashed passwords and per-user salts.
+The same script is available at:
 
-### Security Notes
-- Passwords are never stored in plain text.
-- Password hashing uses SHA-256 with salt as a baseline.
-- For production, upgrade to a stronger password hashing scheme and secure credential management.
-- Update JDBC credentials in `UserDAO` before running locally.
+```text
+src/main/resources/db/create-database.sql
+```
+
+Default JDBC settings are in `src/main/resources/application.properties`:
+
+```properties
+spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=SWP_Nhom3;encrypt=true;trustServerCertificate=true
+spring.datasource.username=sa
+spring.datasource.password=123
+server.port=8096
+app.seed.enabled=true
+```
+
+On first backend startup, `DataSeeder` creates the required development tables when they are missing and seeds demo roles, users, wallets, products, auctions, KYC support tables, watchlist, notifications, chat tables, and wallet/payment tables.
+
+### Demo Accounts
+
+```text
+Admin: admin@example.com / password
+Staff: staff@example.com / password
+User:  user@example.com / password
+Seller: seller1@example.com / password
+```
 
 ---
 
 ## 9. How to Run
 
-Students write project running instructions here.
+### Backend
+
+From the repository root:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+Backend runs on:
+
+```text
+http://localhost:8096
+```
+
+### Frontend
+
+From the repository root:
+
+```powershell
+cd src/frontend
+npm install
+npm run dev
+```
+
+Frontend runs on:
+
+```text
+http://localhost:3000
+```
+
+### SePay Webhook Development
+
+Expose the backend with ngrok:
+
+```powershell
+ngrok http 8096
+```
+
+Use this webhook path on the SePay dashboard:
+
+```text
+https://<your-ngrok-domain>/api/wallet/sepay-webhook
+```
 
 ---
 

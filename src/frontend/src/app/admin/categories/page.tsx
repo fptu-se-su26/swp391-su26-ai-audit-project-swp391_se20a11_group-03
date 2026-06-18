@@ -1,96 +1,233 @@
 "use client";
 
-import { useState } from "react";
-import { mockCategories } from "@/lib/mock-data";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import AdminShell from "@/components/layout/AdminShell";
+import {
+  AdminCategory,
+  createAdminCategory,
+  deleteAdminCategory,
+  getAdminCategories,
+  updateAdminCategory,
+} from "@/lib/services/adminService";
 
-export default function CategoriesPage() {
-  const [showAdd, setShowAdd] = useState(false);
+const emptyForm: AdminCategory = {
+  categoryName: "",
+  description: "",
+  isActive: true,
+};
+
+export default function AdminCategoriesPage() {
+  const [categories, setCategories] = useState<AdminCategory[]>([]);
+  const [form, setForm] = useState<AdminCategory>(emptyForm);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  const loadCategories = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      setCategories(await getAdminCategories());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Cannot load categories");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCategories();
+  }, [loadCategories]);
+
+  const resetForm = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const payload = {
+        ...form,
+        categoryName: form.categoryName.trim(),
+        description: form.description?.trim() || null,
+        isActive: form.isActive ?? true,
+      };
+
+      if (editingId) {
+        await updateAdminCategory(editingId, payload);
+        setMessage("Category updated");
+      } else {
+        await createAdminCategory(payload);
+        setMessage("Category created");
+      }
+
+      resetForm();
+      await loadCategories();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Cannot save category");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const startEdit = (category: AdminCategory) => {
+    setEditingId(category.categoryId ?? null);
+    setForm({
+      categoryName: category.categoryName,
+      description: category.description ?? "",
+      isActive: category.isActive ?? true,
+    });
+    setMessage("");
+    setError("");
+  };
+
+  const removeCategory = async (category: AdminCategory) => {
+    if (!category.categoryId) return;
+    setError("");
+    setMessage("");
+    try {
+      await deleteAdminCategory(category.categoryId);
+      setMessage("Category deleted");
+      await loadCategories();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Cannot delete category");
+    }
+  };
 
   return (
     <AdminShell>
-      <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="font-display-lg-mobile md:font-display-lg text-primary">Category Management</h1>
-            <p className="font-body-lg text-on-surface-variant mt-xs">Organize and configure auction categories and subcategories.</p>
-          </div>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="bg-secondary text-on-secondary font-label-md text-label-md px-md py-sm rounded-lg flex items-center gap-xs hover:bg-secondary-fixed-dim transition-colors glow-accent"
-          >
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            Add Category
-          </button>
+      <div className="mx-auto max-w-[1400px] space-y-lg p-margin-mobile md:p-margin-desktop">
+        <div>
+          <h1 className="font-display-lg-mobile text-primary md:font-display-lg">Category Management</h1>
+          <p className="mt-xs font-body-lg text-on-surface-variant">
+            Control the product categories available to sellers and buyers.
+          </p>
         </div>
 
-        {/* Add Category Modal */}
-        {showAdd && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-surface rounded-2xl p-lg w-full max-w-md soft-shadow border border-surface-variant">
-              <div className="flex items-center justify-between mb-lg">
-                <h2 className="font-headline-md text-headline-md text-primary">New Category</h2>
-                <button onClick={() => setShowAdd(false)} className="material-symbols-outlined text-outline hover:text-primary">close</button>
+        <div className="grid grid-cols-1 gap-lg xl:grid-cols-[420px_1fr]">
+          <form onSubmit={handleSubmit} className="rounded-xl border border-surface-variant bg-surface p-lg soft-shadow">
+            <h2 className="mb-md font-headline-sm text-headline-sm text-primary">
+              {editingId ? "Edit category" : "Create category"}
+            </h2>
+            <div className="space-y-md">
+              <div>
+                <label className="mb-xs block font-label-md text-label-md text-on-surface-variant">Name</label>
+                <input
+                  value={form.categoryName}
+                  onChange={(event) => setForm((current) => ({ ...current, categoryName: event.target.value }))}
+                  className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-md py-sm outline-none focus:border-secondary"
+                  required
+                  maxLength={100}
+                />
               </div>
-              <div className="space-y-md">
-                <div>
-                  <label className="block font-label-md text-label-md text-on-surface-variant mb-xs">Category Name</label>
-                  <input className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-low outline-none focus:border-secondary" placeholder="e.g. Wine & Spirits" />
-                </div>
-                <div>
-                  <label className="block font-label-md text-label-md text-on-surface-variant mb-xs">Icon (Material Symbols name)</label>
-                  <input className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-low outline-none focus:border-secondary" placeholder="e.g. wine_bar" />
-                </div>
-                <div>
-                  <label className="block font-label-md text-label-md text-on-surface-variant mb-xs">Subcategories (comma-separated)</label>
-                  <input className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-low outline-none focus:border-secondary" placeholder="Red Wines, White Wines, Spirits" />
-                </div>
-                <div className="flex justify-end gap-sm pt-sm">
-                  <button onClick={() => setShowAdd(false)} className="px-lg py-sm rounded-lg border border-outline-variant font-label-md">Cancel</button>
-                  <button onClick={() => setShowAdd(false)} className="px-lg py-sm rounded-lg bg-secondary text-on-secondary font-label-md glow-accent">Create</button>
-                </div>
+              <div>
+                <label className="mb-xs block font-label-md text-label-md text-on-surface-variant">Description</label>
+                <textarea
+                  value={form.description ?? ""}
+                  onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
+                  rows={4}
+                  className="w-full resize-none rounded-lg border border-outline-variant bg-surface-container-low px-md py-sm outline-none focus:border-secondary"
+                  maxLength={500}
+                />
+              </div>
+              <label className="flex items-center gap-sm font-label-md text-label-md text-on-surface">
+                <input
+                  type="checkbox"
+                  checked={form.isActive ?? true}
+                  onChange={(event) => setForm((current) => ({ ...current, isActive: event.target.checked }))}
+                />
+                Active
+              </label>
+              <div className="flex gap-sm">
+                <button
+                  disabled={saving}
+                  className="flex-1 rounded-lg bg-secondary px-md py-sm font-label-md text-label-md text-on-secondary hover:opacity-90 disabled:opacity-60"
+                >
+                  {saving ? "Saving..." : editingId ? "Save changes" : "Create"}
+                </button>
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="rounded-lg border border-outline-variant px-md py-sm font-label-md text-label-md hover:bg-surface-container-low"
+                  >
+                    Cancel
+                  </button>
+                )}
               </div>
             </div>
-          </div>
-        )}
+          </form>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-md">
-          {mockCategories.map((cat) => (
-            <div key={cat.id} className="bg-surface rounded-xl overflow-hidden soft-shadow border border-surface-variant">
-              <div className="bg-primary-container/30 p-lg flex items-center gap-md">
-                <div className="w-14 h-14 rounded-xl bg-primary-container flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[32px] text-primary">{cat.icon}</span>
-                </div>
-                <div>
-                  <h3 className="font-headline-sm text-headline-sm text-primary">{cat.name}</h3>
-                  <p className="font-label-md text-label-md text-on-surface-variant">{cat.count} listings</p>
-                </div>
-              </div>
-              <div className="p-md">
-                <p className="font-label-sm text-label-sm text-on-surface-variant mb-sm">Subcategories</p>
-                <div className="flex flex-wrap gap-2">
-                  {cat.subcategories.map((sub) => (
-                    <span key={sub} className="px-2 py-1 rounded bg-surface-container-low border border-surface-variant font-label-sm text-label-sm text-on-surface text-[11px]">
-                      {sub}
-                    </span>
-                  ))}
-                  <button className="px-2 py-1 rounded border border-dashed border-outline-variant font-label-sm text-[11px] text-outline hover:text-secondary hover:border-secondary transition-colors">
-                    + Add
-                  </button>
-                </div>
-                <div className="mt-md flex gap-sm">
-                  <button className="flex-1 border border-outline-variant rounded-lg py-1.5 font-label-sm text-label-sm text-on-surface hover:bg-surface-container-low transition-colors flex items-center justify-center gap-xs text-sm">
-                    <span className="material-symbols-outlined text-[16px]">edit</span>
-                    Edit
-                  </button>
-                  <button className="px-md border border-error/20 rounded-lg py-1.5 font-label-sm text-error hover:bg-error-container/10 transition-colors">
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
-                  </button>
-                </div>
-              </div>
+          <section className="rounded-xl border border-surface-variant bg-surface p-lg soft-shadow">
+            <div className="mb-md flex items-center justify-between">
+              <h2 className="font-headline-sm text-headline-sm text-primary">Categories</h2>
+              <button
+                onClick={() => void loadCategories()}
+                className="rounded-lg border border-outline-variant px-md py-sm font-label-md text-label-md hover:bg-surface-container-low"
+              >
+                Refresh
+              </button>
             </div>
-          ))}
+
+            {error && <div className="mb-md rounded-lg bg-error-container px-md py-sm text-on-error-container">{error}</div>}
+            {message && <div className="mb-md rounded-lg bg-tertiary-fixed px-md py-sm text-on-tertiary-fixed-variant">{message}</div>}
+
+            {loading ? (
+              <div className="py-xl text-center text-on-surface-variant">Loading categories...</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-left">
+                  <thead>
+                    <tr className="border-b border-surface-variant bg-surface-container-low">
+                      {["Name", "Description", "Status", "Actions"].map((heading) => (
+                        <th key={heading} className="p-md font-label-sm text-label-sm text-on-surface-variant">
+                          {heading}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {categories.map((category) => (
+                      <tr key={category.categoryId} className="border-b border-surface-variant hover:bg-surface-container-lowest">
+                        <td className="p-md font-label-md text-label-md text-primary">{category.categoryName}</td>
+                        <td className="max-w-[360px] p-md text-sm text-on-surface-variant">
+                          {category.description || "-"}
+                        </td>
+                        <td className="p-md">
+                          <span className={category.isActive ? "text-on-tertiary-container" : "text-error"}>
+                            {category.isActive ? "ACTIVE" : "INACTIVE"}
+                          </span>
+                        </td>
+                        <td className="p-md">
+                          <div className="flex gap-xs">
+                            <button
+                              onClick={() => startEdit(category)}
+                              className="rounded-lg border border-outline-variant px-sm py-xs font-label-sm text-label-sm hover:bg-surface-container-low"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => void removeCategory(category)}
+                              className="rounded-lg bg-error-container px-sm py-xs font-label-sm text-label-sm text-on-error-container hover:opacity-90"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
         </div>
       </div>
     </AdminShell>

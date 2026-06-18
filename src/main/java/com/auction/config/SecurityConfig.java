@@ -32,10 +32,23 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/**", "/ws/**", "/api/alive", "/api/wallet/sepay-webhook").permitAll()
+                .requestMatchers("/uploads/**", "/api/auth/**", "/ws/**", "/api/alive", "/api/wallet/sepay-webhook").permitAll()
                 .requestMatchers("/api/wallet", "/api/wallet/deposit", "/api/wallet/withdraw").authenticated()
-                .requestMatchers("/api/staff/withdrawals/**").authenticated()
+                .requestMatchers("/api/wallets/user/**").hasAnyRole("Staff", "Admin")
+                .requestMatchers("/api/staff/withdrawals/**").hasAnyRole("Staff", "Admin")
+                .requestMatchers(HttpMethod.GET, "/api/watchlist/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/auctions/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**").permitAll()
+                .requestMatchers("/api/admin/users/**").hasRole("Admin")
+                .requestMatchers(HttpMethod.GET, "/api/admin/categories/**").hasRole("Admin")
+                .requestMatchers(HttpMethod.POST, "/api/admin/categories/**").hasRole("Admin")
+                .requestMatchers(HttpMethod.PUT, "/api/admin/categories/**").hasRole("Admin")
+                .requestMatchers(HttpMethod.DELETE, "/api/admin/categories/**").hasRole("Admin")
+                .requestMatchers(HttpMethod.POST, "/api/admin/products/*/approve", "/api/admin/products/*/reject")
+                    .hasAnyRole("Staff", "Admin")
+                .requestMatchers(HttpMethod.POST, "/api/auctions/*/bid").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/auctions/*/pay").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/auctions/*/deposit").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -48,4 +61,3 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 }
-

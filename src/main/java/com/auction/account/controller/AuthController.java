@@ -1,9 +1,11 @@
 package com.auction.account.controller;
 
+import com.auction.account.dao.UserDAO;
 import com.auction.account.dto.LoginRequest;
 import com.auction.account.dto.LoginResponse;
 import com.auction.account.dto.RegisterRequest;
 import com.auction.account.dto.RegisterResponse;
+import com.auction.account.entity.Role;
 import com.auction.account.entity.User;
 import com.auction.account.service.AuthService;
 import com.auction.account.service.ChatAuthService;
@@ -25,6 +27,7 @@ public class AuthController {
     private final ChatAuthService chatAuthService;
     private final AuthService registrationService;
     private final AuthAuditService authAuditService;
+    private final UserDAO userDAO;
 
     @PostMapping("/auth/login")
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
@@ -40,7 +43,6 @@ public class AuthController {
                 normalize(request.getFullName()),
                 normalize(request.getEmail()),
                 normalize(request.getPhone()),
-                normalize(request.getIdentityNumber()),
                 request.getPassword(),
                 request.getConfirmPassword()
         );
@@ -69,6 +71,75 @@ public class AuthController {
     @GetMapping("/alive")
     public ResponseEntity<Map<String, String>> alive() {
         return ResponseEntity.ok(Map.of("status", "OK"));
+    }
+
+    @PostMapping("/auth/select-role")
+    public ResponseEntity<?> selectRole(@RequestBody Map<String, Object> payload, HttpServletRequest servletRequest) {
+        Object userIdRaw = payload.get("userId");
+        Object roleRaw = payload.get("role");
+        if (userIdRaw == null || roleRaw == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Thiếu userId hoặc role."
+            ));
+        }
+
+        int userId;
+        try {
+            userId = Integer.parseInt(String.valueOf(userIdRaw));
+        } catch (NumberFormatException ex) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "userId không hợp lệ."
+            ));
+        }
+
+        String requestedRole = String.valueOf(roleRaw).trim();
+        String dbRoleName;
+        switch (requestedRole.toUpperCase()) {
+            case "SELLER":
+                dbRoleName = "Seller";
+                break;
+            case "BUYER":
+            case "USER":
+                dbRoleName = "User";
+                break;
+            default:
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Role không hợp lệ. Chỉ chấp nhận BUYER hoặc SELLER."
+                ));
+        }
+
+        User user = userDAO.findById(userId);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "success", false,
+                    "message", "Không tìm thấy người dùng."
+            ));
+        }
+
+        Role role = userDAO.findRoleByName(dbRoleName);
+        if (role == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "success", false,
+                    "message", "Không tìm thấy role " + dbRoleName + " trong hệ thống."
+            ));
+        }
+
+        String previousRole = user.getRole() == null ? null : user.getRole().getRoleName();
+        user.setRole(role);
+        userDAO.update(user);
+
+        authAuditService.logRegisterSuccess(user.getEmail(), servletRequest);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Cập nhật role thành công.",
+                "userId", user.getUserId(),
+                "roleName", role.getRoleName(),
+                "previousRole", previousRole == null ? "" : previousRole
+        ));
     }
 
     private String normalize(String value) {

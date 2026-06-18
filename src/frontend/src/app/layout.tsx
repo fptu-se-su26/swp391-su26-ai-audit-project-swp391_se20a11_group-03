@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Montserrat } from "next/font/google";
+import { NavigationProvider } from "@/lib/NavigationContext";
+import { I18nProvider } from "@/i18n/I18nProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -15,8 +17,8 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "LuxeAuction — High-Stakes Precision Bidding",
-  description: "The world's most prestigious circle of collectors. Authenticated luxury, global access.",
+  title: "LuxeAuction — Đấu giá đẳng cấp, chính xác từng phiên",
+  description: "Cộng đồng nhà sưu tầm đẳng cấp nhất thế giới. Sang trọng đã xác thực, tiếp cận toàn cầu.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -29,7 +31,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${inter.variable} ${montserrat.variable} bg-background text-on-surface font-body-md`}>
-        {children}
+        <I18nProvider>
+          <NavigationProvider>
+            {children}
+          </NavigationProvider>
+        </I18nProvider>
       </body>
     </html>
   );

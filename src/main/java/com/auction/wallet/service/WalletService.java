@@ -19,9 +19,10 @@ public interface WalletService {
 
     WithdrawalResponse createWithdrawal(Long userId, WithdrawRequest request);
 
+    List<WithdrawalResponse> getWithdrawalsByUserId(Long userId);
+
     List<WithdrawalResponse> getWithdrawals(String status);
 
     WithdrawalResponse updateWithdrawalStatus(Long id, WithdrawalStatusRequest request);
 }
-
 

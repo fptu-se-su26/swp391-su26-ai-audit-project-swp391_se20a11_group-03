@@ -1,98 +1,185 @@
-import { mockAdminStats, mockAuctionHistory } from "@/lib/mock-data";
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
 import AdminShell from "@/components/layout/AdminShell";
+import { searchProducts } from "@/lib/services/productService";
+import { apiClient } from "@/lib/apiClient";
+import { useTranslations } from "@/i18n/I18nProvider";
 
-const STATS = [
-  { label: "Total Revenue", value: mockAdminStats.totalRevenue, icon: "payments", growth: mockAdminStats.revenueGrowth, color: "primary" },
-  { label: "Completed Transactions", value: mockAdminStats.completedTransactions, icon: "receipt_long", growth: mockAdminStats.transactionsGrowth, color: "secondary" },
-  { label: "Active Users", value: mockAdminStats.activeUsers, icon: "group", growth: mockAdminStats.usersGrowth, color: "tertiary" },
-  { label: "Commission Earned", value: mockAdminStats.commissionEarned, icon: "percent", growth: mockAdminStats.commissionGrowth, color: "primary" },
-];
+type Withdrawal = {
+  id: number;
+  amount: number;
+  status: string;
+  createdAt: string;
+};
 
-const CHART_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const CHART_VALS = [820, 940, 880, 1050, 1200, 1100, 1380, 1420, 1600, 1820, 1640, 1950];
-const MAX_VAL = Math.max(...CHART_VALS);
+type Stats = {
+  totalProducts: number;
+  activeProducts: number;
+  completedWithdrawals: number;
+  pendingWithdrawals: number;
+};
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
 
 export default function RevenuePage() {
+  const t = useTranslations("adminRevenue");
+  const [stats, setStats] = useState<Stats>({
+    totalProducts: 0,
+    activeProducts: 0,
+    completedWithdrawals: 0,
+    pendingWithdrawals: 0,
+  });
+  const [recentWithdrawals, setRecentWithdrawals] = useState<Withdrawal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [productsRes, withdrawalsRes] = await Promise.all([
+        searchProducts({ size: 1 }),
+        apiClient<{ data: Withdrawal[] }>("/staff/withdrawals").catch(() => ({ data: [] })),
+      ]);
+
+      const totalProducts = productsRes.totalElements || 0;
+      const activeProducts = productsRes.content.filter(
+        (p: { status: string }) => p.status === "ACTIVE"
+      ).length;
+
+      const withdrawals = withdrawalsRes.data || [];
+      const completed = withdrawals.filter((w: Withdrawal) => w.status === "COMPLETED").length;
+      const pending = withdrawals.filter((w: Withdrawal) => w.status === "PENDING").length;
+
+      setStats({
+        totalProducts,
+        activeProducts,
+        completedWithdrawals: completed,
+        pendingWithdrawals: pending,
+      });
+
+      setRecentWithdrawals(withdrawals.slice(0, 10));
+    } catch {
+      setError(t("loadError"));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const STATS_CONFIG = [
+    { labelKey: "totalProducts", value: stats.totalProducts, icon: "inventory_2", color: "primary" },
+    { labelKey: "activeProducts", value: stats.activeProducts, icon: "check_circle", color: "secondary" },
+    { labelKey: "pendingWithdrawals", value: stats.pendingWithdrawals, icon: "hourglass_empty", color: "tertiary" },
+    { labelKey: "completedPayouts", value: stats.completedWithdrawals, icon: "payments", color: "primary" },
+  ];
+
+  if (loading) {
+    return (
+      <AdminShell>
+        <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
+          </div>
+        </div>
+      </AdminShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <AdminShell>
+        <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
+          <div className="bg-error-container rounded-xl p-lg text-center">
+            <p className="text-on-error-container">{error}</p>
+          </div>
+        </div>
+      </AdminShell>
+    );
+  }
+
   return (
     <AdminShell>
       <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg">
         <div>
-          <h1 className="font-display-lg-mobile md:font-display-lg text-primary">Revenue Analytics</h1>
-          <p className="font-body-lg text-on-surface-variant mt-xs">Platform-wide financial performance and transaction metrics.</p>
+          <h1 className="font-display-lg-mobile md:font-display-lg text-primary">{t("pageTitle")}</h1>
+          <p className="font-body-lg text-on-surface-variant mt-xs">
+            {t("pageSubtitle")}
+          </p>
         </div>
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-md">
-          {STATS.map((stat) => (
-            <div key={stat.label} className="bg-surface rounded-xl p-md soft-shadow border border-surface-variant">
+          {STATS_CONFIG.map((stat) => (
+            <div key={stat.labelKey} className="bg-surface rounded-xl p-md soft-shadow border border-surface-variant">
               <div className="flex items-start justify-between mb-sm">
                 <span className="material-symbols-outlined text-on-surface-variant">{stat.icon}</span>
-                <span className="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-[10px] font-bold uppercase">
-                  {stat.growth}
-                </span>
               </div>
-              <p className="font-label-md text-label-md text-on-surface-variant">{stat.label}</p>
-              <p className="font-headline-md text-headline-md md:text-[28px] font-bold text-primary mt-xs">{stat.value}</p>
+              <p className="font-label-md text-label-md text-on-surface-variant">{t(stat.labelKey)}</p>
+              <p className="font-headline-md text-headline-md md:text-[28px] font-bold text-primary mt-xs">
+                {stat.value}
+              </p>
             </div>
           ))}
         </div>
 
-        {/* Revenue Chart */}
-        <div className="bg-surface rounded-xl p-lg soft-shadow border border-surface-variant">
-          <h2 className="font-headline-sm text-headline-sm text-primary mb-lg">Monthly Revenue (USD thousands)</h2>
-          <div className="flex items-end gap-2 h-48">
-            {CHART_MONTHS.map((month, i) => (
-              <div key={month} className="flex-1 flex flex-col items-center gap-xs">
-                <div
-                  className="w-full bg-primary-container rounded-t-sm hover:bg-primary transition-colors cursor-pointer"
-                  style={{ height: `${(CHART_VALS[i] / MAX_VAL) * 100}%` }}
-                  title={`$${CHART_VALS[i]}k`}
-                />
-                <span className="text-[9px] text-on-surface-variant hidden md:block">{month}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Transactions */}
+        {/* Recent Withdrawals */}
         <section>
           <h2 className="font-headline-sm text-headline-sm text-primary border-b border-surface-variant pb-xs mb-md">
-            Recent Completed Auctions
+            {t("recentWithdrawals")}
           </h2>
-          <div className="bg-surface rounded-xl soft-shadow border border-surface-variant overflow-hidden">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-surface-container-low border-b border-surface-variant">
-                  {["Lot", "Item", "Seller", "Buyer", "Sale Price", "Date", "Status"].map((h) => (
-                    <th key={h} className="p-md font-label-sm text-label-sm text-on-surface-variant">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {mockAuctionHistory.map((row) => (
-                  <tr key={row.id} className="border-b border-surface-variant hover:bg-surface-container-lowest transition-colors">
-                    <td className="p-md font-label-md text-label-md text-primary">#{row.lotNumber}</td>
-                    <td className="p-md font-body-md text-sm text-on-surface truncate max-w-[200px]">{row.title}</td>
-                    <td className="p-md font-body-md text-sm text-on-surface-variant">{row.seller}</td>
-                    <td className="p-md font-body-md text-sm text-on-surface-variant">{row.buyer}</td>
-                    <td className="p-md font-bold text-primary">${row.salePrice.toLocaleString()}</td>
-                    <td className="p-md font-body-md text-sm text-on-surface-variant">{row.date}</td>
-                    <td className="p-md">
-                      {row.status === "completed" ? (
-                        <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-tertiary-fixed text-on-tertiary-fixed-variant">
-                          Completed
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-error-container text-on-error-container">
-                          Dispute
-                        </span>
-                      )}
-                    </td>
+          {recentWithdrawals.length === 0 ? (
+            <div className="bg-surface rounded-xl p-lg text-center">
+              <span className="material-symbols-outlined text-4xl text-on-surface-variant mb-md">payments</span>
+              <p className="text-on-surface-variant">{t("noWithdrawals")}</p>
+            </div>
+          ) : (
+            <div className="bg-surface rounded-xl soft-shadow border border-surface-variant overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface-container-low border-b border-surface-variant">
+                    {[t("tableId"), t("tableAmount"), t("tableStatus"), t("tableDate")].map((h) => (
+                      <th key={h} className="p-md font-label-sm text-label-sm text-on-surface-variant">
+                        {h}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {recentWithdrawals.map((row) => (
+                    <tr key={row.id} className="border-b border-surface-variant hover:bg-surface-container-lowest transition-colors">
+                      <td className="p-md font-label-md text-label-md text-primary">#{row.id}</td>
+                      <td className="p-md font-bold text-primary">{formatCurrency(row.amount)}</td>
+                      <td className="p-md">
+                        <span
+                          className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+                            row.status === "COMPLETED"
+                              ? "bg-tertiary-fixed text-on-tertiary-fixed-variant"
+                              : row.status === "PENDING"
+                              ? "bg-secondary-container text-on-secondary-container"
+                              : "bg-error-container text-on-error-container"
+                          }`}
+                        >
+                          {row.status}
+                        </span>
+                      </td>
+                      <td className="p-md font-body-md text-sm text-on-surface-variant">
+                        {new Date(row.createdAt).toLocaleDateString("vi-VN")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </div>
     </AdminShell>

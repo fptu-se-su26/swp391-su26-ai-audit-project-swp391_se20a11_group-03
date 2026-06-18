@@ -16,6 +16,7 @@ public class ProductResponseDTO {
     private Long productId;
     private Long sellerId;
     private Integer categoryId;
+    private String categoryName;
     private String productName;
     private String description;
     private Long startingPrice;
@@ -25,7 +26,13 @@ public class ProductResponseDTO {
     private LocalDateTime submittedAt;
     private LocalDateTime createdAt;
     private String rejectionReason;
+    private String auctionMode;
+    private LocalDateTime scheduledStartTime;
+    private Long scheduledDurationSeconds;
+    private Long auctionId;
+    private String auctionStatus;
+    private LocalDateTime auctionStartTime;
+    private LocalDateTime auctionEndTime;
     private List<ProductImageDTO> images;
     private List<ProductAttributeValueDTO> attributes;
 }
-

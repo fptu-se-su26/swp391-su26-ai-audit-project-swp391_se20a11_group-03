@@ -44,6 +44,15 @@ public class Product {
     @Column(name = "Status", nullable = false, length = 30)
     private String status = "PENDING";
 
+    @Column(name = "AuctionMode", length = 10)
+    private String auctionMode;
+
+    @Column(name = "ScheduledStartTime")
+    private LocalDateTime scheduledStartTime;
+
+    @Column(name = "ScheduledDurationSeconds")
+    private Long scheduledDurationSeconds;
+
     @Column(name = "SubmittedAt", nullable = false)
     private LocalDateTime submittedAt;
 

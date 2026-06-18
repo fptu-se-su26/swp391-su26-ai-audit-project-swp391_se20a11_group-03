@@ -23,6 +23,13 @@ public class Auction {
     @JoinColumn(name = "ProductId", nullable = false, unique = true)
     private Product product;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "AuctionMode", nullable = false, length = 10)
+    private AuctionMode auctionMode = AuctionMode.TIMED;
+
+    @Column(name = "ScheduledDurationSeconds")
+    private Long scheduledDurationSeconds;
+
     @Column(name = "StartTime", nullable = false)
     private LocalDateTime startTime;
 
@@ -39,7 +46,15 @@ public class Auction {
     @Column(name = "Status", nullable = false)
     private String status;
 
+    @Column(name = "PaymentStatus", length = 20)
+    private String paymentStatus;
+
+    @Column(name = "PaymentDeadline")
+    private LocalDateTime paymentDeadline;
+
+    @Column(name = "SettledAt")
+    private LocalDateTime settledAt;
+
     @Column(name = "CreatedAt", nullable = false)
     private LocalDateTime createdAt;
 }
-

@@ -51,6 +51,8 @@ public class ChatAuthService {
                 .roleName(user.getRole().getRoleName())
                 .status(user.getStatus())
                 .token(token)
+                .identityVerified(user.isIdentityVerified())
+                .profileStatus(user.getProfileStatus())
                 .build();
     }
 

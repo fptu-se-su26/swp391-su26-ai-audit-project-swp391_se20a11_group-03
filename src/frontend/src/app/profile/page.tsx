@@ -1,106 +1,346 @@
 "use client";
 
-import { useState } from "react";
-import { mockUser } from "@/lib/mock-data";
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import CollectorShell from "@/components/layout/CollectorShell";
+import {
+  StoredUser,
+  getRoleLabelKey,
+  getStoredUser,
+  getUserDisplayName,
+  getUserInitials,
+  saveStoredUser,
+  subscribeStoredUser,
+} from "@/lib/userSession";
+import { useTranslations } from "@/i18n/I18nProvider";
+import {
+  getMyProfile,
+  updateMyProfile,
+  type UserProfile,
+} from "@/lib/services/userProfileService";
+import { ApiError, clearStoredAuth, getStoredToken } from "@/lib/apiClient";
 
 export default function ProfilePage() {
+  const t = useTranslations("profile");
+  const tRoles = useTranslations("roles");
   const [editing, setEditing] = useState(false);
+  const [currentUser, setCurrentUser] = useState<StoredUser | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [loadErrorCode, setLoadErrorCode] = useState<"unauthorized" | "network" | null>(null);
 
-  const fields = [
-    { label: "First Name", value: "Alexander", type: "text" },
-    { label: "Last Name", value: "Sterling", type: "text" },
-    { label: "Email Address", value: mockUser.email, type: "email" },
-    { label: "Phone Number", value: mockUser.phone, type: "tel" },
-    { label: "Date of Birth", value: "1975-04-22", type: "date" },
-    { label: "Nationality", value: "United States", type: "text" },
-    { label: "Street Address", value: "1 Park Avenue, Suite 2800", type: "text" },
-    { label: "City", value: "New York", type: "text" },
-    { label: "Postal Code", value: "10016", type: "text" },
-    { label: "Country", value: "United States of America", type: "text" },
-  ];
+  // Editable form state
+  const [editFullName, setEditFullName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+
+  const loadProfile = useCallback(async () => {
+    try {
+      const data = await getMyProfile();
+      setProfile(data);
+      setLoadErrorCode(null);
+      setEditFullName(data.fullName ?? "");
+      setEditPhone(data.phone ?? "");
+      // Keep StoredUser in sync so nav / dashboard see the latest,
+      // but avoid dispatching the storage event when nothing changed.
+      const storedUser = getStoredUser();
+      if (
+        storedUser &&
+        (storedUser.email !== data.email || storedUser.username !== (data.fullName || storedUser.username))
+      ) {
+        saveStoredUser({
+          ...storedUser,
+          email: data.email,
+          username: data.fullName || storedUser.username,
+        });
+      }
+    } catch (err) {
+      setProfile(null);
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        setLoadErrorCode("unauthorized");
+        // Token is invalid/expired; clear it so the rest of the app
+        // (nav, dashboard) doesn't keep showing a phantom session.
+        clearStoredAuth();
+        setCurrentUser(null);
+      } else {
+        setLoadErrorCode("network");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const syncUser = () => setCurrentUser(getStoredUser());
+    syncUser();
+    return subscribeStoredUser(syncUser);
+  }, []);
+
+  useEffect(() => {
+    if (!getStoredToken()) {
+      setLoading(false);
+      setLoadErrorCode("unauthorized");
+      return;
+    }
+    if (currentUser?.token) {
+      void loadProfile();
+    } else {
+      setLoading(false);
+    }
+  }, [currentUser?.token, loadProfile]);
+
+  const displayName = profile?.fullName || getUserDisplayName(currentUser);
+  const initials = getUserInitials({ ...currentUser, username: displayName });
+  const roleLabel = tRoles(getRoleLabelKey(currentUser));
+
+  async function handleSave() {
+    setSaving(true);
+    setFeedback(null);
+    try {
+      const updated = await updateMyProfile({
+        fullName: editFullName.trim(),
+        phone: editPhone.trim(),
+      });
+      setProfile(updated);
+      setFeedback({ type: "ok", text: t("saveSuccess") });
+      setEditing(false);
+    } catch (err) {
+      setFeedback({
+        type: "err",
+        text: err instanceof Error ? err.message : t("saveError"),
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function handleStartEdit() {
+    setEditFullName(profile?.fullName ?? "");
+    setEditPhone(profile?.phone ?? "");
+    setFeedback(null);
+    setEditing(true);
+  }
 
   return (
     <CollectorShell>
-      <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg">
-        <div className="flex justify-between items-start">
+      <div className="mx-auto max-w-[1400px] space-y-lg p-margin-mobile md:p-margin-desktop">
+        <div className="flex items-start justify-between">
           <div>
-            <h1 className="font-display-lg-mobile md:font-display-lg text-primary">Personal Information</h1>
-            <p className="font-body-lg text-on-surface-variant mt-xs">Manage your profile details and preferences.</p>
+            <h1 className="font-display-lg-mobile text-primary md:font-display-lg">{t("pageTitle")}</h1>
+            <p className="mt-xs font-body-lg text-on-surface-variant">{t("pageSubtitle")}</p>
           </div>
-          <button
-            onClick={() => setEditing((v) => !v)}
-            className="flex items-center gap-xs bg-surface border border-outline-variant rounded-lg px-md py-sm font-label-md text-label-md hover:bg-surface-container-low transition-colors"
-          >
-            <span className="material-symbols-outlined text-[18px]">{editing ? "close" : "edit"}</span>
-            {editing ? "Cancel" : "Edit Profile"}
-          </button>
-        </div>
-
-        {/* Avatar */}
-        <div className="flex items-center gap-lg bg-surface rounded-xl p-lg soft-shadow border border-surface-variant">
-          <div className="relative">
-            <div className="w-24 h-24 rounded-full overflow-hidden soft-shadow">
-              <img src={mockUser.avatar} alt="Profile" className="w-full h-full object-cover" />
-            </div>
-            {editing && (
-              <button className="absolute bottom-0 right-0 w-8 h-8 bg-secondary text-on-secondary rounded-full flex items-center justify-center shadow-md">
-                <span className="material-symbols-outlined text-[16px]">photo_camera</span>
-              </button>
-            )}
-          </div>
-          <div>
-            <h2 className="font-headline-md text-headline-md text-primary">{mockUser.name}</h2>
-            <p className="font-label-md text-label-md text-secondary mt-xs">{mockUser.role}</p>
-            <div className="flex items-center gap-xs mt-sm">
-              <span className="material-symbols-outlined text-on-tertiary-container text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-              <span className="font-label-sm text-label-sm text-on-tertiary-container">Identity Verified</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Form */}
-        <div className="bg-surface rounded-xl p-lg soft-shadow border border-surface-variant">
-          <h3 className="font-headline-sm text-headline-sm text-primary mb-lg border-b border-surface-variant pb-sm">
-            Account Details
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
-            {fields.map((field) => (
-              <div key={field.label}>
-                <label className="block font-label-md text-label-md text-on-surface-variant mb-xs">{field.label}</label>
-                {editing ? (
-                  <input
-                    type={field.type}
-                    defaultValue={field.value}
-                    className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-low focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all"
-                  />
-                ) : (
-                  <p className="font-body-md text-body-md text-on-surface py-2.5 px-4 bg-surface-container-low rounded-lg border border-surface-variant">
-                    {field.value}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {editing && (
-            <div className="mt-lg flex justify-end gap-sm">
-              <button
-                onClick={() => setEditing(false)}
-                className="px-lg py-sm rounded-lg border border-outline-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => setEditing(false)}
-                className="px-lg py-sm rounded-lg bg-secondary text-on-secondary font-label-md text-label-md hover:bg-secondary-fixed-dim transition-colors glow-accent"
-              >
-                Save Changes
-              </button>
-            </div>
+          {!loading && profile && (
+            <button
+              onClick={() => (editing ? setEditing(false) : handleStartEdit())}
+              className="flex items-center gap-xs rounded-lg border border-outline-variant bg-surface px-md py-sm font-label-md text-label-md transition-colors hover:bg-surface-container-low"
+            >
+              <span className="material-symbols-outlined text-[18px]">{editing ? "close" : "edit"}</span>
+              {editing ? t("cancel") : t("editProfile")}
+            </button>
           )}
         </div>
+
+        <div className="flex items-center gap-lg rounded-xl border border-surface-variant bg-surface p-lg soft-shadow">
+          <div className="relative">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary-container text-[32px] font-bold uppercase text-on-primary-container soft-shadow">
+              {initials}
+            </div>
+          </div>
+          <div>
+            <h2 className="font-headline-md text-headline-md text-primary">{displayName}</h2>
+            <p className="mt-xs font-label-md text-label-md text-secondary">{roleLabel}</p>
+            {profile?.email && <p className="mt-sm text-sm text-on-surface-variant">{profile.email}</p>}
+            <div className="mt-sm flex items-center gap-xs">
+              {profile?.identityVerified ? (
+                <>
+                  <span
+                    className="material-symbols-outlined text-[16px] text-on-tertiary-container"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    verified
+                  </span>
+                  <span className="font-label-sm text-label-sm text-on-tertiary-container">
+                    {t("identityVerified")}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[16px] text-on-surface-variant">
+                    verified_user
+                  </span>
+                  <span className="font-label-sm text-label-sm text-on-surface-variant">
+                    {t("identityNotVerified")}
+                  </span>
+                  <Link
+                    href="/kyc"
+                    className="ml-xs font-label-sm text-label-sm text-secondary hover:underline"
+                  >
+                    {t("verifyNow")}
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="rounded-xl border border-surface-variant bg-surface p-lg soft-shadow">
+            <p className="text-on-surface-variant">{t("loading")}</p>
+          </div>
+        ) : !profile ? (
+          <div className="rounded-xl border border-surface-variant bg-surface p-lg soft-shadow">
+            {loadErrorCode === "unauthorized" ? (
+              <div>
+                <p className="text-on-surface-variant">{t("loadError")}</p>
+                <Link
+                  href="/auth"
+                  className="mt-md inline-flex items-center gap-xs rounded-lg bg-secondary px-md py-sm font-label-md text-label-md text-on-secondary hover:bg-secondary-fixed-dim"
+                >
+                  {t("loginAgain")}
+                </Link>
+              </div>
+            ) : (
+              <p className="text-on-surface-variant">{t("loadError")}</p>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-surface-variant bg-surface p-lg soft-shadow">
+            <h3 className="mb-lg border-b border-surface-variant pb-sm font-headline-sm text-headline-sm text-primary">
+              {t("accountDetails")}
+            </h3>
+
+            {feedback && (
+              <div
+                className={`mb-md rounded-lg border px-md py-sm text-sm ${
+                  feedback.type === "ok"
+                    ? "border-tertiary/40 bg-tertiary-container text-on-tertiary-container"
+                    : "border-error/40 bg-error-container text-on-error-container"
+                }`}
+              >
+                {feedback.text}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-md md:grid-cols-2">
+              <Field
+                label={t("fullName")}
+                value={editing ? editFullName : profile.fullName || t("notProvided")}
+                type="text"
+                editing={editing}
+                onChange={setEditFullName}
+              />
+              <Field
+                label={t("emailAddress")}
+                value={profile.email || t("notProvided")}
+                type="email"
+                editing={false}
+                readOnly
+              />
+              <Field
+                label={t("phoneNumber")}
+                value={editing ? editPhone : profile.phone || t("notProvided")}
+                type="tel"
+                editing={editing}
+                onChange={setEditPhone}
+              />
+              <Field
+                label={t("identityNumber")}
+                value={profile.identityNumber || t("notProvided")}
+                type="text"
+                editing={false}
+                readOnly
+                hint={!profile.identityNumber ? t("addInKyc") : undefined}
+              />
+              <Field
+                label={t("membership")}
+                value={roleLabel}
+                type="text"
+                editing={false}
+                readOnly
+              />
+              <Field
+                label={t("profileStatus")}
+                value={profile.profileStatus || t("notProvided")}
+                type="text"
+                editing={false}
+                readOnly
+              />
+            </div>
+
+            {editing && (
+              <div className="mt-lg flex justify-end gap-sm">
+                <button
+                  onClick={() => setEditing(false)}
+                  className="rounded-lg border border-outline-variant px-lg py-sm font-label-md text-label-md transition-colors hover:bg-surface-container-low"
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="rounded-lg bg-secondary px-lg py-sm font-label-md text-label-md text-on-secondary transition-colors hover:bg-secondary-fixed-dim disabled:opacity-60"
+                >
+                  {saving ? t("saving") : t("saveChanges")}
+                </button>
+              </div>
+            )}
+
+            {!profile.identityVerified && !editing && (
+              <div className="mt-lg rounded-lg border border-secondary/30 bg-secondary-container p-md">
+                <p className="font-label-md text-label-md text-on-secondary-container">
+                  {t("kycHint")}
+                </p>
+                <Link
+                  href="/kyc"
+                  className="mt-sm inline-flex items-center gap-xs rounded-lg bg-secondary px-md py-sm font-label-md text-label-md text-on-secondary hover:bg-secondary-fixed-dim"
+                >
+                  {t("verifyNow")}
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </CollectorShell>
+  );
+}
+
+function Field({
+  label,
+  value,
+  type,
+  editing,
+  onChange,
+  readOnly,
+  hint,
+}: {
+  label: string;
+  value: string;
+  type: "text" | "email" | "tel";
+  editing: boolean;
+  onChange?: (v: string) => void;
+  readOnly?: boolean;
+  hint?: string;
+}) {
+  return (
+    <div>
+      <label className="mb-xs block font-label-md text-label-md text-on-surface-variant">{label}</label>
+      {editing && !readOnly ? (
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-4 py-2.5 outline-none transition-all focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+        />
+      ) : (
+        <p className="rounded-lg border border-surface-variant bg-surface-container-low px-4 py-2.5 font-body-md text-body-md text-on-surface">
+          {value}
+        </p>
+      )}
+      {hint && !editing && (
+        <p className="mt-xs text-xs text-on-surface-variant">{hint}</p>
+      )}
+    </div>
   );
 }

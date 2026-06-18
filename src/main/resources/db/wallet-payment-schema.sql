@@ -2,11 +2,11 @@ IF OBJECT_ID('dbo.Wallets', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Wallets (
         WalletId BIGINT IDENTITY(1,1) PRIMARY KEY,
-        UserId INT NOT NULL UNIQUE,
+        UserId BIGINT NOT NULL UNIQUE,
         Balance BIGINT NOT NULL DEFAULT 0,
         HoldBalance BIGINT NOT NULL DEFAULT 0,
         UpdatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
-        CONSTRAINT FK_Wallets_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(UserID)
+        CONSTRAINT FK_Wallets_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(UserId)
     );
 END;
 
@@ -29,7 +29,7 @@ IF OBJECT_ID('dbo.WithdrawalRequests', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.WithdrawalRequests (
         WithdrawalRequestId BIGINT IDENTITY(1,1) PRIMARY KEY,
-        UserId INT NOT NULL,
+        UserId BIGINT NOT NULL,
         WalletId BIGINT NOT NULL,
         Amount BIGINT NOT NULL,
         BankName NVARCHAR(120) NOT NULL,
@@ -39,7 +39,7 @@ BEGIN
         StaffNote NVARCHAR(500) NULL,
         CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
         UpdatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
-        CONSTRAINT FK_WithdrawalRequests_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(UserID),
+        CONSTRAINT FK_WithdrawalRequests_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(UserId),
         CONSTRAINT FK_WithdrawalRequests_Wallets FOREIGN KEY (WalletId) REFERENCES dbo.Wallets(WalletId)
     );
 END;

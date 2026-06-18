@@ -7,12 +7,14 @@ import com.auction.chat.entity.Conversation;
 import com.auction.chat.entity.Message;
 import com.auction.account.entity.User;
 import com.auction.chat.enums.ConversationStatus;
+import com.auction.chat.enums.ConversationType;
 import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.chat.repository.ConversationRepository;
 import com.auction.chat.repository.MessageRepository;
 import com.auction.account.dao.UserRepository;
 import com.auction.chat.service.MessageService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +42,7 @@ public class MessageServiceImpl implements MessageService {
 
         User sender = userRepository.findById(Math.toIntExact(senderId))
                 .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
+        validateSenderAccess(conv, sender);
 
         Message msg = messageRepository.save(
                 Message.builder().conversation(conv).sender(sender).content(req.getContent()).build());
@@ -51,6 +54,37 @@ public class MessageServiceImpl implements MessageService {
         messagingTemplate.convertAndSend(
                 "/topic/conversation/" + conv.getConversationId(), response);
         return response;
+    }
+
+    /**
+     * Phân quyền gửi tin nhắn:
+     * <ul>
+     *   <li>BUYER_SELLER: chỉ buyer (creator) hoặc seller. Staff KHÔNG gửi được. Admin có thể xem nhưng không gửi trong thread này.</li>
+     *   <li>BUYER_STAFF / SELLER_STAFF: creator hoặc assigned staff.</li>
+     * </ul>
+     */
+    private void validateSenderAccess(Conversation conv, User sender) {
+        String role = sender.getRole().getRoleName();
+        if (conv.getType() == ConversationType.BUYER_SELLER) {
+            if ("Staff".equalsIgnoreCase(role)) {
+                throw new AccessDeniedException("Staff không thể gửi tin nhắn trong cuộc hội thoại buyer ↔ seller");
+            }
+            boolean isBuyer = conv.getUser().getId() == sender.getId();
+            boolean isSeller = conv.getSeller() != null && conv.getSeller().getId() == sender.getId();
+            if (!isBuyer && !isSeller && !"Admin".equalsIgnoreCase(role)) {
+                throw new AccessDeniedException("Bạn không phải thành viên của conversation này");
+            }
+            if ("Admin".equalsIgnoreCase(role)) {
+                throw new AccessDeniedException("Admin chỉ giám sát, không gửi tin trong buyer ↔ seller");
+            }
+        } else {
+            boolean isCreator = conv.getUser().getId() == sender.getId();
+            boolean isAssignedStaff = conv.getAssignedStaff() != null
+                    && conv.getAssignedStaff().getId() == sender.getId();
+            if (!isCreator && !isAssignedStaff) {
+                throw new AccessDeniedException("Bạn không phải thành viên của conversation này");
+            }
+        }
     }
 
     @Override
@@ -79,4 +113,3 @@ public class MessageServiceImpl implements MessageService {
                 .build();
     }
 }
-

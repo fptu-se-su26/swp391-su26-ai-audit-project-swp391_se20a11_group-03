@@ -1,10 +1,12 @@
 package com.auction.chat.entity;
 
 import com.auction.account.entity.User;
+import com.auction.product.entity.Product;
 
 import jakarta.persistence.*;
 import lombok.*;
 import com.auction.chat.enums.ConversationStatus;
+import com.auction.chat.enums.ConversationType;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,13 +22,39 @@ public class Conversation {
     @Column(name = "ConversationId")
     private Long conversationId;
 
+    /**
+     * Chủ sở hữu chính của conversation (người tạo / người gửi đầu tiên).
+     * Với BUYER_SELLER: buyer. Với BUYER_STAFF/SELLER_STAFF: user yêu cầu.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "UserId", nullable = false)
     private User user;
 
+    /**
+     * Đối với BUYER_SELLER: seller của sản phẩm.
+     * Với BUYER_STAFF / SELLER_STAFF: staff được gán.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "AssignedStaff")
     private User assignedStaff;
+
+    /**
+     * Đối với BUYER_SELLER: người bán. Với các loại khác có thể null.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "SellerId")
+    private User seller;
+
+    /**
+     * Sản phẩm liên quan (nếu có) - dùng để ngữ cảnh hóa cuộc hội thoại.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ProductId")
+    private Product product;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ConversationType", nullable = false, length = 30)
+    private ConversationType type;
 
     @Column(nullable = false, length = 255)
     private String subject;
@@ -51,6 +79,7 @@ public class Conversation {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (status == null) status = ConversationStatus.OPEN;
+        if (type == null) type = ConversationType.BUYER_STAFF;
     }
 
     @PreUpdate
@@ -58,4 +87,3 @@ public class Conversation {
         updatedAt = LocalDateTime.now();
     }
 }
-

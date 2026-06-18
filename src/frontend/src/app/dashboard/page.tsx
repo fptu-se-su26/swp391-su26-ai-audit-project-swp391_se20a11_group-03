@@ -1,44 +1,112 @@
-import { mockActiveBids } from "@/lib/mock-data";
-import Link from "next/link";
-import CollectorShell from "@/components/layout/CollectorShell";
+"use client";
 
-const STATS = [
-  { icon: "gavel", label: "Active Bids", value: "4", color: "primary-fixed-dim" },
-  { icon: "emoji_events", label: "Items Won", value: "12", color: "tertiary-fixed-dim" },
-  { icon: "payments", label: "Total Spent", value: "$1.2M", color: "secondary-fixed-dim" },
-  { icon: "visibility", label: "Watchlist", value: "8", color: "outline-variant" },
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
+import CollectorShell from "@/components/layout/CollectorShell";
+import { getProductImage } from "@/lib/productPresentation";
+import { getWatchlistIds, refreshWatchlistIds, subscribeWatchlist } from "@/lib/watchlist";
+import { StoredUser, getStoredUser, getUserDisplayName, subscribeStoredUser } from "@/lib/userSession";
+import { BidInfo, getMyBids, getWonItems, WonItem } from "@/lib/services/userBidService";
+import { getProductDetail } from "@/lib/services/productService";
+import { getAuctionState } from "@/lib/services/auctionService";
+import { apiClient } from "@/lib/apiClient";
+import CountdownTimer from "@/components/features/CountdownTimer";
+import { useTranslations } from "@/i18n/I18nProvider";
+
+const BASE_STATS = [
+  { icon: "gavel", label: "Active Bids", value: "0", color: "primary-fixed-dim" },
+  { icon: "emoji_events", label: "Items Won", value: "0", color: "tertiary-fixed-dim" },
+  { icon: "payments", label: "Total Spent", value: "₫0", color: "secondary-fixed-dim" },
 ];
 
+const STAT_ACCENTS: Record<string, string> = {
+  "primary-fixed-dim": "bg-primary-fixed-dim",
+  "tertiary-fixed-dim": "bg-tertiary-fixed-dim",
+  "secondary-fixed-dim": "bg-secondary-fixed-dim",
+  "outline-variant": "bg-outline-variant",
+};
+
 export default function DashboardPage() {
+  const t = useTranslations("dashboard");
+  const [currentUser, setCurrentUser] = useState<StoredUser | null>(null);
+  const [watchlistCount, setWatchlistCount] = useState(0);
+  const [bids, setBids] = useState<BidInfo[]>([]);
+  const [isLoadingBids, setIsLoadingBids] = useState(true);
+
+  useEffect(() => {
+    const syncUser = () => setCurrentUser(getStoredUser());
+    const syncWatchlist = () => setWatchlistCount(getWatchlistIds().length);
+
+    syncUser();
+    syncWatchlist();
+    refreshWatchlistIds().then(syncWatchlist);
+
+    const unsubscribeUser = subscribeStoredUser(syncUser);
+    const unsubscribeWatchlist = subscribeWatchlist(syncWatchlist);
+
+    return () => {
+      unsubscribeUser();
+      unsubscribeWatchlist();
+    };
+  }, []);
+
+  // Fetch real bids from API
+  const fetchBids = useCallback(async () => {
+    setIsLoadingBids(true);
+    try {
+      const myBids = await getMyBids();
+      setBids(myBids);
+    } catch (error) {
+      console.error("Failed to fetch bids:", error);
+      setBids([]);
+    } finally {
+      setIsLoadingBids(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchBids();
+  }, [fetchBids]);
+
+  const displayName = getUserDisplayName(currentUser);
+  const leadingCount = bids.filter(b => b.status === "leading").length;
+  const wonCount = bids.filter(b => b.status === "won").length;
+  const totalSpent = bids
+    .filter(b => b.status === "won")
+    .reduce((sum, b) => sum + b.currentBid, 0);
+
+  const stats = [
+    ...BASE_STATS.slice(0, 1).map(s => ({ ...s, label: t("activeBids"), value: String(bids.length) })),
+    ...BASE_STATS.slice(1, 2).map(s => ({ ...s, label: t("itemsWon"), value: String(wonCount) })),
+    ...BASE_STATS.slice(2, 3).map(s => ({ ...s, label: t("totalSpent"), value: `₫${totalSpent.toLocaleString('vi-VN')}` })),
+    { icon: "visibility", label: t("watchlist"), value: String(watchlistCount), color: "outline-variant" },
+  ];
+
   return (
     <CollectorShell>
-      <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg">
-        {/* Header */}
+      <div className="mx-auto max-w-[1400px] space-y-lg p-margin-mobile md:p-margin-desktop">
         <section>
-          <div className="mb-md flex justify-between items-end">
+          <div className="mb-md flex items-end justify-between">
             <div>
-              <h2 className="font-display-lg-mobile md:font-display-lg text-primary">Dashboard</h2>
-              <p className="font-body-lg text-on-surface-variant mt-xs">
-                Welcome back, Mr. Sterling. Here is your auction overview.
+              <h2 className="font-display-lg-mobile text-primary md:font-display-lg">{t("pageTitle")}</h2>
+              <p className="mt-xs font-body-lg text-on-surface-variant">
+                {t("welcomeBack", { name: displayName })}
               </p>
             </div>
           </div>
 
-          {/* Stat Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-md">
-            {STATS.map((stat) => (
+          <div className="grid grid-cols-2 gap-md md:grid-cols-4">
+            {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="bg-surface rounded-xl p-md soft-shadow border border-surface-variant relative overflow-hidden"
+                className="relative overflow-hidden rounded-xl border border-surface-variant bg-surface p-md soft-shadow"
               >
-                <div
-                  className={`absolute top-0 right-0 w-24 h-24 bg-${stat.color} rounded-bl-full opacity-20 -mr-4 -mt-4`}
-                />
-                <div className="flex items-center gap-sm mb-sm text-on-surface-variant">
+                <div className={`absolute -mr-4 -mt-4 right-0 top-0 h-24 w-24 rounded-bl-full opacity-20 ${STAT_ACCENTS[stat.color]}`} />
+                <div className="mb-sm flex items-center gap-sm text-on-surface-variant">
                   <span className="material-symbols-outlined">{stat.icon}</span>
                   <span className="font-label-md text-label-md">{stat.label}</span>
                 </div>
-                <div className="font-headline-md text-headline-md md:text-[32px] md:leading-[40px] font-bold text-primary">
+                <div className="font-headline-md text-headline-md font-bold text-primary md:text-[32px] md:leading-[40px]">
                   {stat.value}
                 </div>
               </div>
@@ -46,171 +114,379 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-lg">
-          {/* Active Bids Table */}
-          <section className="xl:col-span-2 space-y-md">
-            <h3 className="font-headline-sm text-headline-sm text-primary border-b border-surface-variant pb-xs">
-              My Active Bids
+        <WonItemsBanner />
+
+        <div className="grid grid-cols-1 gap-lg xl:grid-cols-3">
+          <section className="space-y-md xl:col-span-2">
+            <h3 className="border-b border-surface-variant pb-xs font-headline-sm text-headline-sm text-primary">
+              {t("myActiveBids")}
             </h3>
-            <div className="bg-surface rounded-xl soft-shadow border border-surface-variant overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-surface-container-low border-b border-surface-variant">
-                      {["Lot / Item", "Current Bid", "Time Left", "Status", ""].map((h) => (
-                        <th key={h} className="p-md font-label-sm text-label-sm text-on-surface-variant">
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {mockActiveBids.map((bid) => (
-                      <tr
-                        key={bid.id}
-                        className={`border-b border-surface-variant hover:bg-surface-container-lowest transition-colors ${
-                          bid.status === "outbid" ? "bg-error-container/10" : ""
-                        }`}
-                      >
-                        <td className="p-md">
-                          <div className="flex items-center gap-sm">
-                            <div className="w-12 h-12 rounded bg-surface-variant overflow-hidden shrink-0">
-                              <img src={bid.image} alt={bid.title} className="w-full h-full object-cover" />
-                            </div>
-                            <div>
-                              <p className="font-label-md text-label-md text-primary">Lot #{bid.lotNumber}</p>
-                              <p className="font-body-md text-sm text-on-surface-variant truncate w-40">{bid.title}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-md font-headline-sm text-[16px] font-bold text-primary">
-                          ${bid.currentBid.toLocaleString()}
-                        </td>
-                        <td
-                          className={`p-md font-body-md text-sm ${
-                            bid.status === "outbid" ? "text-error font-bold" : "text-on-surface-variant"
-                          }`}
-                        >
-                          {bid.timeLeft}
-                        </td>
-                        <td className="p-md">
-                          {bid.status === "leading" ? (
-                            <span className="inline-flex items-center gap-1 bg-tertiary-fixed text-on-tertiary-fixed-variant px-2 py-1 rounded-full font-label-sm text-[10px]">
-                              <span className="w-2 h-2 rounded-full bg-on-tertiary-container animate-pulse" />
-                              Leading
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 bg-error-container text-on-error-container px-2 py-1 rounded-full font-label-sm text-[10px]">
-                              <span className="material-symbols-outlined text-[12px]">warning</span>
-                              Outbid
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-md text-right">
-                          {bid.status === "leading" ? (
-                            <Link
-                              href={`/auctions/${bid.id}`}
-                              className="font-label-sm text-label-sm text-secondary hover:text-secondary-fixed-dim transition-colors"
-                            >
-                              View Live
-                            </Link>
-                          ) : (
-                            <Link
-                              href={`/auctions/${bid.id}`}
-                              className="bg-secondary text-on-secondary font-label-sm text-[12px] px-3 py-1.5 rounded hover:bg-secondary-fixed-dim transition-colors glow-accent"
-                            >
-                              Bid Higher
-                            </Link>
-                          )}
-                        </td>
+            <div className="overflow-hidden rounded-xl border border-surface-variant bg-surface soft-shadow">
+              {isLoadingBids ? (
+                <div className="p-md text-center text-on-surface-variant">{t("loading")}</div>
+              ) : bids.length === 0 ? (
+                <div className="p-md text-center text-on-surface-variant">
+                  <p className="mb-sm">{t("noActiveBids")}</p>
+                  <Link href="/" className="text-secondary hover:underline">{t("browseAuctions")}</Link>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse text-left">
+                    <thead>
+                      <tr className="border-b border-surface-variant bg-surface-container-low">
+                        {["tableLotItem", "tableCurrentBid", "tableTimeLeft", "tableStatus", "tableQuickBid", "tableActions"].map((key) => (
+                          <th key={key} className="p-md font-label-sm text-label-sm text-on-surface-variant">
+                            {t(key)}
+                          </th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {bids.map((bid) => (
+                        <ActiveBidRow key={bid.bidId} bid={bid} onRefresh={fetchBids} />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </section>
 
-          {/* Right: Alerts + Quick Deposit */}
           <section className="space-y-md">
-            <div className="glass-panel border border-error-container rounded-xl p-md relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full bg-error" />
+            <div className="glass-panel relative overflow-hidden rounded-xl border border-error-container p-md">
+              <div className="absolute left-0 top-0 h-full w-1 bg-error" />
               <div className="flex items-start gap-sm">
-                <span className="material-symbols-outlined text-error mt-1">timer</span>
+                <span className="material-symbols-outlined mt-1 text-error">timer</span>
                 <div>
-                  <h4 className="font-label-md text-label-md text-on-surface font-bold">Action Required</h4>
-                  <p className="font-body-md text-sm text-on-surface-variant mt-1">
-                    You have been outbid on Lot #18. Auction ends in 5 minutes.
+                  <h4 className="font-bold text-on-surface">{t("quickTips")}</h4>
+                  <p className="mt-1 text-sm font-body-md text-on-surface-variant">
+                    {t("depositTip")}
                   </p>
-                  <Link href="/auctions/2" className="mt-sm text-secondary font-label-sm text-label-sm hover:underline inline-block">
-                    Review Lot
+                  <Link href="/wallet" className="mt-sm inline-block font-label-sm text-label-sm text-secondary hover:underline">
+                    {t("depositFunds")}
                   </Link>
                 </div>
               </div>
             </div>
 
-            <div className="bg-primary-container text-on-primary-container rounded-xl p-md soft-shadow">
-              <h3 className="font-headline-sm text-headline-sm text-on-primary mb-sm">Quick Deposit</h3>
-              <p className="font-body-md text-sm mb-md opacity-80">Ensure sufficient funds for upcoming bids.</p>
-              <div className="flex gap-2 mb-md">
-                {["$10k", "$50k", "$100k"].map((amt) => (
-                  <button
-                    key={amt}
-                    className="flex-1 border border-outline-variant rounded py-1 font-label-sm text-on-primary hover:bg-on-primary/10 transition-colors"
-                  >
-                    {amt}
-                  </button>
-                ))}
+            <div className="rounded-xl bg-primary-container p-md text-on-primary-container soft-shadow">
+              <h3 className="mb-sm font-headline-sm text-headline-sm text-on-primary">{t("quickAccess")}</h3>
+              <p className="mb-md text-sm font-body-md opacity-80">{t("quickAccessDesc")}</p>
+              <div className="grid gap-sm">
+                <Link href="/watchlist" className="rounded-lg border border-outline-variant px-4 py-3 text-center font-label-md transition-colors hover:bg-on-primary/10">
+                  {t("openWatchlist")}
+                </Link>
+                <Link href="/wallet" className="rounded-lg bg-secondary px-4 py-3 text-center font-label-md text-on-secondary transition-colors hover:bg-secondary-fixed-dim">
+                  {t("manageWallet")}
+                </Link>
               </div>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Custom Amount"
-                  className="w-full bg-transparent border border-outline-variant rounded p-2 text-on-primary font-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all outline-none"
-                />
-                <span className="absolute right-3 top-2.5 text-outline-variant">$</span>
-              </div>
-              <button className="w-full bg-secondary text-on-secondary font-label-md py-2 rounded mt-md hover:bg-secondary-fixed-dim transition-colors glow-accent">
-                Authorize Deposit
-              </button>
             </div>
           </section>
         </div>
-
-        {/* Recent Acquisitions */}
-        <section className="pt-lg border-t border-surface-variant">
-          <h3 className="font-headline-sm text-headline-sm text-primary mb-md">Recent Acquisitions</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-md">
-            {[
-              {
-                src: "https://lh3.googleusercontent.com/aida-public/AB6AXuBE0Zs9QPyF2rkU6JjnmjIlk4-Z5H1zxXNUZygFt-j0A0hGLM71G0g8mNSief6Mr_64bsBLPfQy26IiQclTst8XDVnogBLwXJT4xNqlnuEPTLzATqrf1paPI6ZBACFrvgomIxwdHLqv8jOzyrSqehLiiGqNa-m2z9utaDdSULQsrMBe3LHH44J4BaIdx37fsQ026lBeorQ0HQFmzsZsThQiiN4wW2qdYj_HaNAvsOSMnkng1v3AqlfiJqS9psd_4LpnVvKD27Tlp5Z2",
-                lot: "Lot #05",
-                title: "Bronze Figure",
-              },
-              {
-                src: "https://lh3.googleusercontent.com/aida-public/AB6AXuDiT6gUkAiEERIx4SsHiJD_-EqZYjRVfIb7Ww2eTZwJLXaLJcvgzE_73wUmxloSiLQ7heBbWWpnQUBeXJdDE_SSmiNWQ3SRVFV_lMU-QBz-JDYKe5DVpN7_n1JluxjNfBmADpcMWLz5NSi5gtqVVT_vLyZKswfO4VxoIBz_MmoL_enH3iE2srXTF3DaiosPsRxeA0SZKOAKqmkVXebwiwg-wMzSA4dtUFWr1HNeVRvucRwAcX1QFz0HIHO0RFrwr5ZbXrP79Q3QZass",
-                lot: "Lot #88",
-                title: "Eames Lounge",
-              },
-            ].map((item) => (
-              <div key={item.lot} className="group relative rounded-lg overflow-hidden soft-shadow aspect-square bg-surface-variant">
-                <img
-                  src={item.src}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-md">
-                  <div className="text-white">
-                    <p className="font-label-sm text-label-sm opacity-80">{item.lot}</p>
-                    <p className="font-headline-sm text-sm font-bold">{item.title}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
       </div>
     </CollectorShell>
   );
 }
+
+const MIN_BID_INCREMENT = 1_000_000;
+
+type QuickBidResponse = {
+  success: boolean;
+  message: string;
+  auctionId?: number;
+  userId?: number;
+  bidAmount?: number;
+  currentHighestBid?: number;
+  endTime?: string;
+};
+
+function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void }) {
+  const t = useTranslations("dashboard");
+  const minRequired = (bid.currentBid || 0) + MIN_BID_INCREMENT;
+  const [quickAmount, setQuickAmount] = useState<string>(String(minRequired));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{ tone: "success" | "error"; message: string } | null>(null);
+
+  const isEnded = bid.timeLeft === "Ended" || bid.status === "won" || bid.status === "lost";
+  const amountNumber = Number(quickAmount);
+  const isValidAmount = !Number.isNaN(amountNumber) && amountNumber >= minRequired;
+
+  const handleQuickBid = async () => {
+    if (!isValidAmount) {
+      setFeedback({
+        tone: "error",
+        message: t("minBidError", { amount: minRequired.toLocaleString("vi-VN") }),
+      });
+      return;
+    }
+    setIsSubmitting(true);
+    setFeedback(null);
+    try {
+      // /api/bids/my-bids returns productId only; resolve the auctionId via product detail
+      const detail = await getProductDetail(bid.productId);
+      const auctionId = detail?.auction?.auctionId;
+      if (!auctionId) {
+        setFeedback({ tone: "error", message: t("noAuctionSession") });
+        return;
+      }
+      const stored = getStoredUser();
+      const userId = stored?.userId;
+      if (!userId) {
+        setFeedback({ tone: "error", message: t("signInAgain") });
+        return;
+      }
+      const result = await apiClient<QuickBidResponse>("/bidding/bid", {
+        method: "POST",
+        body: { auctionId, userId, bidAmount: amountNumber },
+      });
+      if (result?.success) {
+        setFeedback({
+          tone: "success",
+          message: t("quickBidPlaced", { amount: amountNumber.toLocaleString("vi-VN"), product: bid.productName }),
+        });
+        onRefresh();
+      } else {
+        setFeedback({ tone: "error", message: result?.message || t("quickBidRejected") });
+      }
+    } catch (error) {
+      setFeedback({
+        tone: "error",
+        message: error instanceof Error ? error.message : t("quickBidFailed"),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      <tr
+        className={`border-b border-surface-variant transition-colors hover:bg-surface-container-lowest ${
+          bid.status === "outbid" ? "bg-error-container/10" : ""
+        }`}
+      >
+        <td className="p-md">
+          <div className="flex items-center gap-sm">
+            <div className="h-12 w-12 shrink-0 overflow-hidden rounded bg-surface-variant">
+              <img
+                src={getProductImage(bid.image)}
+                alt={bid.productName}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div>
+              <p className="font-label-md text-label-md text-primary">{bid.lotNumber}</p>
+              <p className="w-40 truncate text-sm font-body-md text-on-surface-variant">{bid.productName}</p>
+            </div>
+          </div>
+        </td>
+        <td className="p-md text-[16px] font-bold text-primary">₫{bid.currentBid.toLocaleString("vi-VN")}</td>
+        <td className={`p-md text-sm font-body-md ${bid.status === "outbid" ? "font-bold text-error" : "text-on-surface-variant"}`}>
+          {bid.timeLeft}
+        </td>
+        <td className="p-md">
+          {bid.status === "leading" ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-tertiary-fixed px-2 py-1 text-[10px] font-label-sm text-on-tertiary-fixed-variant">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-on-tertiary-container" />
+              {t("statusLeading")}
+            </span>
+          ) : bid.status === "won" ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-secondary-container px-2 py-1 text-[10px] font-label-sm text-on-secondary-container">
+              <span className="material-symbols-outlined text-[12px]">emoji_events</span>
+              {t("statusWon")}
+            </span>
+          ) : bid.status === "lost" ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-surface-container-high px-2 py-1 text-[10px] font-label-sm text-on-surface-variant">
+              <span className="material-symbols-outlined text-[12px]">close</span>
+              {t("statusLost")}
+            </span>
+          ) : bid.status === "deposited" ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-secondary-container px-2 py-1 text-[10px] font-label-sm text-on-secondary-container">
+              <span className="material-symbols-outlined text-[12px]">verified</span>
+              {t("statusDeposited")}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full bg-error-container px-2 py-1 text-[10px] font-label-sm text-on-error-container">
+              <span className="material-symbols-outlined text-[12px]">warning</span>
+              {t("statusOutbid")}
+            </span>
+          )}
+        </td>
+        <td className="p-md">
+          {isEnded ? (
+            <span className="text-sm text-on-surface-variant">—</span>
+          ) : (
+            <input
+              type="number"
+              min={minRequired}
+              step={MIN_BID_INCREMENT}
+              value={quickAmount}
+              onChange={(event) => setQuickAmount(event.target.value)}
+              disabled={isSubmitting}
+              className="w-32 rounded border border-outline-variant bg-surface px-2 py-1 font-body-sm text-body-sm outline-none transition-colors focus:border-secondary disabled:opacity-50"
+            />
+          )}
+        </td>
+        <td className="p-md text-right">
+          {isEnded ? (
+            <Link
+              href={`/auctions/${bid.productId}`}
+              className="font-label-sm text-label-sm text-secondary hover:underline"
+            >
+              {t("viewLot")}
+            </Link>
+          ) : (
+            <div className="flex items-center justify-end gap-xs">
+              <Link
+                href={`/auctions/${bid.productId}`}
+                className="rounded border border-outline-variant px-3 py-1.5 text-[12px] font-label-sm text-label-sm text-on-surface transition-colors hover:border-secondary hover:text-secondary"
+              >
+                {t("bidNow")}
+              </Link>
+              <button
+                type="button"
+                onClick={handleQuickBid}
+                disabled={isSubmitting || !isValidAmount}
+                className="flex items-center gap-1 rounded bg-tertiary px-3 py-1.5 text-[12px] font-label-sm text-label-sm text-on-tertiary transition-colors hover:bg-tertiary-fixed disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[14px]">flash_on</span>
+                {isSubmitting ? t("placing") : t("quickBid")}
+              </button>
+            </div>
+          )}
+        </td>
+      </tr>
+      {feedback && (
+        <tr className="border-b border-surface-variant bg-surface-container-lowest">
+          <td colSpan={6} className="px-md pb-md">
+            <div
+              className={`rounded border px-3 py-2 text-sm ${
+                feedback.tone === "success"
+                  ? "border-tertiary/40 bg-tertiary-container/40 text-on-tertiary-container"
+                  : "border-error/40 bg-error-container/40 text-error"
+              }`}
+            >
+              {feedback.message}
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
+type WonItemWithDeadline = WonItem & {
+  paymentDeadline: string | null;
+  paymentStatus: string | null;
+  auctionId: number | null;
+};
+
+function WonItemsBanner() {
+  const t = useTranslations("dashboard");
+  const [items, setItems] = useState<WonItemWithDeadline[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const won = await getWonItems();
+        const enriched: WonItemWithDeadline[] = await Promise.all(
+          won.map(async (w) => {
+            try {
+              const detail = await getProductDetail(w.productId);
+              const auctionId = detail?.auctionId ?? null;
+              if (!auctionId) {
+                return { ...w, paymentDeadline: null, paymentStatus: null, auctionId: null };
+              }
+              const state = await getAuctionState(auctionId);
+              return {
+                ...w,
+                paymentDeadline: state.paymentDeadline,
+                paymentStatus: state.paymentStatus,
+                auctionId,
+              };
+            } catch {
+              return { ...w, paymentDeadline: null, paymentStatus: null, auctionId: null };
+            }
+          }),
+        );
+        if (!cancelled) setItems(enriched);
+      } catch (err) {
+        console.error("WonItemsBanner load failed", err);
+      }
+    }
+    load();
+    const handle = setInterval(load, 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(handle);
+    };
+  }, []);
+
+  const awaitingPayment = items.filter(
+    (i) => i.paymentStatus === "AWAITING_PAYMENT" && i.paymentDeadline,
+  );
+  if (awaitingPayment.length === 0) return null;
+
+  return (
+    <section className="space-y-sm">
+      <h3 className="border-b border-surface-variant pb-xs font-headline-sm text-headline-sm text-primary">
+        {t("awaitingPayment")}
+      </h3>
+      <div className="grid gap-md md:grid-cols-2">
+        {awaitingPayment.map((w) => {
+          const hoursLeft =
+            w.paymentDeadline
+              ? Math.max(0, Math.floor((new Date(w.paymentDeadline).getTime() - Date.now()) / 3_600_000))
+              : 0;
+          const urgent = hoursLeft <= 2;
+          return (
+            <div
+              key={w.id}
+              className={`rounded-xl border p-md soft-shadow ${
+                urgent
+                  ? "border-error/40 bg-error-container/40"
+                  : "border-tertiary-fixed/30 bg-tertiary-container/30"
+              }`}
+            >
+              <div className="flex items-start gap-sm">
+                <span
+                  className={`material-symbols-outlined mt-1 ${urgent ? "text-error" : "text-tertiary"}`}
+                >
+                  {urgent ? "timer_off" : "schedule"}
+                </span>
+                <div className="flex-1">
+                  <p className="font-label-md text-label-md text-primary">{w.productName}</p>
+                  <p className="text-xs text-on-surface-variant">
+                    {t("wonAt", { price: `₫${w.finalPrice.toLocaleString("vi-VN")}`, lot: w.lotNumber })}
+                  </p>
+                  {w.paymentDeadline && (
+                    <p className="mt-sm text-sm">
+                      {t("payIn")}{" "}
+                      <CountdownTimer
+                        endsAt={w.paymentDeadline}
+                        variant="timed"
+                        className="!text-base"
+                      />
+                    </p>
+                  )}
+                  <Link
+                    href={`/auctions/${w.productId}`}
+                    className={`mt-sm inline-block rounded-md px-3 py-1.5 text-[12px] font-label-md ${
+                      urgent
+                        ? "bg-error text-on-error"
+                        : "bg-tertiary-fixed text-on-tertiary-fixed-variant"
+                    }`}
+                  >
+                    {t("payNow")}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+

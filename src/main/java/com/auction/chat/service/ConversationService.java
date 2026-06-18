@@ -11,6 +11,8 @@ public interface ConversationService {
     List<ConversationResponse> getMyConversations(Long userId);
     List<ConversationResponse> getConversationsAssignedToStaff(Long staffId);
     List<ConversationResponse> getUnassignedConversations();
+    /** Admin: lấy tất cả conversations (gồm cả BUYER_SELLER để giám sát). */
+    List<ConversationResponse> getAllConversations();
     ConversationResponse assignConversationToStaff(Long conversationId, Long staffId);
     ConversationResponse closeConversation(Long conversationId, Long actorId);
     ConversationDetailResponse getConversationDetail(Long conversationId, Long requesterId);

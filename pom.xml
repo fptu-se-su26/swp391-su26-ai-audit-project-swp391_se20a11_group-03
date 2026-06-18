@@ -23,6 +23,7 @@
         <lombok.version>1.18.36</lombok.version>
         <jjwt.version>0.12.6</jjwt.version>
         <flying-saucer-pdf.version>9.11.6</flying-saucer-pdf.version>
+        <metadata-extractor.version>2.19.0</metadata-extractor.version>
     </properties>
 
     <dependencyManagement>
@@ -138,6 +139,11 @@
             <artifactId>flying-saucer-pdf</artifactId>
             <version>${flying-saucer-pdf.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.drewnoakes</groupId>
+            <artifactId>metadata-extractor</artifactId>
+            <version>${metadata-extractor.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -154,6 +160,7 @@
                 <version>3.13.0</version>
                 <configuration>
                     <release>17</release>
+                    <parameters>true</parameters>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

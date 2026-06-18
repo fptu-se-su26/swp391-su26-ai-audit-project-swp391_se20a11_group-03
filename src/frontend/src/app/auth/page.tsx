@@ -1,18 +1,20 @@
 "use client";
 
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { login, register } from "@/lib/services/authService";
-import { useEffect } from "react";
+import { login, register, selectRole } from "@/lib/services/authService";
+import { saveStoredUser, StoredUser } from "@/lib/userSession";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 export default function AuthPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
+  const [mode, setMode] = useState<"login" | "signup" | "select-role">("login");
   const [showPass, setShowPass] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [identityNumber, setIdentityNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -20,6 +22,8 @@ export default function AuthPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isLogin = mode === "login";
+  const isSignup = mode === "signup";
+  const isSelectRole = mode === "select-role";
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -39,7 +43,9 @@ export default function AuthPage() {
       return "/staff/approvals";
     }
 
-    return "/dashboard";
+    // Both buyer and seller land on the home page; they can navigate
+    // to dashboard / post-item via the nav menus.
+    return "/";
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -50,27 +56,24 @@ export default function AuthPage() {
     setIsSubmitting(true);
 
     try {
-      if (!isLogin) {
+      if (isSignup) {
         const response = await register({
           fullName: fullName.trim(),
           email: email.trim(),
           phone: phone.trim(),
-          identityNumber: identityNumber.trim(),
           password,
           confirmPassword,
         });
 
         if (!response.success) {
-          throw new Error(response.message || "Registration failed.");
+          throw new Error(response.message || t("errors.registrationFailed"));
         }
 
-        setSuccessMessage(response.message || "Account created successfully. Please log in.");
-        setMode("login");
-        setFullName("");
-        setPhone("");
-        setIdentityNumber("");
-        setPassword("");
-        setConfirmPassword("");
+        setSuccessMessage(response.message || t("errors.createSuccess"));
+        // Store temp credentials and go to role selection
+        localStorage.setItem("pending_email", email);
+        localStorage.setItem("pending_password", password);
+        setMode("select-role");
         return;
       }
 
@@ -80,23 +83,82 @@ export default function AuthPage() {
       });
 
       if (!response.token) {
-        throw new Error("The login response did not include an access token.");
+        throw new Error(t("errors.noToken"));
       }
 
       localStorage.setItem("token", response.token);
-      localStorage.setItem("currentUser", JSON.stringify(response));
+      saveStoredUser(response);
       router.push(getRedirectPath(response.roleName));
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Invalid email or password.");
+      setErrorMessage(error instanceof Error ? error.message : t("errors.invalidCredentials"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleSelectRole(role: "BUYER" | "SELLER") {
+    setIsSubmitting(true);
+    try {
+      const pendingEmail = localStorage.getItem("pending_email") || email;
+      const pendingPassword = localStorage.getItem("pending_password") || password;
+
+      const response = await login({
+        usernameOrEmail: pendingEmail,
+        password: pendingPassword,
+      });
+
+      if (!response.token) {
+        throw new Error(t("errors.loginAfterRoleFailed"));
+      }
+
+      const dbRole = role === "SELLER" ? "Seller" : "User";
+      const selectRoleResponse = await selectRole({
+        userId: response.userId,
+        role: dbRole,
+      });
+
+      if (!selectRoleResponse.success) {
+        throw new Error(selectRoleResponse.message || t("errors.selectRoleFailed"));
+      }
+
+      const loginAfterRole = await login({
+        usernameOrEmail: pendingEmail,
+        password: pendingPassword,
+      });
+
+      if (!loginAfterRole.token) {
+        throw new Error(t("errors.refreshSessionFailed"));
+      }
+
+      localStorage.removeItem("pending_email");
+      localStorage.removeItem("pending_password");
+
+      const userData: StoredUser = {
+        userId: loginAfterRole.userId,
+        username: loginAfterRole.username,
+        email: loginAfterRole.email,
+        roleName: loginAfterRole.roleName,
+        status: loginAfterRole.status,
+        token: loginAfterRole.token,
+        identityVerified: loginAfterRole.identityVerified,
+        profileStatus: loginAfterRole.profileStatus,
+      };
+
+      localStorage.setItem("token", loginAfterRole.token);
+      saveStoredUser(userData);
+
+      router.push(getRedirectPath(loginAfterRole.roleName));
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : t("errors.registrationFlowFailed"));
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <main className="flex min-h-screen">
+    <main className="flex h-screen overflow-hidden">
       {/* Left: Hero */}
-      <section className="hidden lg:flex lg:w-1/2 relative flex-col justify-end p-xl overflow-hidden">
+      <section className="hidden lg:flex lg:w-1/2 relative flex-col justify-end p-lg overflow-hidden">
         <div className="absolute inset-0 bg-primary-container">
           <img
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0_QH_jlR5knRFMIzliDGgOx7IevRtXO86U-bV1eC5yp0vN_mU8rMMBu6rp0xfOvOMnLLTNAmmeyZ-Hgn2KzXRgr32O4Mk6STYqCaN8-GXPmB2YFM1FqTInWHyrJ3IbzP7bPcNb18zk62zl8Mv-CILX_75WIJQRWBTrpVi2nm84LoTk-1sVdi5O6kudZF1oj9AJ83P3zGe8HD97zTlepjT9XoyscVPA6dprYAId1yy95lPDzU_uee4r7_8tW4Umvw-fL7ZI15STdLl"
@@ -106,15 +168,15 @@ export default function AuthPage() {
           <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(13,28,50,0.2) 0%, rgba(13,28,50,0.8) 100%)" }} />
         </div>
         <div className="relative z-10 max-w-lg">
-          <div className="mb-md">
-            <span className="text-secondary font-headline-md text-headline-md font-bold tracking-widest uppercase">LuxeAuction</span>
+          <div className="mb-sm">
+            <span className="text-secondary font-headline-md text-headline-md font-bold tracking-widest uppercase">{t("appName")}</span>
           </div>
-          <h2 className="font-display-lg text-display-lg text-on-primary-fixed mb-sm italic">
-            "The pursuit of excellence is a journey without an end."
+          <h2 className="text-[34px] font-bold leading-tight text-on-primary-fixed mb-sm italic">
+            {t("tagline")}
           </h2>
-          <div className="w-16 h-1 bg-secondary mb-lg" />
-          <p className="font-body-lg text-on-primary-fixed opacity-70">
-            Join the world's most prestigious circle of collectors. Authenticated luxury, global access.
+          <div className="w-16 h-1 bg-secondary mb-md" />
+          <p className="font-body-md text-on-primary-fixed opacity-70">
+            {t("heroTagline")}
           </p>
         </div>
         <div className="absolute -bottom-24 -right-24 opacity-5">
@@ -123,208 +185,280 @@ export default function AuthPage() {
       </section>
 
       {/* Right: Auth form */}
-      <section className="w-full lg:w-1/2 flex items-start lg:items-center justify-center p-margin-mobile md:p-margin-desktop bg-surface-container-lowest overflow-y-auto">
-        <div className="w-full max-w-[480px] min-h-[780px] flex flex-col">
+      <section className="w-full lg:w-1/2 flex items-center justify-center p-md bg-surface-container-lowest overflow-hidden">
+        <div className="w-full max-w-[460px] flex flex-col">
           {/* Mobile logo */}
-          <div className="lg:hidden flex justify-center mb-xl flex-shrink-0">
-            <span className="text-primary font-headline-md text-headline-md font-extrabold tracking-tight">LuxeAuction</span>
+          <div className="lg:hidden flex justify-center mb-md flex-shrink-0">
+            <span className="text-primary font-headline-md text-headline-md font-extrabold tracking-tight">{t("appName")}</span>
           </div>
 
-          <div className="bg-surface p-md md:p-lg rounded-xl shadow-sm border border-outline-variant/30 flex-grow flex flex-col">
-            {/* Toggle */}
-            <div className="flex p-xs bg-surface-container-low rounded-lg mb-md flex-shrink-0">
-              {(["login", "signup"] as const).map((m) => (
-                <button
-                  type="button"
-                  key={m}
-                  onClick={() => {
-                    setMode(m);
-                    setErrorMessage("");
-                    setSuccessMessage("");
-                  }}
-                  className={`flex-1 py-3 text-label-md font-label-md rounded-md transition-all ${
-                    mode === m
-                      ? "bg-surface shadow-sm text-primary"
-                      : "text-on-surface-variant hover:text-primary"
-                  }`}
-                >
-                  {m === "login" ? "Log In" : "Create Account"}
-                </button>
-              ))}
-            </div>
-
-            <div className="text-center mb-md flex-shrink-0">
-              <h1 className="font-headline-md text-headline-md text-primary mb-xs">
-                {isLogin ? "Welcome Back" : "Join the Collection"}
-              </h1>
-              <p className="font-body-md text-on-surface-variant">
-                {isLogin
-                  ? "Please enter your credentials to access the lobby."
-                  : "Create an account to start bidding on exclusive lots."}
-              </p>
-            </div>
-
-            {/* Form */}
-            <form className="space-y-3 flex-grow" onSubmit={handleSubmit}>
-              {!isLogin && (
-                <div>
-                  <label className="block font-label-md text-label-md text-on-surface-variant mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    placeholder="Alexander Sterling"
-                    value={fullName}
-                    onChange={(event) => setFullName(event.target.value)}
-                    autoComplete="name"
-                    required={!isLogin}
-                    className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
-                  />
+          {/* Role Selection Screen */}
+          {isSelectRole && (
+            <div className="bg-surface p-md rounded-xl shadow-sm border border-outline-variant/30 flex flex-col">
+              <div className="text-center mb-sm">
+                <div className="w-16 h-16 bg-secondary-container rounded-full flex items-center justify-center mx-auto mb-md">
+                  <span className="material-symbols-outlined text-3xl text-secondary">how_to_reg</span>
                 </div>
-              )}
-
-              {!isLogin && (
-                <div className="grid gap-3 md:grid-cols-2">
-                  <div>
-                    <label className="block font-label-md text-label-md text-on-surface-variant mb-1">Phone Number</label>
-                    <input
-                      type="tel"
-                      placeholder="+1 212 555 0182"
-                      value={phone}
-                      onChange={(event) => setPhone(event.target.value)}
-                      autoComplete="tel"
-                      required={!isLogin}
-                      className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-label-md text-label-md text-on-surface-variant mb-1">Identity Number</label>
-                    <input
-                      type="text"
-                      placeholder="A1234567"
-                      value={identityNumber}
-                      onChange={(event) => setIdentityNumber(event.target.value)}
-                      autoComplete="off"
-                      required={!isLogin}
-                      className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="block font-label-md text-label-md text-on-surface-variant mb-1">Email Address</label>
-                <input
-                  type="email"
-                  placeholder="collector@luxe.com"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  autoComplete="email"
-                  required
-                  className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
-                />
+                <h1 className="text-[26px] font-bold text-primary mb-xs">{t("chooseRole")}</h1>
+                <p className="text-sm text-on-surface-variant">
+                  {t("chooseRoleDesc")}
+                </p>
               </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="block font-label-md text-label-md text-on-surface-variant">Password</label>
-                  {isLogin && (
-                    <a href="#" className="text-label-sm font-label-sm text-secondary hover:underline">Forgot Password?</a>
-                  )}
-                </div>
-                <div className="relative">
-                  <input
-                    type={showPass ? "text" : "password"}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    autoComplete={isLogin ? "current-password" : "new-password"}
-                    required
-                    placeholder="••••••••"
-                    className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-on-surface-variant"
-                  >
-                    <span className="material-symbols-outlined text-[20px]">{showPass ? "visibility_off" : "visibility"}</span>
-                  </button>
-                </div>
-              </div>
-
-              {!isLogin && (
-                <div>
-                  <label className="block font-label-md text-label-md text-on-surface-variant mb-1">Confirm Password</label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(event) => setConfirmPassword(event.target.value)}
-                    autoComplete="new-password"
-                    required={!isLogin}
-                    placeholder="••••••••"
-                    className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
-                  />
-                </div>
-              )}
 
               {successMessage && (
-                <div className="rounded-lg border border-secondary/30 bg-secondary/10 px-4 py-3 text-label-md text-secondary">
+                <div className="mb-md rounded-lg border border-secondary/30 bg-secondary/10 px-4 py-3 text-label-md text-secondary">
                   {successMessage}
                 </div>
               )}
 
+              <div className="space-y-3 mt-4">
+                {/* Buyer Option */}
+                <button
+                  onClick={() => handleSelectRole("BUYER")}
+                  disabled={isSubmitting}
+                  className="w-full p-4 rounded-xl border-2 border-outline-variant hover:border-secondary transition-all text-left group disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-primary-container rounded-lg flex items-center justify-center">
+                      <span className="material-symbols-outlined text-2xl text-primary">shopping_bag</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-headline-sm text-headline-sm text-primary group-hover:text-secondary transition-colors">
+                        {t("buyerTitle")}
+                      </h3>
+                      <p className="text-sm text-on-surface-variant">{t("buyerDesc")}</p>
+                    </div>
+                    <span className="material-symbols-outlined text-secondary group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                  </div>
+                </button>
+
+                {/* Seller Option */}
+                <button
+                  onClick={() => handleSelectRole("SELLER")}
+                  disabled={isSubmitting}
+                  className="w-full p-4 rounded-xl border-2 border-outline-variant hover:border-secondary transition-all text-left group disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-tertiary-container rounded-lg flex items-center justify-center">
+                      <span className="material-symbols-outlined text-2xl text-tertiary">sell</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-headline-sm text-headline-sm text-primary group-hover:text-secondary transition-colors">
+                        {t("sellerTitle")}
+                      </h3>
+                      <p className="text-sm text-on-surface-variant">{t("sellerDesc")}</p>
+                    </div>
+                    <span className="material-symbols-outlined text-secondary group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                  </div>
+                </button>
+              </div>
+
               {errorMessage && (
-                <div className="rounded-lg border border-error/30 bg-error-container/20 px-4 py-3 text-label-md text-error">
+                <div className="mt-4 rounded-lg border border-error/30 bg-error-container/20 px-4 py-3 text-label-md text-error">
                   {errorMessage}
                 </div>
               )}
 
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-primary-container text-white py-3.5 rounded-lg font-label-md text-label-md hover:shadow-lg hover:shadow-primary-container/20 active:scale-[0.98] transition-all flex items-center justify-center gap-sm group disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  <span>{isSubmitting ? (isLogin ? "Checking credentials..." : "Creating account...") : isLogin ? "Access Account" : "Create Account"}</span>
-                  <span className="material-symbols-outlined text-[18px] text-secondary-fixed-dim group-hover:translate-x-1 transition-transform">
-                    arrow_forward
-                  </span>
+              <button
+                onClick={() => {
+                  setMode("login");
+                  setErrorMessage("");
+                  localStorage.removeItem("pending_email");
+                  localStorage.removeItem("pending_password");
+                }}
+                className="mt-4 text-center text-label-md text-on-surface-variant hover:text-secondary transition-colors"
+              >
+                {t("backToLogin")}
+              </button>
+            </div>
+          )}
+
+          {/* Login/Signup Form */}
+          {!isSelectRole && (
+            <div className="bg-surface p-md rounded-xl shadow-sm border border-outline-variant/30 flex flex-col">
+              {/* Toggle */}
+              <div className="flex p-xs bg-surface-container-low rounded-lg mb-sm flex-shrink-0">
+                {(["login", "signup"] as const).map((m) => (
+                  <button
+                    type="button"
+                    key={m}
+                    onClick={() => {
+                      setMode(m);
+                      setErrorMessage("");
+                      setSuccessMessage("");
+                    }}
+                    className={`flex-1 py-2 text-label-md font-label-md rounded-md transition-all ${
+                      mode === m
+                        ? "bg-surface shadow-sm text-primary"
+                        : "text-on-surface-variant hover:text-primary"
+                    }`}
+                  >
+                    {m === "login" ? t("logIn") : t("createAccount")}
+                  </button>
+                ))}
+              </div>
+
+              <div className="text-center mb-sm flex-shrink-0">
+                <h1 className="text-[26px] font-bold text-primary mb-xs">
+                  {isLogin ? t("welcomeBack") : t("joinCollection")}
+                </h1>
+                <p className="text-sm text-on-surface-variant">
+                  {isLogin
+                    ? t("welcomeBackDesc")
+                    : t("joinCollectionDesc")}
+                </p>
+              </div>
+
+              {/* Form */}
+              <form className="space-y-2.5" onSubmit={handleSubmit}>
+                {isSignup && (
+                  <div>
+                    <label className="block text-sm font-semibold text-on-surface-variant mb-1">{t("fullName")}</label>
+                    <input
+                      type="text"
+                      placeholder={t("fullNamePlaceholder")}
+                      value={fullName}
+                      onChange={(event) => setFullName(event.target.value)}
+                      autoComplete="name"
+                      required={isSignup}
+                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
+                    />
+                  </div>
+                )}
+
+                {isSignup && (
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-semibold text-on-surface-variant mb-1">{t("phone")}</label>
+                      <input
+                        type="tel"
+                        placeholder={t("phonePlaceholder")}
+                        value={phone}
+                        onChange={(event) => setPhone(event.target.value)}
+                        autoComplete="tel"
+                        required={isSignup}
+                        className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-semibold text-on-surface-variant mb-1">{t("email")}</label>
+                  <input
+                    type="email"
+                    placeholder={t("emailPlaceholder")}
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    autoComplete="email"
+                    required
+                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-sm font-semibold text-on-surface-variant">{t("password")}</label>
+                    {isLogin && (
+                      <a href="#" className="text-label-sm font-label-sm text-secondary hover:underline">{t("forgotPassword")}</a>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showPass ? "text" : "password"}
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      autoComplete={isLogin ? "current-password" : "new-password"}
+                      required
+                      placeholder="••••••••"
+                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-on-surface-variant"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">{showPass ? "visibility_off" : "visibility"}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {isSignup && (
+                  <div>
+                    <label className="block text-sm font-semibold text-on-surface-variant mb-1">{t("confirmPassword")}</label>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(event) => setConfirmPassword(event.target.value)}
+                      autoComplete="new-password"
+                      required={isSignup}
+                      placeholder="••••••••"
+                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
+                    />
+                  </div>
+                )}
+
+                {successMessage && !isSignup && (
+                  <div className="rounded-lg border border-secondary/30 bg-secondary/10 px-4 py-3 text-label-md text-secondary">
+                    {successMessage}
+                  </div>
+                )}
+
+                {errorMessage && (
+                  <div className="rounded-lg border border-error/30 bg-error-container/20 px-4 py-3 text-label-md text-error">
+                    {errorMessage}
+                  </div>
+                )}
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-primary-container text-white py-3 rounded-lg font-label-md text-label-md hover:shadow-lg hover:shadow-primary-container/20 active:scale-[0.98] transition-all flex items-center justify-center gap-sm group disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    <span>{isSubmitting ? (isLogin ? t("loggingIn") : t("creatingAccount")) : isLogin ? t("loginSubmit") : t("signupSubmit")}</span>
+                    <span className="material-symbols-outlined text-[18px] text-secondary-fixed-dim group-hover:translate-x-1 transition-transform">
+                      arrow_forward
+                    </span>
+                  </button>
+                </div>
+              </form>
+
+              {/* Social logins */}
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-outline-variant/50" />
+                </div>
+                <div className="relative flex justify-center text-label-sm font-label-sm">
+                  <span className="bg-surface px-4 text-on-surface-variant">{t("orContinueWith")}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-sm">
+                <button className="flex items-center justify-center gap-xs py-2 px-4 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-all font-label-md text-label-md">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                  </svg>
+                  Google
+                  </button>
+                <button className="flex items-center justify-center gap-xs py-2 px-4 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-all font-label-md text-label-md">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.78 1.18-.11 2.31-.91 3.73-.8 1.51.13 2.65.69 3.4 1.76-3.13 1.83-2.6 6.04.48 7.33-.62 1.55-1.46 3.09-2.69 4.1zm-4.71-14.24c-.04-1.93 1.6-3.64 3.46-3.71.21 2.2-2.11 3.86-3.46 3.71z" />
+                  </svg>
+                  {t("apple")}
                 </button>
               </div>
-            </form>
 
-            {/* Social logins */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-outline-variant/50" />
-              </div>
-              <div className="relative flex justify-center text-label-sm font-label-sm">
-                <span className="bg-surface px-4 text-on-surface-variant">Or continue with</span>
-              </div>
+              <p className="mt-4 text-center text-[11px] text-on-surface-variant/60 leading-relaxed">
+                {t("termsPrefix")}{" "}
+                <a className="underline hover:text-secondary" href="#">{t("terms")}</a> {t("and")}{" "}
+                <a className="underline hover:text-secondary" href="#">{t("auctionRules")}</a>.
+              </p>
             </div>
-
-            <div className="grid grid-cols-2 gap-sm">
-              <button className="flex items-center justify-center gap-xs py-2.5 px-4 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-all font-label-md text-label-md">
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                </svg>
-                Google
-              </button>
-              <button className="flex items-center justify-center gap-xs py-2.5 px-4 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-all font-label-md text-label-md">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.78 1.18-.11 2.31-.91 3.73-.8 1.51.13 2.65.69 3.4 1.76-3.13 1.83-2.6 6.04.48 7.33-.62 1.55-1.46 3.09-2.69 4.1zm-4.71-14.24c-.04-1.93 1.6-3.64 3.46-3.71.21 2.2-2.11 3.86-3.46 3.71z" />
-                </svg>
-                Apple
-              </button>
-            </div>
-
-            <p className="mt-8 text-center text-label-sm text-on-surface-variant/60 leading-relaxed">
-              By accessing LuxeAuction, you agree to our{" "}
-              <a className="underline hover:text-secondary" href="#">Terms of Service</a> and{" "}
-              <a className="underline hover:text-secondary" href="#">Auction Rules</a>.
-            </p>
-          </div>
+          )}
         </div>
       </section>
     </main>

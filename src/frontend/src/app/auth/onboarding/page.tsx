@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 export default function OnboardingPage() {
+  const t = useTranslations("onboarding");
   const [selected, setSelected] = useState<"collector" | "seller" | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -20,14 +22,14 @@ export default function OnboardingPage() {
     {
       id: "collector" as const,
       icon: "gavel",
-      title: "I am a Collector",
-      desc: "Bid on exclusive luxury items, track live auctions, and build your portfolio.",
+      title: t("collectorTitle"),
+      desc: t("collectorDesc"),
     },
     {
       id: "seller" as const,
       icon: "storefront",
-      title: "I am a Seller",
-      desc: "Consign your premium assets, reach elite buyers, and use AI to value your items.",
+      title: t("sellerTitle"),
+      desc: t("sellerDesc"),
     },
   ];
 
@@ -65,10 +67,10 @@ export default function OnboardingPage() {
       <main className="flex-grow flex flex-col items-center justify-center px-margin-mobile md:px-margin-desktop py-lg text-center relative z-10">
         <div className="max-w-3xl mb-xl">
           <h2 className="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-white mb-sm">
-            Welcome to LuxeAuction! How would you like to participate?
+            {t("heroTitle")}
           </h2>
           <p className="font-headline-sm text-headline-sm text-on-primary-container opacity-80 max-w-2xl mx-auto">
-            Select your primary goal. You can always change or upgrade your account type later.
+            {t("heroSubtitle")}
           </p>
         </div>
 
@@ -96,7 +98,7 @@ export default function OnboardingPage() {
               <h3 className="font-headline-md text-headline-md text-white mb-base">{role.title}</h3>
               <p className="font-body-md text-body-md text-on-primary-container opacity-70">{role.desc}</p>
               <div className={`mt-md transition-opacity ${selected === role.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
-                <span className="font-label-md text-label-md text-secondary-fixed uppercase tracking-widest">Select Account</span>
+                <span className="font-label-md text-label-md text-secondary-fixed uppercase tracking-widest">{t("selectAccount")}</span>
               </div>
             </button>
           ))}
@@ -118,17 +120,17 @@ export default function OnboardingPage() {
             {loading ? (
               <>
                 <span className="material-symbols-outlined animate-spin">sync</span>
-                Initializing Your Workspace...
+                {t("initializing")}
               </>
             ) : (
               <>
-                Continue to Dashboard
+                {t("continueToDashboard")}
                 <span className="material-symbols-outlined">arrow_forward</span>
               </>
             )}
           </button>
           <p className="mt-sm font-label-sm text-label-sm text-on-primary-container opacity-40">
-            Secure enterprise-grade encryption for all transactions.
+            {t("encryptionNote")}
           </p>
         </div>
       </main>

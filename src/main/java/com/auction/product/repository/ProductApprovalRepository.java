@@ -12,5 +12,6 @@ import java.util.List;
 @Repository
 public interface ProductApprovalRepository extends JpaRepository<ProductApproval, Long> {
     List<ProductApproval> findByProductId(Long productId);
+    void deleteByProductId(Long productId);
 }
 

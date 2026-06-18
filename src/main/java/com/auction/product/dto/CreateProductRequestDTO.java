@@ -2,10 +2,12 @@ package com.auction.product.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -31,8 +33,17 @@ public class CreateProductRequestDTO {
 
     private Integer taxPercent = 5;
 
+    /** Auction mode: "LIVE" (3 minutes) or "TIMED" (6-12 hours). Optional. */
+    @Pattern(regexp = "LIVE|TIMED", message = "auctionMode must be LIVE or TIMED")
+    private String auctionMode;
+
+    /** When the seller wants the auction to open. Required when auctionMode is set. */
+    private LocalDateTime scheduledStartTime;
+
+    /** Duration in seconds. LIVE: ignored (fixed 180s). TIMED: 21600-43200 (6-12 hours). */
+    private Long scheduledDurationSeconds;
+
     private List<CreateProductImageDTO> images;
 
     private List<CreateProductAttributeValueDTO> attributes;
 }
-

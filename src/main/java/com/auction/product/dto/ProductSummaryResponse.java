@@ -12,6 +12,13 @@ public class ProductSummaryResponse {
     private Long categoryId;
     private String categoryName;
     private Long startingPrice;
+    private Long currentBid;
     private String status;
+    private String imageUrl;
+    private Long auctionId;
+    private String auctionStatus;
+    private String auctionStartTime;
+    private String auctionEndTime;
+    private String auctionMode;
+    private Long scheduledDurationSeconds;
 }
-

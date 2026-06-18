@@ -26,6 +26,8 @@ public class BiddingProductController {
             @RequestParam(name = "minPrice", required = false) Long minPrice,
             @RequestParam(name = "maxStartingPrice", required = false) Long maxStartingPrice,
             @RequestParam(name = "maxPrice", required = false) Long maxPrice,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "auctionStatus", required = false) String auctionStatus,
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "10") Integer size
     ) {
@@ -34,6 +36,8 @@ public class BiddingProductController {
         request.setCategoryId(categoryId);
         request.setMinStartingPrice(minStartingPrice != null ? minStartingPrice : minPrice);
         request.setMaxStartingPrice(maxStartingPrice != null ? maxStartingPrice : maxPrice);
+        request.setStatus(status);
+        request.setAuctionStatus(auctionStatus);
         request.setPage(page);
         request.setSize(size);
 
@@ -41,7 +45,7 @@ public class BiddingProductController {
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<ProductDetailResponse> getProductDetail(@PathVariable Long productId) {
+    public ResponseEntity<ProductDetailResponse> getProductDetail(@PathVariable("productId") Long productId) {
         return ResponseEntity.ok(productService.getProductDetail(productId));
     }
 }

@@ -32,8 +32,6 @@ public class ContractServiceImpl implements ContractService {
         contract.setReferenceId(productId);
         // TODO: Replace with actual PDF generation service
         contract.setFileUrl("/contracts/listing_" + productId + ".pdf");
-        contract.setStatus("GENERATED");
-        contract.setGeneratedBy(generatedBy);
         contract.setCreatedAt(LocalDateTime.now());
         return contractRepository.save(contract);
     }

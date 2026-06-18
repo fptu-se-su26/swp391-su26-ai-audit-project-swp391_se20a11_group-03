@@ -1,5 +1,6 @@
 package com.auction.account.dao;
 
+import com.auction.account.entity.Role;
 import com.auction.account.entity.User;
 import com.auction.common.util.JpaUtil;
 import jakarta.persistence.EntityManager;
@@ -51,6 +52,20 @@ public class UserDAO {
         } catch (RuntimeException ex) {
             rollbackQuietly(em);
             throw ex;
+        } finally {
+            closeQuietly(em);
+        }
+    }
+
+    public Role findRoleByName(String roleName) {
+        EntityManager em = JpaUtil.createEntityManager();
+        try {
+            TypedQuery<Role> query = em.createQuery(
+                    "SELECT r FROM Role r WHERE r.roleName = :roleName",
+                    Role.class
+            );
+            query.setParameter("roleName", roleName);
+            return query.getResultStream().findFirst().orElse(null);
         } finally {
             closeQuietly(em);
         }

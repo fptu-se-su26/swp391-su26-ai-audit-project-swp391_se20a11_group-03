@@ -1,14 +1,40 @@
 package com.auction.bidding.controller;
 
+import com.auction.account.dao.UserRepository;
+import com.auction.account.entity.User;
+import com.auction.account.security.UserDetailsImpl;
+import com.auction.bidding.config.WebSocketConfig;
 import com.auction.bidding.dto.AuctionEligibilityResponse;
+import com.auction.bidding.dto.AuctionStateResponse;
+import com.auction.bidding.dto.BidRecordResponse;
+import com.auction.bidding.dto.BidRequest;
+import com.auction.bidding.dto.BidResponse;
+import com.auction.bidding.entity.Auction;
+import com.auction.bidding.entity.Bid;
+import com.auction.bidding.repository.AuctionRepository;
+import com.auction.bidding.repository.BidRepository;
 import com.auction.bidding.service.AuctionService;
+import com.auction.bidding.service.AuctionPaymentService;
+import com.auction.bidding.service.BiddingService;
+import com.auction.common.exception.ResourceNotFoundException;
+import com.auction.common.util.KycGuard;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auctions")
@@ -16,13 +42,108 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuctionController {
 
     private final AuctionService auctionService;
+    private final BiddingService biddingService;
+    private final AuctionRepository auctionRepository;
+    private final BidRepository bidRepository;
+    private final UserRepository userRepository;
+    private final AuctionPaymentService auctionPaymentService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @GetMapping("/{auctionId}/eligibility")
     public ResponseEntity<AuctionEligibilityResponse> getEligibility(
-            @PathVariable Long auctionId,
-            @RequestParam(required = false) Long userId
+            @PathVariable("auctionId") Long auctionId,
+            @AuthenticationPrincipal UserDetailsImpl user
     ) {
+        Long userId = user != null ? user.getId() : null;
         return ResponseEntity.ok(auctionService.getEligibility(auctionId, userId));
     }
-}
 
+    /** Polled by the frontend every 2s. Public so unauthenticated users can preview the room. */
+    @GetMapping("/{auctionId}/state")
+    public ResponseEntity<AuctionStateResponse> getState(@PathVariable("auctionId") Long auctionId) {
+        Auction auction = auctionRepository.findById(auctionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + auctionId));
+
+        long totalBids = bidRepository.findByAuctionIdOrderByBidAmountDesc(auctionId).size();
+
+        AuctionStateResponse.AuctionStateResponseBuilder b = AuctionStateResponse.builder()
+                .auctionId(auction.getAuctionId())
+                .productId(auction.getProduct() != null ? auction.getProduct().getProductId() : null)
+                .auctionMode(auction.getAuctionMode() != null ? auction.getAuctionMode().name() : "TIMED")
+                .status(auction.getStatus())
+                .paymentStatus(auction.getPaymentStatus())
+                .currentHighestBid(auction.getCurrentHighestBid())
+                .currentWinnerUserId(auction.getCurrentWinnerUser() != null ? (long) auction.getCurrentWinnerUser().getId() : null)
+                .startTime(auction.getStartTime())
+                .endTime(auction.getEndTime())
+                .paymentDeadline(auction.getPaymentDeadline())
+                .totalBids(totalBids)
+                .serverNow(LocalDateTime.now());
+
+        return ResponseEntity.ok(b.build());
+    }
+
+    /** Public: latest bids for an auction, sorted newest first. */
+    @GetMapping("/{auctionId}/bids")
+    public ResponseEntity<List<BidRecordResponse>> getBidHistory(
+            @PathVariable("auctionId") Long auctionId,
+            @RequestParam(name = "limit", defaultValue = "20") int limit
+    ) {
+        List<Bid> bids = bidRepository.findByAuctionIdOrderByBidAmountDesc(auctionId);
+        Map<Integer, String> usernameByUserId = userRepository.findAll().stream()
+                .filter(u -> u.getUsername() != null)
+                .collect(Collectors.toMap(User::getId, User::getUsername, (a, b) -> a));
+
+        List<BidRecordResponse> result = bids.stream()
+                .sorted(Comparator.comparing(Bid::getBidTime).reversed())
+                .limit(Math.max(1, Math.min(limit, 100)))
+                .map(b -> BidRecordResponse.builder()
+                        .bidId(b.getBidId())
+                        .auctionId(b.getAuctionId())
+                        .userId(b.getUserId())
+                        .username(usernameByUserId.get(Math.toIntExact(b.getUserId())))
+                        .bidAmount(b.getBidAmount())
+                        .bidTime(b.getBidTime())
+                        .build())
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(result);
+    }
+
+    /** Place a bid. Authenticated + KYC-verified user only. */
+    @PostMapping("/{auctionId}/bid")
+    public ResponseEntity<BidResponse> placeBid(
+            @PathVariable("auctionId") Long auctionId,
+            @RequestBody BidRequest request,
+            @AuthenticationPrincipal UserDetailsImpl user
+    ) {
+        if (user == null) {
+            return ResponseEntity.status(401).body(BidResponse.fail("Authentication required"));
+        }
+        try {
+            KycGuard.requireVerified(Math.toIntExact(user.getId()), userRepository);
+        } catch (com.auction.common.exception.KycRequiredException ex) {
+            return ResponseEntity.status(403).body(BidResponse.fail(ex.getMessage()));
+        }
+        request.setAuctionId(auctionId);
+        request.setUserId(user.getId());
+        BidResponse response = biddingService.placeBid(request);
+        if (response.isSuccess()) {
+            messagingTemplate.convertAndSend(WebSocketConfig.BID_TOPIC, response);
+        }
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{auctionId}/pay")
+    public ResponseEntity<?> payAuction(
+            @PathVariable("auctionId") Long auctionId,
+            @AuthenticationPrincipal UserDetailsImpl user
+    ) {
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Authentication required"
+            ));
+        }
+        return ResponseEntity.ok(auctionPaymentService.payAuction(auctionId, user.getId()));
+    }
+}

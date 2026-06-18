@@ -1,1 +1,32 @@
-/.idea
+.idea/
+*.iml
+
+# Java / Maven
+target/
+*.class
+*.war
+*.jar
+
+# Next.js / Node
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# Logs and runtime output
+*.log
+*.out.log
+*.err.log
+logs/
+tmp/
+frontend/tmp/
+
+# Local uploads generated during development
+uploads/
+src/main/resources/static/uploads/
+
+# Local environment files
+.env
+.env.*
+!.env.example

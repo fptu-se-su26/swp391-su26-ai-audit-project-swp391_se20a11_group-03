@@ -24,11 +24,27 @@ public class JpaAuctionSessionRepository implements AuctionSessionRepository {
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<AuctionSession> findById(Long auctionId) {
+        return Optional.ofNullable(entityManager.find(AuctionSession.class, auctionId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<AuctionSession> findOpenRooms() {
         return entityManager.createQuery(
                         "SELECT a FROM AuctionSession a WHERE a.status IN :statuses",
                         AuctionSession.class)
                 .setParameter("statuses", List.of(AuctionStatus.UPCOMING, AuctionStatus.ACTIVE))
+                .getResultList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AuctionSession> findByCurrentWinnerUserId(Integer userId) {
+        return entityManager.createQuery(
+                        "SELECT a FROM AuctionSession a WHERE a.currentWinnerUserId = :userId",
+                        AuctionSession.class)
+                .setParameter("userId", userId)
                 .getResultList();
     }
 

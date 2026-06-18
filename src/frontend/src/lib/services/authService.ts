@@ -12,13 +12,14 @@ export type LoginResponse = {
   roleName: string;
   status: string;
   token: string;
+  identityVerified: boolean;
+  profileStatus: string;
 };
 
 export type RegisterRequest = {
   fullName: string;
   email: string;
   phone: string;
-  identityNumber: string;
   password: string;
   confirmPassword: string;
 };
@@ -49,5 +50,25 @@ export function register(payload: RegisterRequest) {
 export function checkBackendHealth() {
   return apiClient<string>("/alive", {
     method: "GET",
+  });
+}
+
+export type SelectRoleRequest = {
+  userId: number;
+  role: "Seller" | "User";
+};
+
+export type SelectRoleResponse = {
+  success: boolean;
+  message: string;
+  userId?: number;
+  roleName?: string;
+  previousRole?: string;
+};
+
+export function selectRole(payload: SelectRoleRequest) {
+  return apiClient<SelectRoleResponse>("/auth/select-role", {
+    method: "POST",
+    body: payload as unknown as Record<string, unknown>,
   });
 }

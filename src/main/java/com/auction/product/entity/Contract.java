@@ -29,12 +29,6 @@ public class Contract {
     @Column(name = "FileUrl", nullable = false, length = 500)
     private String fileUrl;
 
-    @Column(name = "Status", nullable = false, length = 30)
-    private String status = "GENERATED";
-
-    @Column(name = "GeneratedBy")
-    private Long generatedBy;
-
     @Column(name = "CreatedAt", nullable = false)
     private LocalDateTime createdAt;
 }

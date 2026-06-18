@@ -56,6 +56,10 @@ export function createWithdrawal(payload: WithdrawPayload) {
   });
 }
 
+export function getMyWithdrawals() {
+  return apiClient<Withdrawal[]>("/wallet/withdrawals");
+}
+
 export function getWithdrawals(status = "PENDING") {
   return apiClient<Withdrawal[]>(`/staff/withdrawals?status=${encodeURIComponent(status)}`);
 }

@@ -11,6 +11,7 @@ import com.auction.bidding.repository.AuctionDepositRepository;
 
 import com.auction.bidding.entity.*;
 import com.auction.bidding.dto.DepositResponse;
+import com.auction.bidding.util.DepositCalculator;
 import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.bidding.repository.*;
 import com.auction.bidding.service.DepositService;
@@ -49,7 +50,7 @@ public class DepositServiceImpl implements DepositService {
             throw new IllegalStateException("Deposit closed 30 minutes before auction starts");
         }
 
-        Long depositAmount = Math.round(auction.getProduct().getStartingPrice() * 0.10d);
+        long depositAmount = DepositCalculator.calculate(auction.getProduct().getStartingPrice());
         if (wallet.getBalance() == null || wallet.getBalance() < depositAmount) {
             throw new IllegalStateException("Insufficient wallet balance");
         }
@@ -68,7 +69,8 @@ public class DepositServiceImpl implements DepositService {
         transaction.setAmount(depositAmount);
         transaction.setTransactionType("HOLD_BID");
         transaction.setStatus("COMPLETED");
-        transaction.setDescription("Lock 10% deposit for auction " + auctionId);
+        transaction.setDescription("Lock " + DepositCalculator.describeTier(auction.getProduct().getStartingPrice())
+                + " deposit for auction " + auctionId);
         transaction.setCreatedAt(LocalDateTime.now());
         transactionRepository.save(transaction);
 

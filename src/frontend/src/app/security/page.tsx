@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import CollectorShell from "@/components/layout/CollectorShell";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 export default function SecurityPage() {
+  const t = useTranslations("security");
   const [twoFA, setTwoFA] = useState(true);
 
   const sessions = [
@@ -16,26 +18,26 @@ export default function SecurityPage() {
     <CollectorShell>
       <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg">
         <div>
-          <h1 className="font-display-lg-mobile md:font-display-lg text-primary">Security Settings</h1>
-          <p className="font-body-lg text-on-surface-variant mt-xs">Manage your account security and login activity.</p>
+          <h1 className="font-display-lg-mobile md:font-display-lg text-primary">{t("title")}</h1>
+          <p className="font-body-lg text-on-surface-variant mt-xs">{t("subtitle")}</p>
         </div>
 
         {/* Change Password */}
         <div className="bg-surface rounded-xl p-lg soft-shadow border border-surface-variant">
-          <h3 className="font-headline-sm text-headline-sm text-primary mb-lg border-b border-surface-variant pb-sm">Change Password</h3>
+          <h3 className="font-headline-sm text-headline-sm text-primary mb-lg border-b border-surface-variant pb-sm">{t("changePassword")}</h3>
           <div className="space-y-md max-w-md">
-            {["Current Password", "New Password", "Confirm New Password"].map((label) => (
+            {[t("currentPassword"), t("newPassword"), t("confirmNewPassword")].map((label) => (
               <div key={label}>
                 <label className="block font-label-md text-label-md text-on-surface-variant mb-xs">{label}</label>
                 <input
                   type="password"
-                  placeholder="••••••••"
+                  placeholder={t("passwordPlaceholder")}
                   className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-low focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all"
                 />
               </div>
             ))}
             <button className="bg-primary-container text-on-primary px-lg py-sm rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity">
-              Update Password
+              {t("updatePassword")}
             </button>
           </div>
         </div>
@@ -44,8 +46,8 @@ export default function SecurityPage() {
         <div className="bg-surface rounded-xl p-lg soft-shadow border border-surface-variant">
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="font-headline-sm text-headline-sm text-primary">Two-Factor Authentication</h3>
-              <p className="font-body-md text-on-surface-variant mt-xs">Add an extra layer of security to your account.</p>
+              <h3 className="font-headline-sm text-headline-sm text-primary">{t("twoFactorAuth")}</h3>
+              <p className="font-body-md text-on-surface-variant mt-xs">{t("twoFactorDesc")}</p>
             </div>
             <button
               onClick={() => setTwoFA((v) => !v)}
@@ -59,7 +61,7 @@ export default function SecurityPage() {
           {twoFA && (
             <div className="mt-md p-md bg-tertiary-fixed/20 rounded-lg border border-tertiary-fixed-dim/30 flex items-center gap-sm">
               <span className="material-symbols-outlined text-on-tertiary-container" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-              <span className="font-label-md text-label-md text-on-tertiary-container">2FA is active via Authenticator App</span>
+              <span className="font-label-md text-label-md text-on-tertiary-container">{t("twoFactorActive")}</span>
             </div>
           )}
         </div>
@@ -67,7 +69,7 @@ export default function SecurityPage() {
         {/* Active Sessions */}
         <div className="bg-surface rounded-xl p-lg soft-shadow border border-surface-variant">
           <h3 className="font-headline-sm text-headline-sm text-primary mb-lg border-b border-surface-variant pb-sm">
-            Active Login Sessions
+            {t("activeSessions")}
           </h3>
           <div className="space-y-md">
             {sessions.map((session, i) => (
@@ -83,10 +85,10 @@ export default function SecurityPage() {
                 </div>
                 {session.current ? (
                   <span className="px-2 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full font-label-sm text-[10px] font-bold uppercase">
-                    Current
+                    {t("current")}
                   </span>
                 ) : (
-                  <button className="text-error font-label-sm text-label-sm hover:underline">Revoke</button>
+                  <button className="text-error font-label-sm text-label-sm hover:underline">{t("revoke")}</button>
                 )}
               </div>
             ))}

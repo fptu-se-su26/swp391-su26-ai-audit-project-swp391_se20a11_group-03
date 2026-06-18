@@ -17,12 +17,25 @@ export function getStoredToken(): string | null {
     return null;
   }
 
-  return (
-    localStorage.getItem("token") ??
-    localStorage.getItem("accessToken") ??
-    localStorage.getItem("authToken") ??
-    localStorage.getItem("jwt")
-  );
+  // Check standalone token keys first
+  const standalone = localStorage.getItem("token")
+    ?? localStorage.getItem("accessToken")
+    ?? localStorage.getItem("authToken")
+    ?? localStorage.getItem("jwt");
+  if (standalone) return standalone;
+
+  // Fall back to token stored inside the currentUser JSON object
+  try {
+    const raw = localStorage.getItem("currentUser");
+    if (raw) {
+      const user = JSON.parse(raw);
+      if (user?.token) return user.token;
+    }
+  } catch {
+    // ignore parse errors
+  }
+
+  return null;
 }
 
 export function clearStoredAuth(): void {
@@ -40,6 +53,12 @@ export function clearStoredAuth(): void {
 function buildUrl(path: string): string {
   if (/^https?:\/\//i.test(path)) {
     return path;
+  }
+
+  // Static assets (uploads, images) are served at root level without /api
+  if (path.startsWith("/uploads/") || path.startsWith("uploads/")) {
+    const base = API_BASE_URL.replace(/\/+$/, "").replace(/\/api$/, "");
+    return `${base}/${path.replace(/^\/+/, "")}`;
   }
 
   const base = API_BASE_URL.replace(/\/+$/, "");
@@ -89,6 +108,24 @@ export async function apiClient<T>(path: string, options: ApiRequestOptions = {}
     credentials: "include",
     headers,
   });
+
+  if (!response.ok) {
+    let payload: unknown = null;
+    try {
+      const contentType = response.headers.get("content-type") ?? "";
+      payload = contentType.includes("application/json")
+        ? await response.clone().json()
+        : await response.clone().text();
+    } catch {
+      // ignore
+    }
+    console.error("[apiClient] request failed", {
+      url: buildUrl(path),
+      method: options.method ?? "GET",
+      status: response.status,
+      body: payload,
+    });
+  }
 
   return parseResponse<T>(response);
 }

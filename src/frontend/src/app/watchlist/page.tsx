@@ -1,60 +1,144 @@
-import { mockWatchlist } from "@/lib/mock-data";
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import CollectorShell from "@/components/layout/CollectorShell";
+import { useTranslations } from "@/i18n/I18nProvider";
+import { getWatchlist, WatchlistItem, removeFromWatchlist } from "@/lib/services/userBidService";
+import { refreshWatchlistIds, subscribeWatchlist } from "@/lib/watchlist";
+
+const formatVnd = (value: number) =>
+  new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
 
 export default function WatchlistPage() {
+  const t = useTranslations("watchlistPage");
+  const [items, setItems] = useState<WatchlistItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadWatchlist = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const watchlistItems = await getWatchlist();
+      setItems(watchlistItems);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadWatchlist();
+    refreshWatchlistIds();
+    const unsubscribe = subscribeWatchlist(loadWatchlist);
+    return () => unsubscribe();
+  }, []);
+
+  const handleRemove = async (productId: number) => {
+    const success = await removeFromWatchlist(productId);
+    if (success) {
+      setItems(prev => prev.filter(item => item.productId !== productId));
+      refreshWatchlistIds();
+    }
+  };
+
   return (
     <CollectorShell>
-      <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg">
+      <div className="mx-auto max-w-[1400px] space-y-lg p-margin-mobile md:p-margin-desktop">
         <div>
-          <h1 className="font-display-lg-mobile md:font-display-lg text-primary">Watchlist</h1>
-          <p className="font-body-lg text-on-surface-variant mt-xs">Track lots you are monitoring for upcoming bids.</p>
+          <h1 className="font-display-lg-mobile text-primary md:font-display-lg">{t("title")}</h1>
+          <p className="mt-xs font-body-lg text-on-surface-variant">{t("subtitle")}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-md">
-          {mockWatchlist.map((item) => (
-            <div
-              key={item.id}
-              className="bg-surface rounded-xl overflow-hidden soft-shadow border border-surface-variant group"
+        {error && (
+          <div className="rounded-xl border border-error/30 bg-error-container px-4 py-3 text-error">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="rounded-xl border border-surface-variant bg-surface p-xl text-center text-on-surface-variant">
+            {t("loading")}
+          </div>
+        ) : items.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-outline-variant bg-surface p-xl text-center">
+            <h2 className="font-headline-sm text-headline-sm text-primary">{t("emptyTitle")}</h2>
+            <p className="mt-xs text-on-surface-variant">{t("emptyDesc")}</p>
+            <Link
+              href="/"
+              className="mt-md inline-flex rounded-lg bg-primary px-5 py-3 font-label-md text-on-primary transition-opacity hover:opacity-90"
             >
-              <div className="relative h-48 overflow-hidden bg-surface-variant">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute top-3 left-3">
-                  <span className="bg-surface-container/90 backdrop-blur-sm text-on-surface px-2 py-1 rounded font-label-sm text-label-sm">
-                    Lot #{item.lotNumber}
-                  </span>
-                </div>
-                <button className="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface/90 flex items-center justify-center text-error hover:bg-surface transition-colors">
-                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
-                </button>
-              </div>
-              <div className="p-md">
-                <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">{item.category}</span>
-                <h3 className="font-headline-sm text-headline-sm text-primary mt-1 mb-sm">{item.title}</h3>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-label-sm text-label-sm text-on-surface-variant">Current Bid</p>
-                    <p className="font-headline-sm text-headline-sm text-primary font-bold">${item.currentBid.toLocaleString()}</p>
+              {t("exploreProducts")}
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-md md:grid-cols-2 xl:grid-cols-3">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                className="group overflow-hidden rounded-xl border border-surface-variant bg-surface soft-shadow"
+              >
+                <div className="relative">
+                  <div className="aspect-square overflow-hidden bg-surface-variant">
+                    <img
+                      src={item.image}
+                      alt={item.productName}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
                   </div>
-                  <div className="text-right">
-                    <p className="font-label-sm text-label-sm text-on-surface-variant">Time Left</p>
-                    <p className="font-label-md text-label-md text-error font-bold">{item.timeLeft}</p>
+                  <div className="absolute right-2 top-2">
+                    <button
+                      onClick={() => handleRemove(item.productId)}
+                      className="flex h-10 w-10 items-center justify-center rounded-full bg-surface/80 text-error shadow-sm backdrop-blur-sm transition-all hover:bg-error hover:text-on-error"
+                    >
+                      <span className="material-symbols-outlined text-xl">favorite</span>
+                    </button>
+                  </div>
+                  <div className="absolute bottom-2 left-2">
+                    <span className="rounded-full bg-surface/80 px-3 py-1 text-[10px] font-bold uppercase text-on-surface shadow-sm backdrop-blur-sm">
+                      {item.lotNumber}
+                    </span>
                   </div>
                 </div>
-                <Link
-                  href={`/auctions/${item.id}`}
-                  className="mt-md w-full bg-primary-container text-on-primary font-label-md text-label-md py-2 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-xs"
-                >
-                  View Auction
-                </Link>
+
+                <div className="p-md">
+                  <div className="mb-sm">
+                    <h3 className="line-clamp-2 font-headline-sm text-headline-sm text-primary">
+                      {item.productName}
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-on-surface-variant">{t("currentBid")}</p>
+                      <p className="font-headline-sm text-headline-sm font-bold text-primary">
+                        {formatVnd(item.currentBid)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] uppercase tracking-wider text-on-surface-variant">{t("ends")}</p>
+                      <p className="text-sm text-on-surface">
+                        {item.endTime ? new Date(item.endTime).toLocaleString("vi-VN") : t("tbd")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-md flex gap-sm">
+                    <Link
+                      href={`/auctions/${item.productId}`}
+                      className="flex-1 rounded-lg bg-secondary py-2 text-center font-label-md text-label-md text-on-secondary transition-colors hover:bg-secondary-fixed-dim"
+                    >
+                      {t("viewDetails")}
+                    </Link>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </CollectorShell>
   );

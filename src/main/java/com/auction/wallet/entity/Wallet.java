@@ -29,4 +29,13 @@ public class Wallet {
 
     @Column(name = "UpdatedAt", nullable = false)
     private LocalDateTime updatedAt;
+
+    public Wallet() {}
+
+    public Wallet(User user, Long balance, Long holdBalance, LocalDateTime updatedAt) {
+        this.user = user;
+        this.balance = balance;
+        this.holdBalance = holdBalance;
+        this.updatedAt = updatedAt;
+    }
 }

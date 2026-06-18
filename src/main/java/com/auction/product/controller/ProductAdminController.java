@@ -1,12 +1,13 @@
 package com.auction.product.controller;
 
+import com.auction.account.security.UserDetailsImpl;
 import com.auction.common.dto.ApiResponse;
-
 import com.auction.product.dto.*;
 import com.auction.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.List;
  * @author Pham Manh Thang
  */
 @RestController
-@RequestMapping("/admin/products")
+@RequestMapping({"/admin/products", "/api/admin/products"})
 @RequiredArgsConstructor
 public class ProductAdminController {
 
@@ -36,23 +37,24 @@ public class ProductAdminController {
     @PostMapping("/{productId}/approve")
     public ResponseEntity<ApiResponse<ProductResponseDTO>> approveProduct(
             @PathVariable Long productId,
+            @AuthenticationPrincipal UserDetailsImpl user,
             @Valid @RequestBody(required = false) ProductApprovalRequestDTO request) {
         if (request == null) {
             request = new ProductApprovalRequestDTO();
         }
-        // TODO: Replace with actual authenticated user ID from Spring Security
-        Long reviewerId = 1L;
-        ProductResponseDTO product = productService.approveProduct(productId, request, reviewerId);
+        ProductResponseDTO product = productService.approveProduct(productId, request, user.getId());
         return ResponseEntity.ok(ApiResponse.success("Product approved successfully", product));
     }
 
     @PostMapping("/{productId}/reject")
     public ResponseEntity<ApiResponse<ProductResponseDTO>> rejectProduct(
             @PathVariable Long productId,
-            @Valid @RequestBody ProductApprovalRequestDTO request) {
-        // TODO: Replace with actual authenticated user ID from Spring Security
-        Long reviewerId = 1L;
-        ProductResponseDTO product = productService.rejectProduct(productId, request, reviewerId);
+            @AuthenticationPrincipal UserDetailsImpl user,
+            @Valid @RequestBody(required = false) ProductApprovalRequestDTO request) {
+        if (request == null) {
+            request = new ProductApprovalRequestDTO();
+        }
+        ProductResponseDTO product = productService.rejectProduct(productId, request, user.getId());
         return ResponseEntity.ok(ApiResponse.success("Product rejected successfully", product));
     }
 }

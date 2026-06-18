@@ -179,6 +179,14 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
+    public List<WithdrawalResponse> getWithdrawalsByUserId(Long userId) {
+        return withdrawalRequestRepository.findByUser_IdOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(this::toWithdrawalResponse)
+                .toList();
+    }
+
+    @Override
     public List<WithdrawalResponse> getWithdrawals(String status) {
         String normalized = status == null || status.isBlank()
                 ? null
