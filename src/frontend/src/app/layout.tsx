@@ -17,8 +17,8 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "LuxeAuction — Đấu giá đẳng cấp, chính xác từng phiên",
-  description: "Cộng đồng nhà sưu tầm đẳng cấp nhất thế giới. Sang trọng đã xác thực, tiếp cận toàn cầu.",
+  title: "LuxeAuction — Rare objects. Remarkable stories.",
+  description: "Bid on authenticated watches, art, design and rare collectibles from trusted sellers worldwide.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

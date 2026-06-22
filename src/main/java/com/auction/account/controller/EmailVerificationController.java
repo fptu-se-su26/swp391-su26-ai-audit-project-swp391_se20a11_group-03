@@ -1,47 +1,102 @@
 package com.auction.account.controller;
 
-import com.auction.account.dao.UserDAO;
 import com.auction.account.entity.User;
+import com.auction.account.security.UserDetailsImpl;
+import com.auction.account.service.EmailVerificationService;
+import com.auction.account.service.ProfileService;
+import com.auction.common.util.AuditLogUtil;
+import com.auction.common.util.TokenUtil;
+import com.auction.config.AppConfig;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
+import java.util.Map;
 
-@Controller
-@RequestMapping
+@RestController
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class EmailVerificationController {
-    private final UserDAO userDAO;
 
-    @PostMapping("/email-verification")
-    public String verifyEmail(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        User currentUser = session == null ? null : (User) session.getAttribute("currentUser");
-        if (currentUser == null) {
-            return "redirect:/login";
+    private final EmailVerificationService emailVerificationService;
+    private final ProfileService profileService;
+
+    /**
+     * POST /api/auth/send-verification-email
+     * Yêu cầu JWT. Gửi email chứa link xác minh tới địa chỉ email của user.
+     */
+    @PostMapping("/send-verification-email")
+    public ResponseEntity<Map<String, Object>> sendVerificationEmail(
+            @AuthenticationPrincipal UserDetailsImpl principal,
+            HttpServletRequest request) {
+
+        if (principal == null) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Chưa đăng nhập."));
         }
 
-        currentUser.setEmailVerified(true);
-        currentUser.setEmailVerifiedAt(LocalDateTime.now());
-        currentUser.setVerificationLevel((byte) Math.max(currentUser.getVerificationLevel(), 1));
-        updateProfileStatus(currentUser);
-        userDAO.update(currentUser);
-        session.setAttribute("currentUser", currentUser);
-        return "redirect:/profile?email_verified=1";
+        User user = profileService.getUserById(principal.getId().intValue());
+        if (user == null) {
+            return ResponseEntity.status(404).body(Map.of("success", false, "message", "Không tìm thấy tài khoản."));
+        }
+        if (user.isEmailVerified()) {
+            return ResponseEntity.ok(Map.of("success", true, "message", "Email đã được xác minh trước đó."));
+        }
+
+        // Build base URL: scheme://host:port/contextPath/api/auth/verify-email
+        String baseUrl = request.getScheme() + "://" + request.getServerName()
+                + ":" + request.getServerPort()
+                + request.getContextPath();
+        String verifyBaseUrl = baseUrl + "/api/auth/verify-email";
+
+        try {
+            int validMinutes = AppConfig.getInt("vnec.email.token.validMinutes", 15);
+            emailVerificationService.createAndSendToken(user, verifyBaseUrl, validMinutes);
+
+            AuditLogUtil.authEvent("VERIFY_EMAIL", true, user.getEmail(),
+                    "token_sent", request.getRemoteAddr(), request.getHeader("User-Agent"));
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Email xác minh đã được gửi. Vui lòng kiểm tra hộp thư."));
+        } catch (Exception e) {
+            AuditLogUtil.authEvent("VERIFY_EMAIL", false, user.getEmail(),
+                    e.getMessage(), request.getRemoteAddr(), request.getHeader("User-Agent"));
+            return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "message", "Không thể gửi email. Vui lòng thử lại sau."));
+        }
     }
 
-    private void updateProfileStatus(User user) {
-        if (user.isEmailVerified() && user.isIdentityVerified()) {
-            user.setProfileStatus("VERIFIED");
-        } else if (user.isEmailVerified()) {
-            user.setProfileStatus("EMAIL_VERIFIED");
+    /**
+     * GET /api/auth/verify-email?token=xxx
+     * Không cần JWT. User click link trong email → token được xác minh.
+     */
+    @GetMapping("/verify-email")
+    public ResponseEntity<Map<String, Object>> verifyEmail(
+            @RequestParam(name = "token", required = false) String rawToken,
+            HttpServletRequest request) {
+
+        if (rawToken == null || rawToken.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Token không hợp lệ."));
+        }
+
+        String tokenHash = TokenUtil.sha256(rawToken.trim());
+        boolean verified = profileService.verifyEmailToken(tokenHash);
+
+        if (verified) {
+            AuditLogUtil.authEvent("VERIFY_EMAIL", true, "-",
+                    "email_confirmed", request.getRemoteAddr(), request.getHeader("User-Agent"));
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Xác minh email thành công!"));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Token không hợp lệ, đã sử dụng hoặc đã hết hạn."));
         }
     }
 }
-
-
-

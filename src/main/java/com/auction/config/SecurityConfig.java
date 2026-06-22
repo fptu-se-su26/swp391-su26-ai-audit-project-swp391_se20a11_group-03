@@ -32,6 +32,12 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers(
+                        "/api/auth/send-verification-email",
+                        "/api/auth/verify-identity",
+                        "/api/auth/kyc-status"
+                ).authenticated()
+                .requestMatchers("/uploads/kyc/**").denyAll()
                 .requestMatchers("/uploads/**", "/api/auth/**", "/ws/**", "/api/alive", "/api/wallet/sepay-webhook").permitAll()
                 .requestMatchers("/api/wallet", "/api/wallet/deposit", "/api/wallet/withdraw").authenticated()
                 .requestMatchers("/api/wallets/user/**").hasAnyRole("Staff", "Admin")

@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import CollectorShell from "@/components/layout/CollectorShell";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
+import EmptyState from "@/components/dashboard/EmptyState";
 import {
   StoredUser,
   getRoleLabelKey,
@@ -124,16 +127,13 @@ export default function ProfilePage() {
 
   return (
     <CollectorShell>
-      <div className="mx-auto max-w-[1400px] space-y-lg p-margin-mobile md:p-margin-desktop">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="font-display-lg-mobile text-primary md:font-display-lg">{t("pageTitle")}</h1>
-            <p className="mt-xs font-body-lg text-on-surface-variant">{t("pageSubtitle")}</p>
-          </div>
+      <div className="mx-auto max-w-[1100px] space-y-6 px-4 py-10 sm:px-7 lg:px-10 lg:py-14">
+        <div className="flex items-start justify-between gap-4">
+          <DashboardHeader eyebrow="Account & verification" title={t("pageTitle")} subtitle={t("pageSubtitle")} />
           {!loading && profile && (
             <button
               onClick={() => (editing ? setEditing(false) : handleStartEdit())}
-              className="flex items-center gap-xs rounded-lg border border-outline-variant bg-surface px-md py-sm font-label-md text-label-md transition-colors hover:bg-surface-container-low"
+              className="flex items-center gap-2 rounded-full border border-[#d4ccbe] bg-white px-5 py-2.5 text-xs font-bold text-[#4f5b65] transition hover:border-[#b9974f]"
             >
               <span className="material-symbols-outlined text-[18px]">{editing ? "close" : "edit"}</span>
               {editing ? t("cancel") : t("editProfile")}
@@ -141,16 +141,17 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="flex items-center gap-lg rounded-xl border border-surface-variant bg-surface p-lg soft-shadow">
+        <div className="relative flex items-center gap-6 overflow-hidden rounded-3xl border border-white/10 bg-[#071626] p-7 text-white shadow-[0_20px_55px_rgba(7,22,38,.18)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_15%,rgba(212,180,99,.25),transparent_26%)]" />
           <div className="relative">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary-container text-[32px] font-bold uppercase text-on-primary-container soft-shadow">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-[#d6b969] bg-[#10283d] text-[28px] font-bold uppercase text-[#e6cc85] shadow-lg">
               {initials}
             </div>
           </div>
-          <div>
-            <h2 className="font-headline-md text-headline-md text-primary">{displayName}</h2>
-            <p className="mt-xs font-label-md text-label-md text-secondary">{roleLabel}</p>
-            {profile?.email && <p className="mt-sm text-sm text-on-surface-variant">{profile.email}</p>}
+          <div className="relative">
+            <h2 className="font-display-lg text-2xl font-semibold">{displayName}</h2>
+            <p className="mt-1 text-xs font-semibold text-[#d6b969]">{roleLabel}</p>
+            {profile?.email && <p className="mt-2 text-sm text-[#9dabb7]">{profile.email}</p>}
             <div className="mt-sm flex items-center gap-xs">
               {profile?.identityVerified ? (
                 <>
@@ -185,27 +186,17 @@ export default function ProfilePage() {
         </div>
 
         {loading ? (
-          <div className="rounded-xl border border-surface-variant bg-surface p-lg soft-shadow">
-            <p className="text-on-surface-variant">{t("loading")}</p>
-          </div>
+          <LoadingSkeleton cards={2} />
         ) : !profile ? (
-          <div className="rounded-xl border border-surface-variant bg-surface p-lg soft-shadow">
+          <div>
             {loadErrorCode === "unauthorized" ? (
-              <div>
-                <p className="text-on-surface-variant">{t("loadError")}</p>
-                <Link
-                  href="/auth"
-                  className="mt-md inline-flex items-center gap-xs rounded-lg bg-secondary px-md py-sm font-label-md text-label-md text-on-secondary hover:bg-secondary-fixed-dim"
-                >
-                  {t("loginAgain")}
-                </Link>
-              </div>
+              <EmptyState icon="lock" title={t("loadError")} description="Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để quản lý hồ sơ." actionLabel={t("loginAgain")} actionHref="/auth" />
             ) : (
-              <p className="text-on-surface-variant">{t("loadError")}</p>
+              <EmptyState icon="person_off" title={t("loadError")} description="Chúng tôi chưa thể tải hồ sơ của bạn. Hãy thử lại sau ít phút." />
             )}
           </div>
         ) : (
-          <div className="rounded-xl border border-surface-variant bg-surface p-lg soft-shadow">
+          <div className="rounded-2xl border border-[#e0d9ce] bg-white/80 p-6 shadow-[0_8px_28px_rgba(18,31,44,.05)]">
             <h3 className="mb-lg border-b border-surface-variant pb-sm font-headline-sm text-headline-sm text-primary">
               {t("accountDetails")}
             </h3>

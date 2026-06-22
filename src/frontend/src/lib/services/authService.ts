@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/apiClient";
+import { createDemoUser, DEMO_MODE } from "@/lib/demoMode";
 
 export type LoginRequest = {
   usernameOrEmail: string;
@@ -33,7 +34,12 @@ export type RegisterResponse = {
   status?: string;
 };
 
-export function login(payload: LoginRequest) {
+export async function login(payload: LoginRequest) {
+  if (DEMO_MODE) {
+    if (payload.password !== "demo123") throw new Error("Demo password is demo123");
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    return createDemoUser(payload.usernameOrEmail || "demo@luxeauction.vn") as LoginResponse;
+  }
   return apiClient<LoginResponse>("/auth/login", {
     method: "POST",
     body: payload,

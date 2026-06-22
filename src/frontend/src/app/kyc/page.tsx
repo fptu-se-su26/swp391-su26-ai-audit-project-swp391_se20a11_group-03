@@ -4,19 +4,12 @@ import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import CollectorShell from "@/components/layout/CollectorShell";
 import { KycSubmission, getMyKyc, submitKyc } from "@/lib/services/kycService";
+import ProtectedKycImage from "@/components/features/ProtectedKycImage";
 import { StoredUser, getStoredUser, subscribeStoredUser } from "@/lib/userSession";
-import { API_BASE_URL } from "@/lib/apiClient";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { getMyProfile } from "@/lib/services/userProfileService";
 
 const dateFormatter = new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" });
-
-function resolveImageUrl(url: string | null | undefined): string {
-  if (!url) return "";
-  if (/^https?:\/\//i.test(url)) return url;
-  const base = API_BASE_URL.replace(/\/api\/?$/, "");
-  return `${base}${url.startsWith("/") ? "" : "/"}${url}`;
-}
 
 type UploadedDoc = { file: File; preview: string };
 
@@ -30,7 +23,7 @@ export default function KYCPage() {
   const [phone, setPhone] = useState("");
   const [cccdNumber, setCccdNumber] = useState("");
   const [dob, setDob] = useState("");
-  const [gender, setGender] = useState("Male");
+  const [gender, setGender] = useState("MALE");
   const [issueDate, setIssueDate] = useState("");
   const [issuePlace, setIssuePlace] = useState("");
 
@@ -58,7 +51,7 @@ export default function KYCPage() {
             setPhone(submission.phone);
             setCccdNumber(submission.cccdNumber);
             setDob(submission.dob ?? "");
-            setGender(submission.gender);
+            setGender(submission.gender?.toUpperCase() || "MALE");
             setIssueDate(submission.issueDate ?? "");
             setIssuePlace(submission.issuePlace);
           }
@@ -105,6 +98,16 @@ export default function KYCPage() {
     const file = event.target.files?.[0];
     if (!file) {
       setter(null);
+      return;
+    }
+    if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      event.target.value = "";
+      setFeedback({ tone: "error", message: "Chỉ chấp nhận ảnh JPEG hoặc PNG." });
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      event.target.value = "";
+      setFeedback({ tone: "error", message: "Mỗi ảnh KYC không được vượt quá 8 MB." });
       return;
     }
     setter({ file, preview: URL.createObjectURL(file) });
@@ -269,9 +272,9 @@ export default function KYCPage() {
                 disabled={isReadOnly}
                 className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 font-body-md text-body-md outline-none focus:border-secondary disabled:opacity-60"
               >
-                <option value="Male">{t("genderMale")}</option>
-                <option value="Female">{t("genderFemale")}</option>
-                <option value="Other">{t("genderOther")}</option>
+                <option value="MALE">{t("genderMale")}</option>
+                <option value="FEMALE">{t("genderFemale")}</option>
+                <option value="OTHER">{t("genderOther")}</option>
               </select>
             </Field>
             <Field label={t("fieldIssueDate")} required>
@@ -303,9 +306,9 @@ export default function KYCPage() {
                 {t("previousUploads")}
               </p>
               <div className="grid gap-sm md:grid-cols-3">
-                <ExistingPhoto label={t("frontPhoto")} src={resolveImageUrl(existing.frontImageUrl)} />
-                <ExistingPhoto label={t("backPhoto")} src={resolveImageUrl(existing.backImageUrl)} />
-                <ExistingPhoto label={t("selfiePhoto")} src={resolveImageUrl(existing.selfieImageUrl)} />
+                <ExistingPhoto label={t("frontPhoto")} src={existing.frontImageUrl} />
+                <ExistingPhoto label={t("backPhoto")} src={existing.backImageUrl} />
+                <ExistingPhoto label={t("selfiePhoto")} src={existing.selfieImageUrl} />
               </div>
             </div>
           )}
@@ -424,7 +427,7 @@ function UploadField({
           <span className="font-body-sm text-body-sm">{labelFormat}</span>
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png"
             className="hidden"
             onChange={onChange}
             disabled={disabled}
@@ -439,19 +442,7 @@ function ExistingPhoto({ label, src }: { label: string; src: string }) {
   return (
     <div className="rounded-md border border-outline-variant bg-surface p-sm">
       <p className="mb-xs font-label-sm text-label-sm text-on-surface-variant">{label}</p>
-      {src ? (
-        <a href={src} target="_blank" rel="noopener noreferrer">
-          <img
-            src={src}
-            alt={label}
-            className="aspect-[4/3] w-full rounded-sm object-cover"
-          />
-        </a>
-      ) : (
-        <div className="flex aspect-[4/3] items-center justify-center text-on-surface-variant">
-          <span className="material-symbols-outlined text-3xl">image_not_supported</span>
-        </div>
-      )}
+      <ProtectedKycImage src={src} alt={label} className="aspect-[4/3] w-full rounded-sm object-cover" />
     </div>
   );
 }

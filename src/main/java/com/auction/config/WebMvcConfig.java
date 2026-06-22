@@ -18,15 +18,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Value("${app.upload.dir:${user.dir}/uploads}")
     private String uploadDir;
 
-    @Value("${app.kyc.upload-dir:${user.dir}/src/main/resources/static/uploads/kyc}")
-    private String kycUploadDir;
-
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String kycAbsolute = toResourceLocation(kycUploadDir);
-        registry.addResourceHandler("/uploads/kyc/**")
-                .addResourceLocations(kycAbsolute);
-
         String absolute = toResourceLocation(uploadDir);
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations(absolute);

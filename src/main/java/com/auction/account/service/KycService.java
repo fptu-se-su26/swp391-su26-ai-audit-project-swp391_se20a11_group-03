@@ -2,27 +2,25 @@ package com.auction.account.service;
 
 import com.auction.account.dao.UserRepository;
 import com.auction.account.dto.KycSubmissionResponse;
-import com.auction.account.entity.KycProfile;
-import com.auction.account.entity.User;
 import com.auction.common.service.ImageForensicsService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
+import java.util.Set;
 
 @Service
 public class KycService {
@@ -31,351 +29,301 @@ public class KycService {
     public static final String STATUS_APPROVED = "APPROVED";
     public static final String STATUS_REJECTED = "REJECTED";
     public static final String STATUS_INFO_REQUIRED = "INFO_REQUIRED";
+    private static final Set<String> ALLOWED_STATUSES = Set.of(
+            STATUS_PENDING, STATUS_APPROVED, STATUS_REJECTED, STATUS_INFO_REQUIRED);
+    private static final long DOCUMENT_READ_LIMIT = 8L * 1024 * 1024;
 
     private final JdbcTemplate jdbcTemplate;
     private final UserRepository userRepository;
-    private final ResourceLoader resourceLoader;
-    private final ImageForensicsService imageForensicsService;
+    private final KycDocumentStorage storage;
+    private final KycDocumentValidator validator;
+    private final ImageForensicsService forensicsService;
 
-    @Value("${app.kyc.upload-dir:#{systemProperties['user.dir']}/src/main/resources/static/uploads/kyc}")
-    private String uploadDir;
-
-    @Value("${app.kyc.public-prefix:/uploads/kyc}")
-    private String publicPrefix;
-
-    public KycService(JdbcTemplate jdbcTemplate, UserRepository userRepository, ResourceLoader resourceLoader, ImageForensicsService imageForensicsService) {
+    public KycService(JdbcTemplate jdbcTemplate, UserRepository userRepository,
+                      KycDocumentStorage storage, KycDocumentValidator validator,
+                      ImageForensicsService forensicsService) {
         this.jdbcTemplate = jdbcTemplate;
         this.userRepository = userRepository;
-        this.resourceLoader = resourceLoader;
-        this.imageForensicsService = imageForensicsService;
+        this.storage = storage;
+        this.validator = validator;
+        this.forensicsService = forensicsService;
     }
 
     @Transactional
     public KycSubmissionResponse submit(
-            Long userId,
-            String fullName,
-            String phone,
-            String cccdNumber,
-            LocalDate dob,
-            String gender,
-            LocalDate issueDate,
-            String issuePlace,
-            MultipartFile frontImage,
-            MultipartFile backImage,
-            MultipartFile selfieImage
-    ) throws IOException {
-        if (userId == null) {
-            throw new IllegalArgumentException("Missing user id");
-        }
-        if (isBlank(fullName) || isBlank(phone) || isBlank(cccdNumber) || dob == null
-                || isBlank(gender) || issueDate == null || isBlank(issuePlace)) {
-            throw new IllegalArgumentException("Please fill in every required KYC field");
-        }
-        if (frontImage == null || frontImage.isEmpty()
-                || backImage == null || backImage.isEmpty()
-                || selfieImage == null || selfieImage.isEmpty()) {
-            throw new IllegalArgumentException("Please upload all three ID photos (front, back, selfie)");
-        }
-
-        User user = userRepository.findById(Math.toIntExact(userId))
+            Long userId, String fullName, String phone, String cccdNumber, LocalDate dob,
+            String gender, LocalDate issueDate, String issuePlace,
+            MultipartFile frontImage, MultipartFile backImage, MultipartFile selfieImage) throws IOException {
+        NormalizedForm form = validateForm(userId, fullName, phone, cccdNumber, dob, gender, issueDate, issuePlace);
+        userRepository.findById(Math.toIntExact(userId))
                 .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
-
-        // The CCCD number must be unique across the system. Reject duplicates
-        // here so we can return a clear error message before persisting.
-        if (isCccdTakenByOtherUser(cccdNumber, userId)) {
+        ensureSubmissionAllowed(userId);
+        if (isCccdTakenByOtherUser(form.cccdNumber(), userId)) {
             throw new IllegalArgumentException("This CCCD number is already linked to another account");
         }
 
-        String frontUrl = saveImage(frontImage, "front");
-        String backUrl = saveImage(backImage, "back");
-        String selfieUrl = saveImage(selfieImage, "selfie");
+        KycDocumentValidator.ValidatedImage front = validator.validate(frontImage, "front ID");
+        KycDocumentValidator.ValidatedImage back = validator.validate(backImage, "back ID");
+        KycDocumentValidator.ValidatedImage selfie = validator.validate(selfieImage, "selfie");
 
-        LocalDateTime now = LocalDateTime.now();
-        // Wipe any earlier submission so the user always has a single live record.
-        jdbcTemplate.update("DELETE FROM KycProfiles WHERE UserId = ?", userId);
+        List<String> newlyStored = new java.util.ArrayList<>();
+        List<String> replacedFiles = currentDocumentReferences(userId);
+        try {
+            String frontRef = store(front, "front", newlyStored);
+            String backRef = store(back, "back", newlyStored);
+            String selfieRef = store(selfie, "selfie", newlyStored);
+            LocalDateTime now = LocalDateTime.now();
 
-        jdbcTemplate.update(
-                "INSERT INTO KycProfiles (UserId, Phone, CccdNumber, FullName, Dob, Gender, IssueDate, IssuePlace, "
-                        + "FrontImageUrl, BackImageUrl, SelfieImageUrl, Status, SubmittedAt) "
-                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                userId, phone, cccdNumber, fullName, dob, gender, issueDate, issuePlace,
-                frontUrl, backUrl, selfieUrl, STATUS_PENDING, now
-        );
+            jdbcTemplate.update("DELETE FROM KycProfiles WHERE UserId = ?", userId);
+            jdbcTemplate.update(
+                    "INSERT INTO KycProfiles (UserId, Phone, CccdNumber, FullName, Dob, Gender, IssueDate, IssuePlace, "
+                            + "FrontImageUrl, BackImageUrl, SelfieImageUrl, Status, SubmittedAt) "
+                            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    userId, form.phone(), form.cccdNumber(), form.fullName(), form.dob(), form.gender(),
+                    form.issueDate(), form.issuePlace(), frontRef, backRef, selfieRef, STATUS_PENDING, now);
+            jdbcTemplate.update(
+                    "UPDATE Users SET IdentityVerified = 0, IdentityVerifiedAt = NULL, "
+                            + "ProfileStatus = 'PENDING_IDENTITY_VERIFY' WHERE UserId = ?", userId);
 
-        // Flip the user into a pending-KYC state so the UI can show a "under review" badge.
-        jdbcTemplate.update(
-                "UPDATE Users SET ProfileStatus = ? WHERE UserId = ?",
-                "PENDING_IDENTITY_VERIFY", userId
-        );
-
-        Long kycId = jdbcTemplate.queryForObject(
-                "SELECT TOP 1 KycId FROM KycProfiles WHERE UserId = ? ORDER BY SubmittedAt DESC",
-                Long.class, userId
-        );
-        return loadById(kycId);
+            Long kycId = jdbcTemplate.queryForObject(
+                    "SELECT TOP 1 KycId FROM KycProfiles WHERE UserId = ? ORDER BY SubmittedAt DESC",
+                    Long.class, userId);
+            deleteAfterCommit(replacedFiles);
+            return loadById(kycId);
+        } catch (IOException | RuntimeException ex) {
+            storage.deleteAll(newlyStored);
+            throw ex;
+        }
     }
 
     public Optional<KycSubmissionResponse> getMyLatest(Long userId) {
         if (userId == null) return Optional.empty();
-        List<KycSubmissionResponse> list = jdbcTemplate.query(
-                "SELECT TOP 1 k.KycId, k.UserId, k.FullName, k.Phone, k.CccdNumber, k.Dob, k.Gender, "
-                        + "k.IssueDate, k.IssuePlace, k.FrontImageUrl, k.BackImageUrl, k.SelfieImageUrl, "
-                        + "k.Status, k.SubmittedAt, k.ProcessedAt, k.RejectionReason, "
-                        + "u.Email, u.FullName AS UserFullName, p.Username AS ProcessedByName "
-                        + "FROM KycProfiles k "
-                        + "INNER JOIN Users u ON u.UserId = k.UserId "
-                        + "LEFT JOIN Users p ON p.UserId = k.ProcessedBy "
-                        + "WHERE k.UserId = ? ORDER BY k.SubmittedAt DESC",
-                (rs, rowNum) -> mapRow(rs),
-                userId
-        );
-        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
+        List<KycSubmissionResponse> list = jdbcTemplate.query(baseSelect()
+                        + " WHERE k.UserId = ? ORDER BY k.SubmittedAt DESC",
+                (rs, rowNum) -> mapRow(rs), userId);
+        return list.stream().findFirst();
     }
 
     public List<KycSubmissionResponse> listByStatus(String status) {
-        String sql = "SELECT k.KycId, k.UserId, k.FullName, k.Phone, k.CccdNumber, k.Dob, k.Gender, "
-                + "k.IssueDate, k.IssuePlace, k.FrontImageUrl, k.BackImageUrl, k.SelfieImageUrl, "
-                + "k.Status, k.SubmittedAt, k.ProcessedAt, k.RejectionReason, "
-                + "u.Email, u.FullName AS UserFullName, p.Username AS ProcessedByName "
-                + "FROM KycProfiles k "
-                + "INNER JOIN Users u ON u.UserId = k.UserId "
-                + "LEFT JOIN Users p ON p.UserId = k.ProcessedBy "
-                + (status != null && !status.isBlank() ? "WHERE k.Status = ? " : "")
-                + "ORDER BY k.SubmittedAt DESC";
-        return status != null && !status.isBlank()
-                ? jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs), status)
-                : jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs));
+        String normalized = normalizeStatus(status);
+        String sql = baseSelect() + (normalized == null ? "" : " WHERE k.Status = ?")
+                + " ORDER BY k.SubmittedAt DESC";
+        return normalized == null
+                ? jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs))
+                : jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs), normalized);
     }
 
     @Transactional
     public KycSubmissionResponse approve(Long kycId, Long staffId) {
+        ensureDocumentsCanBeApproved(kycId);
         return updateDecision(kycId, staffId, STATUS_APPROVED, null);
     }
 
     @Transactional
     public KycSubmissionResponse reject(Long kycId, Long staffId, String reason) {
-        if (reason == null || reason.isBlank()) {
-            throw new IllegalArgumentException("Please provide a rejection reason");
-        }
-        return updateDecision(kycId, staffId, STATUS_REJECTED, reason);
+        return updateDecision(kycId, staffId, STATUS_REJECTED, requireDecisionReason(reason));
     }
 
     @Transactional
     public KycSubmissionResponse requestInfo(Long kycId, Long staffId, String reason) {
-        return updateDecision(kycId, staffId, STATUS_INFO_REQUIRED,
-                reason == null || reason.isBlank() ? "Please re-upload clearer images" : reason);
+        return updateDecision(kycId, staffId, STATUS_INFO_REQUIRED, requireDecisionReason(reason));
     }
 
-    private KycSubmissionResponse updateDecision(Long kycId, Long staffId, String newStatus, String rejectionReason) {
-        Integer userId = jdbcTemplate.queryForObject(
-                "SELECT UserId FROM KycProfiles WHERE KycId = ?", Integer.class, kycId);
-        if (userId == null) {
-            throw new IllegalArgumentException("KYC submission not found");
+    public StoredDocument loadDocument(Long kycId, String kind, Long requesterId, boolean reviewer) throws IOException {
+        String column = switch (kind.toLowerCase(Locale.ROOT)) {
+            case "front" -> "FrontImageUrl";
+            case "back" -> "BackImageUrl";
+            case "selfie" -> "SelfieImageUrl";
+            default -> throw new IllegalArgumentException("Unknown KYC document type");
+        };
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+                "SELECT UserId, " + column + " AS DocumentRef FROM KycProfiles WHERE KycId = ?", kycId);
+        if (rows.isEmpty()) throw new IllegalArgumentException("KYC submission not found");
+        Map<String, Object> row = rows.get(0);
+        long ownerId = ((Number) row.get("UserId")).longValue();
+        if (!reviewer && (requesterId == null || ownerId != requesterId)) {
+            throw new SecurityException("You cannot access this KYC document");
         }
+        String reference = String.valueOf(row.get("DocumentRef"));
+        return new StoredDocument(storage.load(reference), mediaType(reference));
+    }
+
+    private KycSubmissionResponse updateDecision(Long kycId, Long staffId, String status, String reason) {
+        if (kycId == null || staffId == null) throw new IllegalArgumentException("Missing decision context");
+        Integer userId = jdbcTemplate.query(
+                "SELECT UserId FROM KycProfiles WHERE KycId = ?",
+                rs -> rs.next() ? rs.getInt(1) : null, kycId);
+        if (userId == null) throw new IllegalArgumentException("KYC submission not found");
+
         LocalDateTime now = LocalDateTime.now();
-        jdbcTemplate.update(
-                "UPDATE KycProfiles SET Status = ?, ProcessedBy = ?, ProcessedAt = ?, RejectionReason = ? WHERE KycId = ?",
-                newStatus, staffId, now, rejectionReason, kycId
-        );
-
-        if (STATUS_APPROVED.equals(newStatus)) {
-            // Pull the latest KYC data so we can mirror it onto the user row.
-            // This ensures Users.FullName / Phone / IdentityNumber always reflect
-            // the verified identity info, not whatever the user typed at signup.
-            Map<String, Object> kyc = jdbcTemplate.queryForMap(
-                    "SELECT TOP 1 FullName, Phone, CccdNumber FROM KycProfiles WHERE KycId = ?",
-                    kycId
-            );
-            String verifiedFullName = (String) kyc.get("FullName");
-            String verifiedPhone = (String) kyc.get("Phone");
-            String verifiedCccd = (String) kyc.get("CccdNumber");
-
-            // Mirror the approval onto Users so the rest of the app can read
-            // identityVerified off the user row without joining KycProfiles.
-            jdbcTemplate.update(
-                    "UPDATE Users SET IdentityVerified = 1, IdentityVerifiedAt = ?, "
-                            + "ProfileStatus = 'VERIFIED', VerificationLevel = 2, "
-                            + "FullName = COALESCE(?, FullName), "
-                            + "Phone = COALESCE(?, Phone), "
-                            + "IdentityNumber = COALESCE(?, IdentityNumber) "
-                            + "WHERE UserId = ?",
-                    now, verifiedFullName, verifiedPhone, verifiedCccd, userId
-            );
-        } else if (STATUS_REJECTED.equals(newStatus)) {
-            jdbcTemplate.update(
-                    "UPDATE Users SET IdentityVerified = 0, ProfileStatus = 'KYC_REJECTED' WHERE UserId = ?",
-                    userId
-            );
-        } else if (STATUS_INFO_REQUIRED.equals(newStatus)) {
-            jdbcTemplate.update(
-                    "UPDATE Users SET ProfileStatus = 'KYC_INFO_REQUIRED' WHERE UserId = ?",
-                    userId
-            );
+        int updated = jdbcTemplate.update(
+                "UPDATE KycProfiles SET Status = ?, ProcessedBy = ?, ProcessedAt = ?, RejectionReason = ? "
+                        + "WHERE KycId = ? AND Status = ?",
+                status, staffId, now, reason, kycId, STATUS_PENDING);
+        if (updated != 1) {
+            throw new IllegalStateException("This KYC submission was already processed or changed by another reviewer");
         }
 
+        if (STATUS_APPROVED.equals(status)) {
+            Map<String, Object> kyc = jdbcTemplate.queryForMap(
+                    "SELECT FullName, Phone, CccdNumber FROM KycProfiles WHERE KycId = ?", kycId);
+            jdbcTemplate.update(
+                    "UPDATE Users SET IdentityVerified = 1, IdentityVerifiedAt = ?, ProfileStatus = 'VERIFIED', "
+                            + "VerificationLevel = 2, FullName = ?, Phone = ?, IdentityNumber = ? WHERE UserId = ?",
+                    now, kyc.get("FullName"), kyc.get("Phone"), kyc.get("CccdNumber"), userId);
+        } else {
+            String profileStatus = STATUS_REJECTED.equals(status) ? "KYC_REJECTED" : "KYC_INFO_REQUIRED";
+            jdbcTemplate.update(
+                    "UPDATE Users SET IdentityVerified = 0, IdentityVerifiedAt = NULL, ProfileStatus = ? WHERE UserId = ?",
+                    profileStatus, userId);
+        }
         return loadById(kycId);
     }
 
-    private KycSubmissionResponse loadById(Long kycId) {
-        List<KycSubmissionResponse> list = jdbcTemplate.query(
-                "SELECT k.KycId, k.UserId, k.FullName, k.Phone, k.CccdNumber, k.Dob, k.Gender, "
-                        + "k.IssueDate, k.IssuePlace, k.FrontImageUrl, k.BackImageUrl, k.SelfieImageUrl, "
-                        + "k.Status, k.SubmittedAt, k.ProcessedAt, k.RejectionReason, "
-                        + "u.Email, u.FullName AS UserFullName, p.Username AS ProcessedByName "
-                        + "FROM KycProfiles k "
-                        + "INNER JOIN Users u ON u.UserId = k.UserId "
-                        + "LEFT JOIN Users p ON p.UserId = k.ProcessedBy "
-                        + "WHERE k.KycId = ?",
-                (rs, rowNum) -> mapRow(rs),
-                kycId
-        );
-        if (list.isEmpty()) {
-            throw new IllegalArgumentException("KYC submission not found");
+    private void ensureDocumentsCanBeApproved(Long kycId) {
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+                "SELECT FrontImageUrl, BackImageUrl, SelfieImageUrl FROM KycProfiles WHERE KycId = ?", kycId);
+        if (rows.isEmpty()) throw new IllegalArgumentException("KYC submission not found");
+        Map<String, Object> refs = rows.get(0);
+        for (String column : List.of("FrontImageUrl", "BackImageUrl", "SelfieImageUrl")) {
+            String reference = String.valueOf(refs.get(column));
+            try {
+                ImageForensicsService.ForensicsReport report = forensicsService.analyse(
+                        storage.read(reference, DOCUMENT_READ_LIMIT));
+                if (report.riskScore() >= 80) {
+                    throw new IllegalArgumentException("Approval blocked: a document has critical integrity warnings");
+                }
+            } catch (IOException ex) {
+                throw new IllegalArgumentException("Approval blocked: a KYC document is unavailable or invalid");
+            }
         }
+    }
+
+    private KycSubmissionResponse loadById(Long kycId) {
+        List<KycSubmissionResponse> list = jdbcTemplate.query(baseSelect() + " WHERE k.KycId = ?",
+                (rs, rowNum) -> mapRow(rs), kycId);
+        if (list.isEmpty()) throw new IllegalArgumentException("KYC submission not found");
         return list.get(0);
     }
 
+    private String baseSelect() {
+        return "SELECT k.KycId, k.UserId, k.FullName, k.Phone, k.CccdNumber, k.Dob, k.Gender, "
+                + "k.IssueDate, k.IssuePlace, k.FrontImageUrl, k.BackImageUrl, k.SelfieImageUrl, "
+                + "k.Status, k.SubmittedAt, k.ProcessedAt, k.RejectionReason, "
+                + "u.Email, p.Username AS ProcessedByName FROM KycProfiles k "
+                + "INNER JOIN Users u ON u.UserId = k.UserId LEFT JOIN Users p ON p.UserId = k.ProcessedBy";
+    }
+
     private KycSubmissionResponse mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
-        String userFullName = rs.getString("UserFullName");
-        KycSubmissionResponse.KycSubmissionResponseBuilder builder = KycSubmissionResponse.builder()
-                .kycId(rs.getLong("KycId"))
-                .userId(rs.getLong("UserId"))
-                .fullName(userFullName)
-                .email(rs.getString("Email"))
-                .phone(rs.getString("Phone"))
-                .cccdNumber(rs.getString("CccdNumber"))
-                .dob(rs.getDate("Dob") != null ? rs.getDate("Dob").toLocalDate() : null)
-                .gender(rs.getString("Gender"))
-                .issueDate(rs.getDate("IssueDate") != null ? rs.getDate("IssueDate").toLocalDate() : null)
-                .issuePlace(rs.getString("IssuePlace"))
-                .frontImageUrl(rs.getString("FrontImageUrl"))
-                .backImageUrl(rs.getString("BackImageUrl"))
-                .selfieImageUrl(rs.getString("SelfieImageUrl"))
-                .status(rs.getString("Status"))
-                .submittedAt(rs.getTimestamp("SubmittedAt") != null ? rs.getTimestamp("SubmittedAt").toLocalDateTime() : null)
-                .processedAt(rs.getTimestamp("ProcessedAt") != null ? rs.getTimestamp("ProcessedAt").toLocalDateTime() : null)
-                .processedByName(rs.getString("ProcessedByName"))
-                .rejectionReason(rs.getString("RejectionReason"));
-        builder.frontImageAnalysis(toAnalysis(rs.getString("FrontImageUrl")));
-        builder.backImageAnalysis(toAnalysis(rs.getString("BackImageUrl")));
-        builder.selfieImageAnalysis(toAnalysis(rs.getString("SelfieImageUrl")));
-        return builder.build();
+        long kycId = rs.getLong("KycId");
+        return KycSubmissionResponse.builder()
+                .kycId(kycId).userId(rs.getLong("UserId")).fullName(rs.getString("FullName"))
+                .email(rs.getString("Email")).phone(rs.getString("Phone")).cccdNumber(rs.getString("CccdNumber"))
+                .dob(toLocalDate(rs.getDate("Dob"))).gender(rs.getString("Gender"))
+                .issueDate(toLocalDate(rs.getDate("IssueDate"))).issuePlace(rs.getString("IssuePlace"))
+                .frontImageUrl(documentUrl(kycId, "front")).backImageUrl(documentUrl(kycId, "back"))
+                .selfieImageUrl(documentUrl(kycId, "selfie")).status(rs.getString("Status"))
+                .submittedAt(toLocalDateTime(rs.getTimestamp("SubmittedAt")))
+                .processedAt(toLocalDateTime(rs.getTimestamp("ProcessedAt")))
+                .processedByName(rs.getString("ProcessedByName")).rejectionReason(rs.getString("RejectionReason"))
+                .frontImageAnalysis(toAnalysis(rs.getString("FrontImageUrl")))
+                .backImageAnalysis(toAnalysis(rs.getString("BackImageUrl")))
+                .selfieImageAnalysis(toAnalysis(rs.getString("SelfieImageUrl"))).build();
     }
 
-    private KycSubmissionResponse.ImageAnalysis toAnalysis(String url) {
-        if (url == null || url.isBlank()) {
-            return KycSubmissionResponse.ImageAnalysis.builder()
-                    .riskScore(100)
-                    .severity("HIGH")
-                    .signals(java.util.List.of(
-                            new ImageForensicsService.Signal(
-                                    ImageForensicsService.Severity.HIGH,
-                                    "Image URL is missing - the user did not upload this photo")))
-                    .build();
-        }
+    private KycSubmissionResponse.ImageAnalysis toAnalysis(String reference) {
         try {
-            byte[] bytes = readUploadBytes(url);
-            ImageForensicsService.ForensicsReport report = imageForensicsService.analyse(bytes);
-            return KycSubmissionResponse.ImageAnalysis.builder()
-                    .riskScore(report.riskScore())
-                    .severity(report.severity())
-                    .signals(report.signals())
-                    .build();
+            ImageForensicsService.ForensicsReport report = forensicsService.analyse(
+                    storage.read(reference, DOCUMENT_READ_LIMIT));
+            return KycSubmissionResponse.ImageAnalysis.builder().riskScore(report.riskScore())
+                    .severity(report.severity()).signals(report.signals()).build();
         } catch (Exception ex) {
-            return KycSubmissionResponse.ImageAnalysis.builder()
-                    .riskScore(80)
-                    .severity("HIGH")
-                    .signals(java.util.List.of(
-                            new ImageForensicsService.Signal(
-                                    ImageForensicsService.Severity.HIGH,
-                                    "Forensic scan failed: " + ex.getMessage())))
-                    .build();
+            return KycSubmissionResponse.ImageAnalysis.builder().riskScore(100).severity("HIGH")
+                    .signals(List.of(new ImageForensicsService.Signal(
+                            ImageForensicsService.Severity.HIGH, "Document unavailable for integrity scan"))).build();
         }
     }
 
-    private byte[] readUploadBytes(String url) throws IOException {
-        String fileName = url.startsWith("/") ? url.substring(1) : url;
-        if (fileName.startsWith("uploads/")) {
-            fileName = fileName.substring("uploads/".length());
-        }
-        String bareName = fileName.substring(fileName.lastIndexOf('/') + 1);
+    private NormalizedForm validateForm(Long userId, String fullName, String phone, String cccdNumber,
+                                        LocalDate dob, String gender, LocalDate issueDate, String issuePlace) {
+        if (userId == null) throw new IllegalArgumentException("Missing user id");
+        String cleanName = clean(fullName, 150, "Full name");
+        String cleanPhone = clean(phone, 20, "Phone").replaceAll("[ .-]", "");
+        String cleanCccd = clean(cccdNumber, 20, "CCCD number").replaceAll("\\s", "");
+        String cleanGender = clean(gender, 20, "Gender").toUpperCase(Locale.ROOT);
+        String cleanIssuePlace = clean(issuePlace, 200, "Issue place");
+        if (!cleanPhone.matches("^(?:\\+84|0)[0-9]{9,10}$")) throw new IllegalArgumentException("Invalid phone number");
+        if (!cleanCccd.matches("^[0-9]{12}$")) throw new IllegalArgumentException("CCCD number must contain 12 digits");
+        if (!Set.of("MALE", "FEMALE", "OTHER").contains(cleanGender)) throw new IllegalArgumentException("Invalid gender");
+        LocalDate today = LocalDate.now();
+        if (dob == null || dob.isAfter(today) || Period.between(dob, today).getYears() < 16)
+            throw new IllegalArgumentException("Applicant must be at least 16 years old");
+        if (issueDate == null || issueDate.isAfter(today) || issueDate.isBefore(dob))
+            throw new IllegalArgumentException("Invalid CCCD issue date");
+        return new NormalizedForm(cleanName, cleanPhone, cleanCccd, dob, cleanGender, issueDate, cleanIssuePlace);
+    }
 
-        Path primary = resolveUploadDir().resolve(bareName);
-        if (Files.exists(primary)) {
-            return Files.readAllBytes(primary);
+    private void ensureSubmissionAllowed(Long userId) {
+        List<String> statuses = jdbcTemplate.query(
+                "SELECT Status FROM KycProfiles WHERE UserId = ?", (rs, rowNum) -> rs.getString(1), userId);
+        if (statuses.stream().anyMatch(status -> STATUS_PENDING.equals(status) || STATUS_APPROVED.equals(status))) {
+            throw new IllegalStateException("A pending or approved KYC submission cannot be replaced");
         }
-        Path classesMirror = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", "uploads", "kyc", bareName);
-        if (Files.exists(classesMirror)) {
-            return Files.readAllBytes(classesMirror);
-        }
-        throw new IOException("KYC image not found on disk: " + bareName);
+    }
+
+    private List<String> currentDocumentReferences(Long userId) {
+        return jdbcTemplate.query(
+                "SELECT FrontImageUrl, BackImageUrl, SelfieImageUrl FROM KycProfiles WHERE UserId = ?",
+                rs -> rs.next() ? List.of(rs.getString(1), rs.getString(2), rs.getString(3)) : List.of(), userId);
+    }
+
+    private String store(KycDocumentValidator.ValidatedImage image, String label, List<String> stored) throws IOException {
+        String reference = storage.store(image.bytes(), label, image.extension());
+        stored.add(reference);
+        return reference;
+    }
+
+    private void deleteAfterCommit(List<String> references) {
+        if (references.isEmpty()) return;
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override public void afterCommit() { storage.deleteAll(references); }
+        });
     }
 
     private boolean isCccdTakenByOtherUser(String cccdNumber, Long userId) {
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM KycProfiles WHERE CccdNumber = ? AND UserId <> ?",
-                Integer.class, cccdNumber, userId
-        );
+                Integer.class, cccdNumber, userId);
         return count != null && count > 0;
     }
 
-    private String saveImage(MultipartFile file, String label) throws IOException {
-        Path targetDir = resolveUploadDir();
-        Files.createDirectories(targetDir);
-
-        String original = file.getOriginalFilename() == null ? "" : file.getOriginalFilename();
-        String extension = "";
-        int dot = original.lastIndexOf('.');
-        if (dot > 0 && dot < original.length() - 1) {
-            extension = original.substring(dot);
-        }
-        String stored = "kyc-" + label + "-" + UUID.randomUUID() + extension;
-        Path destination = targetDir.resolve(stored);
-        byte[] bytes;
-        try (var in = file.getInputStream()) {
-            bytes = in.readAllBytes();
-        }
-        Files.write(destination, bytes);
-
-        mirrorToClassesDir(destination, stored, bytes);
-        return publicPrefix + "/" + stored;
+    private String normalizeStatus(String status) {
+        if (status == null || status.isBlank()) return null;
+        String normalized = status.trim().toUpperCase(Locale.ROOT);
+        if (!ALLOWED_STATUSES.contains(normalized)) throw new IllegalArgumentException("Unknown KYC status");
+        return normalized;
     }
 
-    /**
-     * When the app is started with `mvn spring-boot:run`, static resources are
-     * served from the {@code target/classes/static} copy, not from
-     * {@code src/main/resources/static}. We mirror every upload into the
-     * classes folder so the new image is reachable via {@code /uploads/kyc/*}
-     * without restarting the server.
-     */
-    private void mirrorToClassesDir(Path source, String storedFileName, byte[] bytes) {
-        try {
-            Path classesKyc = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", "uploads", "kyc");
-            if (classesKyc.startsWith(source.getParent())) {
-                return;
-            }
-            Files.createDirectories(classesKyc);
-            Files.write(classesKyc.resolve(storedFileName), bytes);
-        } catch (IOException ex) {
-            System.err.println("[KycService] Failed to mirror upload to target/classes/static/uploads/kyc: " + ex.getMessage());
-        }
+    private String requireDecisionReason(String value) {
+        return clean(value, 500, "Review reason");
     }
 
-    private Path resolveUploadDir() throws IOException {
-        if (uploadDir.startsWith("classpath:")) {
-            java.net.URL url = resourceLoader.getResource(uploadDir).getURL();
-            String pathString;
-            try {
-                pathString = Paths.get(url.toURI()).toString();
-            } catch (java.net.URISyntaxException ex) {
-                pathString = url.getPath();
-            }
-            return Paths.get(pathString);
-        }
-        return Paths.get(uploadDir);
+    private String clean(String value, int maxLength, String label) {
+        if (value == null || value.trim().isEmpty()) throw new IllegalArgumentException(label + " is required");
+        String normalized = value.trim().replaceAll("\\s+", " ");
+        if (normalized.length() > maxLength) throw new IllegalArgumentException(label + " is too long");
+        return normalized;
     }
 
-    private boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
+    private String documentUrl(long kycId, String kind) { return "/kyc/" + kycId + "/documents/" + kind; }
+    private MediaType mediaType(String reference) {
+        return reference != null && reference.toLowerCase(Locale.ROOT).endsWith(".png")
+                ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG;
     }
+    private LocalDate toLocalDate(java.sql.Date value) { return value == null ? null : value.toLocalDate(); }
+    private LocalDateTime toLocalDateTime(java.sql.Timestamp value) { return value == null ? null : value.toLocalDateTime(); }
+
+    private record NormalizedForm(String fullName, String phone, String cccdNumber, LocalDate dob,
+                                  String gender, LocalDate issueDate, String issuePlace) {}
+    public record StoredDocument(Resource resource, MediaType mediaType) {}
 }

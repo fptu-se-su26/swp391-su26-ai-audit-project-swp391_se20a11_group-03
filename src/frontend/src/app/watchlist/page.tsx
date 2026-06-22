@@ -6,6 +6,9 @@ import CollectorShell from "@/components/layout/CollectorShell";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { getWatchlist, WatchlistItem, removeFromWatchlist } from "@/lib/services/userBidService";
 import { refreshWatchlistIds, subscribeWatchlist } from "@/lib/watchlist";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import EmptyState from "@/components/dashboard/EmptyState";
+import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
 
 const formatVnd = (value: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
@@ -47,11 +50,9 @@ export default function WatchlistPage() {
 
   return (
     <CollectorShell>
-      <div className="mx-auto max-w-[1400px] space-y-lg p-margin-mobile md:p-margin-desktop">
-        <div>
-          <h1 className="font-display-lg-mobile text-primary md:font-display-lg">{t("title")}</h1>
-          <p className="mt-xs font-body-lg text-on-surface-variant">{t("subtitle")}</p>
-        </div>
+      <div className="mx-auto max-w-[1260px] space-y-7 px-4 py-10 sm:px-7 lg:px-10 lg:py-14">
+        <DashboardHeader eyebrow="Your private collection" title={t("title")} subtitle={t("subtitle")} actionLabel="Khám phá live lots" actionHref="/live" />
+        <div className="flex flex-wrap items-center gap-2 border-y border-[#ddd6c9] py-4"><button className="rounded-full bg-[#071626] px-4 py-2 text-xs font-semibold text-white">Tất cả</button>{["Watches","Art","Jewelry","Cars"].map(x=><button key={x} className="rounded-full px-4 py-2 text-xs font-semibold text-[#68737c] hover:bg-white">{x}</button>)}<button className="ml-auto inline-flex items-center gap-2 rounded-full border border-[#d6cec0] bg-white px-4 py-2 text-xs font-semibold text-[#4f5b65]"><span className="material-symbols-outlined text-[17px]">sort</span>Ending soon</button></div>
 
         {error && (
           <div className="rounded-xl border border-error/30 bg-error-container px-4 py-3 text-error">
@@ -60,26 +61,15 @@ export default function WatchlistPage() {
         )}
 
         {loading ? (
-          <div className="rounded-xl border border-surface-variant bg-surface p-xl text-center text-on-surface-variant">
-            {t("loading")}
-          </div>
+          <LoadingSkeleton cards={4} />
         ) : items.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-outline-variant bg-surface p-xl text-center">
-            <h2 className="font-headline-sm text-headline-sm text-primary">{t("emptyTitle")}</h2>
-            <p className="mt-xs text-on-surface-variant">{t("emptyDesc")}</p>
-            <Link
-              href="/"
-              className="mt-md inline-flex rounded-lg bg-primary px-5 py-3 font-label-md text-on-primary transition-opacity hover:opacity-90"
-            >
-              {t("exploreProducts")}
-            </Link>
-          </div>
+          <EmptyState icon="favorite" title={t("emptyTitle")} description={t("emptyDesc")} actionLabel={t("exploreProducts")} actionHref="/live" />
         ) : (
-          <div className="grid grid-cols-1 gap-md md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {items.map((item) => (
               <div
                 key={item.id}
-                className="group overflow-hidden rounded-xl border border-surface-variant bg-surface soft-shadow"
+                className="group overflow-hidden rounded-2xl border border-[#ded8cc] bg-white shadow-[0_8px_28px_rgba(18,31,44,.05)] transition hover:-translate-y-1 hover:border-[#c4a55a] hover:shadow-[0_18px_42px_rgba(18,31,44,.11)]"
               >
                 <div className="relative">
                   <div className="aspect-square overflow-hidden bg-surface-variant">
@@ -98,13 +88,13 @@ export default function WatchlistPage() {
                     </button>
                   </div>
                   <div className="absolute bottom-2 left-2">
-                    <span className="rounded-full bg-surface/80 px-3 py-1 text-[10px] font-bold uppercase text-on-surface shadow-sm backdrop-blur-sm">
+                    <span className="rounded-full bg-[#071626]/90 px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-white shadow-sm backdrop-blur-sm">
                       {item.lotNumber}
                     </span>
                   </div>
                 </div>
 
-                <div className="p-md">
+                <div className="p-5">
                   <div className="mb-sm">
                     <h3 className="line-clamp-2 font-headline-sm text-headline-sm text-primary">
                       {item.productName}
@@ -129,7 +119,7 @@ export default function WatchlistPage() {
                   <div className="mt-md flex gap-sm">
                     <Link
                       href={`/auctions/${item.productId}`}
-                      className="flex-1 rounded-lg bg-secondary py-2 text-center font-label-md text-label-md text-on-secondary transition-colors hover:bg-secondary-fixed-dim"
+                      className="flex-1 rounded-full bg-[#071626] py-2.5 text-center text-xs font-bold text-[#e4c77b] transition hover:bg-[#102a42]"
                     >
                       {t("viewDetails")}
                     </Link>

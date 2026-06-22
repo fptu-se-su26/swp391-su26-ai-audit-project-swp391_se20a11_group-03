@@ -1,0 +1,4 @@
+import Link from "next/link";
+export default function EmptyState({ icon = "inventory_2", title, description, actionLabel, actionHref }: { icon?: string; title: string; description: string; actionLabel?: string; actionHref?: string }) {
+  return <div className="rounded-3xl border border-dashed border-[#cfc4ae] bg-white/65 px-6 py-14 text-center"><span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#f1eadb] text-[#99742a]"><span className="material-symbols-outlined text-[27px]">{icon}</span></span><h3 className="mt-5 font-display-lg text-lg font-semibold text-[#071626]">{title}</h3><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#747e86]">{description}</p>{actionLabel && actionHref && <Link href={actionHref} className="mt-6 inline-flex rounded-full bg-[#071626] px-5 py-3 text-xs font-bold text-[#e6ca7e]">{actionLabel}</Link>}</div>;
+}

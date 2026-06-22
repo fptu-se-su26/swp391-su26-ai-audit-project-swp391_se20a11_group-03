@@ -10,15 +10,8 @@ import {
   rejectKyc,
   requestKycInfo,
 } from "@/lib/services/kycService";
-import { API_BASE_URL } from "@/lib/apiClient";
 import { useTranslations } from "@/i18n/I18nProvider";
-
-function resolveImageUrl(url: string | null | undefined): string {
-  if (!url) return "";
-  if (/^https?:\/\//i.test(url)) return url;
-  const base = API_BASE_URL.replace(/\/api\/?$/, "");
-  return `${base}${url.startsWith("/") ? "" : "/"}${url}`;
-}
+import ProtectedKycImage from "@/components/features/ProtectedKycImage";
 
 const STATUS_CFG: Record<KycStatus, { labelKey: string; class: string }> = {
   PENDING: { labelKey: "statusPending", class: "bg-secondary-container text-on-secondary-container" },
@@ -201,9 +194,9 @@ export default function KYCReviewPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-md md:grid-cols-3">
-                <PhotoPreview title={t("front")} src={resolveImageUrl(active.frontImageUrl)} analysis={active.frontImageAnalysis} />
-                <PhotoPreview title={t("back")} src={resolveImageUrl(active.backImageUrl)} analysis={active.backImageAnalysis} />
-                <PhotoPreview title={t("selfie")} src={resolveImageUrl(active.selfieImageUrl)} analysis={active.selfieImageAnalysis} />
+                <PhotoPreview title={t("front")} src={active.frontImageUrl} analysis={active.frontImageAnalysis} />
+                <PhotoPreview title={t("back")} src={active.backImageUrl} analysis={active.backImageAnalysis} />
+                <PhotoPreview title={t("selfie")} src={active.selfieImageUrl} analysis={active.selfieImageAnalysis} />
               </div>
 
               {active.rejectionReason && (
@@ -302,13 +295,7 @@ function PhotoPreview({
     <div className="rounded-xl border border-surface-variant bg-surface p-md soft-shadow">
       <h3 className="mb-sm font-headline-sm text-headline-sm text-primary">{title}</h3>
       <div className="overflow-hidden rounded-md border border-outline-variant bg-surface-container-low">
-        {src ? (
-          <img src={src} alt={title} className="aspect-[4/3] w-full object-cover" />
-        ) : (
-          <div className="flex aspect-[4/3] items-center justify-center text-on-surface-variant">
-            <span className="material-symbols-outlined text-4xl">image_not_supported</span>
-          </div>
-        )}
+        <ProtectedKycImage src={src} alt={title} className="aspect-[4/3] w-full object-cover" />
       </div>
     </div>
   );

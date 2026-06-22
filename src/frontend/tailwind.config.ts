@@ -10,6 +10,11 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        "luxe-navy": "#071626",
+        "luxe-ink": "#0B1C2E",
+        "luxe-ivory": "#FFFDF8",
+        "luxe-gold": "#B9974F",
+        "luxe-champagne": "#E2C171",
         "primary": "#000000",
         "primary-container": "#0d1c32",
         "primary-fixed": "#d6e3ff",
@@ -63,6 +68,8 @@ const config: Config = {
         lg: "0.5rem",
         xl: "0.75rem",
         full: "9999px",
+        "2xl": "1rem",
+        "3xl": "1.5rem",
       },
       spacing: {
         xs: "4px",
@@ -104,6 +111,10 @@ const config: Config = {
       },
       animation: {
         "pulse-live": "pulse-ring 2s cubic-bezier(0.215,0.61,0.355,1) infinite",
+      },
+      boxShadow: {
+        "luxe-sm": "0 8px 30px rgba(18,31,44,.06)",
+        "luxe-lg": "0 24px 70px rgba(7,22,38,.16)",
       },
     },
   },

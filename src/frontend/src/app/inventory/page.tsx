@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import CollectorShell from "@/components/layout/CollectorShell";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
+import EmptyState from "@/components/dashboard/EmptyState";
 import {
   searchProducts,
   ProductSummary,
@@ -368,11 +371,7 @@ export default function InventoryPage() {
   if (loading) {
     return (
       <CollectorShell>
-        <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
-          <div className="flex items-center justify-center h-64">
-            <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
-          </div>
-        </div>
+        <div className="mx-auto max-w-[1260px] px-4 py-10 sm:px-7 lg:px-10 lg:py-14"><LoadingSkeleton cards={4} /></div>
       </CollectorShell>
     );
   }
@@ -380,43 +379,26 @@ export default function InventoryPage() {
   if (error) {
     return (
       <CollectorShell>
-        <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
-          <div className="bg-error-container rounded-xl p-lg text-center">
-            <span className="material-symbols-outlined text-4xl text-on-error-container mb-md">error</span>
-            <p className="text-on-error-container">{error}</p>
-          </div>
-        </div>
+        <div className="mx-auto max-w-[1260px] px-4 py-10 sm:px-7 lg:px-10 lg:py-14"><EmptyState icon="error" title="Không thể tải phiên đấu giá" description={error} /></div>
       </CollectorShell>
     );
   }
 
   return (
     <CollectorShell>
-      <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg">
-        <div className="flex justify-between items-end">
-          <div>
-            <h1 className="font-display-lg-mobile md:font-display-lg text-primary">{t("pageTitle")}</h1>
-            <p className="font-body-lg text-on-surface-variant mt-xs">{t("pageSubtitle")}</p>
-          </div>
-          <Link
-            href="/post-item"
-            className="bg-secondary text-on-secondary font-label-md text-label-md px-md py-sm rounded-lg flex items-center gap-xs hover:bg-secondary-fixed-dim transition-colors glow-accent"
-          >
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            {t("postNewItem")}
-          </Link>
-        </div>
+      <div className="mx-auto max-w-[1260px] space-y-7 px-4 py-10 sm:px-7 lg:px-10 lg:py-14">
+        <DashboardHeader eyebrow="Seller portfolio" title={t("pageTitle")} subtitle={t("pageSubtitle")} actionLabel={t("postNewItem")} actionHref="/post-item" />
 
         {/* Tabs */}
-        <div className="flex gap-xs border-b border-surface-variant overflow-x-auto">
+        <div className="flex gap-1 overflow-x-auto border-y border-[#ddd6c9] py-4">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-md py-sm font-label-md text-label-md border-b-2 transition-colors flex items-center gap-xs whitespace-nowrap ${
+              className={`flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
                 activeTab === tab.key
-                  ? "border-primary text-primary"
-                  : "border-transparent text-on-surface-variant hover:text-on-surface"
+                  ? "bg-[#071626] text-white"
+                  : "text-[#65717b] hover:bg-white hover:text-[#071626]"
               }`}
             >
               <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
@@ -433,20 +415,15 @@ export default function InventoryPage() {
         {/* Items Grid */}
         <section>
           {currentItems.length === 0 ? (
-            <div className="bg-surface rounded-xl p-lg text-center">
-              <span className="material-symbols-outlined text-4xl text-on-surface-variant mb-md block">
-                {tabs.find((t) => t.key === activeTab)?.icon}
-              </span>
-              <p className="text-on-surface-variant">
-                {activeTab === "pending"
+            <EmptyState icon={tabs.find((t) => t.key === activeTab)?.icon} title="Chưa có phiên đấu giá" description={
+                activeTab === "pending"
                   ? t("empty.pending")
                   : activeTab === "active"
                   ? t("empty.active")
                   : activeTab === "upcoming"
                   ? t("empty.upcoming")
-                  : t("empty.ended")}
-              </p>
-            </div>
+                  : t("empty.ended")
+              } actionLabel="Đăng sản phẩm" actionHref="/post-item" />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-md">
               {currentItems.map((item) => {
@@ -461,10 +438,10 @@ export default function InventoryPage() {
                 );
                 const auctionCfg = AUCTION_STATUS_CONFIG[auctionState];
                 return (
-                  <div key={item.productId} className="bg-surface rounded-xl overflow-hidden soft-shadow border border-surface-variant">
+                   <div key={item.productId} className="group overflow-hidden rounded-2xl border border-[#ded8cc] bg-white shadow-[0_8px_28px_rgba(18,31,44,.05)] transition hover:-translate-y-1 hover:border-[#c4a55a] hover:shadow-[0_18px_42px_rgba(18,31,44,.11)]">
                     <div className="relative h-48 overflow-hidden bg-surface-variant">
                       {item.imageUrl ? (
-                        <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-cover" />
+                        <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <span className="material-symbols-outlined text-4xl text-on-surface-variant">image</span>

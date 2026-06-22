@@ -6,7 +6,10 @@ import com.auction.account.service.KycService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.Resource;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -59,7 +62,7 @@ public class KycController {
                     "data", result,
                     "message", "KYC submitted. Our staff will review it shortly."
             ));
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | IllegalStateException ex) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", ex.getMessage()
@@ -67,7 +70,7 @@ public class KycController {
         } catch (IOException ex) {
             return ResponseEntity.status(500).body(Map.of(
                     "success", false,
-                    "message", "Failed to save uploaded images: " + ex.getMessage()
+                    "message", "Failed to store the KYC documents securely"
             ));
         }
     }
@@ -88,10 +91,46 @@ public class KycController {
 
     @GetMapping("/list")
     @PreAuthorize("hasRole('Staff') or hasRole('Admin')")
-    public ResponseEntity<List<KycSubmissionResponse>> listByStatus(
+    public ResponseEntity<?> listByStatus(
             @RequestParam(name = "status", required = false) String status
     ) {
-        return ResponseEntity.ok(kycService.listByStatus(status));
+        try {
+            return ResponseEntity.ok(kycService.listByStatus(status));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", ex.getMessage()));
+        }
+    }
+
+    /**
+     * KYC images are never exposed by the public static-resource handler.
+     * Only the owner or a Staff/Admin reviewer can fetch the binary document.
+     */
+    @GetMapping("/{kycId}/documents/{kind}")
+    public ResponseEntity<Resource> document(
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
+            @PathVariable Long kycId,
+            @PathVariable String kind
+    ) {
+        if (currentUser == null) return ResponseEntity.status(401).build();
+        boolean reviewer = currentUser.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_Staff")
+                        || authority.getAuthority().equals("ROLE_Admin"));
+        try {
+            KycService.StoredDocument document = kycService.loadDocument(
+                    kycId, kind, currentUser.getId(), reviewer);
+            return ResponseEntity.ok()
+                    .cacheControl(CacheControl.noStore())
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
+                    .header("X-Content-Type-Options", "nosniff")
+                    .contentType(document.mediaType())
+                    .body(document.resource());
+        } catch (SecurityException ex) {
+            return ResponseEntity.status(403).build();
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        } catch (IOException ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping("/{kycId}/approve")
@@ -105,7 +144,7 @@ public class KycController {
                     "success", true,
                     "data", kycService.approve(kycId, currentUser.getId())
             ));
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | IllegalStateException ex) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", ex.getMessage()
@@ -125,7 +164,7 @@ public class KycController {
                     "success", true,
                     "data", kycService.reject(kycId, currentUser.getId(), reason)
             ));
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | IllegalStateException ex) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", ex.getMessage()
@@ -145,7 +184,7 @@ public class KycController {
                     "success", true,
                     "data", kycService.requestInfo(kycId, currentUser.getId(), reason)
             ));
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | IllegalStateException ex) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", ex.getMessage()

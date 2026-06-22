@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { login, register, selectRole } from "@/lib/services/authService";
 import { saveStoredUser, StoredUser } from "@/lib/userSession";
 import { useTranslations } from "@/i18n/I18nProvider";
+import { DEMO_MODE } from "@/lib/demoMode";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -308,6 +309,18 @@ export default function AuthPage() {
                     : t("joinCollectionDesc")}
                 </p>
               </div>
+
+              {DEMO_MODE && isLogin && (
+                <div className="mb-3 rounded-xl border border-[#c6a75c]/35 bg-[#f5edd9] p-3 text-xs text-[#604914]">
+                  <div className="flex items-center gap-2 font-bold"><span className="material-symbols-outlined text-[17px]">science</span>Demo Mode — không cần backend/database</div>
+                  <p className="mt-1 text-[11px] text-[#7a6330]">Mật khẩu cho cả hai tài khoản: <strong>demo123</strong></p>
+                  <div className="mt-2 flex gap-2">
+                    <button type="button" onClick={() => { setEmail("demo@luxeauction.vn"); setPassword("demo123"); }} className="rounded-full bg-[#071626] px-3 py-1.5 text-[10px] font-bold text-[#e4c77b]">Collector demo</button>
+                    <button type="button" onClick={() => { setEmail("seller@luxeauction.vn"); setPassword("demo123"); }} className="rounded-full border border-[#9b7932] px-3 py-1.5 text-[10px] font-bold">Seller demo</button>
+                    <button type="button" onClick={() => { setEmail("staff@luxeauction.vn"); setPassword("demo123"); }} className="rounded-full border border-[#9b7932] px-3 py-1.5 text-[10px] font-bold">Staff demo</button>
+                  </div>
+                </div>
+              )}
 
               {/* Form */}
               <form className="space-y-2.5" onSubmit={handleSubmit}>

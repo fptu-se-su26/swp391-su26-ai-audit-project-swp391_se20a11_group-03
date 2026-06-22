@@ -6,7 +6,7 @@ import jakarta.persistence.Persistence;
 
 public final class JpaUtil {
     private static final EntityManagerFactory ENTITY_MANAGER_FACTORY =
-            Persistence.createEntityManagerFactory("auctionPU");
+            Persistence.createEntityManagerFactory("auctionPU-standalone");
 
     private JpaUtil() {
     }

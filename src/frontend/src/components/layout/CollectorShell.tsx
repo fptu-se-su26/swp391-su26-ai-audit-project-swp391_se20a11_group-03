@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import CollectorSidebar from "./CollectorSidebar";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 interface Props {
   children: ReactNode;
@@ -8,12 +8,8 @@ interface Props {
 
 export default function CollectorShell({
   children,
-  mainClass = "flex-1 ml-0 md:ml-64 h-screen overflow-y-auto bg-background",
+  mainClass = "",
 }: Props) {
-  return (
-    <div className="bg-background text-on-surface font-body-md flex h-screen overflow-hidden">
-      <CollectorSidebar />
-      <main className={mainClass}>{children}</main>
-    </div>
-  );
+  const isMessageLayout = mainClass.includes("overflow-hidden");
+  return <DashboardLayout><div className={isMessageLayout ? "h-screen overflow-hidden" : "min-h-screen"}>{children}</div></DashboardLayout>;
 }

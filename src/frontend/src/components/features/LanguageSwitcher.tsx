@@ -31,16 +31,16 @@ export default function LanguageSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-1 rounded-full border border-outline-variant/30 bg-surface-container-low px-3 py-1.5 font-label-sm text-label-sm text-on-surface transition-colors hover:bg-surface-container"
+        className="flex h-10 items-center gap-1.5 rounded-full border border-[#d8d1c5] bg-white px-3 text-[11px] font-semibold text-[#071626] shadow-sm transition-all hover:border-[#b9974f] hover:bg-[#faf6ed] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b9974f]"
         title="Change language"
         aria-label="Change language"
       >
-        <span className="material-symbols-outlined text-[18px]">language</span>
+        <span className="material-symbols-outlined text-[18px] text-[#344253]">language</span>
         <span className="font-bold">{localeShortLabels[locale]}</span>
-        <span className="material-symbols-outlined text-[16px]">expand_more</span>
+        <span className={`material-symbols-outlined text-[16px] text-[#59636d] transition-transform ${open ? "rotate-180" : ""}`}>expand_more</span>
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-40 overflow-hidden rounded-lg border border-outline-variant bg-surface shadow-lg">
+        <div className="absolute right-0 top-full z-50 mt-2 w-44 overflow-hidden rounded-2xl border border-[#ddd5c7] bg-[#fffdf8] p-1.5 shadow-[0_18px_45px_rgba(7,22,38,.16)]">
           {locales.map((code) => {
             const active = code === locale;
             return (
@@ -48,10 +48,10 @@ export default function LanguageSwitcher() {
                 key={code}
                 type="button"
                 onClick={() => handleSelect(code)}
-                className={`flex w-full items-center justify-between px-4 py-2 text-left font-label-sm text-label-sm transition-colors ${
+                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-xs font-semibold transition-colors ${
                   active
-                    ? "bg-primary-container text-on-primary-container"
-                    : "text-on-surface hover:bg-surface-variant"
+                    ? "bg-[#071626] text-[#e5c77a]"
+                    : "text-[#344253] hover:bg-[#f1ebdf]"
                 }`}
               >
                 <span>{code === "vi" ? "Tiếng Việt" : "English"}</span>

@@ -183,15 +183,16 @@ function MessagesPageInner() {
   }
 
   return (
-    <CollectorShell mainClass="flex-1 ml-0 md:ml-64 h-screen overflow-hidden flex bg-background">
-      <aside className="w-[30%] border-r border-outline-variant flex flex-col h-full bg-surface-container-low">
-        <div className="p-md border-b border-outline-variant flex items-center justify-between gap-sm">
-          <h2 className="font-headline-sm text-headline-sm text-primary font-bold">{t("title")}</h2>
+    <CollectorShell mainClass="overflow-hidden">
+      <div className="flex h-screen flex-col gap-0 p-4 sm:p-6 lg:flex-row lg:p-8">
+      <aside className="flex h-full w-full flex-col overflow-hidden rounded-t-3xl border border-[#ddd6c9] bg-[#f8f5ee] lg:w-[330px] lg:rounded-l-3xl lg:rounded-tr-none">
+        <div className="flex items-center justify-between gap-sm border-b border-[#e2dbcf] p-5">
+          <div><p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#9a7429]">Private inbox</p><h2 className="mt-1 font-display-lg text-lg font-semibold text-[#071626]">{t("title")}</h2></div>
           {!isUserStaff && !isUserAdmin && (
             <button
               type="button"
               onClick={() => setShowNewModal(true)}
-              className="flex items-center gap-1 rounded-lg bg-secondary px-3 py-1.5 text-[12px] font-label-md text-on-secondary hover:bg-secondary-fixed-dim transition-colors"
+               className="flex items-center gap-1 rounded-full bg-[#071626] px-3 py-2 text-[11px] font-bold text-[#e4c77b] transition hover:bg-[#102a42]"
             >
               <span className="material-symbols-outlined text-[16px]">add</span>
               {t("newChat")}
@@ -203,9 +204,9 @@ function MessagesPageInner() {
           {loading ? (
             <div className="p-md text-center text-on-surface-variant">{t("loading")}</div>
           ) : conversations.length === 0 ? (
-            <div className="p-md text-center text-on-surface-variant">
-              <p className="mb-sm">{t("emptyTitle")}</p>
-              <p className="text-sm">{t("emptyDesc")}</p>
+            <div className="p-8 text-center text-[#707a82]">
+              <span className="material-symbols-outlined text-3xl text-[#b39858]">forum</span><p className="mb-2 mt-3 font-display-lg font-semibold text-[#071626]">{t("emptyTitle")}</p>
+              <p className="text-xs leading-5">{t("emptyDesc")}</p>
             </div>
           ) : (
             conversations.map((c) => (
@@ -222,7 +223,7 @@ function MessagesPageInner() {
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col bg-surface">
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-b-3xl border border-t-0 border-[#ddd6c9] bg-[#fffdf9] lg:rounded-r-3xl lg:rounded-bl-none lg:border-l-0 lg:border-t">
         {activeConversation ? (
           <>
             <ConversationHeader
@@ -230,7 +231,7 @@ function MessagesPageInner() {
               currentUserId={currentUser?.userId ?? null}
             />
 
-            <div className="flex-1 overflow-y-auto p-md space-y-md">
+            <div className="flex-1 space-y-md overflow-y-auto bg-[radial-gradient(circle_at_80%_15%,rgba(190,157,78,.06),transparent_25%)] p-md">
               {loadingMessages ? (
                 <div className="text-center text-on-surface-variant">{t("loadingMessages")}</div>
               ) : messages.length === 0 ? (
@@ -245,8 +246,8 @@ function MessagesPageInner() {
                       <div
                         className={`max-w-[70%] rounded-2xl px-4 py-2 ${
                           isMe
-                            ? "bg-secondary text-on-secondary rounded-br-md"
-                            : "bg-surface-container-high text-on-surface rounded-bl-md"
+                            ? "rounded-br-md bg-[#c9aa5d] text-[#071626]"
+                            : "rounded-bl-md border border-[#e2dcd1] bg-white text-[#263544] shadow-sm"
                         }`}
                       >
                         {!isMe && (
@@ -265,28 +266,28 @@ function MessagesPageInner() {
               )}
             </div>
 
-            <div className="p-md border-t border-outline-variant flex gap-md">
+            <div className="flex gap-3 border-t border-[#e3ddd2] bg-white p-4">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && send()}
                 placeholder={t("typeMessage")}
-                className="flex-1 bg-surface-container-low border border-outline-variant rounded-lg px-4 py-2 outline-none focus:border-secondary"
+                className="flex-1 rounded-xl border border-[#d8d1c5] bg-[#faf7f1] px-4 py-3 text-sm outline-none focus:border-[#b9974f]"
               />
               <button
                 type="button"
                 onClick={send}
-                className="bg-secondary text-on-secondary rounded-lg px-4 py-2 hover:bg-secondary-fixed-dim transition-colors"
+                className="grid h-11 w-11 place-items-center rounded-full bg-[#071626] text-[#e3c67a] transition hover:bg-[#102a42]"
               >
                 <span className="material-symbols-outlined">send</span>
               </button>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-on-surface-variant p-md gap-md">
-            <span className="material-symbols-outlined text-5xl">chat</span>
-            <p>{t("selectConversation")}</p>
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 p-md text-[#707a82]">
+            <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#f1ead9] material-symbols-outlined text-3xl text-[#977229]">chat</span>
+            <p className="font-display-lg font-semibold text-[#071626]">{t("selectConversation")}</p>
             {!isUserStaff && !isUserAdmin && (
               <button
                 type="button"
@@ -311,6 +312,7 @@ function MessagesPageInner() {
           onSubmit={handleCreateConversation}
         />
       )}
+      </div>
     </CollectorShell>
   );
 }
