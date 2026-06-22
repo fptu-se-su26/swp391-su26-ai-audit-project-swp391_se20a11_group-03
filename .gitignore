@@ -1,5 +1,12 @@
+# IDE and OS metadata
 .idea/
+.vscode/
+.settings/
+.classpath
+.project
 *.iml
+.DS_Store
+Thumbs.db
 
 # Java / Maven
 target/

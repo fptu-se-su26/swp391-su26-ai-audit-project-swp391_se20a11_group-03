@@ -1,0 +1,34 @@
+package com.vnec.util;
+
+public final class FptAiConfig {
+    private static final String API_KEY_ENV = "FPT_AI_API_KEY";
+    private static final String API_URL_ENV = "FPT_AI_API_URL";
+    private static final String DEFAULT_API_URL = "https://api.fpt.ai";
+
+    private FptAiConfig() {
+    }
+
+    public static String getApiKey() {
+        return firstNonBlank(
+                System.getProperty("fpt.ai.api.key"),
+                System.getenv(API_KEY_ENV)
+        );
+    }
+
+    public static String getApiUrl() {
+        return firstNonBlank(
+                System.getProperty("fpt.ai.api.url"),
+                System.getenv(API_URL_ENV),
+                DEFAULT_API_URL
+        );
+    }
+
+    private static String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.trim().isEmpty()) {
+                return value.trim();
+            }
+        }
+        return null;
+    }
+}
