@@ -6,17 +6,42 @@ import { useTranslations } from "@/i18n/I18nProvider";
 import { clearStoredAuth } from "@/lib/apiClient";
 import { getStoredUser, getUserDisplayName } from "@/lib/userSession";
 
-const NAV_ITEMS = [
-  { href: "/admin/bidding-rules", icon: "gavel", label: "Luật đấu giá" },
-  { href: "/admin/financial-policies", icon: "account_balance", label: "Chính sách tài chính" },
-  { href: "/admin/users", icon: "manage_accounts", label: "Vai trò & quyền" },
-  { href: "/admin/categories", icon: "category", label: "Danh mục & thuộc tính" },
-  { href: "/admin/auction-history", icon: "history_edu", label: "Lịch sử đấu giá" },
-  { href: "/admin/revenue", icon: "payments", label: "Thống kê doanh thu" },
-  { href: "/admin/audit-logs", icon: "fact_check", label: "Nhật ký hệ thống" },
-  { href: "/admin/disputes", icon: "balance", label: "Tranh chấp" },
-  { href: "/admin/notifications", icon: "campaign", label: "Thông báo" },
-  { href: "/admin/reports", icon: "assessment", label: "Xuất báo cáo" },
+const NAV_SECTIONS: { title: string; items: { href: string; icon: string; label: string }[] }[] = [
+  {
+    title: "Tổng quan",
+    items: [{ href: "/admin/dashboard", icon: "dashboard", label: "Tổng quan hệ thống" }],
+  },
+  {
+    title: "Vận hành (Staff)",
+    items: [
+      { href: "/staff/approvals", icon: "task_alt", label: "Duyệt sản phẩm" },
+      { href: "/staff/kyc-review", icon: "badge", label: "Duyệt KYC" },
+      { href: "/staff/withdrawals", icon: "payments", label: "Duyệt rút tiền" },
+      { href: "/staff/support", icon: "support_agent", label: "Hỗ trợ" },
+    ],
+  },
+  {
+    title: "Kinh doanh",
+    items: [
+      { href: "/admin/sales-history", icon: "receipt_long", label: "Lịch sử mua bán" },
+      { href: "/admin/contracts", icon: "contract", label: "Hợp đồng điện tử" },
+      { href: "/admin/revenue", icon: "trending_up", label: "Thống kê doanh thu" },
+      { href: "/admin/auction-history", icon: "history_edu", label: "Lịch sử đấu giá" },
+    ],
+  },
+  {
+    title: "Quản trị",
+    items: [
+      { href: "/admin/users", icon: "manage_accounts", label: "Vai trò & quyền" },
+      { href: "/admin/categories", icon: "category", label: "Danh mục & thuộc tính" },
+      { href: "/admin/bidding-rules", icon: "gavel", label: "Luật đấu giá" },
+      { href: "/admin/financial-policies", icon: "account_balance", label: "Chính sách tài chính" },
+      { href: "/admin/audit-logs", icon: "fact_check", label: "Nhật ký hệ thống" },
+      { href: "/admin/disputes", icon: "balance", label: "Tranh chấp" },
+      { href: "/admin/notifications", icon: "campaign", label: "Thông báo" },
+      { href: "/admin/reports", icon: "assessment", label: "Xuất báo cáo" },
+    ],
+  },
 ];
 
 export default function AdminSidebar() {
@@ -51,38 +76,34 @@ export default function AdminSidebar() {
         </Link>
 
         {/* Nav */}
-        <nav className="flex-1 flex flex-col gap-xs overflow-y-auto custom-scrollbar">
-          {NAV_ITEMS.map((item) => {
-            const active = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-base rounded-lg px-md py-sm transition-all duration-200 ${
-                  active
-                    ? "bg-primary-container text-on-primary-container shadow-sm"
-                    : "text-on-surface-variant hover:text-primary hover:bg-surface-container-high"
-                }`}
-              >
-                <span className="material-symbols-outlined" style={active ? { fontVariationSettings: "'FILL' 1" } : undefined}>
-                  {item.icon}
-                </span>
-                <span className="font-label-md text-label-md">{item.label}</span>
-              </Link>
-            );
-          })}
+        <nav className="flex-1 flex flex-col gap-md overflow-y-auto custom-scrollbar">
+          {NAV_SECTIONS.map((section) => (
+            <div key={section.title} className="flex flex-col gap-xs">
+              <p className="px-md text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
+                {section.title}
+              </p>
+              {section.items.map((item) => {
+                const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-base rounded-lg px-md py-sm transition-all duration-200 ${
+                      active
+                        ? "bg-primary-container text-on-primary-container shadow-sm"
+                        : "text-on-surface-variant hover:text-primary hover:bg-surface-container-high"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined" style={active ? { fontVariationSettings: "'FILL' 1" } : undefined}>
+                      {item.icon}
+                    </span>
+                    <span className="font-label-md text-label-md">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
-
-        {/* CTA */}
-        <div className="mt-lg px-sm">
-          <Link
-            href="/admin/auction-history"
-            className="w-full bg-secondary text-on-secondary font-label-md text-label-md py-md rounded-lg shadow-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-sm"
-          >
-            <span className="material-symbols-outlined">visibility</span>
-            {t("liveMonitor")}
-          </Link>
-        </div>
 
         {/* Footer nav */}
         <div className="mt-lg pt-lg border-t border-outline-variant/30 flex flex-col gap-xs">

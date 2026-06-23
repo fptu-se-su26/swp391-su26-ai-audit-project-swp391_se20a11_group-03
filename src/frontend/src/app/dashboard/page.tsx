@@ -12,6 +12,11 @@ import { getAuctionState } from "@/lib/services/auctionService";
 import { apiClient } from "@/lib/apiClient";
 import CountdownTimer from "@/components/features/CountdownTimer";
 import { useTranslations } from "@/i18n/I18nProvider";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import StatCard from "@/components/dashboard/StatCard";
+import EmptyState from "@/components/dashboard/EmptyState";
+import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
+import DataTable from "@/components/dashboard/DataTable";
 
 const BASE_STATS = [
   { icon: "gavel", label: "Active Bids", value: "0", color: "primary-fixed-dim" },
@@ -84,33 +89,12 @@ export default function DashboardPage() {
 
   return (
     <CollectorShell>
-      <div className="mx-auto max-w-[1400px] space-y-lg p-margin-mobile md:p-margin-desktop">
+      <div className="mx-auto max-w-[1260px] space-y-8 px-4 py-10 sm:px-7 lg:px-10 lg:py-14">
         <section>
-          <div className="mb-md flex items-end justify-between">
-            <div>
-              <h2 className="font-display-lg-mobile text-primary md:font-display-lg">{t("pageTitle")}</h2>
-              <p className="mt-xs font-body-lg text-on-surface-variant">
-                {t("welcomeBack", { name: displayName })}
-              </p>
-            </div>
-          </div>
+          <DashboardHeader title={t("pageTitle")} subtitle={t("welcomeBack", { name: displayName })} actionLabel="Khám phá phiên đấu giá" actionHref="/live" />
 
-          <div className="grid grid-cols-2 gap-md md:grid-cols-4">
-            {stats.map((stat) => (
-              <div
-                key={stat.label}
-                className="relative overflow-hidden rounded-xl border border-surface-variant bg-surface p-md soft-shadow"
-              >
-                <div className={`absolute -mr-4 -mt-4 right-0 top-0 h-24 w-24 rounded-bl-full opacity-20 ${STAT_ACCENTS[stat.color]}`} />
-                <div className="mb-sm flex items-center gap-sm text-on-surface-variant">
-                  <span className="material-symbols-outlined">{stat.icon}</span>
-                  <span className="font-label-md text-label-md">{stat.label}</span>
-                </div>
-                <div className="font-headline-md text-headline-md font-bold text-primary md:text-[32px] md:leading-[40px]">
-                  {stat.value}
-                </div>
-              </div>
-            ))}
+          <div className="mt-8 grid grid-cols-2 gap-4 xl:grid-cols-4">
+            {stats.map((stat, index) => <StatCard key={stat.label} icon={stat.icon} label={stat.label} value={stat.value} tone={index === 0 ? "gold" : index === 1 ? "green" : "navy"} detail={index === 0 && leadingCount > 0 ? `${leadingCount} leading` : undefined} />)}
           </div>
         </section>
 
@@ -118,43 +102,25 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 gap-lg xl:grid-cols-3">
           <section className="space-y-md xl:col-span-2">
-            <h3 className="border-b border-surface-variant pb-xs font-headline-sm text-headline-sm text-primary">
-              {t("myActiveBids")}
-            </h3>
-            <div className="overflow-hidden rounded-xl border border-surface-variant bg-surface soft-shadow">
+            <div><p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#9a7429]">Live bidding activity</p><h3 className="mt-2 font-display-lg text-xl font-semibold text-[#071626]">{t("myActiveBids")}</h3></div>
+            <div>
               {isLoadingBids ? (
-                <div className="p-md text-center text-on-surface-variant">{t("loading")}</div>
+                <LoadingSkeleton cards={2} />
               ) : bids.length === 0 ? (
-                <div className="p-md text-center text-on-surface-variant">
-                  <p className="mb-sm">{t("noActiveBids")}</p>
-                  <Link href="/" className="text-secondary hover:underline">{t("browseAuctions")}</Link>
-                </div>
+                <EmptyState icon="gavel" title={t("noActiveBids")} description="Các phiên bạn tham gia sẽ xuất hiện tại đây cùng trạng thái bid theo thời gian thực." actionLabel={t("browseAuctions")} actionHref="/live" />
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-left">
-                    <thead>
-                      <tr className="border-b border-surface-variant bg-surface-container-low">
-                        {["tableLotItem", "tableCurrentBid", "tableTimeLeft", "tableStatus", "tableQuickBid", "tableActions"].map((key) => (
-                          <th key={key} className="p-md font-label-sm text-label-sm text-on-surface-variant">
-                            {t(key)}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
+                <DataTable headers={["tableLotItem", "tableCurrentBid", "tableTimeLeft", "tableStatus", "tableQuickBid", "tableActions"].map((key) => t(key))}>
                       {bids.map((bid) => (
                         <ActiveBidRow key={bid.bidId} bid={bid} onRefresh={fetchBids} />
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                </DataTable>
               )}
             </div>
           </section>
 
           <section className="space-y-md">
-            <div className="glass-panel relative overflow-hidden rounded-xl border border-error-container p-md">
-              <div className="absolute left-0 top-0 h-full w-1 bg-error" />
+            <div className="relative overflow-hidden rounded-2xl border border-[#e1d7c5] bg-white/75 p-5 shadow-[0_8px_28px_rgba(18,31,44,.04)]">
+              <div className="absolute left-0 top-0 h-full w-1 bg-[#bd963f]" />
               <div className="flex items-start gap-sm">
                 <span className="material-symbols-outlined mt-1 text-error">timer</span>
                 <div>
@@ -169,7 +135,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="rounded-xl bg-primary-container p-md text-on-primary-container soft-shadow">
+            <div className="rounded-2xl bg-[#071626] p-6 text-white shadow-[0_18px_45px_rgba(7,22,38,.18)]">
               <h3 className="mb-sm font-headline-sm text-headline-sm text-on-primary">{t("quickAccess")}</h3>
               <p className="mb-md text-sm font-body-md opacity-80">{t("quickAccessDesc")}</p>
               <div className="grid gap-sm">

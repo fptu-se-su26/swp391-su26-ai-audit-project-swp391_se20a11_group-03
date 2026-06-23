@@ -20,7 +20,7 @@
         <jakarta.transaction.version>2.0.1</jakarta.transaction.version>
         <jakarta.validation.version>3.1.0</jakarta.validation.version>
         <sqlserver.jdbc.version>12.6.1.jre11</sqlserver.jdbc.version>
-        <lombok.version>1.18.36</lombok.version>
+        <lombok.version>1.18.38</lombok.version>
         <jjwt.version>0.12.6</jjwt.version>
         <flying-saucer-pdf.version>9.11.6</flying-saucer-pdf.version>
         <metadata-extractor.version>2.19.0</metadata-extractor.version>

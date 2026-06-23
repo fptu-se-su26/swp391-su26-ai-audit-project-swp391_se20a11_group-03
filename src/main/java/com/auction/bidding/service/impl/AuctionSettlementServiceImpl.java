@@ -40,8 +40,15 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
         LocalDateTime now = LocalDateTime.now();
         int count = 0;
         for (Auction auction : auctionRepository.findAll()) {
-            if (!"ACTIVE".equalsIgnoreCase(auction.getStatus())
-                    && !"UPCOMING".equalsIgnoreCase(auction.getStatus())) {
+            // Key off settledAt (not status) so we still settle auctions that the
+            // AuctionStatusSyncScheduler may have already flipped to ENDED.
+            if (auction.getSettledAt() != null) {
+                continue;
+            }
+            // Skip auctions already in a terminal settled state.
+            if ("AWAITING_PAYMENT".equalsIgnoreCase(auction.getStatus())
+                    || "PAID".equalsIgnoreCase(auction.getStatus())
+                    || "FORFEITED".equalsIgnoreCase(auction.getStatus())) {
                 continue;
             }
             if (auction.getEndTime() == null || auction.getEndTime().isAfter(now)) {
@@ -74,6 +81,8 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
                         deposit.setStatus("HELD_FOR_PAYMENT");
                         auctionDepositRepository.save(deposit);
                     });
+            // Losers get their deposit unlocked back to balance as soon as the auction ends.
+            refundLoserDeposits(auction, now);
             count++;
         }
         return count;
@@ -131,20 +140,48 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
         wallet.setUpdatedAt(now);
         walletRepository.save(wallet);
 
-        Transaction tx = new Transaction();
-        tx.setWallet(wallet);
-        tx.setAmount(amount);
-        tx.setTransactionType("FORFEIT_DEPOSIT");
-        tx.setStatus("SUCCESS");
-        tx.setReferenceCode("FORFEIT-" + auction.getAuctionId());
-        tx.setDescription("Deposit forfeited to platform (auction " + auction.getAuctionId() + " winner did not pay)");
-        tx.setCreatedAt(now);
-        transactionRepository.save(tx);
+        // The forfeited deposit becomes platform revenue: credit the admin wallet.
+        Wallet adminWallet = getAdminWallet(now);
+        if (adminWallet != null && amount > 0) {
+            long adminBalance = adminWallet.getBalance() != null ? adminWallet.getBalance() : 0L;
+            adminWallet.setBalance(adminBalance + amount);
+            adminWallet.setUpdatedAt(now);
+            walletRepository.save(adminWallet);
+
+            Transaction adminTx = new Transaction();
+            adminTx.setWallet(adminWallet);
+            adminTx.setAmount(amount);
+            adminTx.setTransactionType("FORFEIT_DEPOSIT");
+            adminTx.setStatus("COMPLETED");
+            adminTx.setReferenceCode("FORFEIT-" + auction.getAuctionId());
+            adminTx.setDescription("Forfeited deposit from auction " + auction.getAuctionId() + " (winner did not pay)");
+            adminTx.setCreatedAt(now);
+            transactionRepository.save(adminTx);
+        }
 
         deposit.setStatus("FORFEITED");
         deposit.setSettlementType("FORFEITED");
         deposit.setSettledAt(now);
         auctionDepositRepository.save(deposit);
+    }
+
+    /** Returns the platform admin wallet (first Admin user), creating it if missing. */
+    private Wallet getAdminWallet(LocalDateTime now) {
+        com.auction.account.entity.User admin = userRepository
+                .findFirstByRole_RoleNameOrderByIdAsc("Admin")
+                .orElse(null);
+        if (admin == null) {
+            log.warn("No Admin user found to receive platform revenue");
+            return null;
+        }
+        return walletRepository.findByUser_Id(admin.getId()).orElseGet(() -> {
+            Wallet w = new Wallet();
+            w.setUser(admin);
+            w.setBalance(0L);
+            w.setHoldBalance(0L);
+            w.setUpdatedAt(now);
+            return walletRepository.save(w);
+        });
     }
 
     private void refundLoserDeposits(Auction auction, LocalDateTime now) {

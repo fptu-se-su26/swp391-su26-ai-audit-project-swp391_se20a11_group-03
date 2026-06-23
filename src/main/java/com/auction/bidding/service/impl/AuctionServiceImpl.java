@@ -29,7 +29,7 @@ public class AuctionServiceImpl implements AuctionService {
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + auctionId));
 
-        LocalDateTime deadline = auction.getStartTime().minusMinutes(30);
+        LocalDateTime deadline = auction.getStartTime().minusMinutes(3);
         boolean allowed = LocalDateTime.now().isBefore(deadline);
         long depositAmount = DepositCalculator.calculate(auction.getProduct().getStartingPrice());
         boolean alreadyDeposited = userId != null && auctionDepositRepository
@@ -52,9 +52,9 @@ public class AuctionServiceImpl implements AuctionService {
             allowed = false;
             message = "User already deposited for this auction.";
         } else if (!allowed) {
-            message = "Deposit/registration is locked because the 30-minute cutoff has passed.";
+            message = "Deposit/registration is locked because the 3-minute cutoff has passed.";
         } else {
-            message = "User can still deposit before the 30-minute cutoff.";
+            message = "User can still deposit before the 3-minute cutoff.";
         }
 
         return AuctionEligibilityResponse.builder()

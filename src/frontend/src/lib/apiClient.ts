@@ -50,7 +50,7 @@ export function clearStoredAuth(): void {
   localStorage.removeItem("currentUser");
 }
 
-function buildUrl(path: string): string {
+export function resolveApiUrl(path: string): string {
   if (/^https?:\/\//i.test(path)) {
     return path;
   }
@@ -102,7 +102,7 @@ export async function apiClient<T>(path: string, options: ApiRequestOptions = {}
     body = JSON.stringify(body);
   }
 
-  const response = await fetch(buildUrl(path), {
+  const response = await fetch(resolveApiUrl(path), {
     ...options,
     body: body as BodyInit | null | undefined,
     credentials: "include",
@@ -120,7 +120,7 @@ export async function apiClient<T>(path: string, options: ApiRequestOptions = {}
       // ignore
     }
     console.error("[apiClient] request failed", {
-      url: buildUrl(path),
+      url: resolveApiUrl(path),
       method: options.method ?? "GET",
       status: response.status,
       body: payload,

@@ -18,48 +18,32 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BiddingServiceTimerTest {
 
     @Test
-    void liveExtension_capsAt180sFromStart() {
+    void liveExtension_addsTenSecondsPerBid() {
         LocalDateTime start = LocalDateTime.of(2026, 6, 17, 10, 0);
         LocalDateTime end = start.plusSeconds(170);
 
-        // proposed = end + 2 = 172 -> less than 180 cap, use proposed
-        LocalDateTime proposed = end.plusSeconds(BiddingService.ANTI_SNIPER_EXTENSION_SECONDS);
-        LocalDateTime ceiling = start.plusSeconds(BiddingService.MAX_LIVE_DURATION_SECONDS);
-        LocalDateTime result = proposed.isAfter(ceiling) ? ceiling : proposed;
-        assertEquals(start.plusSeconds(172), result);
+        // Each successful LIVE bid pushes endTime out by ANTI_SNIPER_EXTENSION_SECONDS (no cap).
+        LocalDateTime result = end.plusSeconds(BiddingService.ANTI_SNIPER_EXTENSION_SECONDS);
+        assertEquals(start.plusSeconds(180), result);
     }
 
     @Test
-    void liveExtension_doesNotExceed180sCap() {
+    void liveExtension_hasNoHardCap() {
         LocalDateTime start = LocalDateTime.of(2026, 6, 17, 10, 0);
+        // Even past the initial 3-minute window, a late bid keeps extending the room.
         LocalDateTime end = start.plusSeconds(179);
 
-        // proposed = 181 -> exceeds 180 cap, use ceiling
-        LocalDateTime proposed = end.plusSeconds(BiddingService.ANTI_SNIPER_EXTENSION_SECONDS);
-        LocalDateTime ceiling = start.plusSeconds(BiddingService.MAX_LIVE_DURATION_SECONDS);
-        LocalDateTime result = proposed.isAfter(ceiling) ? ceiling : proposed;
-        assertEquals(ceiling, result);
+        LocalDateTime result = end.plusSeconds(BiddingService.ANTI_SNIPER_EXTENSION_SECONDS);
+        assertEquals(start.plusSeconds(189), result);
+        assertTrue(result.isAfter(start.plusSeconds(BiddingService.INITIAL_AUCTION_DURATION_SECONDS)));
     }
 
     @Test
-    void liveExtension_atCeilingStaysAtCeiling() {
-        LocalDateTime start = LocalDateTime.of(2026, 6, 17, 10, 0);
-        LocalDateTime end = start.plusSeconds(180);
-
-        LocalDateTime proposed = end.plusSeconds(BiddingService.ANTI_SNIPER_EXTENSION_SECONDS);
-        LocalDateTime ceiling = start.plusSeconds(BiddingService.MAX_LIVE_DURATION_SECONDS);
-        LocalDateTime result = proposed.isAfter(ceiling) ? ceiling : proposed;
-        assertEquals(ceiling, result);
-    }
-
-    @Test
-    void timedExtension_doesNotChangeEndTime() {
-        // For TIMED, placeBid should NOT call plusSeconds — the endTime stays fixed.
-        // We assert via constants: ANTI_SNIPER_EXTENSION_SECONDS is applied only in the LIVE branch.
-        // This test ensures the constants haven't regressed.
-        assertEquals(2L, BiddingService.ANTI_SNIPER_EXTENSION_SECONDS);
-        assertEquals(180L, BiddingService.MAX_LIVE_DURATION_SECONDS);
+    void liveExtension_constantsMatchDemoConfig() {
+        // Anti-sniper extension is 10s and the initial LIVE window is 3 minutes.
+        assertEquals(10L, BiddingService.ANTI_SNIPER_EXTENSION_SECONDS);
         assertEquals(180L, BiddingService.INITIAL_AUCTION_DURATION_SECONDS);
+        assertEquals(3L, BiddingService.DEPOSIT_DEADLINE_BEFORE_START_MINUTES);
     }
 
     @Test

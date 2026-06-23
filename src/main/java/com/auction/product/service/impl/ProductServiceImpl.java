@@ -170,6 +170,11 @@ public class ProductServiceImpl implements ProductService {
                 throw new com.auction.common.exception.KycRequiredException(
                         "Bạn cần hoàn tất xác thực danh tính (KYC) trước khi đăng bán sản phẩm.");
             }
+            // Sellers must also have signed the platform seller agreement.
+            if (!contractService.hasSellerContract(seller.getUserId())) {
+                throw new BusinessException(
+                        "Bạn cần ký hợp đồng nền tảng (ở bước KYC) trước khi đăng bán sản phẩm.");
+            }
 
             // Validate auction scheduling fields if provided
             validateAuctionSchedule(request);

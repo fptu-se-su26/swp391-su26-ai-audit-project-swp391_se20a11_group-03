@@ -10,15 +10,10 @@ import {
   rejectKyc,
   requestKycInfo,
 } from "@/lib/services/kycService";
-import { API_BASE_URL } from "@/lib/apiClient";
 import { useTranslations } from "@/i18n/I18nProvider";
-
-function resolveImageUrl(url: string | null | undefined): string {
-  if (!url) return "";
-  if (/^https?:\/\//i.test(url)) return url;
-  const base = API_BASE_URL.replace(/\/api\/?$/, "");
-  return `${base}${url.startsWith("/") ? "" : "/"}${url}`;
-}
+import ProtectedKycImage from "@/components/features/ProtectedKycImage";
+import { SellerContract, getSellerContractByUser } from "@/lib/services/sellerContractService";
+import { resolveApiUrl } from "@/lib/apiClient";
 
 const STATUS_CFG: Record<KycStatus, { labelKey: string; class: string }> = {
   PENDING: { labelKey: "statusPending", class: "bg-secondary-container text-on-secondary-container" },
@@ -65,6 +60,25 @@ export default function KYCReviewPage() {
   }, [refresh]);
 
   const active = submissions.find((s) => s.kycId === selectedId) ?? null;
+
+  const [sellerContract, setSellerContract] = useState<SellerContract | null>(null);
+  useEffect(() => {
+    if (!active?.userId) {
+      setSellerContract(null);
+      return;
+    }
+    let cancelled = false;
+    getSellerContractByUser(active.userId)
+      .then((c) => {
+        if (!cancelled) setSellerContract(c);
+      })
+      .catch(() => {
+        if (!cancelled) setSellerContract(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [active?.userId]);
 
   const handleDecision = async (action: "approve" | "reject" | "info") => {
     if (!active) return;
@@ -201,10 +215,35 @@ export default function KYCReviewPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-md md:grid-cols-3">
-                <PhotoPreview title={t("front")} src={resolveImageUrl(active.frontImageUrl)} analysis={active.frontImageAnalysis} />
-                <PhotoPreview title={t("back")} src={resolveImageUrl(active.backImageUrl)} analysis={active.backImageAnalysis} />
-                <PhotoPreview title={t("selfie")} src={resolveImageUrl(active.selfieImageUrl)} analysis={active.selfieImageAnalysis} />
+                <PhotoPreview title={t("front")} src={active.frontImageUrl} analysis={active.frontImageAnalysis} />
+                <PhotoPreview title={t("back")} src={active.backImageUrl} analysis={active.backImageAnalysis} />
+                <PhotoPreview title={t("selfie")} src={active.selfieImageUrl} analysis={active.selfieImageAnalysis} />
               </div>
+
+              {sellerContract?.signed && (
+                <div className="rounded-lg border border-secondary/40 bg-secondary-container/30 px-md py-sm text-on-secondary-container">
+                  <div className="flex items-center gap-xs">
+                    <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>contract</span>
+                    <p className="font-label-md text-label-md">Hợp đồng người bán đã ký</p>
+                  </div>
+                  <p className="mt-xs font-body-md text-body-md">
+                    Người bán đã ký hợp đồng nền tảng (phí dịch vụ 20%, seller tự chịu thuế TNCN)
+                    {sellerContract.signedAt ? ` lúc ${dateFormatter.format(new Date(sellerContract.signedAt))}` : ""}.
+                    Duyệt KYC đồng nghĩa với chấp thuận hợp đồng này.
+                  </p>
+                  {sellerContract.fileUrl && (
+                    <a
+                      href={resolveApiUrl(sellerContract.fileUrl)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-sm inline-flex items-center gap-xs rounded-lg border border-secondary/50 bg-surface px-3 py-1.5 font-label-md text-label-md text-secondary hover:bg-secondary-container/30"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                      Xem hợp đồng (PDF)
+                    </a>
+                  )}
+                </div>
+              )}
 
               {active.rejectionReason && (
                 <div className="rounded-lg border border-error/40 bg-error-container/40 px-md py-sm text-on-error-container">
@@ -302,13 +341,7 @@ function PhotoPreview({
     <div className="rounded-xl border border-surface-variant bg-surface p-md soft-shadow">
       <h3 className="mb-sm font-headline-sm text-headline-sm text-primary">{title}</h3>
       <div className="overflow-hidden rounded-md border border-outline-variant bg-surface-container-low">
-        {src ? (
-          <img src={src} alt={title} className="aspect-[4/3] w-full object-cover" />
-        ) : (
-          <div className="flex aspect-[4/3] items-center justify-center text-on-surface-variant">
-            <span className="material-symbols-outlined text-4xl">image_not_supported</span>
-          </div>
-        )}
+        <ProtectedKycImage src={src} alt={title} className="aspect-[4/3] w-full object-cover" />
       </div>
     </div>
   );

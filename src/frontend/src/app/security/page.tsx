@@ -3,6 +3,8 @@
 import { useState } from "react";
 import CollectorShell from "@/components/layout/CollectorShell";
 import { useTranslations } from "@/i18n/I18nProvider";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import SettingsForm from "@/components/dashboard/SettingsForm";
 
 export default function SecurityPage() {
   const t = useTranslations("security");
@@ -16,15 +18,12 @@ export default function SecurityPage() {
 
   return (
     <CollectorShell>
-      <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg">
-        <div>
-          <h1 className="font-display-lg-mobile md:font-display-lg text-primary">{t("title")}</h1>
-          <p className="font-body-lg text-on-surface-variant mt-xs">{t("subtitle")}</p>
-        </div>
+      <div className="mx-auto max-w-[1000px] space-y-5 px-4 py-10 sm:px-7 lg:px-10 lg:py-14">
+        <DashboardHeader eyebrow="Account protection" title={t("title")} subtitle={t("subtitle")} />
+        <div className="grid gap-4 pt-2 lg:grid-cols-2">
 
         {/* Change Password */}
-        <div className="bg-surface rounded-xl p-lg soft-shadow border border-surface-variant">
-          <h3 className="font-headline-sm text-headline-sm text-primary mb-lg border-b border-surface-variant pb-sm">{t("changePassword")}</h3>
+        <SettingsForm icon="password" title={t("changePassword")} description="Sử dụng mật khẩu mạnh và không trùng với dịch vụ khác.">
           <div className="space-y-md max-w-md">
             {[t("currentPassword"), t("newPassword"), t("confirmNewPassword")].map((label) => (
               <div key={label}>
@@ -32,23 +31,20 @@ export default function SecurityPage() {
                 <input
                   type="password"
                   placeholder={t("passwordPlaceholder")}
-                  className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-low focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all"
+                  className="w-full rounded-xl border border-[#d8d1c5] bg-[#fffdf9] px-4 py-3 text-sm outline-none transition focus:border-[#b9974f] focus:ring-2 focus:ring-[#b9974f]/15"
                 />
               </div>
             ))}
-            <button className="bg-primary-container text-on-primary px-lg py-sm rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity">
+            <button className="rounded-full bg-[#071626] px-5 py-3 text-xs font-bold text-[#e3c67a] hover:bg-[#102a42]">
               {t("updatePassword")}
             </button>
           </div>
-        </div>
+        </SettingsForm>
 
         {/* 2FA */}
-        <div className="bg-surface rounded-xl p-lg soft-shadow border border-surface-variant">
+        <SettingsForm icon="shield_lock" title={t("twoFactorAuth")} description={t("twoFactorDesc")}>
           <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-headline-sm text-headline-sm text-primary">{t("twoFactorAuth")}</h3>
-              <p className="font-body-md text-on-surface-variant mt-xs">{t("twoFactorDesc")}</p>
-            </div>
+            <p className="text-xs font-semibold text-[#5e6972]">Authenticator security</p>
             <button
               onClick={() => setTwoFA((v) => !v)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${twoFA ? "bg-secondary" : "bg-outline-variant"}`}
@@ -64,16 +60,14 @@ export default function SecurityPage() {
               <span className="font-label-md text-label-md text-on-tertiary-container">{t("twoFactorActive")}</span>
             </div>
           )}
+        </SettingsForm>
         </div>
 
         {/* Active Sessions */}
-        <div className="bg-surface rounded-xl p-lg soft-shadow border border-surface-variant">
-          <h3 className="font-headline-sm text-headline-sm text-primary mb-lg border-b border-surface-variant pb-sm">
-            {t("activeSessions")}
-          </h3>
+        <SettingsForm icon="devices" title={t("activeSessions")} description="Theo dõi và thu hồi các phiên đăng nhập không nhận ra.">
           <div className="space-y-md">
             {sessions.map((session, i) => (
-              <div key={i} className="flex items-center justify-between p-md bg-surface-container-low rounded-lg border border-surface-variant">
+              <div key={i} className="flex items-center justify-between rounded-xl border border-[#e6e0d5] bg-[#faf7f0] p-4">
                 <div className="flex items-center gap-sm">
                   <span className="material-symbols-outlined text-on-surface-variant">devices</span>
                   <div>
@@ -93,7 +87,7 @@ export default function SecurityPage() {
               </div>
             ))}
           </div>
-        </div>
+        </SettingsForm>
       </div>
     </CollectorShell>
   );

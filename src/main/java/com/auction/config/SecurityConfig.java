@@ -31,8 +31,8 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/uploads/**", "/api/auth/**", "/ws/**", "/api/alive", "/api/wallet/sepay-webhook").permitAll()
+                .requestMatchers("/", "/index.html", "/favicon.ico", "/css/**", "/js/**", "/images/**", "/assets/**", "/webjars/**", "/uploads/**").permitAll()
+                .requestMatchers("/api/auth/**", "/ws/**", "/api/alive", "/api/wallet/sepay-webhook").permitAll()
                 .requestMatchers("/api/wallet", "/api/wallet/deposit", "/api/wallet/withdraw").authenticated()
                 .requestMatchers("/api/wallets/user/**").hasAnyRole("Staff", "Admin")
                 .requestMatchers("/api/staff/withdrawals/**").hasAnyRole("Staff", "Admin")
@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/auctions/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**").permitAll()
                 .requestMatchers("/api/admin/users/**").hasRole("Admin")
+                .requestMatchers("/api/admin/dashboard/**").hasAnyRole("Admin", "Staff")
                 .requestMatchers(HttpMethod.GET, "/api/admin/categories/**").hasRole("Admin")
                 .requestMatchers(HttpMethod.POST, "/api/admin/categories/**").hasRole("Admin")
                 .requestMatchers(HttpMethod.PUT, "/api/admin/categories/**").hasRole("Admin")

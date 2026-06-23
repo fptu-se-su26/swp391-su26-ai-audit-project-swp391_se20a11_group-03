@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import CollectorShell from "@/components/layout/CollectorShell";
+import DashboardLayout from "@/components/post-item/DashboardLayout";
+import SellerAccessRequired from "@/components/post-item/SellerAccessRequired";
 import { StoredUser, getStoredUser, subscribeStoredUser } from "@/lib/userSession";
 import {
   getCategories,
@@ -298,23 +299,9 @@ export default function PostItemPage() {
 
   if (!currentUser) {
     return (
-      <CollectorShell>
-        <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
-          <div className="rounded-xl border border-outline-variant bg-surface p-xl text-center">
-            <span className="material-symbols-outlined text-5xl text-on-surface-variant">lock</span>
-            <h2 className="mt-md font-headline-md text-headline-md text-primary">{t("signInRequired")}</h2>
-            <p className="mt-sm font-body-md text-body-md text-on-surface-variant">
-              {t("signInRequiredDesc")}
-            </p>
-            <Link
-              href="/auth"
-              className="mt-lg inline-flex items-center gap-xs rounded-lg bg-secondary px-lg py-md font-label-md text-label-md text-on-secondary transition-colors hover:bg-secondary-fixed-dim"
-            >
-              {t("signIn")}
-            </Link>
-          </div>
-        </div>
-      </CollectorShell>
+      <DashboardLayout>
+        <SellerAccessRequired mode="signin" />
+      </DashboardLayout>
     );
   }
 
@@ -322,29 +309,15 @@ export default function PostItemPage() {
 
   if (!isSeller) {
     return (
-      <CollectorShell>
-        <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
-          <div className="rounded-xl border border-outline-variant bg-surface p-xl text-center">
-            <span className="material-symbols-outlined text-5xl text-secondary">storefront</span>
-            <h2 className="mt-md font-headline-md text-headline-md text-primary">{t("sellerRequired")}</h2>
-            <p className="mt-sm font-body-md text-body-md text-on-surface-variant">
-              {t("sellerRequiredDesc")}
-            </p>
-            <Link
-              href="/profile"
-              className="mt-lg inline-flex items-center gap-xs rounded-lg bg-secondary px-lg py-md font-label-md text-label-md text-on-secondary transition-colors hover:bg-secondary-fixed-dim"
-            >
-              {t("goToProfile")}
-            </Link>
-          </div>
-        </div>
-      </CollectorShell>
+      <DashboardLayout>
+        <SellerAccessRequired mode="upgrade" />
+      </DashboardLayout>
     );
   }
 
   if (submitted) {
     return (
-      <CollectorShell>
+      <DashboardLayout>
         <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
           <div className="rounded-xl border border-secondary/30 bg-surface p-xl text-center">
             <span className="material-symbols-outlined text-6xl text-secondary">check_circle</span>
@@ -384,12 +357,12 @@ export default function PostItemPage() {
             </div>
           </div>
         </div>
-      </CollectorShell>
+      </DashboardLayout>
     );
   }
 
   return (
-    <CollectorShell>
+    <DashboardLayout>
       {kyc.status === "unverified" && (
         <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
           <div className="rounded-xl border border-secondary/30 bg-secondary-container/40 p-lg">
@@ -782,6 +755,6 @@ export default function PostItemPage() {
         </form>
         </div>
       )}
-    </CollectorShell>
+    </DashboardLayout>
   );
 }

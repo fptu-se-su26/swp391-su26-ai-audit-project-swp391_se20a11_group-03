@@ -251,9 +251,17 @@ export default function AuctionRoomPage() {
                 {formatVnd(liveState?.currentHighestBid || currentBid)}
               </p>
               <div className="mt-sm flex items-center gap-sm">
-                <span className="font-label-sm text-label-sm text-on-surface-variant">{t("timeRemaining")}</span>
+                <span className="font-label-sm text-label-sm text-on-surface-variant">
+                  {product.auction?.startTime && new Date(product.auction.startTime).getTime() > Date.now()
+                    ? "Bắt đầu sau"
+                    : t("timeRemaining")}
+                </span>
                 <CountdownTimer
-                  endsAt={product.auction?.endTime}
+                  endsAt={
+                    product.auction?.startTime && new Date(product.auction.startTime).getTime() > Date.now()
+                      ? product.auction.startTime
+                      : product.auction?.endTime
+                  }
                   variant={product.auctionMode === "TIMED" ? "timed" : "live"}
                 />
               </div>
@@ -275,6 +283,22 @@ export default function AuctionRoomPage() {
                   getProductDetail(params.id).then((p) => setProduct(p)).catch(() => {});
                 }}
               />
+            ) : hasToken && eligibility?.kycVerified === false ? (
+              <div className="rounded-lg border border-secondary/40 bg-secondary-container/20 p-md space-y-sm">
+                <div className="flex items-center gap-xs">
+                  <span className="material-symbols-outlined text-secondary">verified_user</span>
+                  <p className="font-label-md text-label-md text-primary">{t("kycRequiredTitle")}</p>
+                </div>
+                <p className="text-sm text-on-surface-variant">
+                  {t("kycRequiredDesc")}
+                </p>
+                <Link
+                  href="/kyc"
+                  className="block rounded-md bg-secondary px-md py-sm text-center text-on-secondary hover:bg-secondary-fixed-dim"
+                >
+                  {t("btnGoToKyc")}
+                </Link>
+              </div>
             ) : (
               <div className="rounded-lg border border-outline-variant bg-surface p-md space-y-sm">
                 <p className="font-label-md text-label-md text-primary">{t("depositRequiredTitle")}</p>

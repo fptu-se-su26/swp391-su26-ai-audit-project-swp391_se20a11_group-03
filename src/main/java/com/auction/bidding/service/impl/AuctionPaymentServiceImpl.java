@@ -5,6 +5,8 @@ import com.auction.bidding.entity.Auction;
 import com.auction.bidding.entity.AuctionDeposit;
 import com.auction.bidding.repository.AuctionDepositRepository;
 import com.auction.bidding.repository.AuctionRepository;
+import com.auction.account.dao.UserRepository;
+import com.auction.account.entity.User;
 import com.auction.bidding.service.AuctionPaymentService;
 import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.wallet.entity.Transaction;
@@ -21,10 +23,14 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class AuctionPaymentServiceImpl implements AuctionPaymentService {
 
+    /** Platform commission rate taken from the final price on a paid auction. */
+    public static final double PLATFORM_COMMISSION_RATE = 0.20d;
+
     private final AuctionRepository auctionRepository;
     private final AuctionDepositRepository auctionDepositRepository;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -87,22 +93,44 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
             auctionDepositRepository.save(deposit);
         }
 
+        // Split the final price: platform commission to admin, the rest to the seller.
+        long commission = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
+        long sellerAmount = Math.max(0L, finalPrice - commission);
+
         Wallet sellerWallet = null;
         if (auction.getProduct() != null && auction.getProduct().getSellerId() != null) {
             sellerWallet = walletRepository.findByUser_Id(Math.toIntExact(auction.getProduct().getSellerId())).orElse(null);
         }
         if (sellerWallet != null) {
             long sellerBalance = sellerWallet.getBalance() != null ? sellerWallet.getBalance() : 0L;
-            sellerWallet.setBalance(sellerBalance + finalPrice);
+            sellerWallet.setBalance(sellerBalance + sellerAmount);
             sellerWallet.setUpdatedAt(now);
             walletRepository.save(sellerWallet);
             transactionRepository.save(new Transaction(
                     sellerWallet,
-                    finalPrice,
+                    sellerAmount,
                     "AUCTION_PAYOUT",
                     "COMPLETED",
                     "AUC-PAYOUT-" + auctionId,
-                    "Payout for auction " + auctionId,
+                    "Payout (80%) for auction " + auctionId,
+                    now
+            ));
+        }
+
+        // Platform commission (20%) goes to the admin wallet as revenue.
+        Wallet adminWallet = getAdminWallet(now);
+        if (adminWallet != null && commission > 0) {
+            long adminBalance = adminWallet.getBalance() != null ? adminWallet.getBalance() : 0L;
+            adminWallet.setBalance(adminBalance + commission);
+            adminWallet.setUpdatedAt(now);
+            walletRepository.save(adminWallet);
+            transactionRepository.save(new Transaction(
+                    adminWallet,
+                    commission,
+                    "PLATFORM_COMMISSION",
+                    "COMPLETED",
+                    "AUC-COMMISSION-" + auctionId,
+                    "Platform commission (20%) for auction " + auctionId,
                     now
             ));
         }
@@ -123,5 +151,21 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
                 .paymentStatus(auction.getPaymentStatus())
                 .message("Auction payment completed successfully")
                 .build();
+    }
+
+    /** Returns the platform admin wallet (first Admin user), creating it if missing. */
+    private Wallet getAdminWallet(LocalDateTime now) {
+        User admin = userRepository.findFirstByRole_RoleNameOrderByIdAsc("Admin").orElse(null);
+        if (admin == null) {
+            return null;
+        }
+        return walletRepository.findByUser_Id(admin.getId()).orElseGet(() -> {
+            Wallet w = new Wallet();
+            w.setUser(admin);
+            w.setBalance(0L);
+            w.setHoldBalance(0L);
+            w.setUpdatedAt(now);
+            return walletRepository.save(w);
+        });
     }
 }

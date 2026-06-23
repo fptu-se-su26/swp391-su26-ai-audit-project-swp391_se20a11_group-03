@@ -1,6 +1,7 @@
 package com.auction.account.controller;
 
 import com.auction.account.dao.UserDAO;
+import com.auction.account.dto.GoogleLoginRequest;
 import com.auction.account.dto.LoginRequest;
 import com.auction.account.dto.LoginResponse;
 import com.auction.account.dto.RegisterRequest;
@@ -9,6 +10,7 @@ import com.auction.account.entity.Role;
 import com.auction.account.entity.User;
 import com.auction.account.service.AuthService;
 import com.auction.account.service.ChatAuthService;
+import com.auction.account.service.GoogleAuthService;
 import com.auction.common.service.AuthAuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -26,12 +28,25 @@ public class AuthController {
 
     private final ChatAuthService chatAuthService;
     private final AuthService registrationService;
+    private final GoogleAuthService googleAuthService;
     private final AuthAuditService authAuditService;
     private final UserDAO userDAO;
 
     @PostMapping("/auth/login")
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
         return ResponseEntity.ok(chatAuthService.login(request));
+    }
+
+    @PostMapping("/auth/google")
+    public ResponseEntity<LoginResponse> googleLogin(
+            @RequestBody GoogleLoginRequest request,
+            HttpServletRequest servletRequest
+    ) {
+        LoginResponse response = googleAuthService.loginWithGoogle(request.getCredential());
+        if (response.isNewUser()) {
+            authAuditService.logRegisterSuccess(response.getEmail(), servletRequest);
+        }
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/auth/register")

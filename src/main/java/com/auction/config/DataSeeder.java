@@ -64,6 +64,12 @@ public class DataSeeder implements CommandLineRunner {
         ensureUser("Wallet Staff", "walletstaff", "staff@example.com", "0900000202", "WALLETSTAFF001", staffRoleId, "password", now, true);
         ensureUser("System Admin", "admin", "admin@example.com", "0900000203", "ADMIN001", adminRoleId, "password", now, true);
 
+        // Convenience demo accounts: role123@gmail.com / 123456 (all KYC-verified for testing).
+        ensureUser("Demo User", "user123", "user123@gmail.com", "0911000001", "DEMOUSER123", userRoleId, "123456", now, true);
+        ensureUser("Demo Seller", "seller123", "seller123@gmail.com", "0911000002", "DEMOSELLER123", sellerRoleId, "123456", now, true);
+        ensureUser("Demo Staff", "staff123", "staff123@gmail.com", "0911000003", "DEMOSTAFF123", staffRoleId, "123456", now, true);
+        ensureUser("Demo Admin", "admin123", "admin123@gmail.com", "0911000004", "DEMOADMIN123", adminRoleId, "123456", now, true);
+
         Long sellerId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Username = ?", Long.class, "seller1");
         Long aliceId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Username = ?", Long.class, "alice");
         Long bobId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Username = ?", Long.class, "bob");
@@ -74,22 +80,27 @@ public class DataSeeder implements CommandLineRunner {
         ensureWallet(bobId, 8000000L);
         ensureWallet(walletUserId, 5000000L);
 
-        insertProduct(sellerId, artId, "Vintage Painting", "A beautiful vintage painting.", 1000000L, 100000L, "ACTIVE", now);
-        insertProduct(sellerId, watchId, "Rolex Classic", "Classic luxury watch.", 5000000L, 200000L, "ACTIVE", now);
-        insertProduct(sellerId, artId, "Modern Abstract Canvas", "Colorful abstract artwork.", 1800000L, 100000L, "ACTIVE", now);
-        insertProduct(sellerId, watchId, "Omega Seamaster", "Diving watch with stainless steel case.", 7200000L, 200000L, "ACTIVE", now);
-        insertProduct(sellerId, artId, "Golden Frame Portrait", "Hand-painted portrait in a golden frame.", 2500000L, 150000L, "ACTIVE", now);
-        insertProduct(sellerId, watchId, "Cartier Tank Must", "Elegant rectangular luxury watch.", 6100000L, 200000L, "ACTIVE", now);
-        insertProduct(sellerId, artId, "Landscape Oil Painting", "Detailed landscape oil painting.", 1400000L, 100000L, "ACTIVE", now);
-        insertProduct(sellerId, watchId, "Audemars Piguet Royal Oak", "Iconic luxury sports watch.", 21000000L, 500000L, "ACTIVE", now);
-        insertProduct(sellerId, jewelryId, "Emerald Halo Ring", "18k gold ring with a vivid emerald center stone.", 3200000L, 150000L, "ACTIVE", now);
-        insertProduct(sellerId, jewelryId, "Diamond Tennis Bracelet", "White gold bracelet with round brilliant diamonds.", 8800000L, 250000L, "ACTIVE", now);
-        insertProduct(sellerId, automotiveId, "1967 Mustang Fastback", "Restored classic muscle car with matching numbers.", 45000000L, 1000000L, "ACTIVE", now);
-        insertProduct(sellerId, automotiveId, "Vespa Primavera 1978", "Collectible scooter in excellent running condition.", 2600000L, 100000L, "ACTIVE", now);
-        insertProduct(sellerId, furnitureId, "Eames Lounge Chair", "Mid-century lounge chair and ottoman set.", 4200000L, 150000L, "ACTIVE", now);
-        insertProduct(sellerId, furnitureId, "French Walnut Writing Desk", "Carved antique writing desk with brass pulls.", 3600000L, 150000L, "ACTIVE", now);
-        insertProduct(sellerId, ceramicsId, "Ming Style Porcelain Vase", "Blue and white porcelain display vase.", 1900000L, 100000L, "ACTIVE", now);
-        insertProduct(sellerId, ceramicsId, "Royal Doulton Flambe Bowl", "Collectible flambe glaze ceramic bowl.", 1300000L, 100000L, "ACTIVE", now);
+        Long demoUserId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Email = ?", Long.class, "user123@gmail.com");
+        Long demoSellerId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Email = ?", Long.class, "seller123@gmail.com");
+        ensureWallet(demoUserId, 10000000L);
+        ensureWallet(demoSellerId, 10000000L);
+
+        insertProduct(sellerId, artId, "Vintage Painting", "A beautiful vintage painting.", 1000000L, 100000L, "APPROVED", now);
+        insertProduct(sellerId, watchId, "Rolex Classic", "Classic luxury watch.", 5000000L, 200000L, "APPROVED", now);
+        insertProduct(sellerId, artId, "Modern Abstract Canvas", "Colorful abstract artwork.", 1800000L, 100000L, "APPROVED", now);
+        insertProduct(sellerId, watchId, "Omega Seamaster", "Diving watch with stainless steel case.", 7200000L, 200000L, "APPROVED", now);
+        insertProduct(sellerId, artId, "Golden Frame Portrait", "Hand-painted portrait in a golden frame.", 2500000L, 150000L, "APPROVED", now);
+        insertProduct(sellerId, watchId, "Cartier Tank Must", "Elegant rectangular luxury watch.", 6100000L, 200000L, "APPROVED", now);
+        insertProduct(sellerId, artId, "Landscape Oil Painting", "Detailed landscape oil painting.", 1400000L, 100000L, "APPROVED", now);
+        insertProduct(sellerId, watchId, "Audemars Piguet Royal Oak", "Iconic luxury sports watch.", 21000000L, 500000L, "APPROVED", now);
+        insertProduct(sellerId, jewelryId, "Emerald Halo Ring", "18k gold ring with a vivid emerald center stone.", 3200000L, 150000L, "APPROVED", now);
+        insertProduct(sellerId, jewelryId, "Diamond Tennis Bracelet", "White gold bracelet with round brilliant diamonds.", 8800000L, 250000L, "APPROVED", now);
+        insertProduct(sellerId, automotiveId, "1967 Mustang Fastback", "Restored classic muscle car with matching numbers.", 45000000L, 1000000L, "APPROVED", now);
+        insertProduct(sellerId, automotiveId, "Vespa Primavera 1978", "Collectible scooter in excellent running condition.", 2600000L, 100000L, "APPROVED", now);
+        insertProduct(sellerId, furnitureId, "Eames Lounge Chair", "Mid-century lounge chair and ottoman set.", 4200000L, 150000L, "APPROVED", now);
+        insertProduct(sellerId, furnitureId, "French Walnut Writing Desk", "Carved antique writing desk with brass pulls.", 3600000L, 150000L, "APPROVED", now);
+        insertProduct(sellerId, ceramicsId, "Ming Style Porcelain Vase", "Blue and white porcelain display vase.", 1900000L, 100000L, "APPROVED", now);
+        insertProduct(sellerId, ceramicsId, "Royal Doulton Flambe Bowl", "Collectible flambe glaze ceramic bowl.", 1300000L, 100000L, "APPROVED", now);
         insertProduct(sellerId, artId, "Unsigned Watercolor Study", "Small study pending authenticity review.", 700000L, 50000L, "PENDING", now);
         insertProduct(sellerId, watchId, "Prototype Digital Chronograph", "Modern watch submission awaiting staff review.", 2200000L, 100000L, "PENDING", now);
         insertProduct(sellerId, jewelryId, "Damaged Pearl Necklace", "Rejected sample item with incomplete provenance.", 900000L, 50000L, "REJECTED", now);
@@ -104,25 +115,21 @@ public class DataSeeder implements CommandLineRunner {
         Long productId7 = jdbcTemplate.queryForObject("SELECT TOP 1 ProductId FROM Products WHERE ProductName = ?", Long.class, "Landscape Oil Painting");
         Long productId8 = jdbcTemplate.queryForObject("SELECT TOP 1 ProductId FROM Products WHERE ProductName = ?", Long.class, "Audemars Piguet Royal Oak");
 
-        seedAuction(productId, bobId, now.plusHours(2), now.plusDays(1), 0L, "UPCOMING");
-        seedAuction(productId2, aliceId, now.plusHours(3), now.plusDays(1).plusHours(1), 0L, "UPCOMING");
-        seedAuction(productId3, null, now.plusHours(4), now.plusDays(1).plusHours(2), 0L, "UPCOMING");
-        seedAuction(productId4, bobId, now.plusHours(5), now.plusDays(1).plusHours(3), 0L, "UPCOMING");
-        seedAuction(productId5, aliceId, now.plusHours(6), now.plusDays(1).plusHours(4), 0L, "UPCOMING");
-        seedAuction(productId6, bobId, now.plusHours(7), now.plusDays(1).plusHours(5), 0L, "UPCOMING");
-        seedAuction(productId7, aliceId, now.plusHours(8), now.plusDays(1).plusHours(6), 0L, "UPCOMING");
-        seedAuction(productId8, bobId, now.plusHours(9), now.plusDays(1).plusHours(7), 0L, "UPCOMING");
+        // Seed auctions starting 1-8 days out so the 30-minute deposit window
+        // stays open long after seeding (lets users test deposit/bidding).
+        seedAuction(productId, bobId, now.plusDays(1), now.plusDays(2), 0L, "UPCOMING");
+        seedAuction(productId2, aliceId, now.plusDays(2), now.plusDays(3), 0L, "UPCOMING");
+        seedAuction(productId3, null, now.plusDays(3), now.plusDays(4), 0L, "UPCOMING");
+        seedAuction(productId4, bobId, now.plusDays(4), now.plusDays(5), 0L, "UPCOMING");
+        seedAuction(productId5, aliceId, now.plusDays(5), now.plusDays(6), 0L, "UPCOMING");
+        seedAuction(productId6, bobId, now.plusDays(6), now.plusDays(7), 0L, "UPCOMING");
+        seedAuction(productId7, aliceId, now.plusDays(7), now.plusDays(8), 0L, "UPCOMING");
+        seedAuction(productId8, bobId, now.plusDays(8), now.plusDays(9), 0L, "UPCOMING");
 
-        Long auctionId = jdbcTemplate.queryForObject("SELECT TOP 1 AuctionId FROM Auctions WHERE ProductId = ?", Long.class, productId);
-
-        jdbcTemplate.update(
-                "IF NOT EXISTS (SELECT 1 FROM Bids WHERE AuctionId = ? AND UserId = ? AND BidAmount = ?) INSERT INTO Bids (AuctionId, UserId, BidAmount, BidTime) VALUES (?, ?, ?, ?)",
-                auctionId, aliceId, 1200000L, auctionId, aliceId, 1200000L, now.minusMinutes(30)
-        );
-        jdbcTemplate.update(
-                "IF NOT EXISTS (SELECT 1 FROM Bids WHERE AuctionId = ? AND UserId = ? AND BidAmount = ?) INSERT INTO Bids (AuctionId, UserId, BidAmount, BidTime) VALUES (?, ?, ?, ?)",
-                auctionId, bobId, 1500000L, auctionId, bobId, 1500000L, now.minusMinutes(10)
-        );
+        // Demo: refresh the first few auctions to near-future LIVE 3-minute windows
+        // so the deposit -> bid flow can be tested quickly after each startup.
+        // (Runs last so it owns the final state of the demo auctions.)
+        seedDemoLiveAuctions();
     }
 
     private void ensureCoreTables() {
@@ -483,9 +490,21 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void ensureProductSchemaColumns() {
+        ensureColumn("Products", "[Condition]", "NVARCHAR(100) NULL");
+        ensureColumn("Products", "Brand", "NVARCHAR(150) NULL");
+        ensureColumn("Products", "Origin", "NVARCHAR(150) NULL");
+        ensureColumn("Products", "WeightSize", "NVARCHAR(150) NULL");
         ensureColumn("Products", "SubmittedAt", "DATETIME2 NULL");
         ensureColumn("Products", "RejectionReason", "NVARCHAR(500) NULL");
+        ensureColumn("Products", "ImagesUrl", "NVARCHAR(MAX) NULL");
+        ensureColumn("Products", "AuctionMode", "NVARCHAR(10) NULL");
+        ensureColumn("Products", "ScheduledStartTime", "DATETIME2 NULL");
+        ensureColumn("Products", "ScheduledDurationSeconds", "BIGINT NULL");
+        ensureColumn("Products", "TaxPercent", "INT NULL DEFAULT 5");
+        ensureColumn("Auctions", "AuctionMode", "NVARCHAR(10) NOT NULL DEFAULT 'TIMED'");
+        ensureColumn("Auctions", "ScheduledDurationSeconds", "BIGINT NULL");
         jdbcTemplate.update("UPDATE Products SET SubmittedAt = COALESCE(SubmittedAt, CreatedAt, SYSDATETIME())");
+        jdbcTemplate.update("UPDATE Products SET TaxPercent = COALESCE(TaxPercent, 5) WHERE TaxPercent IS NULL");
     }
 
     private void ensureCategorySchemaColumns() {
@@ -495,11 +514,12 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void ensureColumn(String tableName, String columnName, String definition) {
+        String bareColumnName = columnName.replace("[", "").replace("]", "");
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ? AND COLUMN_NAME = ?",
                 Integer.class,
                 tableName,
-                columnName
+                bareColumnName
         );
         if (count != null && count > 0) return;
 
@@ -655,9 +675,11 @@ public class DataSeeder implements CommandLineRunner {
             boolean isRequired = (boolean) row[3];
             int displayOrder = (int) row[4];
 
-            Integer categoryId = jdbcTemplate.queryForObject(
+            Integer categoryId = jdbcTemplate.query(
                     "SELECT TOP 1 CategoryId FROM Categories WHERE CategoryName = ?",
-                    Integer.class, categoryName);
+                    (rs, rowNum) -> rs.getInt("CategoryId"),
+                    categoryName
+            ).stream().findFirst().orElse(null);
             if (categoryId == null) continue;
 
             jdbcTemplate.update(
@@ -820,9 +842,44 @@ public class DataSeeder implements CommandLineRunner {
     private void seedAuction(Long productId, Long winnerUserId, LocalDateTime startTime, LocalDateTime endTime, Long highestBid, String status) {
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM Auctions WHERE ProductId = ?", Integer.class, productId);
         if (count != null && count > 0) return;
+        // The auction's current price starts at the product's starting price so the
+        // storefront shows the real opening price (not 0) and the first bid must
+        // be startingPrice + step.
+        Long startingPrice = jdbcTemplate.queryForObject(
+                "SELECT StartingPrice FROM Products WHERE ProductId = ?", Long.class, productId);
+        long openingBid = startingPrice != null ? startingPrice : (highestBid != null ? highestBid : 0L);
         jdbcTemplate.update(
-                "INSERT INTO Auctions (ProductId, StartTime, EndTime, CurrentHighestBid, CurrentWinnerUserId, Status, CreatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                productId, startTime, endTime, highestBid, winnerUserId, status, LocalDateTime.now()
+                "INSERT INTO Auctions (ProductId, StartTime, EndTime, CurrentHighestBid, CurrentWinnerUserId, Status, AuctionMode, CreatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                productId, startTime, endTime, openingBid, winnerUserId, status, "LIVE", LocalDateTime.now()
         );
+    }
+
+    /**
+     * Refreshes a few demo auctions on every startup so the full deposit -> bid flow
+     * is testable quickly: LIVE mode, starting a few minutes from now, 3-minute window.
+     * Deposit closes 3 minutes before start, so start offsets give increasing deposit time.
+     */
+    private void seedDemoLiveAuctions() {
+        LocalDateTime now = LocalDateTime.now();
+        long[] startOffsetMinutes = {5L, 10L, 15L};
+        for (int i = 0; i < startOffsetMinutes.length; i++) {
+            Long auctionId = jdbcTemplate.query(
+                    "SELECT AuctionId FROM Auctions ORDER BY AuctionId OFFSET ? ROWS FETCH NEXT 1 ROWS ONLY",
+                    rs -> rs.next() ? rs.getLong(1) : null,
+                    i
+            );
+            if (auctionId == null) continue;
+            LocalDateTime start = now.plusMinutes(startOffsetMinutes[i]);
+            LocalDateTime end = start.plusSeconds(180);
+            // Reset the opening price to the product's starting price (not 0).
+            jdbcTemplate.update(
+                    "UPDATE Auctions SET StartTime = ?, EndTime = ?, Status = 'UPCOMING', AuctionMode = 'LIVE', "
+                            + "CurrentHighestBid = (SELECT StartingPrice FROM Products WHERE ProductId = Auctions.ProductId), "
+                            + "CurrentWinnerUserId = NULL WHERE AuctionId = ?",
+                    start, end, auctionId
+            );
+            // Clear stale bid history so each demo run starts clean.
+            jdbcTemplate.update("DELETE FROM Bids WHERE AuctionId = ?", auctionId);
+        }
     }
 }

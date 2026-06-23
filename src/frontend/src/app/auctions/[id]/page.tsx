@@ -421,9 +421,17 @@ export default function AuctionDetailPage() {
                   ) : null}
                   {auctionStatus !== "ENDED" && product.auction?.endTime && (
                     <div className="mt-sm flex items-center gap-sm">
-                      <span className="font-label-sm text-label-sm text-on-surface-variant">{t("priceTimeLeft")}</span>
+                      <span className="font-label-sm text-label-sm text-on-surface-variant">
+                        {product.auction?.startTime && new Date(product.auction.startTime).getTime() > Date.now()
+                          ? "Bắt đầu sau"
+                          : t("priceTimeLeft")}
+                      </span>
                       <CountdownTimer
-                        endsAt={product.auction.endTime}
+                        endsAt={
+                          product.auction?.startTime && new Date(product.auction.startTime).getTime() > Date.now()
+                            ? product.auction.startTime
+                            : product.auction.endTime
+                        }
                         variant={product.auctionMode === "TIMED" ? "timed" : "live"}
                       />
                       {product.auctionMode && (

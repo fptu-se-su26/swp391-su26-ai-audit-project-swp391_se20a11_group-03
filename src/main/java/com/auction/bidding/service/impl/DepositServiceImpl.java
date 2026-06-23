@@ -45,9 +45,9 @@ public class DepositServiceImpl implements DepositService {
             throw new IllegalStateException("Deposit is only allowed for upcoming or active auctions");
         }
 
-        LocalDateTime deadline = auction.getStartTime().minusMinutes(30);
+        LocalDateTime deadline = auction.getStartTime().minusMinutes(3);
         if (LocalDateTime.now().isAfter(deadline)) {
-            throw new IllegalStateException("Deposit closed 30 minutes before auction starts");
+            throw new IllegalStateException("Deposit closed 3 minutes before auction starts");
         }
 
         long depositAmount = DepositCalculator.calculate(auction.getProduct().getStartingPrice());

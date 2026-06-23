@@ -1,0 +1,5 @@
+type Props = { icon: string; label: string; value: string | number; detail?: string; tone?: "navy" | "gold" | "green" | "red" };
+const tones = { navy: "bg-[#e8edf0] text-[#18374e]", gold: "bg-[#f2ead7] text-[#947026]", green: "bg-[#e2eee9] text-[#356f5d]", red: "bg-[#f4e5e2] text-[#a23d37]" };
+export default function StatCard({ icon, label, value, detail, tone = "navy" }: Props) {
+  return <div className="group rounded-2xl border border-[#e1dbcf] bg-white/80 p-5 shadow-[0_8px_30px_rgba(18,31,44,.045)] backdrop-blur transition hover:-translate-y-1 hover:border-[#c6a75c] hover:shadow-[0_18px_45px_rgba(18,31,44,.09)]"><div className="flex items-start justify-between"><span className={`grid h-10 w-10 place-items-center rounded-xl ${tones[tone]}`}><span className="material-symbols-outlined text-[20px]">{icon}</span></span>{detail && <span className="text-[10px] font-semibold text-[#71808a]">{detail}</span>}</div><p className="mt-5 text-[10px] font-bold uppercase tracking-[.12em] text-[#81878c]">{label}</p><p className="mt-1 font-display-lg text-2xl font-semibold tracking-[-.03em] text-[#071626]">{value}</p></div>;
+}

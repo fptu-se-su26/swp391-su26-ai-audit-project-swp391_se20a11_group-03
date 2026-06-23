@@ -14,9 +14,9 @@
         <class>com.auction.account.entity.UserVerificationToken</class>
         <properties>
             <property name="jakarta.persistence.jdbc.driver"   value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
-            <property name="jakarta.persistence.jdbc.url"      value="jdbc:sqlserver://localhost:1433;databaseName=SWP_Nhom3;encrypt=true;trustServerCertificate=true" />
+            <property name="jakarta.persistence.jdbc.url"      value="jdbc:sqlserver://localhost:1433;databaseName=SWP_Nhom3_App;encrypt=true;trustServerCertificate=true" />
             <property name="jakarta.persistence.jdbc.user"     value="sa" />
-            <property name="jakarta.persistence.jdbc.password" value="123" />
+            <property name="jakarta.persistence.jdbc.password" value="123456" />
             <property name="hibernate.dialect"                 value="org.hibernate.dialect.SQLServerDialect" />
             <property name="hibernate.globally_quoted_identifiers" value="true" />
             <property name="hibernate.hbm2ddl.auto"            value="none" />

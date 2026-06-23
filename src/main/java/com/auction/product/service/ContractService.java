@@ -7,5 +7,13 @@ import com.auction.product.entity.Contract;
  */
 public interface ContractService {
     Contract createListingContract(Long productId, Long generatedBy);
+
+    /** Records a seller signing the platform seller agreement (idempotent per user). */
+    Contract signSellerContract(Long userId);
+
+    /** Returns the signed seller agreement for the user, or null if not signed yet. */
+    Contract getSellerContract(Long userId);
+
+    boolean hasSellerContract(Long userId);
 }
 

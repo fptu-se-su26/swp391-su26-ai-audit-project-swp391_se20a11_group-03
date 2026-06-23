@@ -34,13 +34,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class BiddingService {
     /** Minimum bid increment (VND). */
     public static final long MIN_BID_INCREMENT = 50_000L;
-    /** LIVE: total window opened once the auction goes ACTIVE. */
+    /** LIVE: total window opened once the auction goes ACTIVE (3 minutes for demo). */
     public static final long INITIAL_AUCTION_DURATION_SECONDS = 180L;
-    /** LIVE: timer extension applied on each successful bid. */
-    public static final long ANTI_SNIPER_EXTENSION_SECONDS = 2L;
-    /** LIVE: hard cap so a room cannot run longer than 3 minutes from start. */
-    public static final long MAX_LIVE_DURATION_SECONDS = 180L;
-    public static final long DEPOSIT_DEADLINE_BEFORE_START_MINUTES = 30L;
+    /** LIVE: timer extension applied on each successful bid (anti-sniper). */
+    public static final long ANTI_SNIPER_EXTENSION_SECONDS = 10L;
+    public static final long DEPOSIT_DEADLINE_BEFORE_START_MINUTES = 3L;
 
     private final AuctionSessionRepository auctionSessionRepository;
     private final AuctionRepository auctionRepository;
@@ -93,12 +91,24 @@ public class BiddingService {
                 return BidResponse.fail("Phiên đấu giá đã kết thúc");
             }
 
-            long requiredMinBid = auction.getCurrentHighestBid() == null || auction.getCurrentHighestBid() <= 0
-                    ? MIN_BID_INCREMENT
-                    : auction.getCurrentHighestBid() + MIN_BID_INCREMENT;
+            // Bid grid is anchored to the product's starting price and the
+            // value-based step: valid bids are startingPrice + k*step (k >= 1).
+            Product biddingProduct = productRepository.findById(auction.getProductId()).orElse(null);
+            long startingPrice = biddingProduct != null && biddingProduct.getStartingPrice() != null
+                    ? biddingProduct.getStartingPrice()
+                    : 0L;
+            long step = com.auction.bidding.util.StepCalculator.calculate(startingPrice);
+            long current = auction.getCurrentHighestBid() == null ? 0L : auction.getCurrentHighestBid();
+            long base = Math.max(current, startingPrice);
+            long requiredMinBid = base + step;
 
-            if (request.getBidAmount() == null || request.getBidAmount() < requiredMinBid) {
-                return BidResponse.fail("Bạn cần đặt giá cao hơn");
+            Long bidAmount = request.getBidAmount();
+            if (bidAmount == null || bidAmount < requiredMinBid) {
+                return BidResponse.fail("Giá đặt tối thiểu là " + requiredMinBid + " VND");
+            }
+            if (((bidAmount - startingPrice) % step) != 0) {
+                return BidResponse.fail("Giá đặt phải bằng giá khởi điểm cộng bội số của bước giá ("
+                        + step + " VND)");
             }
 
             Bid bid = new Bid();
@@ -110,20 +120,21 @@ public class BiddingService {
 
             auction.setCurrentHighestBid(request.getBidAmount());
             auction.setCurrentWinnerUserId(request.getUserId());
+            // The first valid bid moves the row to ACTIVE. We set status on the
+            // SAME entity (AuctionSession) instead of loading/saving the legacy
+            // Auction entity, which maps the same table and would otherwise clobber
+            // the bid amount / winner we just set.
+            auction.setStatus(AuctionStatus.ACTIVE);
 
-            // LIVE mode: extend the timer by ANTI_SNIPER_EXTENSION_SECONDS but cap at MAX_LIVE_DURATION_SECONDS
-            // from startTime. TIMED mode: endTime is fixed, never extend.
+            // LIVE mode anti-sniper: every successful bid pushes endTime out by
+            // ANTI_SNIPER_EXTENSION_SECONDS so late snipers always reopen the window.
+            // No hard cap - the room stays alive as long as people keep bidding.
+            // TIMED mode: endTime is fixed, never extend.
             if (auction.getAuctionMode() == com.auction.bidding.entity.AuctionMode.LIVE) {
-                LocalDateTime ceiling = auction.getStartTime().plusSeconds(MAX_LIVE_DURATION_SECONDS);
-                LocalDateTime proposed = auction.getEndTime().plusSeconds(ANTI_SNIPER_EXTENSION_SECONDS);
-                auction.setEndTime(proposed.isAfter(ceiling) ? ceiling : proposed);
+                auction.setEndTime(auction.getEndTime().plusSeconds(ANTI_SNIPER_EXTENSION_SECONDS));
             }
 
             auctionSessionRepository.save(auction);
-
-            // First valid bid moves the legacy Auction row from UPCOMING to ACTIVE so the
-            // storefront badges reflect the real-time state.
-            syncLegacyAuctionStatus(auction.getAuctionId(), "ACTIVE");
 
             return BidResponse.success(auction.getAuctionId(), request.getUserId(), request.getBidAmount(), auction.getCurrentHighestBid(), auction.getEndTime());
         } finally {

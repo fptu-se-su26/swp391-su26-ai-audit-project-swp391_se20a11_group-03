@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import AdminShell from "@/components/layout/AdminShell";
 import { searchProducts } from "@/lib/services/productService";
 import { apiClient } from "@/lib/apiClient";
+import { DashboardSummary, getDashboardSummary } from "@/lib/services/dashboardService";
 import { useTranslations } from "@/i18n/I18nProvider";
 
 type Withdrawal = {
@@ -37,15 +38,18 @@ export default function RevenuePage() {
     pendingWithdrawals: 0,
   });
   const [recentWithdrawals, setRecentWithdrawals] = useState<Withdrawal[]>([]);
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const [productsRes, withdrawalsRes] = await Promise.all([
+      const [productsRes, withdrawalsRes, summaryRes] = await Promise.all([
         searchProducts({ size: 1 }),
         apiClient<{ data: Withdrawal[] }>("/staff/withdrawals").catch(() => ({ data: [] })),
+        getDashboardSummary().catch(() => null),
       ]);
+      setSummary(summaryRes);
 
       const totalProducts = productsRes.totalElements || 0;
       const activeProducts = productsRes.content.filter(
@@ -115,6 +119,25 @@ export default function RevenuePage() {
             {t("pageSubtitle")}
           </p>
         </div>
+
+        {/* Revenue summary from backend dashboard API */}
+        {summary && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-md">
+            {[
+              { label: "Doanh thu nền tảng (hoa hồng 20% + cọc tịch thu)", value: formatCurrency(summary.totalRevenue) },
+              { label: "Số dư ví Admin", value: formatCurrency(summary.adminBalance) },
+              { label: "Tổng nạp SePay", value: formatCurrency(summary.totalTopUps) },
+              { label: "Cọc đang giữ", value: formatCurrency(summary.depositsHeld) },
+            ].map((card) => (
+              <div key={card.label} className="bg-primary-container rounded-xl p-md soft-shadow border border-surface-variant">
+                <p className="font-label-md text-label-md text-on-primary-container">{card.label}</p>
+                <p className="font-headline-md text-headline-md md:text-[28px] font-bold text-on-primary-container mt-xs">
+                  {card.value}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-md">

@@ -1,10 +1,34 @@
 "use client";
 
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { login, register, selectRole } from "@/lib/services/authService";
+import { googleLogin, login, register, selectRole } from "@/lib/services/authService";
 import { saveStoredUser, StoredUser } from "@/lib/userSession";
 import { useTranslations } from "@/i18n/I18nProvider";
+import { DEMO_MODE } from "@/lib/demoMode";
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
+
+type GoogleCredentialResponse = { credential?: string };
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string;
+            callback: (response: GoogleCredentialResponse) => void;
+          }) => void;
+          renderButton: (
+            parent: HTMLElement,
+            options: Record<string, unknown>,
+          ) => void;
+        };
+      };
+    };
+  }
+}
 
 export default function AuthPage() {
   const router = useRouter();
@@ -20,6 +44,8 @@ export default function AuthPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingGoogleUser, setPendingGoogleUser] = useState<StoredUser | null>(null);
+  const googleButtonRef = useRef<HTMLDivElement>(null);
 
   const isLogin = mode === "login";
   const isSignup = mode === "signup";
@@ -31,6 +57,103 @@ export default function AuthPage() {
       setMode("signup");
     }
   }, []);
+
+  async function handleGoogleCredential(credential: string) {
+    setErrorMessage("");
+    setSuccessMessage("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await googleLogin(credential);
+      if (!response.token) {
+        throw new Error(t("errors.noToken"));
+      }
+
+      const userData: StoredUser = {
+        userId: response.userId,
+        username: response.username,
+        email: response.email,
+        roleName: response.roleName,
+        status: response.status,
+        token: response.token,
+        identityVerified: response.identityVerified,
+        profileStatus: response.profileStatus,
+      };
+
+      if (response.newUser) {
+        // First-time Google account: let them pick Buyer vs Seller, like email signup.
+        setPendingGoogleUser(userData);
+        setSuccessMessage(t("errors.createSuccess"));
+        setMode("select-role");
+        return;
+      }
+
+      localStorage.setItem("token", response.token);
+      saveStoredUser(userData);
+      router.push(getRedirectPath(response.roleName));
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : t("errors.invalidCredentials"));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID || isSelectRole) {
+      return;
+    }
+
+    let cancelled = false;
+
+    function renderGoogleButton() {
+      if (cancelled || !window.google || !googleButtonRef.current) {
+        return;
+      }
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: (response) => {
+          if (response.credential) {
+            void handleGoogleCredential(response.credential);
+          }
+        },
+      });
+      googleButtonRef.current.innerHTML = "";
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: isLogin ? "signin_with" : "signup_with",
+        shape: "rectangular",
+        logo_alignment: "center",
+        width: 400,
+      });
+    }
+
+    const existing = document.getElementById("google-gsi-script");
+    if (existing) {
+      renderGoogleButton();
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const script = document.createElement("script");
+    script.id = "google-gsi-script";
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = renderGoogleButton;
+    document.body.appendChild(script);
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLogin, mode]);
+
+  async function handleDemoGoogle() {
+    await handleGoogleCredential("demo");
+  }
 
   function getRedirectPath(roleName?: string) {
     const role = roleName?.toLowerCase();
@@ -99,6 +222,31 @@ export default function AuthPage() {
   async function handleSelectRole(role: "BUYER" | "SELLER") {
     setIsSubmitting(true);
     try {
+      // Google sign-up: the account already exists with a valid token, so we just
+      // update its role server-side (no password re-login is possible).
+      if (pendingGoogleUser) {
+        const dbRole = role === "SELLER" ? "Seller" : "User";
+        const selectRoleResponse = await selectRole({
+          userId: pendingGoogleUser.userId as number,
+          role: dbRole,
+        });
+
+        if (!selectRoleResponse.success) {
+          throw new Error(selectRoleResponse.message || t("errors.selectRoleFailed"));
+        }
+
+        const updatedUser: StoredUser = {
+          ...pendingGoogleUser,
+          roleName: selectRoleResponse.roleName ?? dbRole,
+        };
+
+        localStorage.setItem("token", updatedUser.token as string);
+        saveStoredUser(updatedUser);
+        setPendingGoogleUser(null);
+        router.push(getRedirectPath(updatedUser.roleName));
+        return;
+      }
+
       const pendingEmail = localStorage.getItem("pending_email") || email;
       const pendingPassword = localStorage.getItem("pending_password") || password;
 
@@ -263,6 +411,7 @@ export default function AuthPage() {
                 onClick={() => {
                   setMode("login");
                   setErrorMessage("");
+                  setPendingGoogleUser(null);
                   localStorage.removeItem("pending_email");
                   localStorage.removeItem("pending_password");
                 }}
@@ -308,6 +457,18 @@ export default function AuthPage() {
                     : t("joinCollectionDesc")}
                 </p>
               </div>
+
+              {DEMO_MODE && isLogin && (
+                <div className="mb-3 rounded-xl border border-[#c6a75c]/35 bg-[#f5edd9] p-3 text-xs text-[#604914]">
+                  <div className="flex items-center gap-2 font-bold"><span className="material-symbols-outlined text-[17px]">science</span>Demo Mode — không cần backend/database</div>
+                  <p className="mt-1 text-[11px] text-[#7a6330]">Mật khẩu cho cả hai tài khoản: <strong>demo123</strong></p>
+                  <div className="mt-2 flex gap-2">
+                    <button type="button" onClick={() => { setEmail("demo@luxeauction.vn"); setPassword("demo123"); }} className="rounded-full bg-[#071626] px-3 py-1.5 text-[10px] font-bold text-[#e4c77b]">Collector demo</button>
+                    <button type="button" onClick={() => { setEmail("seller@luxeauction.vn"); setPassword("demo123"); }} className="rounded-full border border-[#9b7932] px-3 py-1.5 text-[10px] font-bold">Seller demo</button>
+                    <button type="button" onClick={() => { setEmail("staff@luxeauction.vn"); setPassword("demo123"); }} className="rounded-full border border-[#9b7932] px-3 py-1.5 text-[10px] font-bold">Staff demo</button>
+                  </div>
+                </div>
+              )}
 
               {/* Form */}
               <form className="space-y-2.5" onSubmit={handleSubmit}>
@@ -434,22 +595,28 @@ export default function AuthPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-sm">
-                <button className="flex items-center justify-center gap-xs py-2 px-4 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-all font-label-md text-label-md">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                  </svg>
-                  Google
+              <div className="flex flex-col items-center gap-2">
+                {GOOGLE_CLIENT_ID ? (
+                  <div ref={googleButtonRef} className="flex justify-center w-full min-h-[44px]" />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleDemoGoogle}
+                    disabled={isSubmitting}
+                    className="w-full flex items-center justify-center gap-xs py-2.5 px-4 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-all font-label-md text-label-md disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                    </svg>
+                    {t("continueWithGoogle")}
                   </button>
-                <button className="flex items-center justify-center gap-xs py-2 px-4 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-all font-label-md text-label-md">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.78 1.18-.11 2.31-.91 3.73-.8 1.51.13 2.65.69 3.4 1.76-3.13 1.83-2.6 6.04.48 7.33-.62 1.55-1.46 3.09-2.69 4.1zm-4.71-14.24c-.04-1.93 1.6-3.64 3.46-3.71.21 2.2-2.11 3.86-3.46 3.71z" />
-                  </svg>
-                  {t("apple")}
-                </button>
+                )}
+                {!GOOGLE_CLIENT_ID && !DEMO_MODE && (
+                  <p className="text-[11px] text-on-surface-variant/60 text-center">{t("googleNotConfigured")}</p>
+                )}
               </div>
 
               <p className="mt-4 text-center text-[11px] text-on-surface-variant/60 leading-relaxed">

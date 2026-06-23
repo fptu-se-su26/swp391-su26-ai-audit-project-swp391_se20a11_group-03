@@ -4,14 +4,24 @@
 
 @layer base {
   body {
-    background-color: #fbf9fb;
-    color: #1b1b1d;
+    background-color: #fffdf8;
+    color: #071626;
     font-family: "Inter", sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
   .material-symbols-outlined {
     font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  }
+
+  ::selection {
+    background: #e2c171;
+    color: #071626;
+  }
+
+  :focus-visible {
+    outline: 2px solid #b9974f;
+    outline-offset: 3px;
   }
 }
 
@@ -77,5 +87,14 @@
   100% {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(186, 26, 26, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
