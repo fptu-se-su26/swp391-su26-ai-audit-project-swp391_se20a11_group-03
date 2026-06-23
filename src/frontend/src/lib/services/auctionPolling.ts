@@ -10,7 +10,7 @@ import { getAuctionState, AuctionState } from "./auctionService";
  * Pattern modeled after `src/lib/watchlist.ts`.
  */
 
-const POLL_INTERVAL_MS = 2_000;
+const POLL_INTERVAL_MS = 1_000;
 const AUCTION_TICK_EVENT = "auction:tick";
 
 type Listener = (state: AuctionState) => void;

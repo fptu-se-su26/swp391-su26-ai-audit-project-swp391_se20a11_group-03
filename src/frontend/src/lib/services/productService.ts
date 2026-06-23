@@ -7,6 +7,7 @@ export type ProductSummary = {
   categoryName: string | null;
   startingPrice: number;
   currentBid: number;
+  stepPrice?: number;
   status: string;
   imageUrl: string | null;
   auctionId: number | null;

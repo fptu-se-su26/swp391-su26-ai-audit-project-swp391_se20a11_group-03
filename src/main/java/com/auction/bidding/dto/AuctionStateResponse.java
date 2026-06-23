@@ -20,6 +20,9 @@ public class AuctionStateResponse {
     private String auctionMode;          // LIVE | TIMED
     private String status;                // UPCOMING | ACTIVE | ENDED | AWAITING_PAYMENT | FORFEITED | PAID
     private String paymentStatus;         // null | AWAITING_PAYMENT | PAID | FORFEITED | NO_WINNER
+    private Long startingPrice;
+    private Long bidStep;
+    private Long minNextBid;
     private Long currentHighestBid;
     private Long currentWinnerUserId;
     private LocalDateTime startTime;

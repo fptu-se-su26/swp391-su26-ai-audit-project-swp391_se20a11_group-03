@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import TopNav from "@/components/layout/TopNav";
 import WatchlistButton from "@/components/features/WatchlistButton";
 import CountdownTimer from "@/components/features/CountdownTimer";
+import PurchaseContractPanel from "@/components/features/PurchaseContractPanel";
 import { ApiError, getStoredToken } from "@/lib/apiClient";
 import { useNavigationContext } from "@/lib/NavigationContext";
 import { useTranslations } from "@/i18n/I18nProvider";
@@ -22,6 +23,8 @@ import { getProductDetail, ProductDetail } from "@/lib/services/productService";
 import { getMyWallet, Wallet } from "@/lib/services/walletService";
 import { forceRefresh, subscribeAuction } from "@/lib/services/auctionPolling";
 import { getStoredUser } from "@/lib/userSession";
+import { getPurchaseContract } from "@/lib/services/purchaseContractService";
+import { calculateBidStep } from "@/lib/bidStep";
 
 const formatVnd = (value: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
@@ -48,6 +51,7 @@ export default function AuctionDetailPage() {
   const [eligibilityLoading, setEligibilityLoading] = useState(false);
   const [depositSubmitting, setDepositSubmitting] = useState(false);
   const [paymentSubmitting, setPaymentSubmitting] = useState(false);
+  const [purchaseContractSigned, setPurchaseContractSigned] = useState(false);
   const [error, setError] = useState("");
   const [panelError, setPanelError] = useState("");
   const [panelMessage, setPanelMessage] = useState("");
@@ -123,6 +127,22 @@ export default function AuctionDetailPage() {
     return subscribeAuction(auctionId, (state) => setLiveState(state));
   }, [auctionId]);
 
+  useEffect(() => {
+    if (!auctionId || !hasToken || auctionStatus !== "ENDED") {
+      setPurchaseContractSigned(false);
+      return;
+    }
+    const me = getStoredUser();
+    const amWinner = me?.userId != null && liveState?.currentWinnerUserId === me.userId;
+    if (!amWinner) {
+      setPurchaseContractSigned(false);
+      return;
+    }
+    getPurchaseContract(auctionId)
+      .then((c) => setPurchaseContractSigned(Boolean(c.signed)))
+      .catch(() => setPurchaseContractSigned(false));
+  }, [auctionId, auctionStatus, hasToken, liveState?.currentWinnerUserId]);
+
   const images = useMemo(() => {
     if (product?.imageUrls?.length) {
       return product.imageUrls.map((imageUrl) => getProductImage(imageUrl));
@@ -131,7 +151,13 @@ export default function AuctionDetailPage() {
     return [getProductImage(product?.imageUrl)];
   }, [product?.imageUrl, product?.imageUrls]);
 
-  const highestBid = product?.currentBid ?? product?.startingPrice ?? 0;
+  const highestBid = liveState?.currentHighestBid ?? product?.currentBid ?? product?.startingPrice ?? 0;
+  const effectiveStartTime = liveState?.startTime ?? product?.auction?.startTime ?? null;
+  const effectiveEndTime = liveState?.endTime ?? product?.auction?.endTime ?? null;
+  const countdownTarget =
+    effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
+      ? effectiveStartTime
+      : effectiveEndTime;
   const depositAmount = eligibility?.depositAmount ?? Math.round((product?.startingPrice ?? 0) * 0.1);
   const walletBalance = wallet?.balance ?? 0;
   const needsTopUp = hasToken && eligibility != null && !eligibility.alreadyDeposited && walletBalance < depositAmount;
@@ -419,19 +445,16 @@ export default function AuctionDetailPage() {
                       })}
                     </p>
                   ) : null}
-                  {auctionStatus !== "ENDED" && product.auction?.endTime && (
+                  {auctionStatus !== "ENDED" && countdownTarget && (
                     <div className="mt-sm flex items-center gap-sm">
                       <span className="font-label-sm text-label-sm text-on-surface-variant">
-                        {product.auction?.startTime && new Date(product.auction.startTime).getTime() > Date.now()
+                        {effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
                           ? "Bắt đầu sau"
                           : t("priceTimeLeft")}
                       </span>
                       <CountdownTimer
-                        endsAt={
-                          product.auction?.startTime && new Date(product.auction.startTime).getTime() > Date.now()
-                            ? product.auction.startTime
-                            : product.auction.endTime
-                        }
+                        key={countdownTarget}
+                        endsAt={countdownTarget}
                         variant={product.auctionMode === "TIMED" ? "timed" : "live"}
                       />
                       {product.auctionMode && (
@@ -532,13 +555,22 @@ export default function AuctionDetailPage() {
                               ? t("winnerPaymentMsg", { deadline: formatDateTime(liveState.paymentDeadline, t) })
                               : t("winnerPaymentMsgNoDeadline")}
                           </p>
+                          {!alreadyPaid && auctionId && (
+                            <div className="mt-sm">
+                              <PurchaseContractPanel
+                                auctionId={auctionId}
+                                compact
+                                onSigned={() => setPurchaseContractSigned(true)}
+                              />
+                            </div>
+                          )}
                           <button
                             type="button"
                             onClick={handlePayAuction}
-                            disabled={alreadyPaid || paymentSubmitting}
+                            disabled={alreadyPaid || paymentSubmitting || (!alreadyPaid && !purchaseContractSigned)}
                             className="mt-sm inline-block rounded-md bg-tertiary-fixed px-4 py-2 text-on-tertiary-fixed-variant hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                           >
-                            {alreadyPaid ? t("paymentPaid") : paymentSubmitting ? t("paymentProcessing") : t("winnerPayNow")}
+                            {alreadyPaid ? t("paymentPaid") : paymentSubmitting ? t("paymentProcessing") : purchaseContractSigned ? t("winnerPayNow") : "Ký hợp đồng trước khi thanh toán"}
                           </button>
                         </div>
                       );

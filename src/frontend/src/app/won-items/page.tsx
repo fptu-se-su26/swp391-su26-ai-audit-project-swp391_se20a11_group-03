@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import CollectorShell from "@/components/layout/CollectorShell";
+import PurchaseContractPanel from "@/components/features/PurchaseContractPanel";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { getProductImage } from "@/lib/productPresentation";
 import { payAuction } from "@/lib/services/auctionService";
+import { getPurchaseContract } from "@/lib/services/purchaseContractService";
 import { WonItem, getWonItems } from "@/lib/services/userBidService";
 
 export default function WonItemsPage() {
@@ -12,6 +15,7 @@ export default function WonItemsPage() {
   const [items, setItems] = useState<WonItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [payingId, setPayingId] = useState<number | null>(null);
+  const [contractSigned, setContractSigned] = useState<Record<number, boolean>>({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -21,6 +25,20 @@ export default function WonItemsPage() {
       try {
         const wonItems = await getWonItems();
         setItems(wonItems);
+        const signed: Record<number, boolean> = {};
+        await Promise.all(
+          wonItems
+            .filter((item) => item.status === "pending_payment")
+            .map(async (item) => {
+              try {
+                const c = await getPurchaseContract(item.id);
+                signed[item.id] = Boolean(c.signed);
+              } catch {
+                signed[item.id] = false;
+              }
+            }),
+        );
+        setContractSigned(signed);
       } catch (error) {
         console.error("Failed to fetch won items:", error);
         setItems([]);
@@ -122,13 +140,34 @@ export default function WonItemsPage() {
                         </td>
                         <td className="p-md text-right">
                           {item.status === "pending_payment" ? (
-                            <button
-                              onClick={() => void handlePay(item)}
-                              disabled={payingId === item.id}
-                              className="rounded-lg bg-secondary px-md py-sm font-label-sm text-label-sm text-on-secondary transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                              {payingId === item.id ? t("paying") : t("payNow")}
-                            </button>
+                            <div className="flex flex-col items-end gap-sm min-w-[220px]">
+                              {!contractSigned[item.id] && (
+                                <PurchaseContractPanel
+                                  auctionId={item.id}
+                                  compact
+                                  onSigned={() =>
+                                    setContractSigned((current) => ({ ...current, [item.id]: true }))
+                                  }
+                                />
+                              )}
+                              <button
+                                onClick={() => void handlePay(item)}
+                                disabled={payingId === item.id || !contractSigned[item.id]}
+                                className="rounded-lg bg-secondary px-md py-sm font-label-sm text-label-sm text-on-secondary transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                {payingId === item.id
+                                  ? t("paying")
+                                  : contractSigned[item.id]
+                                    ? t("payNow")
+                                    : "Ký hợp đồng trước"}
+                              </button>
+                              <Link
+                                href={`/auctions/${item.productId}`}
+                                className="text-[11px] text-secondary hover:underline"
+                              >
+                                Xem chi tiết phiên
+                              </Link>
+                            </div>
                           ) : (
                             <button className="text-on-surface-variant hover:text-primary transition-colors p-1" title={t("downloadInvoice")}>
                               <span className="material-symbols-outlined">receipt</span>

@@ -99,14 +99,14 @@ public class BiddingService {
                     : 0L;
             long step = com.auction.bidding.util.StepCalculator.calculate(startingPrice);
             long current = auction.getCurrentHighestBid() == null ? 0L : auction.getCurrentHighestBid();
-            long base = Math.max(current, startingPrice);
-            long requiredMinBid = base + step;
+            long requiredMinBid = com.auction.bidding.util.StepCalculator.computeMinNextBid(
+                    startingPrice, current, step);
 
             Long bidAmount = request.getBidAmount();
             if (bidAmount == null || bidAmount < requiredMinBid) {
                 return BidResponse.fail("Giá đặt tối thiểu là " + requiredMinBid + " VND");
             }
-            if (((bidAmount - startingPrice) % step) != 0) {
+            if (!com.auction.bidding.util.StepCalculator.isOnBidGrid(startingPrice, bidAmount, step)) {
                 return BidResponse.fail("Giá đặt phải bằng giá khởi điểm cộng bội số của bước giá ("
                         + step + " VND)");
             }

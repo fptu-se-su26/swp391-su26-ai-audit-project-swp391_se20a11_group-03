@@ -2,6 +2,7 @@ package com.auction.product.service.impl;
 
 import com.auction.bidding.entity.Auction;
 import com.auction.bidding.entity.Bid;
+import com.auction.bidding.util.StepCalculator;
 import com.auction.product.entity.Product;
 import com.auction.product.entity.ProductImage;
 import com.auction.product.dto.*;
@@ -108,6 +109,7 @@ public class BiddingProductServiceImpl implements BiddingProductService {
                 .categoryName(product.getCategory() != null ? product.getCategory().getCategoryName() : null)
                 .sellerId(product.getSellerId())
                 .startingPrice(product.getStartingPrice())
+                .stepPrice(StepCalculator.calculate(product.getStartingPrice()))
                 .currentBid(auction != null && auction.getCurrentHighestBid() != null ? auction.getCurrentHighestBid() : product.getStartingPrice())
                 .status(product.getStatus())
                 .imageUrl(primaryImageUrl)

@@ -16,8 +16,12 @@ import com.auction.bidding.repository.BidRepository;
 import com.auction.bidding.service.AuctionService;
 import com.auction.bidding.service.AuctionPaymentService;
 import com.auction.bidding.service.BiddingService;
+import com.auction.bidding.util.StepCalculator;
+import com.auction.product.entity.Product;
 import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.common.util.KycGuard;
+import com.auction.product.entity.Contract;
+import com.auction.product.service.ContractService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -47,6 +51,7 @@ public class AuctionController {
     private final BidRepository bidRepository;
     private final UserRepository userRepository;
     private final AuctionPaymentService auctionPaymentService;
+    private final ContractService contractService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @GetMapping("/{auctionId}/eligibility")
@@ -58,7 +63,7 @@ public class AuctionController {
         return ResponseEntity.ok(auctionService.getEligibility(auctionId, userId));
     }
 
-    /** Polled by the frontend every 2s. Public so unauthenticated users can preview the room. */
+    /** Polled by the frontend every 1s. Public so unauthenticated users can preview the room. */
     @GetMapping("/{auctionId}/state")
     public ResponseEntity<AuctionStateResponse> getState(@PathVariable("auctionId") Long auctionId) {
         Auction auction = auctionRepository.findById(auctionId)
@@ -66,13 +71,26 @@ public class AuctionController {
 
         long totalBids = bidRepository.findByAuctionIdOrderByBidAmountDesc(auctionId).size();
 
+        Product product = auction.getProduct();
+        long startingPrice = product != null && product.getStartingPrice() != null
+                ? product.getStartingPrice()
+                : 0L;
+        long currentHighestBid = auction.getCurrentHighestBid() != null
+                ? auction.getCurrentHighestBid()
+                : startingPrice;
+        long bidStep = StepCalculator.calculate(startingPrice);
+        long minNextBid = StepCalculator.computeMinNextBid(startingPrice, currentHighestBid, bidStep);
+
         AuctionStateResponse.AuctionStateResponseBuilder b = AuctionStateResponse.builder()
                 .auctionId(auction.getAuctionId())
-                .productId(auction.getProduct() != null ? auction.getProduct().getProductId() : null)
+                .productId(product != null ? product.getProductId() : null)
                 .auctionMode(auction.getAuctionMode() != null ? auction.getAuctionMode().name() : "TIMED")
                 .status(auction.getStatus())
                 .paymentStatus(auction.getPaymentStatus())
-                .currentHighestBid(auction.getCurrentHighestBid())
+                .startingPrice(startingPrice)
+                .bidStep(bidStep)
+                .minNextBid(minNextBid)
+                .currentHighestBid(currentHighestBid)
                 .currentWinnerUserId(auction.getCurrentWinnerUser() != null ? (long) auction.getCurrentWinnerUser().getId() : null)
                 .startTime(auction.getStartTime())
                 .endTime(auction.getEndTime())
@@ -144,6 +162,63 @@ public class AuctionController {
                     "message", "Authentication required"
             ));
         }
-        return ResponseEntity.ok(auctionPaymentService.payAuction(auctionId, user.getId()));
+        try {
+            return ResponseEntity.ok(auctionPaymentService.payAuction(auctionId, user.getId()));
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", ex.getMessage()
+            ));
+        }
+    }
+
+    /** Returns the signed purchase contract for this auction (winner only). */
+    @GetMapping("/{auctionId}/purchase-contract")
+    public ResponseEntity<?> getPurchaseContract(
+            @PathVariable("auctionId") Long auctionId,
+            @AuthenticationPrincipal UserDetailsImpl user
+    ) {
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Authentication required"));
+        }
+        Auction auction = auctionRepository.findById(auctionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Auction not found"));
+        if (auction.getCurrentWinnerUser() == null
+                || auction.getCurrentWinnerUser().getId() != user.getId().intValue()) {
+            return ResponseEntity.status(403).body(Map.of("success", false, "message", "Chỉ người thắng mới xem được hợp đồng."));
+        }
+        Contract contract = contractService.getPurchaseContract(auctionId);
+        Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("signed", contract != null);
+        body.put("contractId", contract != null ? contract.getContractId() : null);
+        body.put("fileUrl", contract != null ? contract.getFileUrl() : null);
+        body.put("signedAt", contract != null && contract.getCreatedAt() != null ? contract.getCreatedAt().toString() : null);
+        body.put("finalPrice", auction.getCurrentHighestBid());
+        body.put("productName", auction.getProduct() != null ? auction.getProduct().getProductName() : null);
+        return ResponseEntity.ok(body);
+    }
+
+    /** Winner signs the purchase agreement (required before payment). */
+    @PostMapping("/{auctionId}/purchase-contract/sign")
+    public ResponseEntity<?> signPurchaseContract(
+            @PathVariable("auctionId") Long auctionId,
+            @AuthenticationPrincipal UserDetailsImpl user
+    ) {
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Authentication required"));
+        }
+        try {
+            Contract contract = contractService.signPurchaseContract(auctionId, user.getId());
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Đã ký hợp đồng mua bán. Bạn có thể tiếp tục thanh toán.",
+                    "signed", true,
+                    "contractId", contract.getContractId(),
+                    "fileUrl", contract.getFileUrl(),
+                    "signedAt", contract.getCreatedAt() != null ? contract.getCreatedAt().toString() : null
+            ));
+        } catch (com.auction.common.exception.BusinessException ex) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", ex.getMessage()));
+        }
     }
 }

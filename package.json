@@ -1,0 +1,10 @@
+{
+  "name": "swp391-auction",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix src/frontend",
+    "build": "npm run build --prefix src/frontend",
+    "start": "npm run start --prefix src/frontend",
+    "lint": "npm run lint --prefix src/frontend"
+  }
+}

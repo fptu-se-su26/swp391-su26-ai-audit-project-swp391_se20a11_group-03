@@ -34,19 +34,13 @@ public class DataSeeder implements CommandLineRunner {
         ensureWatchlistTable();
         ensureKycProfileTable();
         ensureCategoryAttributesTables();
+        seedDefaultCategories();
         seedCategoryAttributes();
 
         Long sellerRoleId = jdbcTemplate.queryForObject("SELECT TOP 1 RoleId FROM Roles WHERE RoleName = ?", Long.class, "Seller");
         Long userRoleId = jdbcTemplate.queryForObject("SELECT TOP 1 RoleId FROM Roles WHERE RoleName = ?", Long.class, "User");
         Long staffRoleId = jdbcTemplate.queryForObject("SELECT TOP 1 RoleId FROM Roles WHERE RoleName = ?", Long.class, "Staff");
         Long adminRoleId = jdbcTemplate.queryForObject("SELECT TOP 1 RoleId FROM Roles WHERE RoleName = ?", Long.class, "Admin");
-
-        ensureCategory("Art", "Artwork and paintings");
-        ensureCategory("Luxury Watch", "Premium watches");
-        ensureCategory("Jewelry", "Fine jewelry and gemstones");
-        ensureCategory("Automotive", "Classic and collectible vehicles");
-        ensureCategory("Furniture", "Designer and antique furniture");
-        ensureCategory("Ceramics", "Porcelain, pottery, and decorative ceramics");
 
         Long artId = jdbcTemplate.queryForObject("SELECT TOP 1 CategoryId FROM Categories WHERE CategoryName = ?", Long.class, "Art");
         Long watchId = jdbcTemplate.queryForObject("SELECT TOP 1 CategoryId FROM Categories WHERE CategoryName = ?", Long.class, "Luxury Watch");
@@ -70,6 +64,10 @@ public class DataSeeder implements CommandLineRunner {
         ensureUser("Demo Staff", "staff123", "staff123@gmail.com", "0911000003", "DEMOSTAFF123", staffRoleId, "123456", now, true);
         ensureUser("Demo Admin", "admin123", "admin123@gmail.com", "0911000004", "DEMOADMIN123", adminRoleId, "123456", now, true);
 
+        // Concurrent bidding test accounts: user1@gmail.com / user2@gmail.com / 123456
+        ensureUser("Bid Test User 1", "user1", "user1@gmail.com", "0912000001", "USERTEST001", userRoleId, "123456", now, true);
+        ensureUser("Bid Test User 2", "user2", "user2@gmail.com", "0912000002", "USERTEST002", userRoleId, "123456", now, true);
+
         Long sellerId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Username = ?", Long.class, "seller1");
         Long aliceId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Username = ?", Long.class, "alice");
         Long bobId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Username = ?", Long.class, "bob");
@@ -84,6 +82,11 @@ public class DataSeeder implements CommandLineRunner {
         Long demoSellerId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Email = ?", Long.class, "seller123@gmail.com");
         ensureWallet(demoUserId, 10000000L);
         ensureWallet(demoSellerId, 10000000L);
+
+        Long bidTestUser1Id = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Email = ?", Long.class, "user1@gmail.com");
+        Long bidTestUser2Id = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Email = ?", Long.class, "user2@gmail.com");
+        ensureWalletBalance(bidTestUser1Id, 50000000L);
+        ensureWalletBalance(bidTestUser2Id, 50000000L);
 
         insertProduct(sellerId, artId, "Vintage Painting", "A beautiful vintage painting.", 1000000L, 100000L, "APPROVED", now);
         insertProduct(sellerId, watchId, "Rolex Classic", "Classic luxury watch.", 5000000L, 200000L, "APPROVED", now);
@@ -480,6 +483,21 @@ public class DataSeeder implements CommandLineRunner {
         jdbcTemplate.update("INSERT INTO Roles (RoleName) VALUES (?)", roleName);
     }
 
+    private void seedDefaultCategories() {
+        ensureCategory("Art", "Artwork and paintings");
+        ensureCategory("Luxury Watch", "Premium watches");
+        ensureCategory("Jewelry", "Fine jewelry and gemstones");
+        ensureCategory("Automotive", "Classic and collectible vehicles");
+        ensureCategory("Furniture", "Designer and antique furniture");
+        ensureCategory("Ceramics", "Porcelain, pottery, and decorative ceramics");
+
+        ensureCategory("Đồng hồ", "Đồng hồ cao cấp, đồng hồ sưu tầm và phụ kiện liên quan");
+        ensureCategory("Đồ cổ", "Đồ cổ, vật phẩm sưu tầm và hiện vật có giá trị lịch sử");
+        ensureCategory("Tranh nghệ thuật", "Tranh vẽ, tác phẩm mỹ thuật và tranh trang trí");
+        ensureCategory("Trang sức", "Trang sức, đá quý và phụ kiện cao cấp");
+        ensureCategory("Khác", "Các sản phẩm đấu giá chưa thuộc danh mục cụ thể");
+    }
+
     private void ensureCategory(String categoryName, String description) {
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM Categories WHERE CategoryName = ?", Integer.class, categoryName);
         if (count != null && count > 0) {
@@ -624,11 +642,6 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedCategoryAttributes() {
-        // Idempotent: only insert if the table is empty.
-        Integer total = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM CategoryAttributes", Integer.class);
-        if (total != null && total > 0) return;
-
         Object[][] seeds = new Object[][] {
                 { "Art", "Artist", "TEXT", true, 1 },
                 { "Art", "Year", "NUMBER", true, 2 },
@@ -665,7 +678,29 @@ public class DataSeeder implements CommandLineRunner {
                 { "Ceramics", "Origin", "TEXT", true, 1 },
                 { "Ceramics", "Period", "TEXT", false, 2 },
                 { "Ceramics", "Material", "TEXT", true, 3 },
-                { "Ceramics", "Height (cm)", "NUMBER", false, 4 }
+                { "Ceramics", "Height (cm)", "NUMBER", false, 4 },
+
+                { "Đồng hồ", "Thương hiệu", "TEXT", true, 1 },
+                { "Đồng hồ", "Mẫu / dòng", "TEXT", true, 2 },
+                { "Đồng hồ", "Năm sản xuất", "NUMBER", false, 3 },
+                { "Đồng hồ", "Chất liệu vỏ", "TEXT", false, 4 },
+
+                { "Đồ cổ", "Niên đại", "TEXT", true, 1 },
+                { "Đồ cổ", "Xuất xứ", "TEXT", true, 2 },
+                { "Đồ cổ", "Chất liệu", "TEXT", false, 3 },
+                { "Đồ cổ", "Tình trạng", "TEXT", true, 4 },
+
+                { "Tranh nghệ thuật", "Tác giả", "TEXT", false, 1 },
+                { "Tranh nghệ thuật", "Năm sáng tác", "NUMBER", false, 2 },
+                { "Tranh nghệ thuật", "Chất liệu", "TEXT", true, 3 },
+                { "Tranh nghệ thuật", "Kích thước", "TEXT", false, 4 },
+
+                { "Trang sức", "Chất liệu", "TEXT", true, 1 },
+                { "Trang sức", "Đá quý", "TEXT", false, 2 },
+                { "Trang sức", "Trọng lượng", "TEXT", false, 3 },
+
+                { "Khác", "Tình trạng", "TEXT", false, 1 },
+                { "Khác", "Ghi chú thêm", "TEXT", false, 2 }
         };
 
         for (Object[] row : seeds) {
@@ -682,11 +717,29 @@ public class DataSeeder implements CommandLineRunner {
             ).stream().findFirst().orElse(null);
             if (categoryId == null) continue;
 
-            jdbcTemplate.update(
-                    "INSERT INTO CategoryAttributes (CategoryId, AttributeName, DataType, IsRequired, DisplayOrder) VALUES (?, ?, ?, ?, ?)",
-                    categoryId, attributeName, dataType, isRequired, displayOrder
-            );
+            ensureCategoryAttribute(categoryId, attributeName, dataType, isRequired, displayOrder);
         }
+    }
+
+    private void ensureCategoryAttribute(Integer categoryId, String attributeName, String dataType, boolean isRequired, int displayOrder) {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM CategoryAttributes WHERE CategoryId = ? AND AttributeName = ?",
+                Integer.class,
+                categoryId,
+                attributeName
+        );
+        if (count != null && count > 0) {
+            jdbcTemplate.update(
+                    "UPDATE CategoryAttributes SET DataType = ?, IsRequired = ?, DisplayOrder = ? WHERE CategoryId = ? AND AttributeName = ?",
+                    dataType, isRequired, displayOrder, categoryId, attributeName
+            );
+            return;
+        }
+
+        jdbcTemplate.update(
+                "INSERT INTO CategoryAttributes (CategoryId, AttributeName, DataType, IsRequired, DisplayOrder) VALUES (?, ?, ?, ?, ?)",
+                categoryId, attributeName, dataType, isRequired, displayOrder
+        );
     }
 
     private boolean hasTable(String tableName) {
@@ -833,6 +886,22 @@ public class DataSeeder implements CommandLineRunner {
     private void ensureWallet(Long userId, Long balance) {
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM Wallets WHERE UserId = ?", Integer.class, userId);
         if (count != null && count > 0) return;
+        jdbcTemplate.update(
+                "INSERT INTO Wallets (UserId, Balance, HoldBalance, UpdatedAt) VALUES (?, ?, ?, ?)",
+                userId, balance, 0L, LocalDateTime.now()
+        );
+    }
+
+    /** Creates or refreshes wallet balance for demo/test accounts on each startup. */
+    private void ensureWalletBalance(Long userId, Long balance) {
+        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM Wallets WHERE UserId = ?", Integer.class, userId);
+        if (count != null && count > 0) {
+            jdbcTemplate.update(
+                    "UPDATE Wallets SET Balance = ?, HoldBalance = 0, UpdatedAt = ? WHERE UserId = ?",
+                    balance, LocalDateTime.now(), userId
+            );
+            return;
+        }
         jdbcTemplate.update(
                 "INSERT INTO Wallets (UserId, Balance, HoldBalance, UpdatedAt) VALUES (?, ?, ?, ?)",
                 userId, balance, 0L, LocalDateTime.now()

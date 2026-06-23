@@ -31,4 +31,14 @@ public final class StepCalculator {
         }
         return STEP_LARGE;
     }
+
+    /** Fixed step for the whole auction; next bid = max(current, starting) + step. */
+    public static long computeMinNextBid(long startingPrice, long currentHighestBid, long step) {
+        long base = Math.max(currentHighestBid, startingPrice);
+        return base + step;
+    }
+
+    public static boolean isOnBidGrid(long startingPrice, long bidAmount, long step) {
+        return (bidAmount - startingPrice) % step == 0;
+    }
 }

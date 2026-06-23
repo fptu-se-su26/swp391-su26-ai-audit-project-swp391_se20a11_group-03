@@ -29,6 +29,9 @@ export type AuctionState = {
   auctionMode: "LIVE" | "TIMED";
   status: string;
   paymentStatus: string | null;
+  startingPrice: number;
+  bidStep: number;
+  minNextBid: number;
   currentHighestBid: number;
   currentWinnerUserId: number | null;
   startTime: string;

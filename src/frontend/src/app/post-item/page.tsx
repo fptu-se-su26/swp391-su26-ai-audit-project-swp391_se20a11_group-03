@@ -37,6 +37,7 @@ function defaultStartTimeLocal(): string {
 }
 
 const MIN_START_LEAD_MINUTES = 5;
+const MAX_PRODUCT_IMAGES = 6;
 
 function startTimeErrorMessage(localValue: string, t: (key: string, values?: Record<string, string | number>) => string): string | null {
   if (!localValue) return t("validation.startTimeRequired");
@@ -91,7 +92,9 @@ export default function PostItemPage() {
 
   useEffect(() => {
     if (!currentUser) return;
-    if (!currentUser.roleName?.toLowerCase().includes("seller")) return;
+    const role = currentUser.roleName?.toLowerCase() ?? "";
+    const canLoadCategories = role.includes("seller") || role.includes("admin");
+    if (!canLoadCategories) return;
     getCategories()
       .then((list) => setCategories(list))
       .catch(() => setCategories([]));
@@ -139,32 +142,39 @@ export default function PostItemPage() {
     el.click();
   };
 
+  const addImages = (incoming: FileList | File[]) => {
+    const additions: File[] = [];
+    const newPreviews: string[] = [];
+    const slotsLeft = MAX_PRODUCT_IMAGES - imageFiles.length;
+    if (slotsLeft <= 0) return;
+
+    Array.from(incoming).forEach((file) => {
+      if (!file.type.startsWith("image/")) return;
+      if (additions.length >= slotsLeft) return;
+      additions.push(file);
+      newPreviews.push(URL.createObjectURL(file));
+    });
+
+    if (additions.length === 0) return;
+
+    setImageFiles((prev) => [...prev, ...additions]);
+    setImagePreviews((prev) => [...prev, ...newPreviews]);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const list = e.target.files;
-    if (!list) return;
-    const next: File[] = [];
-    const previews: string[] = [];
-    Array.from(list).forEach((file) => {
-      if (!file.type.startsWith("image/")) return;
-      if (next.length >= 6) return;
-      next.push(file);
-      previews.push(URL.createObjectURL(file));
-    });
-    setImageFiles(next);
-    setImagePreviews((prev) => {
-      prev.forEach((u) => URL.revokeObjectURL(u));
-      return previews;
-    });
+    if (!list || list.length === 0) return;
+    addImages(list);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
-    const synthetic = {
-      target: { files: e.dataTransfer.files },
-    } as unknown as React.ChangeEvent<HTMLInputElement>;
-    handleFileChange(synthetic);
+    addImages(e.dataTransfer.files);
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -306,8 +316,10 @@ export default function PostItemPage() {
   }
 
   const isSeller = currentUser.roleName?.toLowerCase().includes("seller");
+  const isAdmin = currentUser.roleName?.toLowerCase().includes("admin");
+  const canPost = isSeller || isAdmin;
 
-  if (!isSeller) {
+  if (!canPost) {
     return (
       <DashboardLayout>
         <SellerAccessRequired mode="upgrade" />
@@ -363,7 +375,7 @@ export default function PostItemPage() {
 
   return (
     <DashboardLayout>
-      {kyc.status === "unverified" && (
+      {kyc.status === "unverified" && !isAdmin && (
         <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
           <div className="rounded-xl border border-secondary/30 bg-secondary-container/40 p-lg">
             <h2 className="font-headline-md text-headline-md text-on-secondary-container">
@@ -390,7 +402,7 @@ export default function PostItemPage() {
         </div>
       )}
 
-      {kyc.status !== "verified" && (
+      {kyc.status !== "verified" && !isAdmin && (
         <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg" style={{ display: kyc.status === "unverified" ? "none" : "block" }}>
           <p className="font-body-md text-body-md text-on-surface-variant">
             {t("kycLoading")}
@@ -398,13 +410,19 @@ export default function PostItemPage() {
         </div>
       )}
 
-      {kyc.status === "verified" && (
+      {(kyc.status === "verified" || isAdmin) && (
         <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg">
           <div>
             <h1 className="font-display-lg-mobile md:font-display-lg text-primary">{t("pageTitle")}</h1>
             <p className="font-body-lg text-on-surface-variant">
               {t("pageSubtitle")}
             </p>
+            {isAdmin && (
+              <div className="mt-md rounded-lg border border-secondary/40 bg-secondary-container/20 px-md py-sm text-sm text-on-secondary-container">
+                Bạn đang đăng sản phẩm với tư cách <strong>Admin</strong>. Sản phẩm sẽ được duyệt tự động và lên kệ theo thời gian bạn chọn.
+                Doanh thu từ phiên đấu giá này sẽ về <strong>100% ví Admin</strong>.
+              </div>
+            )}
           </div>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 xl:grid-cols-3 gap-lg">
@@ -556,14 +574,23 @@ export default function PostItemPage() {
 
               {/* IMAGE UPLOAD DROPZONE */}
               <div className="space-y-xs">
-                <label className="font-label-md text-label-md text-on-surface-variant">
-                  {t("uploadImages")} <span className="text-on-surface-variant">{t("uploadImagesHint")}</span>
-                </label>
+                <div className="flex flex-wrap items-center justify-between gap-xs">
+                  <label className="font-label-md text-label-md text-on-surface-variant">
+                    {t("uploadImages")}{" "}
+                    <span className="text-on-surface-variant">{t("uploadImagesHint")}</span>
+                  </label>
+                  {imagePreviews.length > 0 && (
+                    <span className="font-label-sm text-label-sm text-secondary">
+                      {t("imageCount", { count: imagePreviews.length, max: MAX_PRODUCT_IMAGES })}
+                    </span>
+                  )}
+                </div>
                 <div
                   role="button"
                   tabIndex={0}
-                  onClick={openFilePicker}
+                  onClick={imagePreviews.length >= MAX_PRODUCT_IMAGES ? undefined : openFilePicker}
                   onKeyDown={(e) => {
+                    if (imagePreviews.length >= MAX_PRODUCT_IMAGES) return;
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       openFilePicker();
@@ -571,7 +598,11 @@ export default function PostItemPage() {
                   }}
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
-                  className="flex cursor-pointer flex-col items-center justify-center gap-sm rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-lowest p-xl transition-colors hover:bg-secondary-container/20 hover:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/40"
+                  className={`flex flex-col items-center justify-center gap-sm rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-lowest p-xl transition-colors focus:outline-none focus:ring-2 focus:ring-secondary/40 ${
+                    imagePreviews.length >= MAX_PRODUCT_IMAGES
+                      ? "cursor-not-allowed opacity-60"
+                      : "cursor-pointer hover:bg-secondary-container/20 hover:border-secondary"
+                  }`}
                 >
                   <input
                     ref={fileInputRef}
@@ -594,9 +625,12 @@ export default function PostItemPage() {
                   </div>
                   <span className="mt-sm inline-flex items-center gap-xs rounded-lg bg-secondary px-lg py-sm font-label-md text-label-md text-on-secondary pointer-events-none">
                     <span className="material-symbols-outlined text-[18px]">add_photo_alternate</span>
-                    {t("chooseImages")}
+                    {imagePreviews.length > 0 ? t("addMoreImages") : t("chooseImages")}
                   </span>
                 </div>
+                {imagePreviews.length >= MAX_PRODUCT_IMAGES && (
+                  <p className="text-xs text-on-surface-variant">{t("maxImagesReached", { max: MAX_PRODUCT_IMAGES })}</p>
+                )}
 
                 {imagePreviews.length > 0 && (
                   <div className="mt-md grid grid-cols-3 gap-sm md:grid-cols-6">

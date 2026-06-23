@@ -15,6 +15,7 @@ public class ProductDetailResponse {
     private String categoryName;
     private Long sellerId;
     private Long startingPrice;
+    private Long stepPrice;
     private Long currentBid;
     private String status;
     private String imageUrl;

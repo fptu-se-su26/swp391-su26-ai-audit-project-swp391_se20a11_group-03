@@ -37,6 +37,7 @@ function formatDate(value: string | null): string {
 }
 
 const QUICK_LINKS = [
+  { href: "/post-item", icon: "add_box", label: "Đăng sản phẩm" },
   { href: "/staff/approvals", icon: "task_alt", label: "Duyệt sản phẩm" },
   { href: "/staff/kyc-review", icon: "badge", label: "Duyệt KYC" },
   { href: "/staff/withdrawals", icon: "payments", label: "Duyệt rút tiền" },

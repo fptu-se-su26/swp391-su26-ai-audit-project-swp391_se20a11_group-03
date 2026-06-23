@@ -1,16 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { AuctionState, placeBid } from "@/lib/services/auctionService";
 import { forceRefresh, subscribeAuction } from "@/lib/services/auctionPolling";
 import { useKycStatus } from "@/lib/hooks/useKycStatus";
+import {
+  calculateBidStep,
+  computeMinNextBid,
+  isOnBidGrid,
+} from "@/lib/bidStep";
 
 interface BidPanelProps {
   auctionId: number;
   currentBid: number;
-  minIncrement?: number;
+  startingPrice: number;
+  bidStep?: number;
   /** Called after a successful bid so the parent can re-fetch history. */
   onBidPlaced?: (newBid: number) => void;
   /** When false, disables the input/button (e.g. user not deposited yet). */
@@ -30,7 +36,8 @@ function formatVnd(value: number): string {
 export function BidPanel({
   auctionId,
   currentBid,
-  minIncrement = 50_000,
+  startingPrice,
+  bidStep,
   onBidPlaced,
   canBid = true,
   disabledReason,
@@ -46,10 +53,27 @@ export function BidPanel({
     return subscribeAuction(auctionId, (state) => setLiveState(state));
   }, [auctionId]);
 
+  const effectiveStarting = liveState?.startingPrice ?? startingPrice;
+  const effectiveStep = liveState?.bidStep ?? bidStep ?? calculateBidStep(effectiveStarting);
   const effectiveCurrentBid =
-    liveState && liveState.currentHighestBid > 0 ? liveState.currentHighestBid : currentBid;
-  const minRequired = effectiveCurrentBid > 0 ? effectiveCurrentBid + minIncrement : minIncrement;
-  const auctionActive = liveState ? liveState.status === "ACTIVE" : true;
+    liveState?.currentHighestBid != null ? liveState.currentHighestBid : currentBid;
+  const minRequired = useMemo(
+    () =>
+      liveState?.minNextBid ??
+      computeMinNextBid(effectiveStarting, effectiveCurrentBid, effectiveStep),
+    [liveState?.minNextBid, effectiveStarting, effectiveCurrentBid, effectiveStep],
+  );
+
+  useEffect(() => {
+    setAmount(String(minRequired));
+  }, [minRequired]);
+
+  const auctionActive = useMemo(() => {
+    if (!liveState) return true;
+    if (["ENDED", "PAID", "FORFEITED"].includes(liveState.status)) return false;
+    if (!liveState.endTime) return true;
+    return new Date(liveState.endTime).getTime() > Date.now();
+  }, [liveState]);
   const kycOk = kyc.status === "verified";
 
   async function handleSubmit(event: React.FormEvent) {
@@ -63,12 +87,18 @@ export function BidPanel({
       });
       return;
     }
+    if (!isOnBidGrid(effectiveStarting, num, effectiveStep)) {
+      setFeedback({
+        tone: "error",
+        message: t("bidMustBeAtLeast", { amount: formatVnd(minRequired) }),
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       const result = await placeBid(auctionId, num);
       if (result.success) {
         setFeedback({ tone: "success", message: t("bidPlaced") });
-        setAmount("");
         forceRefresh(auctionId);
         onBidPlaced?.(num);
       } else {
@@ -131,6 +161,9 @@ export function BidPanel({
         <span>{t("minimumNextBid")}</span>
         <span>{formatVnd(minRequired)}</span>
       </div>
+      <p className="text-xs text-on-surface-variant">
+        {t("stepHint", { step: formatVnd(effectiveStep) })}
+      </p>
       <div className="flex gap-sm">
         <input
           type="number"
@@ -138,7 +171,7 @@ export function BidPanel({
           onChange={(e) => setAmount(e.target.value)}
           placeholder={String(minRequired)}
           min={minRequired}
-          step={minIncrement}
+          step={effectiveStep}
           disabled={submitting || !auctionActive}
           className="flex-1 rounded-lg border border-outline-variant bg-surface-container-low px-4 py-2 outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary disabled:opacity-50"
         />

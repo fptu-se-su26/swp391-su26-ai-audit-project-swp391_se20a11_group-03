@@ -159,7 +159,7 @@ export default function AuthPage() {
     const role = roleName?.toLowerCase();
 
     if (role?.includes("admin")) {
-      return "/admin/revenue";
+      return "/admin/dashboard";
     }
 
     if (role?.includes("staff")) {

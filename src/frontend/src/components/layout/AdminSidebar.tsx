@@ -14,6 +14,7 @@ const NAV_SECTIONS: { title: string; items: { href: string; icon: string; label:
   {
     title: "Vận hành (Staff)",
     items: [
+      { href: "/post-item", icon: "add_box", label: "Đăng sản phẩm" },
       { href: "/staff/approvals", icon: "task_alt", label: "Duyệt sản phẩm" },
       { href: "/staff/kyc-review", icon: "badge", label: "Duyệt KYC" },
       { href: "/staff/withdrawals", icon: "payments", label: "Duyệt rút tiền" },

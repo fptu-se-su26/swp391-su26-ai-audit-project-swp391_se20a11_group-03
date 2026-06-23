@@ -20,7 +20,7 @@ function formatDateTime(value: string | null): string {
   }
 }
 
-type Filter = "all" | "SELLER_AGREEMENT" | "LISTING";
+type Filter = "all" | "SELLER_AGREEMENT" | "LISTING" | "PURCHASE_AGREEMENT";
 
 export default function AdminContractsPage() {
   const [rows, setRows] = useState<ContractRow[]>([]);
@@ -43,6 +43,7 @@ export default function AdminContractsPage() {
   const tabs: { id: Filter; label: string }[] = [
     { id: "all", label: `Tất cả (${rows.length})` },
     { id: "SELLER_AGREEMENT", label: "Hợp đồng người bán" },
+    { id: "PURCHASE_AGREEMENT", label: "Hợp đồng mua bán" },
     { id: "LISTING", label: "Hợp đồng niêm yết" },
   ];
 

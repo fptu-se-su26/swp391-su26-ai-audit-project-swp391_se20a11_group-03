@@ -19,6 +19,7 @@ import {
 import { getProductDetail, ProductDetail } from "@/lib/services/productService";
 import { subscribeAuction } from "@/lib/services/auctionPolling";
 import { getStoredUser, subscribeStoredUser } from "@/lib/userSession";
+import { calculateBidStep } from "@/lib/bidStep";
 
 const formatVnd = (value: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
@@ -92,6 +93,16 @@ export default function AuctionRoomPage() {
   }, [product?.imageUrl, product?.imageUrls]);
 
   const currentBid = product?.currentBid ?? product?.startingPrice ?? 0;
+  const startingPrice = product?.startingPrice ?? 0;
+  const bidStep = product?.stepPrice ?? calculateBidStep(startingPrice);
+
+  const effectiveStartTime = liveState?.startTime ?? product?.auction?.startTime ?? null;
+  const effectiveEndTime = liveState?.endTime ?? product?.auction?.endTime ?? null;
+  const countdownTarget =
+    effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
+      ? effectiveStartTime
+      : effectiveEndTime;
+  const displayCurrentBid = liveState?.currentHighestBid ?? currentBid;
   const sellerCanEnter = isSellerOfProduct;
   const canEnterBidding = sellerCanEnter || eligibility?.alreadyDeposited;
 
@@ -248,20 +259,17 @@ export default function AuctionRoomPage() {
             <div className="rounded-lg border border-error/30 bg-error-container/10 p-md">
               <p className="font-label-sm text-label-sm uppercase tracking-widest text-error">{t("currentPrice")}</p>
               <p className="mt-1 text-[36px] font-bold text-primary">
-                {formatVnd(liveState?.currentHighestBid || currentBid)}
+                {formatVnd(displayCurrentBid)}
               </p>
               <div className="mt-sm flex items-center gap-sm">
                 <span className="font-label-sm text-label-sm text-on-surface-variant">
-                  {product.auction?.startTime && new Date(product.auction.startTime).getTime() > Date.now()
+                  {effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
                     ? "Bắt đầu sau"
                     : t("timeRemaining")}
                 </span>
                 <CountdownTimer
-                  endsAt={
-                    product.auction?.startTime && new Date(product.auction.startTime).getTime() > Date.now()
-                      ? product.auction.startTime
-                      : product.auction?.endTime
-                  }
+                  key={countdownTarget ?? "no-timer"}
+                  endsAt={countdownTarget}
                   variant={product.auctionMode === "TIMED" ? "timed" : "live"}
                 />
               </div>
@@ -277,7 +285,9 @@ export default function AuctionRoomPage() {
             ) : canEnterBidding ? (
               <BidPanel
                 auctionId={auctionId!}
-                currentBid={currentBid}
+                currentBid={displayCurrentBid}
+                startingPrice={startingPrice}
+                bidStep={bidStep}
                 canBid={true}
                 onBidPlaced={() => {
                   getProductDetail(params.id).then((p) => setProduct(p)).catch(() => {});

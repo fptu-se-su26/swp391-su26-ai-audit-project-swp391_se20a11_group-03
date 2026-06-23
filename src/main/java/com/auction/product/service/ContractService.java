@@ -15,5 +15,12 @@ public interface ContractService {
     Contract getSellerContract(Long userId);
 
     boolean hasSellerContract(Long userId);
+
+    /** Buyer signs the purchase agreement before paying for a won auction. */
+    Contract signPurchaseContract(Long auctionId, Long buyerUserId);
+
+    Contract getPurchaseContract(Long auctionId);
+
+    boolean hasPurchaseContract(Long auctionId);
 }
 

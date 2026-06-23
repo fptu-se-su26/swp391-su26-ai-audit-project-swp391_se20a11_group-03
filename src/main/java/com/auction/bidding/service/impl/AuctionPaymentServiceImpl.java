@@ -9,6 +9,7 @@ import com.auction.account.dao.UserRepository;
 import com.auction.account.entity.User;
 import com.auction.bidding.service.AuctionPaymentService;
 import com.auction.common.exception.ResourceNotFoundException;
+import com.auction.product.service.ContractService;
 import com.auction.wallet.entity.Transaction;
 import com.auction.wallet.entity.Wallet;
 import com.auction.wallet.repository.TransactionRepository;
@@ -31,6 +32,7 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final ContractService contractService;
 
     @Override
     @Transactional
@@ -43,6 +45,10 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
         }
         if (auction.getCurrentWinnerUser() == null || auction.getCurrentWinnerUser().getId() != userId.intValue()) {
             throw new IllegalStateException("Only the winning bidder can pay for this auction");
+        }
+        if (!contractService.hasPurchaseContract(auctionId)) {
+            throw new IllegalStateException(
+                    "Bạn cần ký hợp đồng mua bán điện tử trước khi hoàn tất thanh toán.");
         }
         if ("PAID".equalsIgnoreCase(auction.getPaymentStatus()) || "PAID".equalsIgnoreCase(auction.getStatus())) {
             throw new IllegalStateException("Auction is already paid");
@@ -93,46 +99,67 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
             auctionDepositRepository.save(deposit);
         }
 
-        // Split the final price: platform commission to admin, the rest to the seller.
-        long commission = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
-        long sellerAmount = Math.max(0L, finalPrice - commission);
+        // Platform-owned listings (posted by Admin): 100% to admin wallet.
+        // Regular seller listings: 20% commission to admin, 80% to seller.
+        boolean platformListing = isAdminSeller(auction);
 
-        Wallet sellerWallet = null;
-        if (auction.getProduct() != null && auction.getProduct().getSellerId() != null) {
-            sellerWallet = walletRepository.findByUser_Id(Math.toIntExact(auction.getProduct().getSellerId())).orElse(null);
-        }
-        if (sellerWallet != null) {
-            long sellerBalance = sellerWallet.getBalance() != null ? sellerWallet.getBalance() : 0L;
-            sellerWallet.setBalance(sellerBalance + sellerAmount);
-            sellerWallet.setUpdatedAt(now);
-            walletRepository.save(sellerWallet);
-            transactionRepository.save(new Transaction(
-                    sellerWallet,
-                    sellerAmount,
-                    "AUCTION_PAYOUT",
-                    "COMPLETED",
-                    "AUC-PAYOUT-" + auctionId,
-                    "Payout (80%) for auction " + auctionId,
-                    now
-            ));
-        }
+        if (platformListing) {
+            Wallet adminWallet = getAdminWallet(now);
+            if (adminWallet != null && finalPrice > 0) {
+                long adminBalance = adminWallet.getBalance() != null ? adminWallet.getBalance() : 0L;
+                adminWallet.setBalance(adminBalance + finalPrice);
+                adminWallet.setUpdatedAt(now);
+                walletRepository.save(adminWallet);
+                transactionRepository.save(new Transaction(
+                        adminWallet,
+                        finalPrice,
+                        "ADMIN_AUCTION_REVENUE",
+                        "COMPLETED",
+                        "AUC-ADMIN-REV-" + auctionId,
+                        "Full revenue (100%) for platform listing auction " + auctionId,
+                        now
+                ));
+            }
+        } else {
+            long commission = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
+            long sellerAmount = Math.max(0L, finalPrice - commission);
 
-        // Platform commission (20%) goes to the admin wallet as revenue.
-        Wallet adminWallet = getAdminWallet(now);
-        if (adminWallet != null && commission > 0) {
-            long adminBalance = adminWallet.getBalance() != null ? adminWallet.getBalance() : 0L;
-            adminWallet.setBalance(adminBalance + commission);
-            adminWallet.setUpdatedAt(now);
-            walletRepository.save(adminWallet);
-            transactionRepository.save(new Transaction(
-                    adminWallet,
-                    commission,
-                    "PLATFORM_COMMISSION",
-                    "COMPLETED",
-                    "AUC-COMMISSION-" + auctionId,
-                    "Platform commission (20%) for auction " + auctionId,
-                    now
-            ));
+            Wallet sellerWallet = null;
+            if (auction.getProduct() != null && auction.getProduct().getSellerId() != null) {
+                sellerWallet = walletRepository.findByUser_Id(Math.toIntExact(auction.getProduct().getSellerId())).orElse(null);
+            }
+            if (sellerWallet != null) {
+                long sellerBalance = sellerWallet.getBalance() != null ? sellerWallet.getBalance() : 0L;
+                sellerWallet.setBalance(sellerBalance + sellerAmount);
+                sellerWallet.setUpdatedAt(now);
+                walletRepository.save(sellerWallet);
+                transactionRepository.save(new Transaction(
+                        sellerWallet,
+                        sellerAmount,
+                        "AUCTION_PAYOUT",
+                        "COMPLETED",
+                        "AUC-PAYOUT-" + auctionId,
+                        "Payout (80%) for auction " + auctionId,
+                        now
+                ));
+            }
+
+            Wallet adminWallet = getAdminWallet(now);
+            if (adminWallet != null && commission > 0) {
+                long adminBalance = adminWallet.getBalance() != null ? adminWallet.getBalance() : 0L;
+                adminWallet.setBalance(adminBalance + commission);
+                adminWallet.setUpdatedAt(now);
+                walletRepository.save(adminWallet);
+                transactionRepository.save(new Transaction(
+                        adminWallet,
+                        commission,
+                        "PLATFORM_COMMISSION",
+                        "COMPLETED",
+                        "AUC-COMMISSION-" + auctionId,
+                        "Platform commission (20%) for auction " + auctionId,
+                        now
+                ));
+            }
         }
 
         auction.setStatus("PAID");
@@ -167,5 +194,15 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
             w.setUpdatedAt(now);
             return walletRepository.save(w);
         });
+    }
+
+    /** True when the product was listed by an Admin account (platform-owned inventory). */
+    private boolean isAdminSeller(Auction auction) {
+        if (auction.getProduct() == null || auction.getProduct().getSellerId() == null) {
+            return false;
+        }
+        return userRepository.findById(Math.toIntExact(auction.getProduct().getSellerId()))
+                .map(u -> u.getRole() != null && "Admin".equalsIgnoreCase(u.getRole().getRoleName()))
+                .orElse(false);
     }
 }

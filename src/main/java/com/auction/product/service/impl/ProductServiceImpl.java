@@ -4,6 +4,7 @@ import com.auction.bidding.entity.Auction;
 import com.auction.bidding.entity.AuctionMode;
 import com.auction.bidding.repository.AuctionRepository;
 import com.auction.bidding.service.AuctionCreationService;
+import com.auction.bidding.util.StepCalculator;
 import com.auction.bidding.service.impl.AuctionCreationServiceImpl;
 import com.auction.product.dto.*;
 import com.auction.product.entity.*;
@@ -163,17 +164,19 @@ public class ProductServiceImpl implements ProductService {
                 throw new BusinessException("Category is not active");
             }
 
-            // Verify seller exists AND has completed KYC
+            // Verify seller exists AND has completed KYC (Admin bypasses KYC + seller contract).
             com.auction.account.entity.User seller = userRepository.findById(Math.toIntExact(sellerId))
                     .orElseThrow(() -> new ResourceNotFoundException("Seller not found with id: " + sellerId));
-            if (!seller.isIdentityVerified()) {
-                throw new com.auction.common.exception.KycRequiredException(
-                        "Bạn cần hoàn tất xác thực danh tính (KYC) trước khi đăng bán sản phẩm.");
-            }
-            // Sellers must also have signed the platform seller agreement.
-            if (!contractService.hasSellerContract(seller.getUserId())) {
-                throw new BusinessException(
-                        "Bạn cần ký hợp đồng nền tảng (ở bước KYC) trước khi đăng bán sản phẩm.");
+            boolean isAdmin = seller.getRole() != null && "Admin".equalsIgnoreCase(seller.getRole().getRoleName());
+            if (!isAdmin) {
+                if (!seller.isIdentityVerified()) {
+                    throw new com.auction.common.exception.KycRequiredException(
+                            "Bạn cần hoàn tất xác thực danh tính (KYC) trước khi đăng bán sản phẩm.");
+                }
+                if (!contractService.hasSellerContract(seller.getUserId())) {
+                    throw new BusinessException(
+                            "Bạn cần ký hợp đồng nền tảng (ở bước KYC) trước khi đăng bán sản phẩm.");
+                }
             }
 
             // Validate auction scheduling fields if provided
@@ -189,7 +192,7 @@ public class ProductServiceImpl implements ProductService {
             product.setProductName(request.getProductName());
             product.setDescription(request.getDescription());
             product.setStartingPrice(request.getStartingPrice());
-            product.setStepPrice(request.getStepPrice() != null ? request.getStepPrice() : 1000000L);
+            product.setStepPrice(StepCalculator.calculate(request.getStartingPrice()));
             product.setTaxPercent(request.getTaxPercent() != null ? request.getTaxPercent() : 5);
             product.setStatus("PENDING");
             product.setAuctionMode(request.getAuctionMode());
@@ -231,6 +234,22 @@ public class ProductServiceImpl implements ProductService {
             }
 
             checkRequiredAttributes(request.getCategoryId(), attributes);
+
+            // Admin listings skip staff approval and go live on the scheduled timeline.
+            if (isAdmin) {
+                product.setStatus("APPROVED");
+                product = productRepository.save(product);
+                contractService.createListingContract(product.getProductId(), sellerId);
+                if (product.getAuctionMode() != null) {
+                    AuctionMode mode = AuctionMode.valueOf(product.getAuctionMode());
+                    LocalDateTime startTime = product.getScheduledStartTime() != null
+                            ? product.getScheduledStartTime()
+                            : LocalDateTime.now().plusMinutes(AuctionCreationServiceImpl.MIN_LEAD_MINUTES);
+                    auctionCreationService.createForApprovedProduct(
+                            product.getProductId(), mode, startTime, product.getScheduledDurationSeconds());
+                }
+                log.info("[createProduct] admin product auto-approved productId={}", product.getProductId());
+            }
 
             ProductResponseDTO dto = convertToDTO(product);
             log.info("[createProduct] success for productId={}", product.getProductId());

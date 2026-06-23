@@ -8,10 +8,11 @@ import { getWatchlistIds, refreshWatchlistIds, subscribeWatchlist } from "@/lib/
 import { StoredUser, getStoredUser, getUserDisplayName, subscribeStoredUser } from "@/lib/userSession";
 import { BidInfo, getMyBids, getWonItems, WonItem } from "@/lib/services/userBidService";
 import { getProductDetail } from "@/lib/services/productService";
-import { getAuctionState } from "@/lib/services/auctionService";
-import { apiClient } from "@/lib/apiClient";
+import { getAuctionState, placeBid } from "@/lib/services/auctionService";
+import { subscribeAuction } from "@/lib/services/auctionPolling";
 import CountdownTimer from "@/components/features/CountdownTimer";
 import { useTranslations } from "@/i18n/I18nProvider";
+import { calculateBidStep, computeMinNextBid } from "@/lib/bidStep";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import StatCard from "@/components/dashboard/StatCard";
 import EmptyState from "@/components/dashboard/EmptyState";
@@ -154,24 +155,43 @@ export default function DashboardPage() {
   );
 }
 
-const MIN_BID_INCREMENT = 1_000_000;
-
-type QuickBidResponse = {
-  success: boolean;
-  message: string;
-  auctionId?: number;
-  userId?: number;
-  bidAmount?: number;
-  currentHighestBid?: number;
-  endTime?: string;
-};
-
 function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void }) {
   const t = useTranslations("dashboard");
-  const minRequired = (bid.currentBid || 0) + MIN_BID_INCREMENT;
-  const [quickAmount, setQuickAmount] = useState<string>(String(minRequired));
+  const [startingPrice, setStartingPrice] = useState(0);
+  const [currentBid, setCurrentBid] = useState(bid.currentBid || 0);
+  const [auctionId, setAuctionId] = useState<number | null>(null);
+  const bidStep = calculateBidStep(startingPrice);
+  const minRequired = computeMinNextBid(startingPrice, currentBid, bidStep);
+  const [quickAmount, setQuickAmount] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ tone: "success" | "error"; message: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getProductDetail(bid.productId)
+      .then((detail) => {
+        if (cancelled) return;
+        setStartingPrice(detail.startingPrice ?? 0);
+        setCurrentBid(detail.currentBid ?? detail.startingPrice ?? bid.currentBid ?? 0);
+        setAuctionId(detail.auction?.auctionId ?? detail.auctionId ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [bid.productId, bid.currentBid]);
+
+  useEffect(() => {
+    if (!auctionId) return;
+    return subscribeAuction(auctionId, (state) => {
+      setCurrentBid(state.currentHighestBid);
+      if (state.startingPrice) setStartingPrice(state.startingPrice);
+    });
+  }, [auctionId]);
+
+  useEffect(() => {
+    setQuickAmount(String(minRequired));
+  }, [minRequired]);
 
   const isEnded = bid.timeLeft === "Ended" || bid.status === "won" || bid.status === "lost";
   const amountNumber = Number(quickAmount);
@@ -188,23 +208,18 @@ function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void 
     setIsSubmitting(true);
     setFeedback(null);
     try {
-      // /api/bids/my-bids returns productId only; resolve the auctionId via product detail
       const detail = await getProductDetail(bid.productId);
-      const auctionId = detail?.auction?.auctionId;
-      if (!auctionId) {
+      const resolvedAuctionId = detail?.auction?.auctionId ?? detail?.auctionId;
+      if (!resolvedAuctionId) {
         setFeedback({ tone: "error", message: t("noAuctionSession") });
         return;
       }
       const stored = getStoredUser();
-      const userId = stored?.userId;
-      if (!userId) {
+      if (!stored?.userId) {
         setFeedback({ tone: "error", message: t("signInAgain") });
         return;
       }
-      const result = await apiClient<QuickBidResponse>("/bidding/bid", {
-        method: "POST",
-        body: { auctionId, userId, bidAmount: amountNumber },
-      });
+      const result = await placeBid(resolvedAuctionId, amountNumber);
       if (result?.success) {
         setFeedback({
           tone: "success",
@@ -246,7 +261,7 @@ function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void 
             </div>
           </div>
         </td>
-        <td className="p-md text-[16px] font-bold text-primary">₫{bid.currentBid.toLocaleString("vi-VN")}</td>
+        <td className="p-md text-[16px] font-bold text-primary">₫{currentBid.toLocaleString("vi-VN")}</td>
         <td className={`p-md text-sm font-body-md ${bid.status === "outbid" ? "font-bold text-error" : "text-on-surface-variant"}`}>
           {bid.timeLeft}
         </td>
@@ -285,7 +300,7 @@ function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void 
             <input
               type="number"
               min={minRequired}
-              step={MIN_BID_INCREMENT}
+              step={bidStep}
               value={quickAmount}
               onChange={(event) => setQuickAmount(event.target.value)}
               disabled={isSubmitting}

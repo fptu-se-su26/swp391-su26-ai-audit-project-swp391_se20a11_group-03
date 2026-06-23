@@ -44,6 +44,7 @@ public class AdminDashboardController {
     private static final String TYPE_HOLD_BID = "HOLD_BID";
     private static final String TYPE_WITHDRAWAL = "WITHDRAWAL";
     private static final String TYPE_COMMISSION = "PLATFORM_COMMISSION";
+    private static final String TYPE_ADMIN_REVENUE = "ADMIN_AUCTION_REVENUE";
     private static final String TYPE_FORFEIT = "FORFEIT_DEPOSIT";
     private static final String STATUS_COMPLETED = "COMPLETED";
     private static final String STATUS_PENDING = "PENDING";
@@ -61,8 +62,9 @@ public class AdminDashboardController {
     public ResponseEntity<ApiResponse<DashboardSummaryDTO>> getSummary() {
         List<Transaction> txns = transactionRepository.findAll();
 
-        // Admin revenue = platform commission (20% on paid auctions) + forfeited deposits.
+        // Admin revenue = platform commission + admin-owned auction revenue + forfeited deposits.
         long totalRevenue = sumByType(txns, TYPE_COMMISSION, STATUS_COMPLETED)
+                + sumByType(txns, TYPE_ADMIN_REVENUE, STATUS_COMPLETED)
                 + sumByType(txns, TYPE_FORFEIT, STATUS_COMPLETED);
         long totalTopUps = sumByType(txns, TYPE_DEPOSIT, STATUS_COMPLETED);
         long depositsHeld = txns.stream()
@@ -104,6 +106,7 @@ public class AdminDashboardController {
         Map<String, long[]> buckets = new TreeMap<>(); // periodKey -> [amount, count]
         for (Transaction t : transactionRepository.findAll()) {
             boolean isRevenue = TYPE_COMMISSION.equalsIgnoreCase(t.getTransactionType())
+                    || TYPE_ADMIN_REVENUE.equalsIgnoreCase(t.getTransactionType())
                     || TYPE_FORFEIT.equalsIgnoreCase(t.getTransactionType());
             if (!isRevenue
                     || !STATUS_COMPLETED.equalsIgnoreCase(t.getStatus())
@@ -142,7 +145,8 @@ public class AdminDashboardController {
 
             Product product = auction.getProduct();
             long finalPrice = auction.getCurrentHighestBid() == null ? 0L : auction.getCurrentHighestBid();
-            long commission = Math.round(finalPrice * COMMISSION_RATE);
+            boolean platformListing = isAdminSeller(auction.getProduct() != null ? auction.getProduct().getSellerId() : null);
+            long commission = platformListing ? finalPrice : Math.round(finalPrice * COMMISSION_RATE);
 
             String sellerName = product != null ? userName(product.getSellerId()) : "—";
             String buyerName = auction.getCurrentWinnerUser() != null
@@ -177,12 +181,18 @@ public class AdminDashboardController {
         for (Contract c : contractRepository.findAll()) {
             String type = c.getContractType();
             boolean isSeller = "SELLER_AGREEMENT".equalsIgnoreCase(type);
-            String typeLabel = isSeller ? "Hợp đồng người bán"
-                    : "LISTING".equalsIgnoreCase(type) ? "Hợp đồng niêm yết" : type;
+            String typeLabel = switch (type != null ? type.toUpperCase() : "") {
+                case "SELLER_AGREEMENT" -> "Hợp đồng người bán";
+                case "LISTING" -> "Hợp đồng niêm yết";
+                case "PURCHASE_AGREEMENT" -> "Hợp đồng mua bán";
+                default -> type;
+            };
 
             String referenceName;
             if (isSeller) {
                 referenceName = userName(c.getReferenceId());
+            } else if ("PURCHASE_AGREEMENT".equalsIgnoreCase(type)) {
+                referenceName = "Phiên đấu giá #" + c.getReferenceId();
             } else {
                 referenceName = productRepository.findById(c.getReferenceId())
                         .map(Product::getProductName)
@@ -238,5 +248,14 @@ public class AdminDashboardController {
                 .map(Wallet::getBalance)
                 .map(b -> b == null ? 0L : b)
                 .orElse(0L);
+    }
+
+    private boolean isAdminSeller(Long sellerId) {
+        if (sellerId == null) {
+            return false;
+        }
+        return userRepository.findById(Math.toIntExact(sellerId))
+                .map(u -> u.getRole() != null && "Admin".equalsIgnoreCase(u.getRole().getRoleName()))
+                .orElse(false);
     }
 }
