@@ -1,0 +1,974 @@
+<changelist name="Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1" date="1782090355093" recycled="true" deleted="true">
+  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/shelved.patch" />
+  <option name="DESCRIPTION" value="Uncommitted changes before Checkout at 6/22/2026 8:05 AM [Changes]" />
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/dto/LoginRequest.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/dto/LoginRequest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/LoginRequest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/dto/ApiResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/dto/ApiResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ApiResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/dto/DepositRequest.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/dto/DepositRequest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/DepositRequest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/entity/ProductAttributeValue.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/entity/ProductAttributeValue.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductAttributeValue.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/controller/FptAiHealthController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/controller/FptAiHealthController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/FptAiHealthController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/dto/LoginResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/dto/LoginResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/LoginResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/entity/AuctionSession.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/entity/AuctionSession.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuctionSession.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/config/CorsConfig.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/config/CorsConfig.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/CorsConfig.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/CreateProductImageDTO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/CreateProductImageDTO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/CreateProductImageDTO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/entity/IdentityDocument.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/entity/IdentityDocument.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/IdentityDocument.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/repository/ConversationRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/repository/ConversationRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ConversationRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/controller/MessageController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/controller/MessageController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/MessageController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/config/WebSocketConfig.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/config/WebSocketConfig.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/WebSocketConfig.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/dto/request/CreateConversationRequest.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/dto/request/CreateConversationRequest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/CreateConversationRequest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/dao/UserVerificationTokenDAO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/dao/UserVerificationTokenDAO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/UserVerificationTokenDAO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/security/JwtService.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/security/JwtService.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/JwtService.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/dto/AuctionResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/dto/AuctionResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuctionResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/entity/AuctionDeposit.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/entity/AuctionDeposit.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuctionDeposit.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/service/BiddingService.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/service/BiddingService.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/BiddingService.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/service/AuthValidator.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/service/AuthValidator.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuthValidator.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/config/FptAiConfig.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/config/FptAiConfig.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/FptAiConfig.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/dto/WithdrawalResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/dto/WithdrawalResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/WithdrawalResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/BidResponse$BidResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/BidResponse$BidResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/BidResponse$BidResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/service/impl/DepositServiceImpl.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/service/impl/DepositServiceImpl.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/DepositServiceImpl.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/dto/BidRequest.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/dto/BidRequest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/BidRequest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/security/WebSocketAuthInterceptor.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/security/WebSocketAuthInterceptor.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/WebSocketAuthInterceptor.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/repository/TransactionRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/repository/TransactionRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/TransactionRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/security/UserDetailsImpl.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/security/UserDetailsImpl.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/UserDetailsImpl.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/dto/RegisterRequest.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/dto/RegisterRequest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/RegisterRequest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/entity/ProductImage.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/entity/ProductImage.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductImage.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/AuctionResponse$AuctionResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/AuctionResponse$AuctionResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuctionResponse$AuctionResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/entity/User.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/entity/User.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/User.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/service/impl/WalletServiceImpl.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/service/impl/WalletServiceImpl.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/WalletServiceImpl.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/controller/DepositController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/controller/DepositController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/DepositController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/util/AuditLogUtil.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/util/AuditLogUtil.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuditLogUtil.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/ProductSummaryResponse$ProductSummaryResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/ProductSummaryResponse$ProductSummaryResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductSummaryResponse$ProductSummaryResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/ProductResponseDTO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/ProductResponseDTO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductResponseDTO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/dto/response/MessageResponse$MessageResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/dto/response/MessageResponse$MessageResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/MessageResponse$MessageResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/ProductAttributeValueDTO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/ProductAttributeValueDTO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductAttributeValueDTO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/dto/AuctionEligibilityResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/dto/AuctionEligibilityResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuctionEligibilityResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/CreateProductAttributeValueDTO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/CreateProductAttributeValueDTO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/CreateProductAttributeValueDTO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/service/AuthSessionService.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/service/AuthSessionService.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuthSessionService.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/DataSeeder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/DataSeeder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/DataSeeder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/service/impl/ProductServiceImpl.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/service/impl/ProductServiceImpl.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductServiceImpl.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/controller/BiddingController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/controller/BiddingController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/BiddingController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/dao/UserDAO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/dao/UserDAO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/UserDAO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/dto/ApiErrorResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/dto/ApiErrorResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ApiErrorResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/controller/ProductController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/controller/ProductController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/ProductImageDTO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/ProductImageDTO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductImageDTO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/entity/Role.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/entity/Role.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/Role.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/service/AuthService.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/service/AuthService.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuthService.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/dto/AuctionEligibilityResponse$AuctionEligibilityResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/dto/AuctionEligibilityResponse$AuctionEligibilityResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuctionEligibilityResponse$AuctionEligibilityResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/entity/VerificationType.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/entity/VerificationType.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/VerificationType.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/dto/SepayWebhookRequest.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/dto/SepayWebhookRequest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/SepayWebhookRequest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/dao/PasswordResetTokenDAO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/dao/PasswordResetTokenDAO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/PasswordResetTokenDAO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/service/impl/ConversationServiceImpl.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/service/impl/ConversationServiceImpl.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ConversationServiceImpl.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/ProductSearchRequest.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/ProductSearchRequest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductSearchRequest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/repository/AttributeOptionRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/repository/AttributeOptionRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AttributeOptionRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/dto/RegisterResponse$RegisterResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/dto/RegisterResponse$RegisterResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/RegisterResponse$RegisterResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/entity/Message$MessageBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/entity/Message$MessageBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/Message$MessageBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/service/impl/EmailServiceImpl.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/service/impl/EmailServiceImpl.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/EmailServiceImpl.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/repository/JpaAuctionSessionRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/repository/JpaAuctionSessionRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/JpaAuctionSessionRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/BidResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/BidResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/BidResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/exception/BusinessException.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/exception/BusinessException.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/BusinessException.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/util/LoginRateLimitUtil$AttemptWindow.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/util/LoginRateLimitUtil$AttemptWindow.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/LoginRateLimitUtil$AttemptWindow.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/entity/Auction.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/entity/Auction.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/Auction.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/dto/PageResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/dto/PageResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/PageResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/repository/ProductAttributeValueRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/repository/ProductAttributeValueRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductAttributeValueRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/entity/WithdrawalRequest.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/entity/WithdrawalRequest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/WithdrawalRequest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/dto/WithdrawalStatusRequest.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/dto/WithdrawalStatusRequest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/WithdrawalStatusRequest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/dto/response/ConversationResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/dto/response/ConversationResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ConversationResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/dto/WalletResponse$WalletResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/dto/WalletResponse$WalletResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/WalletResponse$WalletResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/entity/PasswordResetToken.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/entity/PasswordResetToken.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/PasswordResetToken.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/service/MailService.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/service/MailService.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/MailService.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/controller/IdentityVerificationController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/controller/IdentityVerificationController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/IdentityVerificationController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/controller/LoginController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/controller/LoginController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/LoginController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/service/IdentityVerificationService$VerificationDecision.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/service/IdentityVerificationService$VerificationDecision.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/IdentityVerificationService$VerificationDecision.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/security/UserDetailsServiceImpl.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/security/UserDetailsServiceImpl.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/UserDetailsServiceImpl.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/config/SecurityConfig.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/config/SecurityConfig.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/SecurityConfig.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/config/PasswordEncoderConfig.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/config/PasswordEncoderConfig.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/PasswordEncoderConfig.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/service/MailService$1.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/service/MailService$1.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/MailService$1.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/controller/CategoryController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/controller/CategoryController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/CategoryController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/entity/Product.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/entity/Product.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/Product.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/entity/Contract.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/entity/Contract.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/Contract.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/dto/ApiErrorResponse$ApiErrorResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/dto/ApiErrorResponse$ApiErrorResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ApiErrorResponse$ApiErrorResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/controller/ContractController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/controller/ContractController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ContractController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/dao/AuditLogDAO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/dao/AuditLogDAO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuditLogDAO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/service/AuthService$AuthResult.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/service/AuthService$AuthResult.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuthService$AuthResult.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/dto/DepositResponse$DepositResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/dto/DepositResponse$DepositResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/DepositResponse$DepositResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/com/auction/account/AuthServiceTest.class" />
+    <option name="AFTER_PATH" value="target/test-classes/com/auction/account/AuthServiceTest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuthServiceTest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/util/JpaUtil.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/util/JpaUtil.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/JpaUtil.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/service/FptAiService.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/service/FptAiService.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/FptAiService.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/service/impl/BiddingProductServiceImpl.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/service/impl/BiddingProductServiceImpl.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/BiddingProductServiceImpl.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/controller/ChatWebSocketController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/controller/ChatWebSocketController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ChatWebSocketController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/service/EmailVerificationService.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/service/EmailVerificationService.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/EmailVerificationService.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/entity/Category.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/entity/Category.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/Category.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/repository/BiddingProductRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/repository/BiddingProductRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/BiddingProductRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/repository/CategoryRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/repository/CategoryRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/CategoryRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/ProductDetailResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/ProductDetailResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductDetailResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/config/AppConfig.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/config/AppConfig.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AppConfig.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/service/PasswordResetService.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/service/PasswordResetService.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/PasswordResetService.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/exception/ResourceNotFoundException.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/exception/ResourceNotFoundException.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ResourceNotFoundException.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/entity/AuditLog.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/entity/AuditLog.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuditLog.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/service/OcrService$OcrResult.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/service/OcrService$OcrResult.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/OcrService$OcrResult.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/dto/RegisterResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/dto/RegisterResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/RegisterResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/dto/AuctionSessionDto.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/dto/AuctionSessionDto.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuctionSessionDto.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/util/PasswordUtil.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/util/PasswordUtil.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/PasswordUtil.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/entity/ProductApproval.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/entity/ProductApproval.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductApproval.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/repository/AuctionDepositRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/repository/AuctionDepositRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuctionDepositRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/controller/StaffProductController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/controller/StaffProductController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/StaffProductController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/dto/DepositQrResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/dto/DepositQrResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/DepositQrResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/repository/ProductRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/repository/ProductRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/repository/WalletRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/repository/WalletRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/WalletRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/dao/UserRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/dao/UserRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/UserRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/controller/BiddingProductController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/controller/BiddingProductController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/BiddingProductController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/exception/GlobalExceptionHandler.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/exception/GlobalExceptionHandler.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/GlobalExceptionHandler.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/com/auction/bidding/BiddingServiceTest$InMemoryAuctionSessionRepository.class" />
+    <option name="AFTER_PATH" value="target/test-classes/com/auction/bidding/BiddingServiceTest$InMemoryAuctionSessionRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/BiddingServiceTest$InMemoryAuctionSessionRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/ProductSummaryResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/ProductSummaryResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductSummaryResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/dto/response/ConversationResponse$ConversationResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/dto/response/ConversationResponse$ConversationResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ConversationResponse$ConversationResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/dto/response/ConversationDetailResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/dto/response/ConversationDetailResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ConversationDetailResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/util/LoginRateLimitUtil.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/util/LoginRateLimitUtil.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/LoginRateLimitUtil.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/controller/ProductAdminController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/controller/ProductAdminController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductAdminController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/dto/request/SendMessageRequest.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/dto/request/SendMessageRequest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/SendMessageRequest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/util/LoginRateLimitUtil$RateLimitStatus.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/util/LoginRateLimitUtil$RateLimitStatus.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/LoginRateLimitUtil$RateLimitStatus.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/CategoryDTO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/CategoryDTO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/CategoryDTO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/dto/LoginResponse$LoginResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/dto/LoginResponse$LoginResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/LoginResponse$LoginResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/controller/AuthController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/controller/AuthController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuthController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/dao/RoleRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/dao/RoleRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/RoleRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/util/ThymeleafPDFUtil.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/util/ThymeleafPDFUtil.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ThymeleafPDFUtil.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/dto/PageResponse$PageResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/dto/PageResponse$PageResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/PageResponse$PageResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/repository/AuctionRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/repository/AuctionRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuctionRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/controller/RegisterController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/controller/RegisterController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/RegisterController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/com/auction/account/AuthServiceTest$FakeUserDAO.class" />
+    <option name="AFTER_PATH" value="target/test-classes/com/auction/account/AuthServiceTest$FakeUserDAO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuthServiceTest$FakeUserDAO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/dto/WithdrawalResponse$WithdrawalResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/dto/WithdrawalResponse$WithdrawalResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/WithdrawalResponse$WithdrawalResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/controller/PublicCategoryController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/controller/PublicCategoryController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/PublicCategoryController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/repository/CategoryAttributeRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/repository/CategoryAttributeRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/CategoryAttributeRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/dto/WalletResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/dto/WalletResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/WalletResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/dto/response/ConversationDetailResponse$ConversationDetailResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/dto/response/ConversationDetailResponse$ConversationDetailResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ConversationDetailResponse$ConversationDetailResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/AttributeOptionDTO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/AttributeOptionDTO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AttributeOptionDTO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/service/impl/ContractServiceImpl.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/service/impl/ContractServiceImpl.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ContractServiceImpl.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/controller/ConversationController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/controller/ConversationController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ConversationController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/enums/ConversationStatus.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/enums/ConversationStatus.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ConversationStatus.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/entity/Bid.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/entity/Bid.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/Bid.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/controller/AdminCategoryController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/controller/AdminCategoryController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AdminCategoryController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/repository/ProductApprovalRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/repository/ProductApprovalRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductApprovalRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/controller/WalletController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/controller/WalletController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/WalletController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/com/auction/bidding/BiddingServiceTest$BidAttempt.class" />
+    <option name="AFTER_PATH" value="target/test-classes/com/auction/bidding/BiddingServiceTest$BidAttempt.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/BiddingServiceTest$BidAttempt.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/service/impl/MessageServiceImpl.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/service/impl/MessageServiceImpl.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/MessageServiceImpl.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/entity/Conversation.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/entity/Conversation.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/Conversation.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/entity/UserVerificationToken.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/entity/UserVerificationToken.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/UserVerificationToken.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/util/TokenUtil.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/util/TokenUtil.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/TokenUtil.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/ProductDetailResponse$ProductDetailResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/ProductDetailResponse$ProductDetailResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductDetailResponse$ProductDetailResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/controller/ResetPasswordController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/controller/ResetPasswordController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ResetPasswordController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/controller/SendEmailVerificationController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/controller/SendEmailVerificationController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/SendEmailVerificationController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/specification/ProductSpecification.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/specification/ProductSpecification.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductSpecification.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/repository/WithdrawalRequestRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/repository/WithdrawalRequestRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/WithdrawalRequestRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/controller/ForgotPasswordController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/controller/ForgotPasswordController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ForgotPasswordController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/entity/Message.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/entity/Message.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/Message.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/AuctionApplication.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/AuctionApplication.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuctionApplication.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/service/OcrService.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/service/OcrService.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/OcrService.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/com/auction/bidding/BiddingServiceTest.class" />
+    <option name="AFTER_PATH" value="target/test-classes/com/auction/bidding/BiddingServiceTest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/BiddingServiceTest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/repository/MessageRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/repository/MessageRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/MessageRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/common/service/AuthAuditService.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/common/service/AuthAuditService.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuthAuditService.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/config/JwtAuthFilter.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/config/JwtAuthFilter.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/JwtAuthFilter.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/ProductApprovalRequestDTO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/ProductApprovalRequestDTO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductApprovalRequestDTO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/test-classes/com/auction/account/AuthValidatorTest.class" />
+    <option name="AFTER_PATH" value="target/test-classes/com/auction/account/AuthValidatorTest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuthValidatorTest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/entity/Wallet.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/entity/Wallet.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/Wallet.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/controller/EmailVerificationController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/controller/EmailVerificationController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/EmailVerificationController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/repository/ProductImageRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/repository/ProductImageRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProductImageRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/controller/AuctionController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/controller/AuctionController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuctionController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/CreateProductRequestDTO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/CreateProductRequestDTO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/CreateProductRequestDTO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/dto/WithdrawRequest.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/dto/WithdrawRequest.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/WithdrawRequest.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/dto/DepositResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/dto/DepositResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/DepositResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/service/ProfileService.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/service/ProfileService.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProfileService.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/entity/KycProfile.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/entity/KycProfile.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/KycProfile.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/service/impl/CategoryServiceImpl.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/service/impl/CategoryServiceImpl.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/CategoryServiceImpl.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/service/ChatAuthService.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/service/ChatAuthService.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ChatAuthService.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/controller/ProfileController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/controller/ProfileController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ProfileController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/service/IdentityVerificationService.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/service/IdentityVerificationService.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/IdentityVerificationService.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/repository/BidRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/repository/BidRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/BidRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/controller/LogoutController.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/controller/LogoutController.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/LogoutController.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/dao/IdentityDocumentDAO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/dao/IdentityDocumentDAO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/IdentityDocumentDAO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/service/FptAiService$FptAiResult.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/service/FptAiService$FptAiResult.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/FptAiService$FptAiResult.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/dto/CategoryAttributeDTO.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/dto/CategoryAttributeDTO.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/CategoryAttributeDTO.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/dto/response/MessageResponse.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/dto/response/MessageResponse.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/MessageResponse.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/account/entity/VerificationStatus.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/account/entity/VerificationStatus.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/VerificationStatus.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/service/impl/AuctionServiceImpl.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/service/impl/AuctionServiceImpl.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuctionServiceImpl.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/repository/ContractRepository.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/repository/ContractRepository.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/ContractRepository.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/dto/DepositQrResponse$DepositQrResponseBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/dto/DepositQrResponse$DepositQrResponseBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/DepositQrResponse$DepositQrResponseBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/chat/entity/Conversation$ConversationBuilder.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/chat/entity/Conversation$ConversationBuilder.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/Conversation$ConversationBuilder.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/wallet/entity/Transaction.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/wallet/entity/Transaction.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/Transaction.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/entity/CategoryAttribute.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/entity/CategoryAttribute.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/CategoryAttribute.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/product/entity/AttributeOption.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/product/entity/AttributeOption.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AttributeOption.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/auction/bidding/entity/AuctionStatus.class" />
+    <option name="AFTER_PATH" value="target/classes/com/auction/bidding/entity/AuctionStatus.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_6_22_2026_8_05_AM_[Changes]1/AuctionStatus.class" />
+  </binary>
+</changelist>
