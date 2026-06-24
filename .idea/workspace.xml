@@ -4,7 +4,79 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8016cddf-37bb-48a6-bf2e-43e917db549e" name="Changes" comment="" />
+    <list default="true" id="8016cddf-37bb-48a6-bf2e-43e917db549e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/data_sources_history.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/data_sources_history.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/Swp391Application.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/config/DataInitializer.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/AdminCategoryController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/AdminDashboardController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/AdminDashboardViewController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/AdminProductViewController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/CategoryAttributeController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/CategoryController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/ContractController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/ProductAdminController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/ProductController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/controller/StaffProductController.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/ApiResponse.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/AttributeOptionDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/CategoryAttributeDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/CategoryDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/CreateProductAttributeValueDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/CreateProductImageDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/CreateProductRequestDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/ProductApprovalRequestDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/ProductAttributeValueDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/ProductImageDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/ProductResponseDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/dashboard/DashboardSummaryDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/dashboard/RevenueStatisticResponse.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/dashboard/RevenueStatisticsDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/dashboard/TransactionReportItemDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/dashboard/TransactionReportResponse.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/dto/dashboard/TransactionStatisticsDTO.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/entity/AttributeOption.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/entity/Category.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/entity/CategoryAttribute.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/entity/Contract.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/entity/Product.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/entity/ProductApproval.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/entity/ProductAttributeValue.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/entity/ProductImage.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/entity/Role.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/entity/Transaction.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/entity/User.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/entity/Wallet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/exception/BusinessException.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/exception/GlobalExceptionHandler.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/exception/ResourceNotFoundException.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/AttributeOptionRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/CategoryAttributeRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/CategoryRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/ContractRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/ProductApprovalRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/ProductAttributeValueRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/ProductImageRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/ProductRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/RoleRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/TransactionRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/UserRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/repository/WalletRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/CategoryService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/ContractService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/EmailService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/ProductService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/StatisticsService.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/CategoryServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/ContractServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/EmailServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/ProductServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/StatisticsServiceImpl$DateRange.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/service/impl/StatisticsServiceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/target/classes/com/swp391/util/ThymeleafPDFUtil.class" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -81,7 +153,7 @@
     <configuration name="Swp391Application" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
       <option name="ALTERNATIVE_JRE_PATH" value="21" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
-      <module name="swp391-se20a11-group03" />
+      <module name="vnec-auth" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.swp391.Swp391Application" />
       <method v="2">
         <option name="Make" enabled="true" />
