@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import { NavigationProvider } from "@/lib/NavigationContext";
 import { I18nProvider } from "@/i18n/I18nProvider";
+import AdminRouteGuard from "@/components/layout/AdminRouteGuard";
 import "./globals.css";
 
 const inter = Inter({
@@ -33,7 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.variable} ${montserrat.variable} bg-background text-on-surface font-body-md`}>
         <I18nProvider>
           <NavigationProvider>
-            {children}
+            <AdminRouteGuard>{children}</AdminRouteGuard>
           </NavigationProvider>
         </I18nProvider>
       </body>

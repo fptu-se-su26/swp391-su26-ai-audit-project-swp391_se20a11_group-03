@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,31 +84,34 @@ public class ProductServiceImpl implements ProductService {
 
         saveApprovalHistory(product, reviewerId, "APPROVED", request.getReason());
 
+        validateApprovalSchedule(request);
+
+        product.setAuctionMode(request.getAuctionMode());
+        product.setScheduledStartTime(request.getScheduledStartTime());
+        product.setScheduledDurationSeconds(request.getScheduledDurationSeconds());
+        product = productRepository.save(product);
+
         // Create listing contract
         contractService.createListingContract(productId, reviewerId);
 
-        // Create the auction if the seller chose a mode at submission time.
-        // If not, the auction will be created later (e.g. by a separate schedule step).
-        if (product.getAuctionMode() != null) {
-            AuctionMode mode = AuctionMode.valueOf(product.getAuctionMode());
-            LocalDateTime startTime = product.getScheduledStartTime() != null
-                    ? product.getScheduledStartTime()
-                    : LocalDateTime.now().plusMinutes(AuctionCreationServiceImpl.MIN_LEAD_MINUTES);
-            try {
-                auctionCreationService.createForApprovedProduct(
-                        productId, mode, startTime, product.getScheduledDurationSeconds());
-            } catch (BusinessException ex) {
-                // If the seller's pre-filled schedule is invalid (e.g. start time in the past),
-                // we don't fail the approval — staff can fix it from a later step.
-                // For now, log via BusinessException; future enhancement will surface to UI.
-            }
-        }
+        AuctionMode mode = AuctionMode.valueOf(request.getAuctionMode());
+        auctionCreationService.createForApprovedProduct(
+                productId, mode, request.getScheduledStartTime(), request.getScheduledDurationSeconds());
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        String startLabel = request.getScheduledStartTime().format(fmt);
+        String scheduleDetail = "LIVE".equals(request.getAuctionMode())
+                ? String.format("Phiên LIVE sẽ mở lúc %s.", startLabel)
+                : String.format(
+                        "Phiên TIMED sẽ mở lúc %s (thời lượng %d giờ).",
+                        startLabel,
+                        request.getScheduledDurationSeconds() / 3600);
 
         // Send notification to seller
         notificationService.createNotification(
                 product.getSellerId().longValue(),
                 "Sản phẩm đã được duyệt",
-                "Sản phẩm \"" + product.getProductName() + "\" của bạn đã được duyệt và sẽ sớm lên sàn đấu giá.",
+                "Sản phẩm \"" + product.getProductName() + "\" của bạn đã được duyệt. " + scheduleDetail,
                 Notification.NotificationType.PRODUCT_APPROVED,
                 productId,
                 "PRODUCT"
@@ -263,6 +267,33 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
+    private void validateApprovalSchedule(ProductApprovalRequestDTO request) {
+        if (request.getAuctionMode() == null || request.getAuctionMode().isBlank()) {
+            throw new BusinessException("auctionMode is required (LIVE or TIMED)");
+        }
+        if (!"LIVE".equals(request.getAuctionMode()) && !"TIMED".equals(request.getAuctionMode())) {
+            throw new BusinessException("auctionMode must be LIVE or TIMED");
+        }
+        if (request.getScheduledStartTime() == null) {
+            throw new BusinessException("scheduledStartTime is required");
+        }
+        LocalDateTime minStart = LocalDateTime.now().plusMinutes(AuctionCreationServiceImpl.MIN_LEAD_MINUTES);
+        if (request.getScheduledStartTime().isBefore(minStart)) {
+            throw new BusinessException("scheduledStartTime must be at least "
+                    + AuctionCreationServiceImpl.MIN_LEAD_MINUTES + " minutes in the future");
+        }
+        if ("TIMED".equals(request.getAuctionMode())) {
+            Long d = request.getScheduledDurationSeconds();
+            if (d == null) {
+                throw new BusinessException("TIMED auctions require scheduledDurationSeconds (21600-43200)");
+            }
+            if (d < AuctionCreationServiceImpl.MIN_TIMED_DURATION_SECONDS
+                    || d > AuctionCreationServiceImpl.MAX_TIMED_DURATION_SECONDS) {
+                throw new BusinessException("TIMED auction duration must be between 6 hours (21600s) and 12 hours (43200s)");
+            }
+        }
+    }
+
     private void validateAuctionSchedule(CreateProductRequestDTO request) {
         if (request.getAuctionMode() == null) {
             return;
@@ -404,20 +435,6 @@ public class ProductServiceImpl implements ProductService {
         }
         if (request.getStartingPrice() != null && request.getStartingPrice() > 0) {
             product.setStartingPrice(request.getStartingPrice());
-        }
-        if (request.getAuctionMode() != null) {
-            product.setAuctionMode(request.getAuctionMode());
-        }
-        if (request.getScheduledStartTime() != null) {
-            // Validate start time
-            LocalDateTime minStart = LocalDateTime.now().plusMinutes(AuctionCreationServiceImpl.MIN_LEAD_MINUTES);
-            if (request.getScheduledStartTime().isBefore(minStart)) {
-                throw new BusinessException("scheduledStartTime must be at least " + AuctionCreationServiceImpl.MIN_LEAD_MINUTES + " minutes in the future");
-            }
-            product.setScheduledStartTime(request.getScheduledStartTime());
-        }
-        if (request.getScheduledDurationSeconds() != null) {
-            product.setScheduledDurationSeconds(request.getScheduledDurationSeconds());
         }
 
         product = productRepository.save(product);

@@ -216,86 +216,110 @@ public class BiddingService {
     public List<Map<String, Object>> getUserBids(Integer userId) {
         Map<Long, Map<String, Object>> resultByAuction = new LinkedHashMap<>();
 
-        // 1) Auctions where the user has actually placed bids
+        // 1) Auctions where the user has actually placed bids (keep highest bid per auction)
         for (Bid bid : bidRepository.findByUserId(userId)) {
             AuctionSession auction = auctionSessionRepository.findById(bid.getAuctionId()).orElse(null);
             if (auction == null) continue;
-            Map<String, Object> map = buildBidMap(auction, userId, bid.getBidId(), bid.getBidAmount());
-            resultByAuction.put(auction.getAuctionId(), map);
+            Long auctionId = auction.getAuctionId();
+            if (resultByAuction.containsKey(auctionId)) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> existing = resultByAuction.get(auctionId);
+                Long existingUserBid = (Long) existing.get("userHighestBid");
+                if (existingUserBid != null && bid.getBidAmount() <= existingUserBid) {
+                    continue;
+                }
+            }
+            Long marketPrice = auction.getCurrentHighestBid() != null && auction.getCurrentHighestBid() > 0
+                    ? auction.getCurrentHighestBid()
+                    : bid.getBidAmount();
+            Map<String, Object> map = buildBidMap(auction, userId, bid.getBidId(), marketPrice, bid.getBidAmount());
+            resultByAuction.put(auctionId, map);
         }
 
-        // 2) Auctions where the user has only deposited (no bid yet) and auction is not ended
+        // 2) Auctions where the user has only deposited (no bid yet), including ended sessions
         for (AuctionDeposit deposit : auctionDepositRepository.findByUser_Id(userId)) {
             if (deposit.getAuction() == null) continue;
             Long auctionId = deposit.getAuction().getAuctionId();
             if (resultByAuction.containsKey(auctionId)) continue;
             AuctionSession auction = auctionSessionRepository.findById(auctionId).orElse(null);
             if (auction == null) continue;
-            if (auction.getStatus() == AuctionStatus.ENDED) continue;
             Product product = productRepository.findById(auction.getProductId()).orElse(null);
-            // currentBid: currentHighestBid if any, otherwise starting price
             Long currentBidAmount = auction.getCurrentHighestBid() != null && auction.getCurrentHighestBid() > 0
                     ? auction.getCurrentHighestBid()
                     : (product != null ? product.getStartingPrice() : 0L);
-            Map<String, Object> map = buildBidMap(auction, userId, null, currentBidAmount);
-            // Mark status as "deposited" so user sees they have not bid yet
-            map.put("status", "deposited");
+            Map<String, Object> map = buildBidMap(auction, userId, null, currentBidAmount, null);
+            if (isAuctionEnded(auction)) {
+                map.put("status", resolveBidStatus(auction, userId));
+            } else {
+                map.put("status", "deposited");
+            }
             resultByAuction.put(auctionId, map);
         }
 
         return new ArrayList<>(resultByAuction.values());
     }
 
-    private Map<String, Object> buildBidMap(AuctionSession auction, Integer userId, Long bidId, Long currentBidAmount) {
+    private Map<String, Object> buildBidMap(AuctionSession auction, Integer userId, Long bidId, Long currentBidAmount, Long userHighestBid) {
         Map<String, Object> map = new HashMap<>();
         Product product = productRepository.findById(auction.getProductId()).orElse(null);
 
-        map.put("bidId", bidId);
-        map.put("productId", product != null ? product.getProductId() : auction.getAuctionId());
+        map.put("bidId", bidId != null ? bidId : auction.getAuctionId());
+        map.put("auctionId", auction.getAuctionId());
+        map.put("productId", product != null ? product.getProductId() : auction.getProductId());
         map.put("productName", product != null ? product.getProductName() : "Unknown");
         map.put("lotNumber", "LOT-" + (product != null ? product.getProductId() : auction.getAuctionId()));
         map.put("image", product != null ? getPrimaryImageUrl(product.getProductId()) : null);
         map.put("currentBid", currentBidAmount);
+        map.put("userHighestBid", userHighestBid);
+        map.put("startingPrice", product != null ? product.getStartingPrice() : 0L);
+        map.put("paymentStatus", auction.getPaymentStatus());
 
+        boolean ended = isAuctionEnded(auction);
         if (auction.getEndTime() != null) {
             long seconds = Duration.between(LocalDateTime.now(), auction.getEndTime()).getSeconds();
-            if (seconds > 0 && auction.getStatus() != AuctionStatus.ENDED) {
+            if (seconds > 0 && !ended) {
                 map.put("timeLeft", formatDuration(seconds));
             } else {
                 map.put("timeLeft", "Ended");
             }
             map.put("auctionEndTime", auction.getEndTime().toString());
-            if (bidId == null) {
-                // No actual bid — keep status as set by caller (e.g. "deposited")
+            if (bidId == null && !ended) {
+                map.put("status", "deposited");
             } else {
                 map.put("status", resolveBidStatus(auction, userId));
             }
         } else {
             map.put("timeLeft", "Unknown");
-            if (bidId == null) {
-                map.put("status", "deposited");
-            } else {
-                map.put("status", "outbid");
-            }
+            map.put("status", bidId == null ? "deposited" : "outbid");
         }
 
         return map;
     }
 
+    private boolean isAuctionEnded(AuctionSession auction) {
+        if (auction.getStatus() == AuctionStatus.ENDED) {
+            return true;
+        }
+        return auction.getEndTime() != null && !LocalDateTime.now().isBefore(auction.getEndTime());
+    }
+
     public List<Map<String, Object>> getWonItems(Integer userId) {
         List<AuctionSession> wonAuctions = auctionSessionRepository.findByCurrentWinnerUserId(userId);
 
-        return wonAuctions.stream().filter(auction -> auction.getStatus() == AuctionStatus.ENDED).map(auction -> {
+        return wonAuctions.stream().filter(this::isAuctionEnded).map(auction -> {
             Map<String, Object> map = new HashMap<>();
             Product product = productRepository.findById(auction.getProductId()).orElse(null);
             map.put("id", auction.getAuctionId());
+            map.put("auctionId", auction.getAuctionId());
             map.put("productId", auction.getProductId());
             map.put("productName", product != null ? product.getProductName() : "Auction #" + auction.getAuctionId());
             map.put("lotNumber", "LOT-" + auction.getProductId());
             map.put("image", getPrimaryImageUrl(auction.getProductId()));
             map.put("finalPrice", auction.getCurrentHighestBid());
             map.put("wonDate", auction.getEndTime() != null ? auction.getEndTime().toString() : LocalDateTime.now().toString());
-            map.put("status", "pending_payment");
+            String paymentStatus = auction.getPaymentStatus();
+            map.put("paymentStatus", paymentStatus);
+            map.put("status", "PAID".equalsIgnoreCase(paymentStatus) ? "paid" : "pending_payment");
             return map;
         }).collect(Collectors.toList());
     }
@@ -309,7 +333,7 @@ public class BiddingService {
     }
 
     private String resolveBidStatus(AuctionSession auction, Integer userId) {
-        if (auction.getStatus() == AuctionStatus.ENDED) {
+        if (isAuctionEnded(auction)) {
             return auction.getCurrentWinnerUserId() != null && auction.getCurrentWinnerUserId().equals(userId.longValue())
                     ? "won"
                     : "lost";

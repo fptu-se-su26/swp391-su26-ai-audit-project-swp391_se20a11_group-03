@@ -268,7 +268,19 @@
     "auctionMode": "Auction Mode",
     "scheduledStart": "Scheduled Start",
     "duration": "Duration",
-    "rejectionReason": "Rejection Reason"
+    "rejectionReason": "Rejection Reason",
+    "awaitingSchedule": "Awaiting admin schedule",
+    "approveModal": {
+      "title": "Schedule auction",
+      "desc": "Choose when \"{name}\" goes live.",
+      "liveHint": "3 minutes, anti-sniper",
+      "timedHint": "6–12 hours",
+      "durationHint": "TIMED session duration (6–12 hours).",
+      "confirm": "Approve & schedule",
+      "startTimeRequired": "Please select a start time",
+      "startTimeInvalid": "Invalid start time",
+      "startTimeTooSoon": "Start time must be at least {minutes} minutes from now"
+    }
   },
   "staffKyc": {
     "pageTitle": "KYC Review",
@@ -739,7 +751,7 @@
     "sellerRequiredDesc": "Posting new items is only available for seller accounts.",
     "goToProfile": "Go to Profile",
     "submittedTitle": "Item Submitted for Review",
-    "submittedDesc": "Your listing is now <strong>PENDING_REVIEW</strong>. Our staff will verify the item and confirm the auction schedule before it goes live.",
+    "submittedDesc": "Your listing is awaiting review. An admin will verify it and <strong>schedule the auction</strong> before it goes live. You will be notified when approved.",
     "backToDashboard": "Back to Dashboard",
     "postAnother": "Post Another",
     "itemTitle": "Item Title",
@@ -764,6 +776,7 @@
     "imageCount": "{count}/{max} images",
     "maxImagesReached": "Maximum {max} images reached. Remove one to replace.",
     "primary": "Primary",
+    "scheduleByAdminNote": "The auction schedule is set by an admin after your listing is approved. You will receive a notification with the go-live time.",
     "auctionSchedule": "Auction Schedule",
     "auctionScheduleDesc": "Choose when this item will go live. Staff will review your schedule before approving the listing. Start time must be at least {minutes} minutes from now.",
     "startTime": "Start time",

@@ -34,6 +34,7 @@ export type AuctionState = {
   minNextBid: number;
   currentHighestBid: number;
   currentWinnerUserId: number | null;
+  winnerUsername?: string | null;
   startTime: string;
   endTime: string;
   paymentDeadline: string | null;

@@ -7,6 +7,7 @@ import TopNav from "@/components/layout/TopNav";
 import WatchlistButton from "@/components/features/WatchlistButton";
 import CountdownTimer from "@/components/features/CountdownTimer";
 import PurchaseContractPanel from "@/components/features/PurchaseContractPanel";
+import AuctionResultBanner from "@/components/features/AuctionResultBanner";
 import { ApiError, getStoredToken } from "@/lib/apiClient";
 import { useNavigationContext } from "@/lib/NavigationContext";
 import { useTranslations } from "@/i18n/I18nProvider";
@@ -59,11 +60,23 @@ export default function AuctionDetailPage() {
   const productId = Number(params.id);
   const auctionId = product?.auction?.auctionId ?? null;
   const hasToken = Boolean(getStoredToken());
+  const effectiveStartTime = liveState?.startTime ?? product?.auction?.startTime ?? null;
+  const effectiveEndTime = liveState?.endTime ?? product?.auction?.endTime ?? null;
   const auctionStatus = computeEffectiveAuctionStatus(
-    product?.auction?.status,
-    product?.auction?.startTime,
-    product?.auction?.endTime,
+    liveState?.status ?? product?.auction?.status,
+    effectiveStartTime,
+    effectiveEndTime,
   );
+  const isAuctionEnded =
+    auctionStatus === "ENDED" ||
+    auctionStatus === "AWAITING_PAYMENT" ||
+    auctionStatus === "PAID" ||
+    auctionStatus === "FORFEITED" ||
+    Boolean(
+      effectiveEndTime &&
+        new Date(effectiveEndTime).getTime() <= Date.now() &&
+        auctionStatus !== "UPCOMING",
+    );
 
   useEffect(() => {
     if (!params.id) {
@@ -94,7 +107,7 @@ export default function AuctionDetailPage() {
   }, [params.id, setParentPage, t]);
 
   useEffect(() => {
-    if (!auctionId || auctionStatus === "ENDED") {
+    if (!auctionId || isAuctionEnded) {
       setEligibility(null);
       return;
     }
@@ -120,7 +133,7 @@ export default function AuctionDetailPage() {
     Promise.all(requests)
       .catch((err) => setPanelError(err instanceof Error ? err.message : t("errors.loadEligibility")))
       .finally(() => setEligibilityLoading(false));
-  }, [auctionId, auctionStatus, hasToken, t]);
+  }, [auctionId, isAuctionEnded, hasToken, t]);
 
   useEffect(() => {
     if (!auctionId) return;
@@ -128,12 +141,15 @@ export default function AuctionDetailPage() {
   }, [auctionId]);
 
   useEffect(() => {
-    if (!auctionId || !hasToken || auctionStatus !== "ENDED") {
+    if (!auctionId || !hasToken || !isAuctionEnded) {
       setPurchaseContractSigned(false);
       return;
     }
     const me = getStoredUser();
-    const amWinner = me?.userId != null && liveState?.currentWinnerUserId === me.userId;
+    const amWinner =
+      me?.userId != null &&
+      liveState?.currentWinnerUserId != null &&
+      Number(me.userId) === Number(liveState.currentWinnerUserId);
     if (!amWinner) {
       setPurchaseContractSigned(false);
       return;
@@ -141,7 +157,7 @@ export default function AuctionDetailPage() {
     getPurchaseContract(auctionId)
       .then((c) => setPurchaseContractSigned(Boolean(c.signed)))
       .catch(() => setPurchaseContractSigned(false));
-  }, [auctionId, auctionStatus, hasToken, liveState?.currentWinnerUserId]);
+  }, [auctionId, isAuctionEnded, hasToken, liveState?.currentWinnerUserId]);
 
   const images = useMemo(() => {
     if (product?.imageUrls?.length) {
@@ -152,8 +168,6 @@ export default function AuctionDetailPage() {
   }, [product?.imageUrl, product?.imageUrls]);
 
   const highestBid = liveState?.currentHighestBid ?? product?.currentBid ?? product?.startingPrice ?? 0;
-  const effectiveStartTime = liveState?.startTime ?? product?.auction?.startTime ?? null;
-  const effectiveEndTime = liveState?.endTime ?? product?.auction?.endTime ?? null;
   const countdownTarget =
     effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
       ? effectiveStartTime
@@ -265,12 +279,8 @@ export default function AuctionDetailPage() {
   }
 
   function renderEligibilityAction() {
-    if (auctionStatus === "ENDED") {
-      return (
-        <div className="rounded-md bg-error-container px-4 py-3 text-center font-label-md text-label-md text-on-error-container">
-          {t("endsEnded")}
-        </div>
-      );
+    if (isAuctionEnded) {
+      return null;
     }
 
     if (!auctionId) {
@@ -417,24 +427,24 @@ export default function AuctionDetailPage() {
                     <div className="mb-sm flex items-center gap-sm">
                       <span className="font-label-sm text-label-sm text-on-surface-variant">LOT #{product.productId}</span>
                       <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${
-                        auctionStatus === "ENDED"
+                        isAuctionEnded
                           ? "bg-error-container text-on-error-container"
                           : "bg-tertiary-fixed text-on-tertiary-fixed-variant"
                       }`}>
-                        {auctionStatus}
+                        {isAuctionEnded ? "ENDED" : auctionStatus}
                       </span>
                     </div>
                     <h1 className="text-[36px] font-bold leading-tight text-primary">{product.productName}</h1>
                     <p className="mt-sm font-body-md text-on-surface-variant">
-                      {product.categoryName ?? t("uncategorized")} · {auctionStatus === "ENDED" ? t("priceLabelFinal") : t("priceLabelCurrent")} {formatVnd(product.startingPrice)}
+                      {product.categoryName ?? t("uncategorized")} · {isAuctionEnded ? t("priceLabelFinal") : t("priceLabelCurrent")} {formatVnd(product.startingPrice)}
                     </p>
                   </div>
                   <WatchlistButton productId={product.productId} className="relative !static flex h-12 w-12 items-center justify-center rounded-full border border-outline-variant bg-surface text-on-surface-variant shadow-sm hover:border-error hover:text-error hover:scale-105 transition-all" />
                 </div>
 
-                <div className={`rounded-lg border p-md ${auctionStatus === "ENDED" ? "border-outline-variant bg-surface" : "border-secondary/30 bg-secondary-container/30"}`}>
+                <div className={`rounded-lg border p-md ${isAuctionEnded ? "border-outline-variant bg-surface" : "border-secondary/30 bg-secondary-container/30"}`}>
                   <p className="font-label-sm text-label-sm text-on-surface-variant">
-                    {auctionStatus === "ENDED" ? t("priceLabelFinal") : t("priceLabelCurrent")}
+                    {isAuctionEnded ? t("priceLabelFinal") : t("priceLabelCurrent")}
                   </p>
                   <p className="mt-xs text-[32px] font-bold text-primary">{formatVnd(highestBid)}</p>
                   {product.auction ? (
@@ -445,7 +455,7 @@ export default function AuctionDetailPage() {
                       })}
                     </p>
                   ) : null}
-                  {auctionStatus !== "ENDED" && countdownTarget && (
+                  {!isAuctionEnded && countdownTarget && (
                     <div className="mt-sm flex items-center gap-sm">
                       <span className="font-label-sm text-label-sm text-on-surface-variant">
                         {effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
@@ -470,7 +480,18 @@ export default function AuctionDetailPage() {
                   )}
                 </div>
 
-                {auctionStatus !== "ENDED" && !isSellerOfProduct && (
+                {isAuctionEnded && (
+                  <AuctionResultBanner
+                    productName={product.productName}
+                    productId={productId}
+                    finalPrice={highestBid}
+                    winnerUsername={liveState?.winnerUsername}
+                    winnerUserId={liveState?.currentWinnerUserId}
+                    paymentStatus={liveState?.paymentStatus}
+                  />
+                )}
+
+                {!isAuctionEnded && !isSellerOfProduct && (
                   <div className="rounded-lg border border-outline-variant bg-surface p-md shadow-sm">
                     <h2 className="mb-xs font-headline-sm text-headline-sm text-primary">{t("biddingRequired")}</h2>
                     <p className="text-sm leading-relaxed text-on-surface-variant">
@@ -523,7 +544,7 @@ export default function AuctionDetailPage() {
                   </div>
                 )}
 
-                {auctionStatus !== "ENDED" && eligibility?.alreadyDeposited && auctionId && (
+                {!isAuctionEnded && eligibility?.alreadyDeposited && auctionId && (
                   <div className="rounded-lg border border-outline-variant bg-surface p-md">
                     <h3 className="font-title-md text-title-md text-on-surface">
                       {t("depositPaid")}
@@ -534,48 +555,56 @@ export default function AuctionDetailPage() {
                   </div>
                 )}
 
-                {auctionStatus === "ENDED" && (
-                  <div className="rounded-lg border border-outline-variant bg-surface p-md">
-                    <h2 className="mb-xs font-headline-sm text-headline-sm text-primary">{t("auctionClosed")}</h2>
-                    <p className="text-sm leading-relaxed text-on-surface-variant">
-                      {t("auctionEndedMsg")}
-                    </p>
-                    {(liveState?.paymentDeadline || liveState?.currentWinnerUserId) && (() => {
-                      const me = getStoredUser();
-                      const amWinner = me?.userId != null && liveState.currentWinnerUserId === me.userId;
-                      if (!amWinner) return null;
-                      const alreadyPaid = liveState.paymentStatus === "PAID" || liveState.status === "PAID";
-                      return (
-                        <div className="mt-md rounded-md border border-tertiary-fixed/40 bg-tertiary-container px-4 py-3 text-on-tertiary-container">
-                          <p className="font-headline-sm text-headline-sm">{t("winnerTitle")}</p>
-                          <p className="mt-1 text-sm">
-                            {alreadyPaid
-                              ? t("paymentAlreadyPaid")
-                              : liveState.paymentDeadline
+                {isAuctionEnded && (() => {
+                  const me = getStoredUser();
+                  const amWinner =
+                    me?.userId != null &&
+                    liveState?.currentWinnerUserId != null &&
+                    Number(me.userId) === Number(liveState.currentWinnerUserId);
+                  if (!amWinner) return null;
+                  const alreadyPaid = liveState?.paymentStatus === "PAID" || liveState?.status === "PAID";
+                  return (
+                    <div className="rounded-lg border border-outline-variant bg-surface p-md">
+                      <div className="rounded-md border border-tertiary-fixed/40 bg-tertiary-container px-4 py-3 text-on-tertiary-container">
+                        <p className="font-headline-sm text-headline-sm">{t("winnerTitle")}</p>
+                        <p className="mt-1 text-sm">
+                          {alreadyPaid
+                            ? t("paymentAlreadyPaid")
+                            : liveState?.paymentDeadline
                               ? t("winnerPaymentMsg", { deadline: formatDateTime(liveState.paymentDeadline, t) })
                               : t("winnerPaymentMsgNoDeadline")}
-                          </p>
-                          {!alreadyPaid && auctionId && (
-                            <div className="mt-sm">
-                              <PurchaseContractPanel
-                                auctionId={auctionId}
-                                compact
-                                onSigned={() => setPurchaseContractSigned(true)}
-                              />
-                            </div>
-                          )}
-                          <button
-                            type="button"
-                            onClick={handlePayAuction}
-                            disabled={alreadyPaid || paymentSubmitting || (!alreadyPaid && !purchaseContractSigned)}
-                            className="mt-sm inline-block rounded-md bg-tertiary-fixed px-4 py-2 text-on-tertiary-fixed-variant hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            {alreadyPaid ? t("paymentPaid") : paymentSubmitting ? t("paymentProcessing") : purchaseContractSigned ? t("winnerPayNow") : "Ký hợp đồng trước khi thanh toán"}
-                          </button>
-                        </div>
-                      );
-                    })()}
-                    <div className="mt-md grid gap-xs">
+                        </p>
+                        {!alreadyPaid && auctionId && (
+                          <div className="mt-sm">
+                            <PurchaseContractPanel
+                              auctionId={auctionId}
+                              compact
+                              onSigned={() => setPurchaseContractSigned(true)}
+                            />
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handlePayAuction}
+                          disabled={alreadyPaid || paymentSubmitting || (!alreadyPaid && !purchaseContractSigned)}
+                          className="mt-sm inline-block rounded-md bg-tertiary-fixed px-4 py-2 text-on-tertiary-fixed-variant hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {alreadyPaid
+                            ? t("paymentPaid")
+                            : paymentSubmitting
+                              ? t("paymentProcessing")
+                              : purchaseContractSigned
+                                ? t("winnerPayNow")
+                                : "Ký hợp đồng trước khi thanh toán"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {isAuctionEnded && (
+                  <div className="rounded-lg border border-outline-variant bg-surface p-md">
+                    <div className="grid gap-xs">
                       <Link
                         href="/results"
                         className="rounded-md bg-primary px-4 py-3 text-center font-label-md text-label-md text-on-primary hover:opacity-90"
@@ -592,7 +621,7 @@ export default function AuctionDetailPage() {
                   </div>
                 )}
 
-                {auctionStatus === "ACTIVE" && !isSellerOfProduct && (
+                {auctionStatus === "ACTIVE" && !isAuctionEnded && !isSellerOfProduct && (
                   <div className="rounded-lg border border-error/30 bg-error-container/10 p-md">
                     <p className="font-label-sm text-label-sm uppercase tracking-widest text-error">{t("auctionLive")}</p>
                     <p className="mt-1 text-sm text-on-surface-variant">

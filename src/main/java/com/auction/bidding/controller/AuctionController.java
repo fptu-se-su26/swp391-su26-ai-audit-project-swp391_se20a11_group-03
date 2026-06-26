@@ -16,11 +16,15 @@ import com.auction.bidding.repository.BidRepository;
 import com.auction.bidding.service.AuctionService;
 import com.auction.bidding.service.AuctionPaymentService;
 import com.auction.bidding.service.BiddingService;
-import com.auction.bidding.util.StepCalculator;
-import com.auction.product.entity.Product;
+import com.auction.bidding.repository.AuctionSessionRepository;
+import com.auction.bidding.entity.AuctionSession;
+import com.auction.bidding.entity.AuctionStatus;
 import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.common.util.KycGuard;
+import com.auction.bidding.util.StepCalculator;
 import com.auction.product.entity.Contract;
+import com.auction.product.entity.Product;
+import com.auction.product.repository.ProductRepository;
 import com.auction.product.service.ContractService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +52,9 @@ public class AuctionController {
     private final AuctionService auctionService;
     private final BiddingService biddingService;
     private final AuctionRepository auctionRepository;
+    private final AuctionSessionRepository auctionSessionRepository;
     private final BidRepository bidRepository;
+    private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final AuctionPaymentService auctionPaymentService;
     private final ContractService contractService;
@@ -66,12 +72,14 @@ public class AuctionController {
     /** Polled by the frontend every 1s. Public so unauthenticated users can preview the room. */
     @GetMapping("/{auctionId}/state")
     public ResponseEntity<AuctionStateResponse> getState(@PathVariable("auctionId") Long auctionId) {
-        Auction auction = auctionRepository.findById(auctionId)
+        biddingService.lockEndedAuctions();
+
+        AuctionSession auction = auctionSessionRepository.findById(auctionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + auctionId));
 
-        long totalBids = bidRepository.findByAuctionIdOrderByBidAmountDesc(auctionId).size();
+        Product product = productRepository.findById(auction.getProductId()).orElse(null);
 
-        Product product = auction.getProduct();
+        long totalBids = bidRepository.findByAuctionIdOrderByBidAmountDesc(auctionId).size();
         long startingPrice = product != null && product.getStartingPrice() != null
                 ? product.getStartingPrice()
                 : 0L;
@@ -81,17 +89,26 @@ public class AuctionController {
         long bidStep = StepCalculator.calculate(startingPrice);
         long minNextBid = StepCalculator.computeMinNextBid(startingPrice, currentHighestBid, bidStep);
 
+        String effectiveStatus = resolveEffectiveStatus(auction);
+        String winnerUsername = null;
+        if (auction.getCurrentWinnerUserId() != null) {
+            winnerUsername = userRepository.findById(Math.toIntExact(auction.getCurrentWinnerUserId()))
+                    .map(User::getUsername)
+                    .orElse(null);
+        }
+
         AuctionStateResponse.AuctionStateResponseBuilder b = AuctionStateResponse.builder()
                 .auctionId(auction.getAuctionId())
-                .productId(product != null ? product.getProductId() : null)
+                .productId(auction.getProductId())
                 .auctionMode(auction.getAuctionMode() != null ? auction.getAuctionMode().name() : "TIMED")
-                .status(auction.getStatus())
+                .status(effectiveStatus)
                 .paymentStatus(auction.getPaymentStatus())
                 .startingPrice(startingPrice)
                 .bidStep(bidStep)
                 .minNextBid(minNextBid)
                 .currentHighestBid(currentHighestBid)
-                .currentWinnerUserId(auction.getCurrentWinnerUser() != null ? (long) auction.getCurrentWinnerUser().getId() : null)
+                .currentWinnerUserId(auction.getCurrentWinnerUserId())
+                .winnerUsername(winnerUsername)
                 .startTime(auction.getStartTime())
                 .endTime(auction.getEndTime())
                 .paymentDeadline(auction.getPaymentDeadline())
@@ -99,6 +116,23 @@ public class AuctionController {
                 .serverNow(LocalDateTime.now());
 
         return ResponseEntity.ok(b.build());
+    }
+
+    private String resolveEffectiveStatus(AuctionSession auction) {
+        LocalDateTime now = LocalDateTime.now();
+        if (auction.getEndTime() != null && !now.isBefore(auction.getEndTime())) {
+            return AuctionStatus.ENDED.name();
+        }
+        if (auction.getStartTime() != null && now.isBefore(auction.getStartTime())) {
+            return AuctionStatus.UPCOMING.name();
+        }
+        if (auction.getStatus() == AuctionStatus.ACTIVE) {
+            return AuctionStatus.ACTIVE.name();
+        }
+        if (auction.getStatus() != null) {
+            return auction.getStatus().name();
+        }
+        return AuctionStatus.ACTIVE.name();
     }
 
     /** Public: latest bids for an auction, sorted newest first. */

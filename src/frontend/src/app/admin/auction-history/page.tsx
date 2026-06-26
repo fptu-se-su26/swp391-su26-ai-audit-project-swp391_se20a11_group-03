@@ -1,221 +1,251 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import AdminShell from "@/components/layout/AdminShell";
-import { searchProducts } from "@/lib/services/productService";
-import { useTranslations } from "@/i18n/I18nProvider";
-
-type ProductWithAuction = {
-  productId: number;
-  productName: string;
-  categoryName: string | null;
-  startingPrice: number;
-  currentBid: number;
-  status: string;
-  imageUrl: string | null;
-  auctionId: number | null;
-  auctionStatus: string | null;
-  auctionStartTime: string | null;
-  auctionEndTime: string | null;
-};
+import { AuctionSessionRow, getAuctionSessions } from "@/lib/services/dashboardService";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(amount || 0);
 }
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "-";
+function formatDateTime(value: string | null): string {
+  if (!value) return "—";
   try {
-    return new Date(dateStr).toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return new Date(value).toLocaleString("vi-VN");
   } catch {
-    return dateStr;
+    return value;
   }
 }
 
+
+type PaymentTab = "ALL" | "PAID" | "UNPAID";
+
 export default function AuctionHistoryPage() {
-  const t = useTranslations("adminAuctionHistory");
-  const [products, setProducts] = useState<ProductWithAuction[]>([]);
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get("payment")?.toUpperCase() as PaymentTab) || "ALL";
+  const [rows, setRows] = useState<AuctionSessionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [paymentTab, setPaymentTab] = useState<PaymentTab>(
+    ["PAID", "UNPAID", "ALL"].includes(initialTab) ? initialTab : "ALL",
+  );
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
-  const fetchProducts = useCallback(async () => {
+  const fetchSessions = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const response = await searchProducts({ size: 100 });
-      setProducts(response.content);
+      const data = await getAuctionSessions(
+        paymentTab,
+        fromDate || undefined,
+        toDate || undefined,
+      );
+      setRows(data);
     } catch {
-      setError(t("loadError"));
+      setError("Không thể tải lịch sử phiên đấu giá.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [paymentTab, fromDate, toDate]);
 
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    void fetchSessions();
+  }, [fetchSessions]);
 
-  const filteredProducts = products.filter((p) => {
-    const matchesSearch =
-      p.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.categoryName?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus =
-      statusFilter === "all" ||
-      p.auctionStatus?.toUpperCase() === statusFilter.toUpperCase() ||
-      (statusFilter === "ENDED" && p.status === "ACTIVE" && p.currentBid > 0);
-
-    return matchesSearch && matchesStatus;
-  });
-
-  const stats = {
-    total: products.length,
-    active: products.filter((p) => p.auctionStatus === "ACTIVE").length,
-    ended: products.filter((p) => p.currentBid > 0).length,
-  };
-
-  if (loading) {
-    return (
-      <AdminShell>
-        <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
-          <div className="flex items-center justify-center h-64">
-            <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
-          </div>
-        </div>
-      </AdminShell>
+  const filteredRows = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter(
+      (r) =>
+        r.productName.toLowerCase().includes(q) ||
+        r.sellerName.toLowerCase().includes(q) ||
+        r.buyerName.toLowerCase().includes(q) ||
+        String(r.auctionId).includes(q),
     );
-  }
+  }, [rows, searchTerm]);
 
-  if (error) {
-    return (
-      <AdminShell>
-        <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
-          <div className="bg-error-container rounded-xl p-lg text-center">
-            <p className="text-on-error-container">{error}</p>
-          </div>
-        </div>
-      </AdminShell>
-    );
-  }
+  const stats = useMemo(
+    () => ({
+      total: rows.length,
+      paid: rows.filter((r) => r.paymentCategory === "PAID").length,
+      unpaid: rows.filter((r) => r.paymentCategory === "UNPAID").length,
+      volume: rows.reduce((sum, r) => sum + r.finalPrice, 0),
+    }),
+    [rows],
+  );
 
   return (
     <AdminShell>
-      <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg">
+      <div className="mx-auto max-w-[1400px] space-y-lg p-margin-mobile md:p-margin-desktop">
         <div>
-          <h1 className="font-display-lg-mobile md:font-display-lg text-primary">{t("pageTitle")}</h1>
-          <p className="font-body-lg text-on-surface-variant mt-xs">
-            {t("pageSubtitle")}
+          <Link href="/admin/dashboard" className="mb-2 inline-flex items-center gap-1 text-sm text-[#9a7429] hover:underline">
+            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            Về tổng quan
+          </Link>
+          <h1 className="font-display-lg-mobile text-primary md:font-display-lg">Lịch sử phiên đấu giá</h1>
+          <p className="mt-xs font-body-lg text-on-surface-variant">
+            Theo dõi các phiên đã kết thúc, phân loại theo trạng thái thanh toán.
           </p>
         </div>
 
-        {/* Summary Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-md">
-          <div className="bg-surface rounded-xl p-md soft-shadow border border-surface-variant text-center">
-            <p className="font-headline-md text-[28px] font-bold text-primary">{stats.total}</p>
-            <p className="font-label-md text-label-md text-on-surface-variant mt-xs">{t("totalProducts")}</p>
-          </div>
-          <div className="bg-surface rounded-xl p-md soft-shadow border border-surface-variant text-center">
-            <p className="font-headline-md text-[28px] font-bold text-primary">{stats.active}</p>
-            <p className="font-label-md text-label-md text-on-surface-variant mt-xs">{t("activeAuctions")}</p>
-          </div>
-          <div className="bg-surface rounded-xl p-md soft-shadow border border-surface-variant text-center">
-            <p className="font-headline-md text-[28px] font-bold text-primary">{stats.ended}</p>
-            <p className="font-label-md text-label-md text-on-surface-variant mt-xs">{t("endedWithBids")}</p>
-          </div>
-          <div className="bg-surface rounded-xl p-md soft-shadow border border-surface-variant text-center">
-            <p className="font-headline-md text-[28px] font-bold text-primary">
-              {products.reduce((sum, p) => sum + (p.currentBid || 0), 0) > 0
-                ? formatCurrency(products.reduce((sum, p) => sum + (p.currentBid || 0), 0))
-                : "-"}
-            </p>
-            <p className="font-label-md text-label-md text-on-surface-variant mt-xs">{t("totalValue")}</p>
-          </div>
+        <div className="grid grid-cols-2 gap-md md:grid-cols-4">
+          {[
+            { label: "Tổng phiên", value: String(stats.total), icon: "gavel" },
+            { label: "Đã thanh toán", value: String(stats.paid), icon: "check_circle" },
+            { label: "Chưa thanh toán", value: String(stats.unpaid), icon: "schedule" },
+            { label: "Tổng giá trị", value: formatCurrency(stats.volume), icon: "payments" },
+          ].map((item) => (
+            <div key={item.label} className="rounded-xl border border-surface-variant bg-surface p-md text-center soft-shadow">
+              <span className="material-symbols-outlined text-secondary">{item.icon}</span>
+              <p className="mt-1 font-headline-md text-xl font-bold text-primary">{item.value}</p>
+              <p className="font-label-md text-label-md text-on-surface-variant">{item.label}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-sm">
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+        <div className="flex flex-wrap items-end gap-sm">
+          <div className="flex rounded-lg bg-surface-container-low p-1">
+            {([
+              { key: "ALL", label: "Tất cả" },
+              { key: "PAID", label: "Đã thanh toán" },
+              { key: "UNPAID", label: "Chưa thanh toán" },
+            ] as const).map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setPaymentTab(tab.key)}
+                className={`rounded-md px-4 py-1.5 font-label-md text-label-md transition-all ${
+                  paymentTab === tab.key
+                    ? "bg-surface text-primary shadow-sm"
+                    : "text-on-surface-variant hover:text-primary"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm outline-none focus:border-secondary"
+            title="Từ ngày"
+          />
+          <input
+            type="date"
+            value={toDate}
+            min={fromDate || undefined}
+            onChange={(e) => setToDate(e.target.value)}
+            className="rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm outline-none focus:border-secondary"
+            title="Đến ngày"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setFromDate("");
+              setToDate("");
+            }}
+            className="rounded-lg border border-outline-variant px-3 py-2 text-sm text-on-surface-variant hover:text-primary"
+          >
+            Xóa lọc ngày
+          </button>
+          <div className="relative min-w-[220px] flex-1">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-outline">
+              search
+            </span>
             <input
               type="text"
-              placeholder={t("searchPlaceholder")}
+              placeholder="Tìm sản phẩm, người bán, người mua..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-surface border border-outline-variant rounded-lg font-body-md text-sm focus:border-secondary outline-none w-64"
+              className="w-full rounded-lg border border-outline-variant bg-surface py-2 pl-10 pr-4 text-sm outline-none focus:border-secondary"
             />
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 bg-surface border border-outline-variant rounded-lg font-body-md text-sm focus:border-secondary outline-none appearance-none"
-          >
-            <option value="all">{t("allStatuses")}</option>
-            <option value="UPCOMING">{t("upcoming")}</option>
-            <option value="ACTIVE">{t("active")}</option>
-            <option value="ENDED">{t("ended")}</option>
-          </select>
         </div>
 
-        {/* Table */}
-        <div className="bg-surface rounded-xl soft-shadow border border-surface-variant overflow-hidden">
-          {filteredProducts.length === 0 ? (
-            <div className="p-lg text-center">
-              <span className="material-symbols-outlined text-4xl text-on-surface-variant mb-md">search_off</span>
-              <p className="text-on-surface-variant">{t("noProducts")}</p>
+        <div className="overflow-hidden rounded-xl border border-surface-variant bg-surface soft-shadow">
+          {loading ? (
+            <div className="flex h-48 items-center justify-center">
+              <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
+            </div>
+          ) : error ? (
+            <div className="p-lg text-center text-error">{error}</div>
+          ) : filteredRows.length === 0 ? (
+            <div className="p-xl text-center text-on-surface-variant">
+              <span className="material-symbols-outlined mb-sm block text-4xl">history</span>
+              Không có phiên đấu giá phù hợp.
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full border-collapse text-left">
                 <thead>
-                  <tr className="bg-surface-container-low border-b border-surface-variant">
-                    {["Lot #", "Item Title", "Category", "Starting Price", "Current Bid", "Status", "Actions"].map((h) => (
-                      <th key={h} className="p-md font-label-sm text-label-sm text-on-surface-variant whitespace-nowrap">
-                        {t(`table${h.replace(/ /g, "").replace(/#/g, "")}`)}
+                  <tr className="border-b border-surface-variant bg-surface-container-low">
+                    {[
+                      "Phiên",
+                      "Sản phẩm",
+                      "Người bán",
+                      "Người thắng",
+                      "Giá cuối",
+                      "Thanh toán",
+                      "Kết thúc",
+                      "Hạn thanh toán",
+                      "",
+                    ].map((h) => (
+                      <th key={h} className="whitespace-nowrap p-md font-label-sm text-label-sm text-on-surface-variant">
+                        {h}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredProducts.map((row) => (
-                    <tr key={row.productId} className="border-b border-surface-variant hover:bg-surface-container-lowest transition-colors">
-                      <td className="p-md font-label-md text-label-md text-primary">#{row.productId}</td>
-                      <td className="p-md max-w-[200px]">
-                        <p className="font-body-md text-sm text-on-surface truncate">{row.productName}</p>
-                      </td>
-                      <td className="p-md font-body-md text-sm text-on-surface-variant">{row.categoryName || "-"}</td>
-                      <td className="p-md font-bold text-primary">{formatCurrency(row.startingPrice)}</td>
+                  {filteredRows.map((row) => (
+                    <tr key={row.auctionId} className="border-b border-surface-variant hover:bg-surface-container-lowest">
+                      <td className="p-md font-label-md text-primary">#{row.auctionId}</td>
                       <td className="p-md">
-                        {row.currentBid > 0 ? (
-                          <span className="font-bold text-primary">{formatCurrency(row.currentBid)}</span>
+                        <p className="max-w-[180px] truncate font-body-md text-sm">{row.productName}</p>
+                        <p className="text-xs text-on-surface-variant">LOT #{row.productId ?? "—"}</p>
+                      </td>
+                      <td className="p-md text-sm">{row.sellerName}</td>
+                      <td className="p-md text-sm">{row.buyerName}</td>
+                      <td className="p-md font-bold text-primary">{formatCurrency(row.finalPrice)}</td>
+                      <td className="p-md">
+                        {row.paymentCategory === "PAID" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-tertiary-fixed px-2 py-1 text-[10px] font-bold uppercase text-on-tertiary-fixed-variant">
+                            <span className="material-symbols-outlined text-[12px]">check_circle</span>
+                            Đã thanh toán
+                          </span>
+                        ) : row.paymentCategory === "UNPAID" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-secondary-container px-2 py-1 text-[10px] font-bold uppercase text-on-secondary-container">
+                            <span className="material-symbols-outlined text-[12px]">schedule</span>
+                            Chưa thanh toán
+                          </span>
                         ) : (
-                          <span className="text-on-surface-variant">-</span>
+                          <span className="rounded-full bg-surface-variant px-2 py-1 text-[10px] font-bold uppercase text-on-surface-variant">
+                            Không có người thắng
+                          </span>
                         )}
                       </td>
-                      <td className="p-md">
-                        <span
-                          className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                            row.auctionStatus === "ACTIVE"
-                              ? "bg-tertiary-fixed text-on-tertiary-fixed-variant"
-                              : row.auctionStatus === "UPCOMING"
-                              ? "bg-secondary-container text-on-secondary-container"
-                              : row.currentBid > 0
-                              ? "bg-primary-fixed text-on-primary-fixed-variant"
-                              : "bg-surface-variant text-on-surface-variant"
-                          }`}
-                        >
-                          {row.auctionStatus || row.status}
-                        </span>
+                      <td className="p-md text-sm text-on-surface-variant">{formatDateTime(row.endTime)}</td>
+                      <td className="p-md text-sm text-on-surface-variant">
+                        {row.paymentCategory === "UNPAID" ? formatDateTime(row.paymentDeadline) : formatDateTime(row.paidAt)}
                       </td>
-                      <td className="p-md">
-                        <button className="text-secondary font-label-sm text-label-sm hover:underline">{t("view")}</button>
+                      <td className="p-md text-right">
+                        {row.productId && (
+                          <Link
+                            href={`/auctions/${row.productId}`}
+                            className="font-label-sm text-secondary hover:underline"
+                          >
+                            Xem
+                          </Link>
+                        )}
                       </td>
                     </tr>
                   ))}

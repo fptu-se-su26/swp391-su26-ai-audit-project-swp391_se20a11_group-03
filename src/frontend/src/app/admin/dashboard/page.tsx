@@ -4,16 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import AdminShell from "@/components/layout/AdminShell";
 import {
-  ContractRow,
+  AuctionOverview,
+  AuctionOverviewItem,
   DailyRevenue,
   DashboardSummary,
-  SalesHistoryRow,
-  getContracts,
+  getAuctionOverview,
   getDashboardRevenue,
   getDashboardSummary,
-  getSalesHistory,
 } from "@/lib/services/dashboardService";
-import { resolveApiUrl } from "@/lib/apiClient";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("vi-VN", {
@@ -27,54 +25,80 @@ function formatCompact(amount: number): string {
   return new Intl.NumberFormat("vi-VN", { notation: "compact", maximumFractionDigits: 1 }).format(amount || 0);
 }
 
-function formatDate(value: string | null): string {
+function formatIsoDate(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function defaultFromDate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 29);
+  return formatIsoDate(d);
+}
+
+function formatDateTime(value: string | null): string {
   if (!value) return "—";
   try {
-    return new Date(value).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+    return new Date(value).toLocaleString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   } catch {
     return value;
   }
 }
 
-const QUICK_LINKS = [
-  { href: "/post-item", icon: "add_box", label: "Đăng sản phẩm" },
-  { href: "/staff/approvals", icon: "task_alt", label: "Duyệt sản phẩm" },
-  { href: "/staff/kyc-review", icon: "badge", label: "Duyệt KYC" },
-  { href: "/staff/withdrawals", icon: "payments", label: "Duyệt rút tiền" },
-  { href: "/staff/support", icon: "support_agent", label: "Hỗ trợ" },
-  { href: "/admin/sales-history", icon: "receipt_long", label: "Lịch sử mua bán" },
-  { href: "/admin/contracts", icon: "contract", label: "Hợp đồng điện tử" },
-];
+function SessionRow({ item, live }: { item: AuctionOverviewItem; live?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-[#e8e2d6] py-3 last:border-0">
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-medium text-[#071626]">{item.productName}</p>
+        <p className="text-xs text-[#6b7280]">
+          #{item.auctionId} · {item.sellerName} · {item.totalBids} lượt bid
+        </p>
+      </div>
+      <div className="text-right shrink-0">
+        <p className="font-bold text-[#071626]">{formatCurrency(item.currentBid)}</p>
+        <p className="text-xs text-[#6b7280]">
+          {live ? `Kết thúc ${formatDateTime(item.endTime)}` : formatDateTime(item.startTime)}
+        </p>
+      </div>
+      {item.productId && (
+        <Link
+          href={`/auctions/${item.productId}`}
+          className="shrink-0 rounded-lg border border-[#d4b56a]/50 px-2 py-1 text-xs text-[#9a7429] hover:bg-[#fdf8ee]"
+        >
+          Xem
+        </Link>
+      )}
+    </div>
+  );
+}
 
 export default function AdminDashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [overview, setOverview] = useState<AuctionOverview | null>(null);
   const [revenue, setRevenue] = useState<DailyRevenue[]>([]);
-  const [sales, setSales] = useState<SalesHistoryRow[]>([]);
-  const [contracts, setContracts] = useState<ContractRow[]>([]);
   const [groupBy, setGroupBy] = useState<"day" | "month">("day");
+  const [fromDate, setFromDate] = useState(defaultFromDate);
+  const [toDate, setToDate] = useState(formatIsoDate(new Date()));
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const loadRevenue = useCallback(async (mode: "day" | "month") => {
-    const data = await getDashboardRevenue(mode).catch(() => []);
+  const loadRevenue = useCallback(async () => {
+    const data = await getDashboardRevenue(groupBy, fromDate || undefined, toDate || undefined).catch(() => []);
     setRevenue(data);
-  }, []);
+  }, [groupBy, fromDate, toDate]);
 
   useEffect(() => {
     (async () => {
       try {
-        const [summaryRes, revenueRes, salesRes, contractsRes] = await Promise.all([
+        const [summaryRes, overviewRes] = await Promise.all([
           getDashboardSummary().catch(() => null),
-          getDashboardRevenue("day").catch(() => []),
-          getSalesHistory().catch(() => []),
-          getContracts().catch(() => []),
+          getAuctionOverview().catch(() => null),
         ]);
         setSummary(summaryRes);
-        setRevenue(revenueRes);
-        setSales(salesRes);
-        setContracts(contractsRes);
-      } catch {
-        setError("Không thể tải dữ liệu tổng quan.");
+        setOverview(overviewRes);
       } finally {
         setLoading(false);
       }
@@ -82,36 +106,17 @@ export default function AdminDashboardPage() {
   }, []);
 
   useEffect(() => {
-    void loadRevenue(groupBy);
-  }, [groupBy, loadRevenue]);
+    void loadRevenue();
+  }, [loadRevenue]);
 
-  const maxRevenue = useMemo(
-    () => revenue.reduce((max, r) => Math.max(max, r.amount), 0),
-    [revenue],
-  );
-  const totalRevenueInRange = useMemo(
-    () => revenue.reduce((sum, r) => sum + r.amount, 0),
-    [revenue],
-  );
-
-  const kpis = summary
-    ? [
-        { label: "Doanh thu nền tảng", value: formatCurrency(summary.totalRevenue), icon: "trending_up", accent: true },
-        { label: "Số dư ví Admin", value: formatCurrency(summary.adminBalance), icon: "account_balance_wallet", accent: true },
-        { label: "Tổng nạp (SePay)", value: formatCurrency(summary.totalTopUps), icon: "savings" },
-        { label: "Cọc đang giữ", value: formatCurrency(summary.depositsHeld), icon: "lock" },
-        { label: "Người dùng", value: String(summary.totalUsers), icon: "group" },
-        { label: "Sản phẩm", value: String(summary.totalProducts), icon: "inventory_2" },
-        { label: "Phiên đấu giá", value: `${summary.activeAuctions}/${summary.totalAuctions}`, icon: "gavel" },
-        { label: "Rút tiền chờ duyệt", value: String(summary.pendingWithdrawals), icon: "hourglass_empty" },
-      ]
-    : [];
+  const totalRevenueInRange = useMemo(() => revenue.reduce((s, r) => s + r.amount, 0), [revenue]);
+  const maxRevenue = useMemo(() => revenue.reduce((m, r) => Math.max(m, r.amount), 0), [revenue]);
 
   if (loading) {
     return (
       <AdminShell>
         <div className="flex h-64 items-center justify-center">
-          <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
+          <span className="material-symbols-outlined animate-spin text-4xl text-[#9a7429]">progress_activity</span>
         </div>
       </AdminShell>
     );
@@ -119,172 +124,161 @@ export default function AdminDashboardPage() {
 
   return (
     <AdminShell>
-      <div className="mx-auto max-w-[1400px] space-y-lg p-margin-mobile md:p-margin-desktop">
-        <div>
-          <h1 className="font-display-lg-mobile text-primary md:font-display-lg">Tổng quan hệ thống</h1>
-          <p className="mt-xs font-body-lg text-on-surface-variant">
-            Cái nhìn tổng quan về doanh thu, giao dịch và hoạt động của nền tảng đấu giá.
-          </p>
-        </div>
+      <div className="mx-auto max-w-[1280px] space-y-8 px-4 py-8 sm:px-6 lg:px-10">
+        {/* Header */}
+        <header className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9a7429]">Admin Control Center</p>
+            <h1 className="mt-1 text-3xl font-bold text-[#071626]">Tổng quan hệ thống</h1>
+            <p className="mt-1 text-sm text-[#6b7280]">Giám sát phiên đấu giá, tài chính và vận hành nền tảng.</p>
+          </div>
+          {summary && (
+            <div className="rounded-2xl bg-[#071626] px-5 py-3 text-white shadow-lg">
+              <p className="text-xs text-white/60">Doanh thu nền tảng</p>
+              <p className="text-xl font-bold text-[#f0dfa0]">{formatCurrency(summary.totalRevenue)}</p>
+            </div>
+          )}
+        </header>
 
-        {error && (
-          <div className="rounded-xl bg-error-container p-md text-on-error-container">{error}</div>
+        {/* Auction status strip */}
+        {overview && (
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+            {[
+              { label: "Đang diễn ra", value: overview.activeCount, icon: "live_tv", color: "text-red-600 bg-red-50 border-red-200", href: "/admin/auction-history" },
+              { label: "Sắp diễn ra", value: overview.upcomingCount, icon: "upcoming", color: "text-blue-600 bg-blue-50 border-blue-200", href: "/admin/auction-history" },
+              { label: "Chờ thanh toán", value: overview.awaitingPaymentCount, icon: "schedule", color: "text-amber-600 bg-amber-50 border-amber-200", href: "/admin/auction-history?payment=UNPAID" },
+              { label: "Đã kết thúc", value: overview.endedCount, icon: "flag", color: "text-[#6b7280] bg-white border-[#e8e2d6]", href: "/admin/auction-history?payment=PAID" },
+              { label: "Tổng phiên", value: overview.totalCount, icon: "gavel", color: "text-[#071626] bg-[#fdf8ee] border-[#d4b56a]/40", href: "/admin/auction-history" },
+            ].map((card) => (
+              <Link
+                key={card.label}
+                href={card.href}
+                className={`rounded-2xl border p-4 transition-all hover:shadow-md ${card.color}`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="material-symbols-outlined text-2xl">{card.icon}</span>
+                  <span className="text-2xl font-bold">{card.value}</span>
+                </div>
+                <p className="mt-2 text-sm font-medium">{card.label}</p>
+              </Link>
+            ))}
+          </div>
         )}
 
-        {/* KPI grid */}
-        <div className="grid grid-cols-1 gap-md sm:grid-cols-2 xl:grid-cols-4">
-          {kpis.map((kpi) => (
-            <div
-              key={kpi.label}
-              className={`rounded-xl border border-surface-variant p-md soft-shadow ${
-                kpi.accent ? "bg-primary-container text-on-primary-container" : "bg-surface"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <p className={`font-label-md text-label-md ${kpi.accent ? "text-on-primary-container" : "text-on-surface-variant"}`}>
-                  {kpi.label}
-                </p>
-                <span className="material-symbols-outlined">{kpi.icon}</span>
+        {/* Live sessions + KPIs */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <section className="lg:col-span-2 rounded-2xl border border-[#e8e2d6] bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+                </span>
+                <h2 className="font-semibold text-[#071626]">Phiên đang diễn ra</h2>
               </div>
-              <p className={`mt-xs font-headline-md text-headline-md font-bold ${kpi.accent ? "text-on-primary-container" : "text-primary"}`}>
-                {kpi.value}
-              </p>
+              <Link href="/admin/auction-history" className="text-sm text-[#9a7429] hover:underline">
+                Xem tất cả
+              </Link>
             </div>
-          ))}
+            {!overview?.activeSessions?.length ? (
+              <p className="py-8 text-center text-sm text-[#6b7280]">Không có phiên đấu giá đang live.</p>
+            ) : (
+              overview.activeSessions.map((item) => <SessionRow key={item.auctionId} item={item} live />)
+            )}
+          </section>
+
+          <section className="space-y-3">
+            {summary && [
+              { label: "Người dùng", value: summary.totalUsers, icon: "group" },
+              { label: "Sản phẩm", value: summary.totalProducts, icon: "inventory_2" },
+              { label: "Rút tiền chờ duyệt", value: summary.pendingWithdrawals, icon: "hourglass_empty", alert: summary.pendingWithdrawals > 0 },
+              { label: "Cọc đang giữ", value: formatCurrency(summary.depositsHeld), icon: "lock" },
+              { label: "Ví Admin", value: formatCurrency(summary.adminBalance), icon: "account_balance_wallet" },
+            ].map((kpi) => (
+              <div
+                key={kpi.label}
+                className={`flex items-center justify-between rounded-xl border px-4 py-3 ${
+                  kpi.alert ? "border-amber-300 bg-amber-50" : "border-[#e8e2d6] bg-white"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#9a7429]">{kpi.icon}</span>
+                  <span className="text-sm text-[#6b7280]">{kpi.label}</span>
+                </div>
+                <span className="font-bold text-[#071626]">{kpi.value}</span>
+              </div>
+            ))}
+          </section>
         </div>
 
+        {/* Upcoming + awaiting payment */}
+        {overview && (overview.upcomingSessions.length > 0 || overview.awaitingPaymentSessions.length > 0) && (
+          <div className="grid gap-6 md:grid-cols-2">
+            {overview.upcomingSessions.length > 0 && (
+              <section className="rounded-2xl border border-[#e8e2d6] bg-white p-5 shadow-sm">
+                <h2 className="mb-3 font-semibold text-[#071626]">Sắp diễn ra</h2>
+                {overview.upcomingSessions.map((item) => (
+                  <SessionRow key={item.auctionId} item={item} />
+                ))}
+              </section>
+            )}
+            {overview.awaitingPaymentSessions.length > 0 && (
+              <section className="rounded-2xl border border-amber-200 bg-amber-50/30 p-5 shadow-sm">
+                <h2 className="mb-3 font-semibold text-amber-800">Chờ thanh toán</h2>
+                {overview.awaitingPaymentSessions.map((item) => (
+                  <SessionRow key={item.auctionId} item={item} />
+                ))}
+                <Link
+                  href="/admin/auction-history?payment=UNPAID"
+                  className="mt-3 block text-center text-sm text-amber-700 hover:underline"
+                >
+                  Xem tất cả phiên chưa thanh toán →
+                </Link>
+              </section>
+            )}
+          </div>
+        )}
+
         {/* Revenue chart */}
-        <section className="rounded-xl border border-surface-variant bg-surface p-lg soft-shadow">
-          <div className="mb-md flex flex-wrap items-center justify-between gap-sm">
+        <section className="rounded-2xl border border-[#e8e2d6] bg-white p-5 shadow-sm">
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 className="font-headline-sm text-headline-sm text-primary">Doanh thu theo {groupBy === "day" ? "ngày" : "tháng"}</h2>
-              <p className="font-body-sm text-sm text-on-surface-variant">
-                Tổng trong khoảng hiển thị: <span className="font-bold text-primary">{formatCurrency(totalRevenueInRange)}</span>
+              <h2 className="font-semibold text-[#071626]">Doanh thu theo {groupBy === "day" ? "ngày" : "tháng"}</h2>
+              <p className="text-sm text-[#6b7280]">
+                Tổng: <span className="font-bold text-[#9a7429]">{formatCurrency(totalRevenueInRange)}</span>
               </p>
             </div>
-            <div className="flex rounded-lg bg-surface-container-low p-1">
-              {(["day", "month"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setGroupBy(mode)}
-                  className={`rounded-md px-4 py-1.5 font-label-md text-label-md transition-all ${
-                    groupBy === mode ? "bg-surface text-primary shadow-sm" : "text-on-surface-variant hover:text-primary"
-                  }`}
-                >
-                  {mode === "day" ? "Ngày" : "Tháng"}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-end gap-2">
+              <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="rounded-lg border border-[#e8e2d6] px-2 py-1.5 text-sm" />
+              <span className="text-[#6b7280]">→</span>
+              <input type="date" value={toDate} min={fromDate} onChange={(e) => setToDate(e.target.value)} className="rounded-lg border border-[#e8e2d6] px-2 py-1.5 text-sm" />
+              <div className="flex rounded-lg bg-[#f4f1ea] p-0.5">
+                {(["day", "month"] as const).map((m) => (
+                  <button key={m} type="button" onClick={() => setGroupBy(m)} className={`rounded-md px-3 py-1 text-xs font-medium ${groupBy === m ? "bg-white text-[#071626] shadow" : "text-[#6b7280]"}`}>
+                    {m === "day" ? "Ngày" : "Tháng"}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-
           {revenue.length === 0 ? (
-            <div className="py-xl text-center text-on-surface-variant">
-              <span className="material-symbols-outlined mb-sm block text-4xl">bar_chart</span>
-              <p>Chưa có dữ liệu doanh thu.</p>
-            </div>
+            <p className="py-10 text-center text-sm text-[#6b7280]">Chưa có dữ liệu trong khoảng đã chọn.</p>
           ) : (
-            <div className="flex h-56 items-end gap-2 overflow-x-auto pb-2">
+            <div className="flex h-44 items-end gap-1.5 overflow-x-auto pb-1">
               {revenue.map((r) => (
-                <div key={r.date} className="flex min-w-[36px] flex-1 flex-col items-center justify-end gap-1">
-                  <span className="font-body-sm text-[10px] text-on-surface-variant">{formatCompact(r.amount)}</span>
+                <div key={r.date} className="flex min-w-[28px] flex-1 flex-col items-center justify-end gap-0.5">
+                  <span className="text-[9px] text-[#6b7280]">{formatCompact(r.amount)}</span>
                   <div
-                    className="w-full rounded-t-md bg-secondary transition-all hover:bg-secondary-fixed-dim"
-                    style={{ height: `${maxRevenue > 0 ? Math.max(4, (r.amount / maxRevenue) * 180) : 4}px` }}
-                    title={`${r.date}: ${formatCurrency(r.amount)} (${r.count} giao dịch)`}
+                    className="w-full rounded-t bg-[#9a7429] hover:bg-[#bd963f]"
+                    style={{ height: `${maxRevenue > 0 ? Math.max(4, (r.amount / maxRevenue) * 140) : 4}px` }}
+                    title={`${r.date}: ${formatCurrency(r.amount)}`}
                   />
-                  <span className="font-body-sm text-[9px] text-on-surface-variant">
-                    {groupBy === "day" ? r.date.slice(5) : r.date}
-                  </span>
+                  <span className="text-[8px] text-[#6b7280]">{groupBy === "day" ? r.date.slice(5) : r.date}</span>
                 </div>
               ))}
             </div>
           )}
         </section>
-
-        {/* Quick access to staff + admin tools */}
-        <section>
-          <h2 className="mb-md border-b border-surface-variant pb-xs font-headline-sm text-headline-sm text-primary">
-            Truy cập nhanh
-          </h2>
-          <div className="grid grid-cols-2 gap-sm sm:grid-cols-3 lg:grid-cols-6">
-            {QUICK_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="flex flex-col items-center gap-xs rounded-xl border border-surface-variant bg-surface p-md text-center transition-all hover:border-secondary hover:bg-surface-container-low"
-              >
-                <span className="material-symbols-outlined text-2xl text-secondary">{link.icon}</span>
-                <span className="font-label-md text-label-md text-on-surface">{link.label}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* Recent sales + contracts */}
-        <div className="grid grid-cols-1 gap-lg lg:grid-cols-2">
-          <section className="rounded-xl border border-surface-variant bg-surface soft-shadow">
-            <div className="flex items-center justify-between border-b border-surface-variant p-md">
-              <h2 className="font-headline-sm text-headline-sm text-primary">Lịch sử mua bán gần đây</h2>
-              <Link href="/admin/sales-history" className="font-label-md text-label-md text-secondary hover:underline">
-                Xem tất cả
-              </Link>
-            </div>
-            {sales.length === 0 ? (
-              <p className="p-lg text-center text-on-surface-variant">Chưa có giao dịch hoàn tất.</p>
-            ) : (
-              <ul className="divide-y divide-surface-variant">
-                {sales.slice(0, 5).map((s) => (
-                  <li key={s.auctionId} className="flex items-center justify-between gap-sm p-md">
-                    <div className="min-w-0">
-                      <p className="truncate font-label-md text-label-md text-primary">{s.productName}</p>
-                      <p className="truncate font-body-sm text-sm text-on-surface-variant">
-                        {s.sellerName} → {s.buyerName} · {formatDate(s.paidAt)}
-                      </p>
-                    </div>
-                    <span className="shrink-0 font-bold text-primary">{formatCurrency(s.finalPrice)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section className="rounded-xl border border-surface-variant bg-surface soft-shadow">
-            <div className="flex items-center justify-between border-b border-surface-variant p-md">
-              <h2 className="font-headline-sm text-headline-sm text-primary">Hợp đồng điện tử gần đây</h2>
-              <Link href="/admin/contracts" className="font-label-md text-label-md text-secondary hover:underline">
-                Xem tất cả
-              </Link>
-            </div>
-            {contracts.length === 0 ? (
-              <p className="p-lg text-center text-on-surface-variant">Chưa có hợp đồng nào.</p>
-            ) : (
-              <ul className="divide-y divide-surface-variant">
-                {contracts.slice(0, 5).map((c) => (
-                  <li key={c.contractId} className="flex items-center justify-between gap-sm p-md">
-                    <div className="min-w-0">
-                      <p className="truncate font-label-md text-label-md text-primary">{c.referenceName}</p>
-                      <p className="truncate font-body-sm text-sm text-on-surface-variant">
-                        {c.typeLabel} · {formatDate(c.createdAt)}
-                      </p>
-                    </div>
-                    {c.fileUrl && (
-                      <a
-                        href={resolveApiUrl(c.fileUrl)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex shrink-0 items-center gap-xs font-label-md text-label-md text-secondary hover:underline"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
-                        PDF
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </div>
       </div>
     </AdminShell>
   );

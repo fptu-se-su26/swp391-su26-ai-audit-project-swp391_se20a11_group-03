@@ -38,10 +38,7 @@ public class ProductAdminController {
     public ResponseEntity<ApiResponse<ProductResponseDTO>> approveProduct(
             @PathVariable Long productId,
             @AuthenticationPrincipal UserDetailsImpl user,
-            @Valid @RequestBody(required = false) ProductApprovalRequestDTO request) {
-        if (request == null) {
-            request = new ProductApprovalRequestDTO();
-        }
+            @Valid @RequestBody ProductApprovalRequestDTO request) {
         ProductResponseDTO product = productService.approveProduct(productId, request, user.getId());
         return ResponseEntity.ok(ApiResponse.success("Product approved successfully", product));
     }

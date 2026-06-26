@@ -37,6 +37,7 @@ export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<StoredUser | null>(null);
   const [watchlistCount, setWatchlistCount] = useState(0);
   const [bids, setBids] = useState<BidInfo[]>([]);
+  const [wonItems, setWonItems] = useState<WonItem[]>([]);
   const [isLoadingBids, setIsLoadingBids] = useState(true);
 
   useEffect(() => {
@@ -60,11 +61,13 @@ export default function DashboardPage() {
   const fetchBids = useCallback(async () => {
     setIsLoadingBids(true);
     try {
-      const myBids = await getMyBids();
+      const [myBids, won] = await Promise.all([getMyBids(), getWonItems()]);
       setBids(myBids);
+      setWonItems(won);
     } catch (error) {
       console.error("Failed to fetch bids:", error);
       setBids([]);
+      setWonItems([]);
     } finally {
       setIsLoadingBids(false);
     }
@@ -72,19 +75,28 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchBids();
+    const handle = setInterval(fetchBids, 5_000);
+    return () => clearInterval(handle);
   }, [fetchBids]);
 
   const displayName = getUserDisplayName(currentUser);
-  const leadingCount = bids.filter(b => b.status === "leading").length;
-  const wonCount = bids.filter(b => b.status === "won").length;
-  const totalSpent = bids
-    .filter(b => b.status === "won")
-    .reduce((sum, b) => sum + b.currentBid, 0);
+  const activeBids = bids.filter((b) => b.timeLeft !== "Ended" && !["won", "lost"].includes(b.status));
+  const endedBids = bids.filter((b) => b.timeLeft === "Ended" || b.status === "won" || b.status === "lost");
+  const leadingCount = bids.filter((b) => b.status === "leading").length;
+  const wonCount = wonItems.length || bids.filter((b) => b.status === "won").length;
+  const totalSpent = wonItems
+    .filter((w) => w.status === "paid")
+    .reduce((sum, w) => sum + w.finalPrice, 0);
+  const pendingPayment = wonItems.filter((w) => w.status === "pending_payment");
 
   const stats = [
-    ...BASE_STATS.slice(0, 1).map(s => ({ ...s, label: t("activeBids"), value: String(bids.length) })),
-    ...BASE_STATS.slice(1, 2).map(s => ({ ...s, label: t("itemsWon"), value: String(wonCount) })),
-    ...BASE_STATS.slice(2, 3).map(s => ({ ...s, label: t("totalSpent"), value: `₫${totalSpent.toLocaleString('vi-VN')}` })),
+    ...BASE_STATS.slice(0, 1).map((s) => ({ ...s, label: t("activeBids"), value: String(bids.length) })),
+    ...BASE_STATS.slice(1, 2).map((s) => ({ ...s, label: t("itemsWon"), value: String(wonCount) })),
+    ...BASE_STATS.slice(2, 3).map((s) => ({
+      ...s,
+      label: t("totalSpent"),
+      value: `₫${totalSpent.toLocaleString("vi-VN")}`,
+    })),
     { icon: "visibility", label: t("watchlist"), value: String(watchlistCount), color: "outline-variant" },
   ];
 
@@ -99,24 +111,59 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <WonItemsBanner />
+        <WonItemsBanner wonItems={wonItems} onRefresh={fetchBids} />
 
         <div className="grid grid-cols-1 gap-lg xl:grid-cols-3">
           <section className="space-y-md xl:col-span-2">
-            <div><p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#9a7429]">Live bidding activity</p><h3 className="mt-2 font-display-lg text-xl font-semibold text-[#071626]">{t("myActiveBids")}</h3></div>
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#9a7429]">Live bidding activity</p>
+              <h3 className="mt-2 font-display-lg text-xl font-semibold text-[#071626]">{t("myActiveBids")}</h3>
+            </div>
             <div>
               {isLoadingBids ? (
                 <LoadingSkeleton cards={2} />
-              ) : bids.length === 0 ? (
-                <EmptyState icon="gavel" title={t("noActiveBids")} description="Các phiên bạn tham gia sẽ xuất hiện tại đây cùng trạng thái bid theo thời gian thực." actionLabel={t("browseAuctions")} actionHref="/live" />
+              ) : activeBids.length === 0 && bids.length === 0 ? (
+                <EmptyState
+                  icon="gavel"
+                  title={t("noActiveBids")}
+                  description="Các phiên bạn tham gia sẽ xuất hiện tại đây cùng trạng thái bid theo thời gian thực."
+                  actionLabel={t("browseAuctions")}
+                  actionHref="/live"
+                />
+              ) : activeBids.length === 0 ? (
+                <div className="rounded-xl border border-outline-variant bg-surface p-md text-sm text-on-surface-variant">
+                  Không có phiên đang diễn ra. Xem lịch sử tham gia bên dưới.
+                </div>
               ) : (
-                <DataTable headers={["tableLotItem", "tableCurrentBid", "tableTimeLeft", "tableStatus", "tableQuickBid", "tableActions"].map((key) => t(key))}>
-                      {bids.map((bid) => (
-                        <ActiveBidRow key={bid.bidId} bid={bid} onRefresh={fetchBids} />
-                      ))}
+                <DataTable
+                  headers={["tableLotItem", "tableCurrentBid", "tableTimeLeft", "tableStatus", "tableQuickBid", "tableActions"].map(
+                    (key) => t(key),
+                  )}
+                >
+                  {activeBids.map((bid) => (
+                    <ActiveBidRow key={`${bid.auctionId ?? bid.bidId}`} bid={bid} onRefresh={fetchBids} />
+                  ))}
                 </DataTable>
               )}
             </div>
+
+            {endedBids.length > 0 && (
+              <div className="mt-lg space-y-md">
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#9a7429]">Lịch sử tham gia</p>
+                  <h3 className="mt-2 font-display-lg text-xl font-semibold text-[#071626]">Phiên đã kết thúc</h3>
+                </div>
+                <DataTable
+                  headers={["tableLotItem", "tableCurrentBid", "Giá của bạn", "tableStatus", "Thanh toán", "tableActions"].map(
+                    (key) => (key.startsWith("table") ? t(key) : key),
+                  )}
+                >
+                  {endedBids.map((bid) => (
+                    <EndedBidRow key={`ended-${bid.auctionId ?? bid.bidId}`} bid={bid} />
+                  ))}
+                </DataTable>
+              </div>
+            )}
           </section>
 
           <section className="space-y-md">
@@ -139,7 +186,16 @@ export default function DashboardPage() {
             <div className="rounded-2xl bg-[#071626] p-6 text-white shadow-[0_18px_45px_rgba(7,22,38,.18)]">
               <h3 className="mb-sm font-headline-sm text-headline-sm text-on-primary">{t("quickAccess")}</h3>
               <p className="mb-md text-sm font-body-md opacity-80">{t("quickAccessDesc")}</p>
+              {pendingPayment.length > 0 && (
+                <p className="mb-md rounded-lg bg-secondary/20 px-3 py-2 text-sm">
+                  {pendingPayment.length} phiên chờ thanh toán · ₫
+                  {pendingPayment.reduce((s, w) => s + w.finalPrice, 0).toLocaleString("vi-VN")}
+                </p>
+              )}
               <div className="grid gap-sm">
+                <Link href="/won-items" className="rounded-lg border border-outline-variant px-4 py-3 text-center font-label-md transition-colors hover:bg-on-primary/10">
+                  Sản phẩm đã thắng ({wonCount})
+                </Link>
                 <Link href="/watchlist" className="rounded-lg border border-outline-variant px-4 py-3 text-center font-label-md transition-colors hover:bg-on-primary/10">
                   {t("openWatchlist")}
                 </Link>
@@ -155,11 +211,60 @@ export default function DashboardPage() {
   );
 }
 
+function EndedBidRow({ bid }: { bid: BidInfo }) {
+  const t = useTranslations("dashboard");
+  const paymentLabel =
+    bid.status === "won"
+      ? bid.paymentStatus === "PAID"
+        ? "Đã thanh toán"
+        : "Chờ thanh toán"
+      : "—";
+
+  return (
+    <tr className="border-b border-surface-variant transition-colors hover:bg-surface-container-lowest">
+      <td className="p-md">
+        <div className="flex items-center gap-sm">
+          <div className="h-12 w-12 shrink-0 overflow-hidden rounded bg-surface-variant">
+            <img src={getProductImage(bid.image)} alt={bid.productName} className="h-full w-full object-cover" />
+          </div>
+          <div>
+            <p className="font-label-md text-label-md text-primary">{bid.lotNumber}</p>
+            <p className="w-40 truncate text-sm text-on-surface-variant">{bid.productName}</p>
+          </div>
+        </div>
+      </td>
+      <td className="p-md text-[16px] font-bold text-primary">₫{bid.currentBid.toLocaleString("vi-VN")}</td>
+      <td className="p-md text-sm text-on-surface-variant">
+        {bid.userHighestBid ? `₫${bid.userHighestBid.toLocaleString("vi-VN")}` : "—"}
+      </td>
+      <td className="p-md">
+        {bid.status === "won" ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-secondary-container px-2 py-1 text-[10px] font-label-sm text-on-secondary-container">
+            <span className="material-symbols-outlined text-[12px]">emoji_events</span>
+            {t("statusWon")}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 rounded-full bg-surface-container-high px-2 py-1 text-[10px] font-label-sm text-on-surface-variant">
+            {t("statusLost")}
+          </span>
+        )}
+      </td>
+      <td className="p-md text-sm">{paymentLabel}</td>
+      <td className="p-md text-right">
+        <Link href={`/auctions/${bid.productId}`} className="font-label-sm text-label-sm text-secondary hover:underline">
+          {bid.status === "won" && bid.paymentStatus !== "PAID" ? t("payNow") : t("viewLot")}
+        </Link>
+      </td>
+    </tr>
+  );
+}
+
 function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void }) {
   const t = useTranslations("dashboard");
   const [startingPrice, setStartingPrice] = useState(0);
   const [currentBid, setCurrentBid] = useState(bid.currentBid || 0);
   const [auctionId, setAuctionId] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState(bid.timeLeft);
   const bidStep = calculateBidStep(startingPrice);
   const minRequired = computeMinNextBid(startingPrice, currentBid, bidStep);
   const [quickAmount, setQuickAmount] = useState<string>("");
@@ -168,32 +273,61 @@ function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void 
 
   useEffect(() => {
     let cancelled = false;
+    const resolvedAuctionId = bid.auctionId ?? null;
+    if (resolvedAuctionId) {
+      setAuctionId(resolvedAuctionId);
+      setStartingPrice(bid.startingPrice ?? 0);
+      setCurrentBid(bid.currentBid ?? 0);
+    }
     getProductDetail(bid.productId)
       .then((detail) => {
         if (cancelled) return;
-        setStartingPrice(detail.startingPrice ?? 0);
+        setStartingPrice(detail.startingPrice ?? bid.startingPrice ?? 0);
         setCurrentBid(detail.currentBid ?? detail.startingPrice ?? bid.currentBid ?? 0);
-        setAuctionId(detail.auction?.auctionId ?? detail.auctionId ?? null);
+        setAuctionId(resolvedAuctionId ?? detail.auction?.auctionId ?? detail.auctionId ?? null);
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [bid.productId, bid.currentBid]);
+  }, [bid.productId, bid.currentBid, bid.auctionId, bid.startingPrice]);
 
   useEffect(() => {
     if (!auctionId) return;
     return subscribeAuction(auctionId, (state) => {
       setCurrentBid(state.currentHighestBid);
       if (state.startingPrice) setStartingPrice(state.startingPrice);
+      if (state.endTime) {
+        const seconds = Math.max(0, Math.floor((new Date(state.endTime).getTime() - Date.now()) / 1000));
+        if (seconds <= 0) {
+          setTimeLeft("Ended");
+        } else if (seconds < 60) {
+          setTimeLeft(`${seconds}s`);
+        } else if (seconds < 3600) {
+          setTimeLeft(`${Math.floor(seconds / 60)}m`);
+        } else {
+          setTimeLeft(`${Math.floor(seconds / 3600)}h`);
+        }
+      }
     });
   }, [auctionId]);
+
+  useEffect(() => {
+    if (bid.timeLeft === "Ended") return;
+    if (!auctionId) return;
+    return subscribeAuction(auctionId, (state) => {
+      const endMs = state.endTime ? new Date(state.endTime).getTime() : 0;
+      if (endMs > 0 && endMs <= Date.now()) {
+        onRefresh();
+      }
+    });
+  }, [auctionId, bid.timeLeft, onRefresh]);
 
   useEffect(() => {
     setQuickAmount(String(minRequired));
   }, [minRequired]);
 
-  const isEnded = bid.timeLeft === "Ended" || bid.status === "won" || bid.status === "lost";
+  const isEnded = timeLeft === "Ended" || bid.timeLeft === "Ended" || bid.status === "won" || bid.status === "lost";
   const amountNumber = Number(quickAmount);
   const isValidAmount = !Number.isNaN(amountNumber) && amountNumber >= minRequired;
 
@@ -263,7 +397,7 @@ function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void 
         </td>
         <td className="p-md text-[16px] font-bold text-primary">₫{currentBid.toLocaleString("vi-VN")}</td>
         <td className={`p-md text-sm font-body-md ${bid.status === "outbid" ? "font-bold text-error" : "text-on-surface-variant"}`}>
-          {bid.timeLeft}
+          {timeLeft}
         </td>
         <td className="p-md">
           {bid.status === "leading" ? (
@@ -362,50 +496,45 @@ type WonItemWithDeadline = WonItem & {
   auctionId: number | null;
 };
 
-function WonItemsBanner() {
+function WonItemsBanner({
+  wonItems,
+  onRefresh,
+}: {
+  wonItems: WonItem[];
+  onRefresh: () => void;
+}) {
   const t = useTranslations("dashboard");
   const [items, setItems] = useState<WonItemWithDeadline[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      try {
-        const won = await getWonItems();
-        const enriched: WonItemWithDeadline[] = await Promise.all(
-          won.map(async (w) => {
-            try {
-              const detail = await getProductDetail(w.productId);
-              const auctionId = detail?.auctionId ?? null;
-              if (!auctionId) {
-                return { ...w, paymentDeadline: null, paymentStatus: null, auctionId: null };
-              }
-              const state = await getAuctionState(auctionId);
-              return {
-                ...w,
-                paymentDeadline: state.paymentDeadline,
-                paymentStatus: state.paymentStatus,
-                auctionId,
-              };
-            } catch {
-              return { ...w, paymentDeadline: null, paymentStatus: null, auctionId: null };
-            }
-          }),
-        );
-        if (!cancelled) setItems(enriched);
-      } catch (err) {
-        console.error("WonItemsBanner load failed", err);
-      }
+    async function enrich() {
+      const enriched: WonItemWithDeadline[] = await Promise.all(
+        wonItems.map(async (w) => {
+          try {
+            const auctionId = w.auctionId ?? w.id;
+            const state = await getAuctionState(auctionId);
+            return {
+              ...w,
+              paymentDeadline: state.paymentDeadline,
+              paymentStatus: state.paymentStatus ?? w.paymentStatus ?? null,
+              auctionId,
+            };
+          } catch {
+            return { ...w, paymentDeadline: null, paymentStatus: w.paymentStatus ?? null, auctionId: w.auctionId ?? w.id };
+          }
+        }),
+      );
+      if (!cancelled) setItems(enriched);
     }
-    load();
-    const handle = setInterval(load, 30_000);
+    enrich();
     return () => {
       cancelled = true;
-      clearInterval(handle);
     };
-  }, []);
+  }, [wonItems]);
 
   const awaitingPayment = items.filter(
-    (i) => i.paymentStatus === "AWAITING_PAYMENT" && i.paymentDeadline,
+    (i) => i.status === "pending_payment" || i.paymentStatus === "AWAITING_PAYMENT",
   );
   if (awaitingPayment.length === 0) return null;
 

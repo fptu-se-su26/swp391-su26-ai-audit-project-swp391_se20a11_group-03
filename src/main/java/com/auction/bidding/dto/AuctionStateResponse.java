@@ -25,6 +25,7 @@ public class AuctionStateResponse {
     private Long minNextBid;
     private Long currentHighestBid;
     private Long currentWinnerUserId;
+    private String winnerUsername;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private LocalDateTime paymentDeadline;

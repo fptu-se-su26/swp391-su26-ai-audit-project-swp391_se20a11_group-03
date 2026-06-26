@@ -191,9 +191,11 @@ export default function PostItemPage() {
     });
   };
 
+  const isAdminPoster = Boolean(currentUser?.roleName?.toLowerCase().includes("admin"));
+
   const startTimeError = useMemo(
-    () => startTimeErrorMessage(formData.scheduledStartTime, t),
-    [formData.scheduledStartTime, t]
+    () => (isAdminPoster ? startTimeErrorMessage(formData.scheduledStartTime, t) : null),
+    [formData.scheduledStartTime, t, isAdminPoster]
   );
 
   const canSubmit = useMemo(
@@ -268,30 +270,28 @@ export default function PostItemPage() {
         throw new Error(t("errors.imageUploadFailed", { message: msg }));
       }
 
-      // Step 2: create product.
-      // DTO field is `LocalDateTime` (no zone). Send naive local time string so the
-      // server's `LocalDateTime.now()` comparison is apples-to-apples. The browser
-      // `datetime-local` value is already in the user's local zone with no offset,
-      // so we just pass it through (trim seconds).
-      const scheduledLocal = formData.scheduledStartTime.slice(0, 16); // "YYYY-MM-DDTHH:mm"
-      const durationSeconds =
-        formData.auctionMode === "TIMED"
-          ? formData.scheduledDurationHours * 3600
-          : undefined;
+      // Step 2: create product
+      const payload: Parameters<typeof createProduct>[0] = {
+        productName: formData.productName.trim(),
+        categoryId: Number(formData.categoryId),
+        description: formData.itemDescription.trim(),
+        startingPrice: Number(formData.estimatedValue),
+        images: urls.map((u, i) => ({ imageUrl: u, isPrimary: i === 0 })),
+        attributes: Object.entries(attributeValues)
+          .filter(([, v]) => v.trim() !== "")
+          .map(([id, val]) => ({ attributeId: Number(id), attributeValue: val.trim() })),
+      };
+
+      if (isAdminPoster) {
+        const scheduledLocal = formData.scheduledStartTime.slice(0, 16);
+        payload.auctionMode = formData.auctionMode;
+        payload.scheduledStartTime = scheduledLocal;
+        payload.scheduledDurationSeconds =
+          formData.auctionMode === "TIMED" ? formData.scheduledDurationHours * 3600 : undefined;
+      }
+
       try {
-        await createProduct({
-          productName: formData.productName.trim(),
-          categoryId: Number(formData.categoryId),
-          description: formData.itemDescription.trim(),
-          startingPrice: Number(formData.estimatedValue),
-          auctionMode: formData.auctionMode,
-          scheduledStartTime: scheduledLocal,
-          scheduledDurationSeconds: durationSeconds,
-          images: urls.map((u, i) => ({ imageUrl: u, isPrimary: i === 0 })),
-          attributes: Object.entries(attributeValues)
-            .filter(([, v]) => v.trim() !== "")
-            .map(([id, val]) => ({ attributeId: Number(id), attributeValue: val.trim() })),
-        });
+        await createProduct(payload);
       } catch (createErr) {
         const msg =
           createErr instanceof Error ? createErr.message : "Unknown create-product error";
@@ -513,7 +513,7 @@ export default function PostItemPage() {
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
-                <div className="space-y-xs">
+                <div className="space-y-xs md:col-span-2">
                   <label className="font-label-md text-label-md text-on-surface-variant">
                     {t("startingBidPrice")}
                   </label>
@@ -527,6 +527,16 @@ export default function PostItemPage() {
                     className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none"
                   />
                 </div>
+              </div>
+
+              {!isAdminPoster && (
+                <div className="rounded-lg border border-secondary/30 bg-secondary-container/30 p-md text-sm text-on-secondary-container">
+                  <span className="material-symbols-outlined mr-1 align-middle text-[18px]">schedule</span>
+                  {t("scheduleByAdminNote")}
+                </div>
+              )}
+
+              {isAdminPoster && (
                 <div className="space-y-xs">
                   <label className="font-label-md text-label-md text-on-surface-variant">{t("auctionMode")}</label>
                   <div className="grid grid-cols-2 gap-sm">
@@ -556,7 +566,7 @@ export default function PostItemPage() {
                     </button>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="space-y-xs">
                 <label className="font-label-md text-label-md text-on-surface-variant">
@@ -660,7 +670,8 @@ export default function PostItemPage() {
                 )}
               </div>
 
-              {/* AUCTION SCHEDULE */}
+              {/* AUCTION SCHEDULE — admin only */}
+              {isAdminPoster && (
               <div className="space-y-sm rounded-lg border border-outline-variant bg-surface-container-lowest p-md">
                 <h3 className="font-headline-sm text-headline-sm text-primary">{t("auctionSchedule")}</h3>
                 <p className="text-sm text-on-surface-variant">
@@ -714,6 +725,7 @@ export default function PostItemPage() {
                   )}
                 </div>
               </div>
+              )}
             </div>
 
             {submitError && (

@@ -68,6 +68,9 @@ public class DataSeeder implements CommandLineRunner {
         ensureUser("Bid Test User 1", "user1", "user1@gmail.com", "0912000001", "USERTEST001", userRoleId, "123456", now, true);
         ensureUser("Bid Test User 2", "user2", "user2@gmail.com", "0912000002", "USERTEST002", userRoleId, "123456", now, true);
 
+        // Seller account for posting products: seller1@gmail.com / 123456 (KYC + seller contract pre-seeded)
+        ensureUser("Seller Test 1", "seller1gmail", "seller1@gmail.com", "0913000001", "SELLER1GMAIL01", sellerRoleId, "123456", now, true);
+
         Long sellerId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Username = ?", Long.class, "seller1");
         Long aliceId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Username = ?", Long.class, "alice");
         Long bobId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Username = ?", Long.class, "bob");
@@ -87,6 +90,11 @@ public class DataSeeder implements CommandLineRunner {
         Long bidTestUser2Id = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Email = ?", Long.class, "user2@gmail.com");
         ensureWalletBalance(bidTestUser1Id, 50000000L);
         ensureWalletBalance(bidTestUser2Id, 50000000L);
+
+        Long seller1GmailId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE Email = ?", Long.class, "seller1@gmail.com");
+        ensureWalletBalance(seller1GmailId, 10000000L);
+        ensureSellerContract(seller1GmailId, now);
+        ensureSellerContract(demoSellerId, now);
 
         insertProduct(sellerId, artId, "Vintage Painting", "A beautiful vintage painting.", 1000000L, 100000L, "APPROVED", now);
         insertProduct(sellerId, watchId, "Rolex Classic", "Classic luxury watch.", 5000000L, 200000L, "APPROVED", now);
@@ -905,6 +913,25 @@ public class DataSeeder implements CommandLineRunner {
         jdbcTemplate.update(
                 "INSERT INTO Wallets (UserId, Balance, HoldBalance, UpdatedAt) VALUES (?, ?, ?, ?)",
                 userId, balance, 0L, LocalDateTime.now()
+        );
+    }
+
+    private void ensureSellerContract(Long userId, LocalDateTime now) {
+        if (!hasTable("Contracts")) {
+            return;
+        }
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM Contracts WHERE ContractType = ? AND ReferenceId = ?",
+                Integer.class, "SELLER_AGREEMENT", userId);
+        if (count != null && count > 0) {
+            return;
+        }
+        jdbcTemplate.update(
+                "INSERT INTO Contracts (ContractType, ReferenceId, FileUrl, CreatedAt) VALUES (?, ?, ?, ?)",
+                "SELLER_AGREEMENT",
+                userId,
+                "/uploads/contracts/seller-" + userId + "-seed.pdf",
+                now
         );
     }
 

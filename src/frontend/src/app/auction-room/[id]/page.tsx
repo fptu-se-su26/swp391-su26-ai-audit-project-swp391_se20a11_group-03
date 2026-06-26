@@ -8,6 +8,7 @@ import WatchlistButton from "@/components/features/WatchlistButton";
 import CountdownTimer from "@/components/features/CountdownTimer";
 import BidPanel from "@/components/features/BidPanel";
 import BidHistory from "@/components/features/BidHistory";
+import AuctionResultBanner from "@/components/features/AuctionResultBanner";
 import { getStoredToken } from "@/lib/apiClient";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { computeEffectiveAuctionStatus, getProductImage } from "@/lib/productPresentation";
@@ -50,10 +51,24 @@ export default function AuctionRoomPage() {
     Number(currentUser.userId) === Number(product.sellerId);
 
   const auctionStatus = computeEffectiveAuctionStatus(
-    product?.auction?.status,
-    product?.auction?.startTime,
-    product?.auction?.endTime
+    liveState?.status ?? product?.auction?.status,
+    liveState?.startTime ?? product?.auction?.startTime,
+    liveState?.endTime ?? product?.auction?.endTime
   );
+
+  const effectiveStartTime = liveState?.startTime ?? product?.auction?.startTime ?? null;
+  const effectiveEndTime = liveState?.endTime ?? product?.auction?.endTime ?? null;
+
+  const isAuctionEnded =
+    auctionStatus === "ENDED" ||
+    auctionStatus === "AWAITING_PAYMENT" ||
+    auctionStatus === "PAID" ||
+    auctionStatus === "FORFEITED" ||
+    Boolean(
+      effectiveEndTime &&
+        new Date(effectiveEndTime).getTime() <= Date.now() &&
+        auctionStatus !== "UPCOMING"
+    );
 
   useEffect(() => {
     if (!params.id) return;
@@ -76,14 +91,14 @@ export default function AuctionRoomPage() {
   }, [auctionId]);
 
   useEffect(() => {
-    if (!auctionId || auctionStatus === "ENDED") {
+    if (!auctionId || isAuctionEnded) {
       setEligibility(null);
       return;
     }
     getAuctionEligibility(auctionId)
       .then(setEligibility)
       .catch(() => setEligibility(null));
-  }, [auctionId, auctionStatus]);
+  }, [auctionId, isAuctionEnded]);
 
   const images = useMemo(() => {
     if (product?.imageUrls?.length) {
@@ -96,8 +111,6 @@ export default function AuctionRoomPage() {
   const startingPrice = product?.startingPrice ?? 0;
   const bidStep = product?.stepPrice ?? calculateBidStep(startingPrice);
 
-  const effectiveStartTime = liveState?.startTime ?? product?.auction?.startTime ?? null;
-  const effectiveEndTime = liveState?.endTime ?? product?.auction?.endTime ?? null;
   const countdownTarget =
     effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
       ? effectiveStartTime
@@ -139,36 +152,6 @@ export default function AuctionRoomPage() {
     );
   }
 
-  if (auctionStatus === "ENDED") {
-    return (
-      <main className="min-h-screen bg-surface-container-lowest text-on-surface">
-        <TopNav />
-        <div className="mx-auto max-w-screen-2xl px-margin-mobile py-xl md:px-margin-desktop">
-          <div className="rounded-lg border border-outline-variant bg-surface p-md">
-            <h2 className="font-headline-md text-headline-md text-primary">{t("roomClosedTitle")}</h2>
-            <p className="mt-sm text-on-surface-variant">
-              {t("roomClosedDesc", { productName: product.productName })}
-            </p>
-            <div className="mt-md flex gap-sm">
-              <Link
-                href="/results"
-                className="rounded-md bg-primary px-md py-sm text-on-primary hover:opacity-90"
-              >
-                {t("btnViewResults")}
-              </Link>
-              <Link
-                href={`/auctions/${productId}`}
-                className="rounded-md border border-outline-variant px-md py-sm text-on-surface hover:bg-surface-container-low"
-              >
-                {t("btnProductDetail")}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
   if (auctionStatus === "UPCOMING") {
     return (
       <main className="min-h-screen bg-surface-container-lowest text-on-surface">
@@ -198,15 +181,19 @@ export default function AuctionRoomPage() {
     <main className="min-h-screen bg-surface-container-lowest text-on-surface">
       <TopNav />
 
-      {/* Live banner */}
-      <div className="bg-error-container text-on-error-container">
+      {/* Live / ended banner */}
+      <div className={isAuctionEnded ? "bg-surface-container-high text-on-surface" : "bg-error-container text-on-error-container"}>
         <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-md px-margin-mobile py-xs md:px-margin-desktop">
           <div className="flex items-center gap-sm">
-            <span className="relative flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-on-error-container opacity-75"></span>
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-on-error-container"></span>
+            {!isAuctionEnded && (
+              <span className="relative flex h-3 w-3">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-on-error-container opacity-75"></span>
+                <span className="relative inline-flex h-3 w-3 rounded-full bg-on-error-container"></span>
+              </span>
+            )}
+            <span className="font-label-md text-label-md uppercase tracking-widest">
+              {isAuctionEnded ? "Phiên đấu giá đã kết thúc" : t("liveBanner")}
             </span>
-            <span className="font-label-md text-label-md uppercase tracking-widest">{t("liveBanner")}</span>
           </div>
           <Link
             href={`/auctions/${productId}`}
@@ -261,21 +248,32 @@ export default function AuctionRoomPage() {
               <p className="mt-1 text-[36px] font-bold text-primary">
                 {formatVnd(displayCurrentBid)}
               </p>
-              <div className="mt-sm flex items-center gap-sm">
-                <span className="font-label-sm text-label-sm text-on-surface-variant">
-                  {effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
-                    ? "Bắt đầu sau"
-                    : t("timeRemaining")}
-                </span>
-                <CountdownTimer
-                  key={countdownTarget ?? "no-timer"}
-                  endsAt={countdownTarget}
-                  variant={product.auctionMode === "TIMED" ? "timed" : "live"}
-                />
-              </div>
+              {!isAuctionEnded && (
+                <div className="mt-sm flex items-center gap-sm">
+                  <span className="font-label-sm text-label-sm text-on-surface-variant">
+                    {effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
+                      ? "Bắt đầu sau"
+                      : t("timeRemaining")}
+                  </span>
+                  <CountdownTimer
+                    key={countdownTarget ?? "no-timer"}
+                    endsAt={countdownTarget}
+                    variant={product.auctionMode === "TIMED" ? "timed" : "live"}
+                  />
+                </div>
+              )}
             </div>
 
-            {isSellerOfProduct ? (
+            {isAuctionEnded ? (
+              <AuctionResultBanner
+                productName={product.productName}
+                productId={productId}
+                finalPrice={displayCurrentBid}
+                winnerUsername={liveState?.winnerUsername}
+                winnerUserId={liveState?.currentWinnerUserId}
+                paymentStatus={liveState?.paymentStatus}
+              />
+            ) : isSellerOfProduct ? (
               <div className="rounded-lg border border-tertiary/30 bg-tertiary-container/20 p-md">
                 <p className="font-label-md text-label-md text-primary">{t("sellerBannerTitle")}</p>
                 <p className="mt-xs text-sm text-on-surface-variant">

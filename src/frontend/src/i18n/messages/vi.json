@@ -268,7 +268,19 @@
     "auctionMode": "Chế độ đấu giá",
     "scheduledStart": "Thời gian bắt đầu",
     "duration": "Thời lượng",
-    "rejectionReason": "Lý do từ chối"
+    "rejectionReason": "Lý do từ chối",
+    "awaitingSchedule": "Chờ admin lên lịch",
+    "approveModal": {
+      "title": "Lên lịch đấu giá",
+      "desc": "Chọn khung giờ lên sàn cho \"{name}\".",
+      "liveHint": "3 phút, chống sniper",
+      "timedHint": "6–12 giờ",
+      "durationHint": "Thời lượng phiên TIMED (6–12 giờ).",
+      "confirm": "Duyệt & lên lịch",
+      "startTimeRequired": "Vui lòng chọn thời gian bắt đầu",
+      "startTimeInvalid": "Thời gian không hợp lệ",
+      "startTimeTooSoon": "Thời gian bắt đầu phải cách ít nhất {minutes} phút"
+    }
   },
   "staffKyc": {
     "pageTitle": "Duyệt KYC",
@@ -739,7 +751,7 @@
     "sellerRequiredDesc": "Việc đăng sản phẩm mới chỉ dành cho tài khoản người bán.",
     "goToProfile": "Đến Hồ sơ",
     "submittedTitle": "Sản phẩm đã được gửi để xét duyệt",
-    "submittedDesc": "Sản phẩm của bạn hiện đang ở trạng thái <strong>PENDING_REVIEW</strong>. Nhân viên sẽ xác minh và xác nhận lịch đấu giá trước khi sản phẩm được hiển thị.",
+    "submittedDesc": "Sản phẩm của bạn đang chờ duyệt. Admin sẽ xác minh và <strong>lên lịch đấu giá</strong> trước khi sản phẩm hiển thị trên sàn. Bạn sẽ nhận thông báo khi được duyệt.",
     "backToDashboard": "Quay lại Dashboard",
     "postAnother": "Đăng sản phẩm khác",
     "itemTitle": "Tên sản phẩm",
@@ -764,6 +776,7 @@
     "imageCount": "{count}/{max} ảnh",
     "maxImagesReached": "Đã đủ tối đa {max} ảnh. Xóa ảnh nếu muốn thay thế.",
     "primary": "Chính",
+    "scheduleByAdminNote": "Lịch đấu giá do admin quyết định sau khi duyệt sản phẩm. Bạn sẽ nhận thông báo kèm khung giờ lên sàn.",
     "auctionSchedule": "Lịch đấu giá",
     "auctionScheduleDesc": "Chọn thời điểm sản phẩm sẽ được hiển thị. Nhân viên sẽ xem xét lịch trình trước khi phê duyệt. Thời gian bắt đầu phải cách ít nhất {minutes} phút từ bây giờ.",
     "startTime": "Thời gian bắt đầu",

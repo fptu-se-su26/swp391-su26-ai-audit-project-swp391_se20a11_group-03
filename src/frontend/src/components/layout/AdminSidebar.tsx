@@ -1,124 +1,123 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useTranslations } from "@/i18n/I18nProvider";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { clearStoredAuth } from "@/lib/apiClient";
 import { getStoredUser, getUserDisplayName } from "@/lib/userSession";
+import { ADMIN_HOME } from "@/lib/roleRouting";
+import { ADMIN_NAV_GROUPS, ADMIN_OVERVIEW_HREF } from "@/lib/adminNav";
 
-const NAV_SECTIONS: { title: string; items: { href: string; icon: string; label: string }[] }[] = [
-  {
-    title: "Tổng quan",
-    items: [{ href: "/admin/dashboard", icon: "dashboard", label: "Tổng quan hệ thống" }],
-  },
-  {
-    title: "Vận hành (Staff)",
-    items: [
-      { href: "/post-item", icon: "add_box", label: "Đăng sản phẩm" },
-      { href: "/staff/approvals", icon: "task_alt", label: "Duyệt sản phẩm" },
-      { href: "/staff/kyc-review", icon: "badge", label: "Duyệt KYC" },
-      { href: "/staff/withdrawals", icon: "payments", label: "Duyệt rút tiền" },
-      { href: "/staff/support", icon: "support_agent", label: "Hỗ trợ" },
-    ],
-  },
-  {
-    title: "Kinh doanh",
-    items: [
-      { href: "/admin/sales-history", icon: "receipt_long", label: "Lịch sử mua bán" },
-      { href: "/admin/contracts", icon: "contract", label: "Hợp đồng điện tử" },
-      { href: "/admin/revenue", icon: "trending_up", label: "Thống kê doanh thu" },
-      { href: "/admin/auction-history", icon: "history_edu", label: "Lịch sử đấu giá" },
-    ],
-  },
-  {
-    title: "Quản trị",
-    items: [
-      { href: "/admin/users", icon: "manage_accounts", label: "Vai trò & quyền" },
-      { href: "/admin/categories", icon: "category", label: "Danh mục & thuộc tính" },
-      { href: "/admin/bidding-rules", icon: "gavel", label: "Luật đấu giá" },
-      { href: "/admin/financial-policies", icon: "account_balance", label: "Chính sách tài chính" },
-      { href: "/admin/audit-logs", icon: "fact_check", label: "Nhật ký hệ thống" },
-      { href: "/admin/disputes", icon: "balance", label: "Tranh chấp" },
-      { href: "/admin/notifications", icon: "campaign", label: "Thông báo" },
-      { href: "/admin/reports", icon: "assessment", label: "Xuất báo cáo" },
-    ],
-  },
-];
+function isNavActive(pathname: string, searchParams: URLSearchParams, href: string): boolean {
+  const [path, query] = href.split("?");
+  if (pathname !== path) return false;
+  if (!query) {
+    return !searchParams.get("payment");
+  }
+  const expected = new URLSearchParams(query);
+  for (const [key, value] of expected.entries()) {
+    if (searchParams.get(key) !== value) return false;
+  }
+  return true;
+}
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
-  const t = useTranslations("adminSidebar");
   const adminName = getUserDisplayName(getStoredUser());
+  const onDashboard = pathname === ADMIN_OVERVIEW_HREF || pathname === "/admin";
 
   const handleLogout = () => {
     clearStoredAuth();
-    router.push("/");
+    router.push("/auth");
   };
 
   return (
-    <aside className="h-screen w-80 fixed left-0 top-0 flex flex-col bg-surface-container-low border-r border-outline-variant shadow-sm z-40">
-      <div className="flex flex-col h-full py-lg px-md">
-        {/* Header */}
-        <div className="mb-xl px-sm">
-          <h1 className="font-headline-md text-headline-md font-bold tracking-tight text-primary">{t("appName")}</h1>
-          <p className="font-label-md text-label-md text-on-surface-variant">{t("role")}</p>
+    <aside className="fixed left-0 top-0 z-40 flex h-screen w-[72px] flex-col border-r border-[#1e2d3d] bg-[#071626] text-white xl:w-60">
+      <div className="flex min-h-0 flex-1 flex-col px-2 py-5 xl:px-3">
+        <div className="mb-5 shrink-0 px-1 xl:px-2">
+          <p className="hidden font-bold tracking-tight text-[#d4b56a] xl:block">LuxeAuction</p>
+          <p className="hidden text-[10px] uppercase tracking-widest text-white/50 xl:block">Quản trị</p>
+          <span className="material-symbols-outlined text-[#d4b56a] xl:hidden">admin_panel_settings</span>
         </div>
 
-        {/* Profile */}
-        <Link href="/" className="flex items-center gap-sm rounded-lg px-sm py-xs mb-lg hover:bg-surface-container-high transition-colors">
-          <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center font-bold text-on-primary-container">
-            {adminName.charAt(0).toUpperCase()}
-          </div>
+        <nav className="custom-scrollbar min-h-0 flex-1 space-y-5 overflow-y-auto pr-0.5" aria-label="Admin navigation">
           <div>
-            <span className="font-label-md text-label-md text-on-surface">{adminName}</span>
-            <span className="block text-[10px] text-on-surface-variant uppercase tracking-widest">{t("activeStatus")}</span>
+            <p className="mb-1.5 hidden px-2 text-[9px] font-bold uppercase tracking-[0.18em] text-white/35 xl:block">
+              Tổng quan
+            </p>
+            <Link
+              href={ADMIN_OVERVIEW_HREF}
+              title="Tổng quan hệ thống"
+              className={`flex items-center gap-3 rounded-xl px-2 py-2.5 transition-all xl:px-3 ${
+                onDashboard
+                  ? "bg-[#d4b56a]/20 text-[#f0dfa0]"
+                  : "text-white/60 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              <span
+                className="material-symbols-outlined shrink-0 text-[22px]"
+                style={onDashboard ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              >
+                dashboard
+              </span>
+              <span className="hidden truncate text-sm font-medium xl:inline">Tổng quan</span>
+            </Link>
           </div>
-        </Link>
 
-        {/* Nav */}
-        <nav className="flex-1 flex flex-col gap-md overflow-y-auto custom-scrollbar">
-          {NAV_SECTIONS.map((section) => (
-            <div key={section.title} className="flex flex-col gap-xs">
-              <p className="px-md text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
-                {section.title}
+          {ADMIN_NAV_GROUPS.map((group) => (
+            <div key={group.title}>
+              <p className="mb-1.5 hidden px-2 text-[9px] font-bold uppercase tracking-[0.18em] text-[#d4b56a]/70 xl:block">
+                {group.title}
               </p>
-              {section.items.map((item) => {
-                const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`flex items-center gap-base rounded-lg px-md py-sm transition-all duration-200 ${
-                      active
-                        ? "bg-primary-container text-on-primary-container shadow-sm"
-                        : "text-on-surface-variant hover:text-primary hover:bg-surface-container-high"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined" style={active ? { fontVariationSettings: "'FILL' 1" } : undefined}>
-                      {item.icon}
-                    </span>
-                    <span className="font-label-md text-label-md">{item.label}</span>
-                  </Link>
-                );
-              })}
+              <ul className="space-y-0.5">
+                {group.items.map((item) => {
+                  const active = isNavActive(pathname, searchParams, item.href);
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        title={item.label}
+                        className={`flex items-center gap-3 rounded-xl px-2 py-2 transition-all xl:px-3 ${
+                          active
+                            ? "bg-[#d4b56a]/20 text-[#f0dfa0]"
+                            : "text-white/60 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        <span
+                          className="material-symbols-outlined shrink-0 text-[22px]"
+                          style={active ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                        >
+                          {item.icon}
+                        </span>
+                        <span className="hidden truncate text-sm font-medium xl:inline">{item.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           ))}
         </nav>
 
-        {/* Footer nav */}
-        <div className="mt-lg pt-lg border-t border-outline-variant/30 flex flex-col gap-xs">
-          <a className="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
-            <span className="material-symbols-outlined">settings</span>
-            <span className="font-label-md text-label-md">{t("systemSettings")}</span>
-          </a>
+        <div className="mt-3 shrink-0 space-y-2 border-t border-white/10 pt-4">
+          <div className="hidden items-center gap-2 px-2 xl:flex">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#d4b56a]/30 text-sm font-bold text-[#f0dfa0]">
+              {adminName.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{adminName}</p>
+              <p className="text-[10px] uppercase tracking-wider text-white/40">Administrator</p>
+            </div>
+          </div>
           <button
             type="button"
             onClick={handleLogout}
-            className="flex items-center gap-base text-on-surface-variant hover:text-error hover:bg-error-container/20 transition-all duration-200 px-md py-sm rounded-lg text-left"
+            title="Đăng xuất"
+            className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-white/60 transition-colors hover:bg-error/20 hover:text-error xl:px-3"
           >
-            <span className="material-symbols-outlined">logout</span>
-            <span className="font-label-md text-label-md">{t("logout")}</span>
+            <span className="material-symbols-outlined text-[22px]">logout</span>
+            <span className="hidden text-sm xl:inline">Đăng xuất</span>
           </button>
         </div>
       </div>

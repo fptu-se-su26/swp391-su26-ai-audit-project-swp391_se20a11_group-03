@@ -54,7 +54,7 @@ export default function WonItemsPage() {
     setMessage("");
     setError("");
     try {
-      await payAuction(item.id);
+      await payAuction(item.auctionId ?? item.id);
       setItems((current) =>
         current.map((row) => (row.id === item.id ? { ...row, status: "paid" } : row)),
       );

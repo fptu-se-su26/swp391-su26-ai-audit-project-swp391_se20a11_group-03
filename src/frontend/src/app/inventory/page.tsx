@@ -84,61 +84,24 @@ function EditProductModal({ product, onClose, onSaved, t }: EditProductModalProp
     productName: product.productName,
     description: product.description || "",
     startingPrice: product.startingPrice,
-    auctionMode: "TIMED",
-    scheduledStartTime: "",
-    scheduledDurationHours: 8,
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Initialize start time + duration from product data
-  useEffect(() => {
-    const startTime = product.scheduledStartTime || product.auction?.startTime;
-    if (startTime) {
-      const d = new Date(startTime);
-      const tz = d.getTimezoneOffset() * 60_000;
-      setForm((f) => ({ ...f, scheduledStartTime: new Date(d.getTime() - tz).toISOString().slice(0, 16) }));
-    }
-    if (product.scheduledDurationSeconds) {
-      setForm((f) => ({ ...f, scheduledDurationHours: Math.round(product.scheduledDurationSeconds! / 3600) }));
-    }
-    // We don't currently fetch auctionMode from detail. Default to TIMED.
-  }, [product]);
-
-  const minStartTime = useMemo(() => {
-    const d = new Date(Date.now() + 5 * 60 * 1000);
-    const tz = d.getTimezoneOffset() * 60_000;
-    return new Date(d.getTime() - tz).toISOString().slice(0, 16);
-  }, []);
-
-  const startError = useMemo(() => {
-    if (!form.scheduledStartTime) return null;
-    const d = new Date(form.scheduledStartTime);
-    if (Number.isNaN(d.getTime())) return t("validation.invalidTime");
-    if (d.getTime() < Date.now() + 5 * 60 * 1000) return t("validation.mustBeAtLeastMinutes", { minutes: 5 });
-    return null;
-  }, [form.scheduledStartTime, t]);
 
   const canSave =
     form.productName.trim() !== "" &&
     form.description.trim() !== "" &&
     form.startingPrice > 0 &&
-    !saving &&
-    !startError;
+    !saving;
 
   const handleSave = async () => {
     setSaving(true);
     setError(null);
     try {
-      const scheduledLocal = form.scheduledStartTime.slice(0, 16);
-      const durationSeconds = form.auctionMode === "TIMED" ? form.scheduledDurationHours * 3600 : undefined;
       await updateProduct(product.productId, {
         productName: form.productName.trim(),
         description: form.description.trim(),
         startingPrice: form.startingPrice,
-        auctionMode: form.auctionMode,
-        scheduledStartTime: scheduledLocal,
-        scheduledDurationSeconds: durationSeconds,
       });
       onSaved();
     } catch (e) {
@@ -188,57 +151,15 @@ function EditProductModal({ product, onClose, onSaved, t }: EditProductModalProp
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-md">
-            <div className="space-y-xs">
-              <label className="font-label-md text-label-md text-on-surface-variant">{t("editModal.startingPriceVnd")}</label>
-              <input
-                type="number"
-                min={0}
-                value={form.startingPrice}
-                onChange={(e) => setForm({ ...form, startingPrice: Number(e.target.value) })}
-                className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none"
-              />
-            </div>
-            <div className="space-y-xs">
-              <label className="font-label-md text-label-md text-on-surface-variant">{t("editModal.auctionMode")}</label>
-              <select
-                value={form.auctionMode}
-                onChange={(e) => setForm({ ...form, auctionMode: e.target.value })}
-                className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none appearance-none"
-              >
-                <option value="TIMED">{t("editModal.timedOption")}</option>
-                <option value="LIVE">{t("editModal.liveOption")}</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-md">
-            <div className="space-y-xs">
-              <label className="font-label-md text-label-md text-on-surface-variant">{t("editModal.startTime")}</label>
-              <input
-                type="datetime-local"
-                value={form.scheduledStartTime}
-                min={minStartTime}
-                onChange={(e) => setForm({ ...form, scheduledStartTime: e.target.value })}
-                className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none"
-              />
-              {startError && (
-                <p className="text-xs text-error">{startError}</p>
-              )}
-            </div>
-            {form.auctionMode === "TIMED" && (
-              <div className="space-y-xs">
-                <label className="font-label-md text-label-md text-on-surface-variant">{t("editModal.durationHours")}</label>
-                <input
-                  type="number"
-                  min={6}
-                  max={12}
-                  value={form.scheduledDurationHours}
-                  onChange={(e) => setForm({ ...form, scheduledDurationHours: Number(e.target.value) })}
-                  className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none"
-                />
-              </div>
-            )}
+          <div className="space-y-xs">
+            <label className="font-label-md text-label-md text-on-surface-variant">{t("editModal.startingPriceVnd")}</label>
+            <input
+              type="number"
+              min={0}
+              value={form.startingPrice}
+              onChange={(e) => setForm({ ...form, startingPrice: Number(e.target.value) })}
+              className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none"
+            />
           </div>
 
           <div className="rounded-md bg-secondary-container p-sm text-sm text-on-secondary-container">

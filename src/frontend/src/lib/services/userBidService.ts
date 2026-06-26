@@ -2,24 +2,30 @@ import { apiClient, getStoredToken } from "@/lib/apiClient";
 
 export type BidInfo = {
   bidId: number;
+  auctionId?: number;
   productId: number;
   productName: string;
   lotNumber: string;
   image: string;
   currentBid: number;
+  userHighestBid?: number | null;
+  startingPrice?: number;
+  paymentStatus?: string | null;
   timeLeft: string;
   status: "leading" | "outbid" | "won" | "lost" | "deposited";
-  auctionEndTime: string;
+  auctionEndTime?: string;
 };
 
 export type WonItem = {
   id: number;
+  auctionId?: number;
   productId: number;
   productName: string;
   lotNumber: string;
   image: string;
   finalPrice: number;
   wonDate: string;
+  paymentStatus?: string | null;
   status: "pending_payment" | "paid" | "shipped" | "delivered";
 };
 

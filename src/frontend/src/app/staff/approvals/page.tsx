@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import StaffShell from "@/components/layout/StaffShell";
 import { apiClient } from "@/lib/apiClient";
 import { useTranslations } from "@/i18n/I18nProvider";
@@ -72,6 +72,153 @@ function formatDuration(seconds: number): string {
   if (d > 0) return `${d}d ${h % 24}h`;
   if (h > 0) return `${h}h`;
   return `${Math.floor(seconds / 60)}m`;
+}
+
+const MIN_START_LEAD_MINUTES = 5;
+
+function defaultApproveStartLocal(): string {
+  const d = new Date(Date.now() + 10 * 60 * 1000);
+  d.setMinutes(Math.ceil(d.getMinutes() / 5) * 5, 0, 0);
+  const tz = d.getTimezoneOffset() * 60_000;
+  return new Date(d.getTime() - tz).toISOString().slice(0, 16);
+}
+
+function minApproveStartLocal(): string {
+  const d = new Date(Date.now() + MIN_START_LEAD_MINUTES * 60 * 1000);
+  const tz = d.getTimezoneOffset() * 60_000;
+  return new Date(d.getTime() - tz).toISOString().slice(0, 16);
+}
+
+type ApproveSchedule = {
+  auctionMode: "LIVE" | "TIMED";
+  scheduledStartTime: string;
+  scheduledDurationHours: number;
+};
+
+function ApproveScheduleModal({
+  product,
+  onClose,
+  onConfirm,
+  processing,
+  t,
+}: {
+  product: Product;
+  onClose: () => void;
+  onConfirm: (schedule: ApproveSchedule) => void;
+  processing: boolean;
+  t: (key: string, values?: Record<string, string | number>) => string;
+}) {
+  const [auctionMode, setAuctionMode] = useState<"LIVE" | "TIMED">("TIMED");
+  const [scheduledStartTime, setScheduledStartTime] = useState(defaultApproveStartLocal());
+  const [scheduledDurationHours, setScheduledDurationHours] = useState(8);
+
+  const startError = useMemo(() => {
+    if (!scheduledStartTime) return t("approveModal.startTimeRequired");
+    const picked = new Date(scheduledStartTime);
+    if (Number.isNaN(picked.getTime())) return t("approveModal.startTimeInvalid");
+    if (picked.getTime() < Date.now() + MIN_START_LEAD_MINUTES * 60 * 1000) {
+      return t("approveModal.startTimeTooSoon", { minutes: MIN_START_LEAD_MINUTES });
+    }
+    return null;
+  }, [scheduledStartTime, t]);
+
+  const canConfirm = !processing && !startError;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-surface-variant bg-surface p-md">
+          <h2 className="font-headline-md text-headline-md text-primary">{t("approveModal.title")}</h2>
+          <button type="button" onClick={onClose} className="rounded-full p-2 hover:bg-surface-variant">
+            <span className="material-symbols-outlined text-on-surface">close</span>
+          </button>
+        </div>
+
+        <div className="space-y-md p-lg">
+          <p className="text-sm text-on-surface-variant">
+            {t("approveModal.desc", { name: product.productName })}
+          </p>
+
+          <div className="space-y-xs">
+            <label className="font-label-md text-label-md text-on-surface-variant">{t("auctionMode")}</label>
+            <div className="grid grid-cols-2 gap-sm">
+              {(["LIVE", "TIMED"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setAuctionMode(mode)}
+                  className={`rounded-lg border px-md py-sm text-left transition-colors ${
+                    auctionMode === mode
+                      ? "border-primary bg-primary-container text-on-primary-container"
+                      : "border-outline-variant bg-surface-container-low hover:border-primary"
+                  }`}
+                >
+                  <span className="block font-label-md text-label-md">{mode}</span>
+                  <span className="text-xs text-on-surface-variant">
+                    {mode === "LIVE" ? t("approveModal.liveHint") : t("approveModal.timedHint")}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-xs">
+            <label className="font-label-md text-label-md text-on-surface-variant">{t("scheduledStart")}</label>
+            <input
+              type="datetime-local"
+              value={scheduledStartTime}
+              min={minApproveStartLocal()}
+              onChange={(e) => setScheduledStartTime(e.target.value)}
+              className="w-full rounded-lg border border-outline-variant bg-surface-container-low p-3 text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+            {startError && <p className="text-xs text-error">{startError}</p>}
+          </div>
+
+          {auctionMode === "TIMED" && (
+            <div className="space-y-xs">
+              <label className="font-label-md text-label-md text-on-surface-variant">{t("duration")}</label>
+              <input
+                type="number"
+                min={6}
+                max={12}
+                value={scheduledDurationHours}
+                onChange={(e) => setScheduledDurationHours(Number(e.target.value))}
+                className="w-full rounded-lg border border-outline-variant bg-surface-container-low p-3 text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+              <p className="text-xs text-on-surface-variant">{t("approveModal.durationHint")}</p>
+            </div>
+          )}
+        </div>
+
+        <div className="sticky bottom-0 flex justify-end gap-sm border-t border-surface-variant bg-surface p-md">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-outline-variant px-md py-sm font-label-md text-label-md text-on-surface hover:bg-surface-variant"
+          >
+            {t("cancel")}
+          </button>
+          <button
+            type="button"
+            disabled={!canConfirm}
+            onClick={() =>
+              onConfirm({
+                auctionMode,
+                scheduledStartTime: scheduledStartTime.slice(0, 16),
+                scheduledDurationHours,
+              })
+            }
+            className="rounded-lg bg-tertiary-fixed px-md py-sm font-label-md text-label-md text-on-tertiary-fixed-variant hover:opacity-90 disabled:opacity-50"
+          >
+            {processing ? "..." : t("approveModal.confirm")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function ProductDetailModal({ product, onClose, t }: { product: Product; onClose: () => void; t: (key: string) => string }) {
@@ -213,6 +360,7 @@ export default function ApprovalsPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [rejectNote, setRejectNote] = useState<Record<number, string>>({});
   const [rejectingId, setRejectingId] = useState<number | null>(null);
+  const [approvingProduct, setApprovingProduct] = useState<Product | null>(null);
   const [selectedTab, setSelectedTab] = useState<Status | "ALL">("PENDING");
 
   const fetchProducts = useCallback(async () => {
@@ -230,18 +378,34 @@ export default function ApprovalsPage() {
     fetchProducts();
   }, [fetchProducts]);
 
-  const updateStatus = async (productId: number, newStatus: "APPROVED" | "REJECTED", note?: string) => {
+  const updateStatus = async (
+    productId: number,
+    newStatus: "APPROVED" | "REJECTED",
+    note?: string,
+    schedule?: ApproveSchedule,
+  ) => {
     setProcessing(productId);
     try {
-      const body = newStatus === "REJECTED" && note ? { reason: note } : {};
+      let body: Record<string, unknown> = {};
+      if (newStatus === "APPROVED" && schedule) {
+        body = {
+          auctionMode: schedule.auctionMode,
+          scheduledStartTime: schedule.scheduledStartTime,
+          scheduledDurationSeconds:
+            schedule.auctionMode === "TIMED" ? schedule.scheduledDurationHours * 3600 : undefined,
+        };
+      } else if (newStatus === "REJECTED" && note) {
+        body = { reason: note };
+      }
       const endpoint = newStatus === "APPROVED"
         ? `/admin/products/${productId}/approve`
         : `/admin/products/${productId}/reject`;
       await apiClient(endpoint, {
         method: "POST",
-        body: body as Record<string, unknown>,
+        body,
       });
       await fetchProducts();
+      setApprovingProduct(null);
     } catch {
       alert(t("updateError"));
     } finally {
@@ -398,6 +562,8 @@ export default function ApprovalsPage() {
                                 <p className="text-on-surface-variant">{formatDuration(item.scheduledDurationSeconds)}</p>
                               )}
                             </div>
+                          ) : item.status === "PENDING" ? (
+                            <span className="text-xs italic text-on-surface-variant">{t("awaitingSchedule")}</span>
                           ) : (
                             <span className="text-xs text-on-surface-variant">—</span>
                           )}
@@ -423,7 +589,7 @@ export default function ApprovalsPage() {
                           {item.status === "PENDING" && !isRejectingThis && (
                             <div className="flex gap-xs">
                               <button
-                                onClick={() => updateStatus(item.productId, "APPROVED")}
+                                onClick={() => setApprovingProduct(item)}
                                 disabled={isProcessing}
                                 className="flex-1 px-2 py-1.5 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-[10px] uppercase font-bold hover:opacity-80 transition-opacity disabled:opacity-50"
                               >
@@ -492,6 +658,16 @@ export default function ApprovalsPage() {
       {/* Product Detail Modal */}
       {selectedProduct && (
         <ProductDetailModal product={selectedProduct} onClose={() => setSelectedProduct(null)} t={t} />
+      )}
+
+      {approvingProduct && (
+        <ApproveScheduleModal
+          product={approvingProduct}
+          onClose={() => setApprovingProduct(null)}
+          onConfirm={(schedule) => updateStatus(approvingProduct.productId, "APPROVED", undefined, schedule)}
+          processing={processing === approvingProduct.productId}
+          t={t}
+        />
       )}
     </StaffShell>
   );

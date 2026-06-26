@@ -3,7 +3,8 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { googleLogin, login, register, selectRole } from "@/lib/services/authService";
-import { saveStoredUser, StoredUser } from "@/lib/userSession";
+import { saveStoredUser, StoredUser, getStoredUser, isAdmin } from "@/lib/userSession";
+import { ADMIN_HOME } from "@/lib/roleRouting";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { DEMO_MODE } from "@/lib/demoMode";
 
@@ -57,6 +58,13 @@ export default function AuthPage() {
       setMode("signup");
     }
   }, []);
+
+  useEffect(() => {
+    const user = getStoredUser();
+    if (user && isAdmin(user)) {
+      router.replace(ADMIN_HOME);
+    }
+  }, [router]);
 
   async function handleGoogleCredential(credential: string) {
     setErrorMessage("");

@@ -2,12 +2,16 @@ package com.auction.admin.controller;
 
 import com.auction.account.dao.UserRepository;
 import com.auction.account.entity.User;
+import com.auction.admin.dto.AuctionOverviewDTO;
+import com.auction.admin.dto.AuctionOverviewItemDTO;
+import com.auction.admin.dto.AuctionSessionHistoryDTO;
 import com.auction.admin.dto.ContractRowDTO;
 import com.auction.admin.dto.DailyRevenueDTO;
 import com.auction.admin.dto.DashboardSummaryDTO;
 import com.auction.admin.dto.SalesHistoryDTO;
 import com.auction.bidding.entity.Auction;
 import com.auction.bidding.repository.AuctionRepository;
+import com.auction.bidding.repository.BidRepository;
 import com.auction.common.dto.ApiResponse;
 import com.auction.product.entity.Contract;
 import com.auction.product.entity.Product;
@@ -25,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -54,6 +59,7 @@ public class AdminDashboardController {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final AuctionRepository auctionRepository;
+    private final BidRepository bidRepository;
     private final TransactionRepository transactionRepository;
     private final WalletRepository walletRepository;
     private final ContractRepository contractRepository;
@@ -94,6 +100,52 @@ public class AdminDashboardController {
         return ResponseEntity.ok(ApiResponse.success(summary));
     }
 
+    /** Live snapshot of auction sessions for the admin dashboard. */
+    @GetMapping("/auction-overview")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<AuctionOverviewDTO>> getAuctionOverview() {
+        LocalDateTime now = LocalDateTime.now();
+        List<AuctionOverviewItemDTO> active = new ArrayList<>();
+        List<AuctionOverviewItemDTO> upcoming = new ArrayList<>();
+        List<AuctionOverviewItemDTO> awaitingPayment = new ArrayList<>();
+        long endedCount = 0;
+
+        for (Auction auction : auctionRepository.findAll()) {
+            if (isAwaitingPayment(auction)) {
+                awaitingPayment.add(toOverviewItem(auction));
+                continue;
+            }
+            if (isActiveAuction(auction, now)) {
+                active.add(toOverviewItem(auction));
+                continue;
+            }
+            if (isUpcomingAuction(auction, now)) {
+                upcoming.add(toOverviewItem(auction));
+                continue;
+            }
+            if (isEndedAuction(auction, now)) {
+                endedCount++;
+            }
+        }
+
+        active.sort(Comparator.comparing(AuctionOverviewItemDTO::getEndTime, Comparator.nullsLast(String::compareTo)));
+        upcoming.sort(Comparator.comparing(AuctionOverviewItemDTO::getStartTime, Comparator.nullsLast(String::compareTo)));
+        awaitingPayment.sort(Comparator.comparing(AuctionOverviewItemDTO::getEndTime, Comparator.nullsLast(Comparator.reverseOrder())));
+
+        long total = auctionRepository.count();
+        AuctionOverviewDTO overview = AuctionOverviewDTO.builder()
+                .activeCount(active.size())
+                .upcomingCount(upcoming.size())
+                .awaitingPaymentCount(awaitingPayment.size())
+                .endedCount(endedCount)
+                .totalCount(total)
+                .activeSessions(active.stream().limit(8).toList())
+                .upcomingSessions(upcoming.stream().limit(6).toList())
+                .awaitingPaymentSessions(awaitingPayment.stream().limit(6).toList())
+                .build();
+        return ResponseEntity.ok(ApiResponse.success(overview));
+    }
+
     @GetMapping("/revenue")
     public ResponseEntity<ApiResponse<List<DailyRevenueDTO>>> getRevenue(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -122,6 +174,24 @@ public class AdminDashboardController {
             long[] agg = buckets.computeIfAbsent(key, k -> new long[2]);
             agg[0] += t.getAmount() == null ? 0L : t.getAmount();
             agg[1] += 1;
+        }
+
+        if (from != null && to != null && !from.isAfter(to)) {
+            if (byMonth) {
+                YearMonth cursor = YearMonth.from(from);
+                YearMonth end = YearMonth.from(to);
+                while (!cursor.isAfter(end)) {
+                    String key = String.format("%04d-%02d", cursor.getYear(), cursor.getMonthValue());
+                    buckets.computeIfAbsent(key, k -> new long[2]);
+                    cursor = cursor.plusMonths(1);
+                }
+            } else {
+                LocalDate cursor = from;
+                while (!cursor.isAfter(to)) {
+                    buckets.computeIfAbsent(cursor.toString(), k -> new long[2]);
+                    cursor = cursor.plusDays(1);
+                }
+            }
         }
 
         List<DailyRevenueDTO> result = new ArrayList<>();
@@ -169,6 +239,64 @@ public class AdminDashboardController {
                     .build());
         }
         rows.sort(Comparator.comparing(SalesHistoryDTO::getPaidAt,
+                Comparator.nullsLast(Comparator.reverseOrder())));
+        return ResponseEntity.ok(ApiResponse.success(rows));
+    }
+
+    /**
+     * Ended auction sessions with payment breakdown.
+     * payment=PAID | UNPAID | ALL (default ALL).
+     */
+    @GetMapping("/auction-sessions")
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<List<AuctionSessionHistoryDTO>>> getAuctionSessions(
+            @RequestParam(required = false, defaultValue = "ALL") String payment,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        LocalDateTime fromDt = from != null ? from.atStartOfDay() : null;
+        LocalDateTime toDt = to != null ? to.plusDays(1).atStartOfDay() : null;
+        String paymentFilter = payment == null ? "ALL" : payment.toUpperCase();
+
+        List<AuctionSessionHistoryDTO> rows = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+        for (Auction auction : auctionRepository.findAll()) {
+            if (!isEndedAuction(auction, now)) {
+                continue;
+            }
+            LocalDateTime endRef = auction.getEndTime() != null ? auction.getEndTime() : auction.getSettledAt();
+            if (fromDt != null && endRef != null && endRef.isBefore(fromDt)) continue;
+            if (toDt != null && endRef != null && !endRef.isBefore(toDt)) continue;
+
+            boolean paid = isPaidAuction(auction);
+            boolean unpaid = hasWinner(auction) && !paid;
+            String category = paid ? "PAID" : (unpaid ? "UNPAID" : "NO_WINNER");
+
+            if ("PAID".equals(paymentFilter) && !paid) continue;
+            if ("UNPAID".equals(paymentFilter) && !unpaid) continue;
+
+            Product product = auction.getProduct();
+            long finalPrice = auction.getCurrentHighestBid() == null ? 0L : auction.getCurrentHighestBid();
+            String buyerName = auction.getCurrentWinnerUser() != null
+                    ? displayName(auction.getCurrentWinnerUser())
+                    : "—";
+            LocalDateTime paidAt = auction.getSettledAt() != null ? auction.getSettledAt() : null;
+
+            rows.add(AuctionSessionHistoryDTO.builder()
+                    .auctionId(auction.getAuctionId())
+                    .productId(product != null ? product.getProductId() : null)
+                    .productName(product != null ? product.getProductName() : "—")
+                    .sellerName(product != null ? userName(product.getSellerId()) : "—")
+                    .buyerName(buyerName)
+                    .finalPrice(finalPrice)
+                    .auctionStatus(auction.getStatus())
+                    .paymentStatus(auction.getPaymentStatus())
+                    .paymentCategory(category)
+                    .endTime(auction.getEndTime() == null ? null : auction.getEndTime().toString())
+                    .paidAt(paidAt == null ? null : paidAt.toString())
+                    .paymentDeadline(auction.getPaymentDeadline() == null ? null : auction.getPaymentDeadline().toString())
+                    .build());
+        }
+        rows.sort(Comparator.comparing(AuctionSessionHistoryDTO::getEndTime,
                 Comparator.nullsLast(Comparator.reverseOrder())));
         return ResponseEntity.ok(ApiResponse.success(rows));
     }
@@ -257,5 +385,65 @@ public class AdminDashboardController {
         return userRepository.findById(Math.toIntExact(sellerId))
                 .map(u -> u.getRole() != null && "Admin".equalsIgnoreCase(u.getRole().getRoleName()))
                 .orElse(false);
+    }
+
+    private boolean isPaidAuction(Auction auction) {
+        return "PAID".equalsIgnoreCase(auction.getStatus())
+                || "PAID".equalsIgnoreCase(auction.getPaymentStatus());
+    }
+
+    private boolean hasWinner(Auction auction) {
+        return auction.getCurrentWinnerUser() != null;
+    }
+
+    private boolean isEndedAuction(Auction auction, LocalDateTime now) {
+        String status = auction.getStatus() != null ? auction.getStatus().toUpperCase() : "";
+        if ("PAID".equals(status) || "FORFEITED".equals(status)
+                || "AWAITING_PAYMENT".equals(status) || "ENDED".equals(status)) {
+            return true;
+        }
+        return auction.getEndTime() != null && !auction.getEndTime().isAfter(now);
+    }
+
+    private boolean isActiveAuction(Auction auction, LocalDateTime now) {
+        if (isAwaitingPayment(auction) || isEndedAuction(auction, now)) {
+            return false;
+        }
+        if (auction.getStartTime() != null && auction.getEndTime() != null) {
+            return !now.isBefore(auction.getStartTime()) && now.isBefore(auction.getEndTime());
+        }
+        return "ACTIVE".equalsIgnoreCase(auction.getStatus());
+    }
+
+    private boolean isUpcomingAuction(Auction auction, LocalDateTime now) {
+        if (isAwaitingPayment(auction) || isEndedAuction(auction, now) || isActiveAuction(auction, now)) {
+            return false;
+        }
+        if (auction.getStartTime() != null && now.isBefore(auction.getStartTime())) {
+            return true;
+        }
+        return "UPCOMING".equalsIgnoreCase(auction.getStatus());
+    }
+
+    private boolean isAwaitingPayment(Auction auction) {
+        return "AWAITING_PAYMENT".equalsIgnoreCase(auction.getStatus())
+                || "AWAITING_PAYMENT".equalsIgnoreCase(auction.getPaymentStatus());
+    }
+
+    private AuctionOverviewItemDTO toOverviewItem(Auction auction) {
+        Product product = auction.getProduct();
+        long bidCount = bidRepository.findByAuctionIdOrderByBidAmountDesc(auction.getAuctionId()).size();
+        return AuctionOverviewItemDTO.builder()
+                .auctionId(auction.getAuctionId())
+                .productId(product != null ? product.getProductId() : null)
+                .productName(product != null ? product.getProductName() : "—")
+                .sellerName(product != null ? userName(product.getSellerId()) : "—")
+                .status(auction.getStatus())
+                .paymentStatus(auction.getPaymentStatus())
+                .currentBid(auction.getCurrentHighestBid() == null ? 0L : auction.getCurrentHighestBid())
+                .startTime(auction.getStartTime() == null ? null : auction.getStartTime().toString())
+                .endTime(auction.getEndTime() == null ? null : auction.getEndTime().toString())
+                .totalBids(bidCount)
+                .build();
     }
 }

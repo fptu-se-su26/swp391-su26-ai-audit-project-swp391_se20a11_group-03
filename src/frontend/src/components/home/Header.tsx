@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { getStoredUser, getUserInitials, StoredUser } from "@/lib/userSession";
+import { getStoredUser, getUserInitials, StoredUser, isAdmin } from "@/lib/userSession";
+import { ADMIN_HOME } from "@/lib/roleRouting";
 import LanguageSwitcher from "@/components/features/LanguageSwitcher";
 import { useLuxuryHomeCopy } from "./useLuxuryHomeCopy";
 
@@ -57,7 +58,7 @@ export default function Header() {
             <span className="material-symbols-outlined text-[21px]">notifications</span>
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-[#b3342d]" />
           </button>
-          <Link href={user ? "/dashboard" : "/auth"} className="ml-1 grid h-10 w-10 place-items-center rounded-full border border-[#c9b175] bg-[#071626] text-xs font-bold text-[#f3d791] shadow-sm" aria-label={user ? "Open account" : "Sign in"}>
+          <Link href={user ? (isAdmin(user) ? ADMIN_HOME : "/dashboard") : "/auth"} className="ml-1 grid h-10 w-10 place-items-center rounded-full border border-[#c9b175] bg-[#071626] text-xs font-bold text-[#f3d791] shadow-sm" aria-label={user ? "Open account" : "Sign in"}>
             {user ? getUserInitials(user) : <span className="material-symbols-outlined text-[20px]">person</span>}
           </Link>
           <button onClick={() => setMenuOpen(!menuOpen)} className="ml-1 grid h-10 w-10 place-items-center rounded-full text-[#071626] lg:hidden" aria-expanded={menuOpen} aria-label="Toggle menu">

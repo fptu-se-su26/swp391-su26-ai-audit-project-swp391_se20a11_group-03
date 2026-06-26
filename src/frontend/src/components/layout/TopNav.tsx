@@ -14,7 +14,9 @@ import {
   notifyStoredUserChanged,
   subscribeStoredUser,
   isSeller,
+  isAdmin,
 } from "@/lib/userSession";
+import { ADMIN_HOME } from "@/lib/roleRouting";
 import { getUnreadCount, markAsRead, markAllAsRead, AppNotification } from "@/lib/services/notificationService";
 import LanguageSwitcher from "@/components/features/LanguageSwitcher";
 import { useI18n, useTranslations } from "@/i18n/I18nProvider";
@@ -178,7 +180,7 @@ export default function TopNav() {
     // Navigate based on reference type
     if (notif.referenceType === "PRODUCT" && notif.referenceId) {
       setNotifOpen(false);
-      router.push(`/auctions/${notif.referenceId}`);
+      router.push("/inventory");
     }
   };
 
@@ -328,7 +330,13 @@ export default function TopNav() {
                 )}
               </Link>
               <Link
-                href={currentUser.roleName?.toLowerCase().includes("staff") ? "/staff/withdrawals" : "/dashboard"}
+                href={
+                  isAdmin(currentUser)
+                    ? ADMIN_HOME
+                    : currentUser.roleName?.toLowerCase().includes("staff")
+                      ? "/staff/withdrawals"
+                      : "/dashboard"
+                }
                 className="ml-2 flex items-center gap-xs rounded-full border border-outline-variant/30 bg-surface-container-low px-2 py-1 transition-colors hover:bg-surface-container"
               >
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container text-sm font-bold uppercase text-on-primary-container">
