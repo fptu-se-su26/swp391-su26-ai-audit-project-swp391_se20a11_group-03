@@ -170,9 +170,14 @@ export default function KYCReviewPage() {
                   >
                     <div className="mb-xs flex items-start justify-between gap-xs">
                       <span className="font-label-md text-primary">{sub.fullName}</span>
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${cfg.class}`}>
-                        {t(cfg.labelKey)}
-                      </span>
+                      <div className="flex shrink-0 items-center gap-1">
+                        {sub.cccdDuplicate && (
+                          <span className="material-symbols-outlined text-[16px] text-error" title={t("duplicateAlertTitle")}>warning</span>
+                        )}
+                        <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${cfg.class}`}>
+                          {t(cfg.labelKey)}
+                        </span>
+                      </div>
                     </div>
                     <p className="truncate text-xs text-on-surface-variant">{sub.email}</p>
                     <p className="mt-1 text-[11px] text-on-surface-variant">
@@ -213,6 +218,27 @@ export default function KYCReviewPage() {
                 <InfoRow label={t("gender")} value={active.gender} />
                 <InfoRow label={`${t("issueDate")} / ${t("issuePlace")}`} value={`${active.issueDate} · ${active.issuePlace}`} />
               </div>
+
+              {active.cccdDuplicate && active.cccdDuplicates && active.cccdDuplicates.length > 0 && (
+                <div className="rounded-lg border-2 border-error bg-error-container/50 px-md py-sm text-on-error-container">
+                  <p className="flex items-center gap-xs font-label-md text-label-md">
+                    <span className="material-symbols-outlined text-[20px]">warning</span>
+                    {t("duplicateAlertTitle")}
+                  </p>
+                  <p className="mt-xs font-body-sm text-body-sm">{t("duplicateAlertBody")}</p>
+                  <ul className="mt-sm list-disc space-y-1 pl-5 font-body-sm text-body-sm">
+                    {active.cccdDuplicates.map((dup) => (
+                      <li key={dup.userId}>
+                        {t("duplicateAccountLine", {
+                          name: dup.fullName || "—",
+                          email: dup.email,
+                          status: dup.kycStatus,
+                        })}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 gap-md md:grid-cols-3">
                 <PhotoPreview title={t("front")} src={active.frontImageUrl} analysis={active.frontImageAnalysis} />

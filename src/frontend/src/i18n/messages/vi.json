@@ -323,7 +323,10 @@
     "front": "Mặt trước",
     "back": "Mặt sau",
     "selfie": "Selfie",
-    "previousNote": "Ghi chú duyệt trước"
+    "previousNote": "Ghi chú duyệt trước",
+    "duplicateAlertTitle": "Cảnh báo trùng số CCCD",
+    "duplicateAlertBody": "Số CCCD này đã được liên kết với tài khoản khác. Hãy xác minh kỹ trước khi duyệt.",
+    "duplicateAccountLine": "{name} ({email}) — {status}"
   },
   "staffWithdrawals": {
     "pageTitle": "Duyệt rút tiền",
@@ -499,7 +502,7 @@
   },
   "kyc": {
     "pageTitle": "Xác minh KYC",
-    "pageSubtitle": "Gửi CCCD/CMND để mở khoá khả năng đặt giá trên LuxeAuction.",
+    "pageSubtitle": "Tải ảnh CCCD mặt trước & mặt sau — AI tự động điền thông tin, bạn chỉ cần kiểm tra và gửi.",
     "signedOutTitle": "Đăng nhập để xác minh danh tính",
     "signedOutDesc": "Hồ sơ KYC gắn liền với tài khoản của bạn để nhân viên có thể xét duyệt an toàn.",
     "signedOutCta": "Đăng nhập",
@@ -510,6 +513,13 @@
     "pendingSubmittedOn": "Gửi ngày {date}. Bạn có thể gửi lại nếu cần cập nhật.",
     "pendingDash": "—",
     "sectionPersonal": "Thông tin cá nhân",
+    "sectionReview": "Kiểm tra thông tin",
+    "sectionReviewHint": "AI đã trích xuất từ CCCD. Vui lòng đối chiếu và sửa nếu cần trước khi gửi.",
+    "ocrFlowHint": "Bước 1: Tải ảnh mặt trước và mặt sau CCCD (rõ nét, đủ 4 góc). AI sẽ tự điền thông tin bên dưới.",
+    "ocrScanning": "AI đang nhận dạng CCCD...",
+    "duplicateWarningTitle": "Cảnh báo: Số CCCD này đã tồn tại trên hệ thống",
+    "duplicateWarningHint": "Bạn vẫn có thể gửi hồ sơ. Nhân viên sẽ xem xét và quyết định có duyệt hay không.",
+    "duplicateStatus": "Trạng thái: {status}",
     "fieldFullName": "Họ và tên",
     "fieldPhone": "Số điện thoại",
     "fieldIdNumber": "Số CMND/CCCD",
@@ -523,6 +533,7 @@
     "fieldIssuePlacePlaceholder": "VD: Cục Cảnh sát QLHC về TTXH",
     "sectionPhotos": "Ảnh giấy tờ",
     "previousUploads": "Ảnh bạn đã gửi trước đó (sẽ được thay thế khi bạn upload ảnh mới bên dưới)",
+    "submittedPhotos": "Ảnh đã gửi",
     "frontPhoto": "Mặt trước",
     "backPhoto": "Mặt sau",
     "selfiePhoto": "Selfie",
@@ -544,8 +555,29 @@
     "errors": {
       "loadFailed": "Không tải được hồ sơ KYC.",
       "missingPhotos": "Vui lòng tải lên cả 3 ảnh giấy tờ (mặt trước, mặt sau, selfie).",
+      "ocrFailed": "Không thể nhận dạng CCCD. Vui lòng thử ảnh khác hoặc điền thủ công.",
       "submissionFailed": "Gửi thất bại.",
       "submitted": "Đã gửi KYC. Chúng tôi sẽ thông báo khi nhân viên xét duyệt xong."
+    },
+    "sellerContract": {
+      "title": "Hợp đồng nền tảng dành cho người bán",
+      "subtitle": "Chỉ tài khoản Seller cần ký. Hợp đồng có hiệu lực sau khi staff/admin duyệt KYC.",
+      "termsTitle": "ĐIỀU KHOẢN HỢP ĐỒNG NGƯỜI BÁN",
+      "term1": "1. Người bán đồng ý niêm yết và bán sản phẩm qua nền tảng đấu giá.",
+      "term2": "2. Phí dịch vụ nền tảng là 20% trên giá chốt của mỗi phiên đấu giá thành công; 80% còn lại được chuyển cho người bán.",
+      "term3": "3. Người bán tự kê khai và nộp thuế TNCN theo quy định pháp luật.",
+      "term4": "4. Người bán cam kết thông tin định danh (KYC) là chính xác và sản phẩm hợp pháp.",
+      "term5": "5. Hợp đồng có hiệu lực sau khi người bán ký và được staff/admin duyệt KYC thành công.",
+      "agreeLabel": "Tôi đã đọc, hiểu và đồng ý các điều khoản hợp đồng nền tảng dành cho người bán.",
+      "signButton": "Ký hợp đồng điện tử",
+      "signing": "Đang ký...",
+      "signHint": "Bạn phải bấm nút ký trước khi gửi hồ sơ xác minh.",
+      "signed": "Bạn đã ký hợp đồng điện tử.",
+      "viewPdf": "Xem hợp đồng (PDF)",
+      "agreeRequired": "Vui lòng tick đồng ý điều khoản trước khi ký.",
+      "signBeforeSubmit": "Vui lòng ký hợp đồng điện tử trước khi gửi xác minh.",
+      "signSuccess": "Đã ký hợp đồng. Bạn có thể gửi hồ sơ KYC để staff duyệt.",
+      "signFailed": "Không thể ký hợp đồng. Vui lòng thử lại."
     }
   },
   "bidding": {

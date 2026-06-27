@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { resolveApiUrl } from "@/lib/apiClient";
 import { fetchKycDocument } from "@/lib/services/kycService";
 
 type Props = {
@@ -21,7 +22,11 @@ export default function ProtectedKycImage({ src, alt, className }: Props) {
     setFailed(false);
     if (!src) return;
     if (!src.startsWith("/kyc/")) {
-      setDisplaySrc(src);
+      const resolved =
+        src.startsWith("/uploads/") || src.startsWith("uploads/")
+          ? resolveApiUrl(src)
+          : src;
+      setDisplaySrc(resolved);
       return;
     }
     fetchKycDocument(src)

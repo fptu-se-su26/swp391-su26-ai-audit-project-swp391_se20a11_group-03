@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AdminShell from "@/components/layout/AdminShell";
-import { ContractRow, getContracts } from "@/lib/services/dashboardService";
-import { resolveApiUrl } from "@/lib/apiClient";
+import { ContractRow, getContracts, openContractPdf } from "@/lib/services/dashboardService";
 
 function formatDateTime(value: string | null): string {
   if (!value) return "—";
@@ -27,6 +26,20 @@ export default function AdminContractsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
+  const [openingId, setOpeningId] = useState<number | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+
+  async function handleOpenPdf(contractId: number) {
+    setOpeningId(contractId);
+    setPdfError(null);
+    try {
+      await openContractPdf(contractId);
+    } catch {
+      setPdfError("Không thể mở PDF. Hãy thử lại hoặc khởi động lại backend.");
+    } finally {
+      setOpeningId(null);
+    }
+  }
 
   useEffect(() => {
     getContracts()
@@ -68,6 +81,7 @@ export default function AdminContractsPage() {
         </div>
 
         {error && <div className="rounded-xl bg-error-container p-md text-on-error-container">{error}</div>}
+        {pdfError && <div className="rounded-xl bg-error-container p-md text-on-error-container">{pdfError}</div>}
 
         <div className="flex flex-wrap gap-sm">
           {tabs.map((tab) => (
@@ -123,15 +137,15 @@ export default function AdminContractsPage() {
                       <td className="whitespace-nowrap p-md text-sm text-on-surface-variant">{formatDateTime(c.createdAt)}</td>
                       <td className="p-md">
                         {c.fileUrl ? (
-                          <a
-                            href={resolveApiUrl(c.fileUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-xs rounded-lg border border-secondary/50 px-3 py-1.5 font-label-md text-label-md text-secondary hover:bg-secondary-container/30"
+                          <button
+                            type="button"
+                            onClick={() => handleOpenPdf(c.contractId)}
+                            disabled={openingId === c.contractId}
+                            className="inline-flex items-center gap-xs rounded-lg border border-secondary/50 px-3 py-1.5 font-label-md text-label-md text-secondary hover:bg-secondary-container/30 disabled:opacity-50"
                           >
                             <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
-                            Xem PDF
-                          </a>
+                            {openingId === c.contractId ? "Đang mở..." : "Xem PDF"}
+                          </button>
                         ) : (
                           <span className="text-sm text-on-surface-variant">—</span>
                         )}

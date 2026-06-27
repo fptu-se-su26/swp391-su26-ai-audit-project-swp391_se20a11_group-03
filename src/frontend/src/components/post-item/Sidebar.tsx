@@ -39,13 +39,13 @@ export default function Sidebar() {
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-[280px] flex-col border-r border-white/[.07] bg-[#071626] px-4 py-5 text-white shadow-[18px_0_50px_rgba(7,22,38,.09)] md:flex">
-      <Link href="/" className="mb-5 flex items-center justify-between gap-3 px-1">
-        <span className="flex items-center gap-3">
-          <span className="grid h-9 w-9 place-items-center rounded-full border border-[#c6a758] text-[10px] font-bold tracking-widest text-[#e3c77b]">LA</span>
-          <span className="font-display-lg text-lg font-semibold tracking-[-.04em]">LuxeAuction</span>
-        </span>
-        <NotificationBell className="text-[#c1cbd3]" />
-      </Link>
+      <div className="mb-5 flex items-center justify-between gap-3 px-1">
+        <Link href="/" className="flex min-w-0 items-center gap-3">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#c6a758] text-[10px] font-bold tracking-widest text-[#e3c77b]">LA</span>
+          <span className="truncate font-display-lg text-lg font-semibold tracking-[-.04em]">LuxeAuction</span>
+        </Link>
+        <NotificationBell className="shrink-0 text-[#c1cbd3]" />
+      </div>
       <SidebarUserCard user={user} />
 
       <nav className="custom-scrollbar mt-6 flex-1 space-y-1 overflow-y-auto pr-1" aria-label="Collector dashboard">

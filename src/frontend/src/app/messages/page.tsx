@@ -1,11 +1,13 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import CollectorShell from "@/components/layout/CollectorShell";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { apiClient } from "@/lib/apiClient";
 import { getStoredUser, isAdmin, isBuyer, isSeller, isStaff } from "@/lib/userSession";
+import { RealtimeChatMessage, useChatRealtime } from "@/lib/hooks/useChatRealtime";
+import { appendChatMessage } from "@/lib/chatMessages";
 
 type Conversation = {
   conversationId: number;
@@ -73,6 +75,7 @@ function MessagesPageInner() {
   const [loading, setLoading] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [showNewModal, setShowNewModal] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const currentUser = getStoredUser();
   const isUserAdmin = isAdmin(currentUser);
@@ -155,17 +158,42 @@ function MessagesPageInner() {
     }
   }, [activeId, router]);
 
+  const handleRealtimeMessage = useCallback(
+    (msg: RealtimeChatMessage) => {
+      if (msg.conversationId !== activeId) {
+        void refreshConversations(activeId);
+        return;
+      }
+      setMessages((current) => appendChatMessage(current, msg));
+      void refreshConversations(activeId);
+    },
+    [activeId, refreshConversations],
+  );
+
+  const { connected: chatConnected } = useChatRealtime({
+    conversationId: activeId,
+    onMessage: handleRealtimeMessage,
+    onConversationEvent: () => refreshConversations(activeId),
+  });
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, activeId]);
+
   async function send() {
     if (!input.trim() || !activeId) return;
+    const content = input.trim();
+    setInput("");
     try {
       const created = await apiClient<Message>("/v1/messages", {
         method: "POST",
-        body: { conversationId: activeId, content: input.trim() },
+        body: { conversationId: activeId, content },
       });
-      setMessages((current) => [...current, created]);
-      setInput("");
+      if (!chatConnected) {
+        setMessages((current) => appendChatMessage(current, created));
+      }
     } catch {
-      // keep page stable
+      setInput(content);
     }
   }
 
@@ -264,6 +292,7 @@ function MessagesPageInner() {
                   );
                 })
               )}
+              <div ref={messagesEndRef} />
             </div>
 
             <div className="flex gap-3 border-t border-[#e3ddd2] bg-white p-4">

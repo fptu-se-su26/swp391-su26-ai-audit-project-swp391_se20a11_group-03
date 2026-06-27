@@ -37,6 +37,10 @@ public class KycSubmissionResponse {
     private ImageAnalysis backImageAnalysis;
     private ImageAnalysis selfieImageAnalysis;
 
+    /** True when the same CCCD is linked to another account. */
+    private Boolean cccdDuplicate;
+    private List<CccdDuplicateInfo> cccdDuplicates;
+
     @Data
     @Builder
     @NoArgsConstructor

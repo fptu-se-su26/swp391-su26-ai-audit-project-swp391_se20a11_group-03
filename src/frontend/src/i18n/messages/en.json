@@ -323,7 +323,10 @@
     "front": "Front",
     "back": "Back",
     "selfie": "Selfie",
-    "previousNote": "Previous review note"
+    "previousNote": "Previous review note",
+    "duplicateAlertTitle": "Duplicate ID number warning",
+    "duplicateAlertBody": "This ID number is already linked to another account. Verify carefully before approving.",
+    "duplicateAccountLine": "{name} ({email}) — {status}"
   },
   "staffWithdrawals": {
     "pageTitle": "Withdrawal Approvals",
@@ -510,6 +513,13 @@
     "pendingSubmittedOn": "Submitted on {date}. You can resubmit if you need to update anything.",
     "pendingDash": "—",
     "sectionPersonal": "Personal information",
+    "sectionReview": "Review your information",
+    "sectionReviewHint": "AI extracted this from your ID card. Please verify and correct if needed before submitting.",
+    "ocrFlowHint": "Step 1: Upload clear front and back photos of your ID card. AI will auto-fill the fields below.",
+    "ocrScanning": "AI is reading your ID card...",
+    "duplicateWarningTitle": "Warning: This ID number already exists in the system",
+    "duplicateWarningHint": "You can still submit. Staff will review and decide whether to approve.",
+    "duplicateStatus": "Status: {status}",
     "fieldFullName": "Full name",
     "fieldPhone": "Phone number",
     "fieldIdNumber": "ID number (CCCD/CMND)",
@@ -523,6 +533,7 @@
     "fieldIssuePlacePlaceholder": "e.g. Hanoi Department of Public Security",
     "sectionPhotos": "ID photos",
     "previousUploads": "Previously submitted photos (will be replaced when you upload new ones below)",
+    "submittedPhotos": "Submitted photos",
     "frontPhoto": "Front side",
     "backPhoto": "Back side",
     "selfiePhoto": "Selfie",
@@ -544,8 +555,29 @@
     "errors": {
       "loadFailed": "Failed to load your KYC.",
       "missingPhotos": "Please upload all three ID photos (front, back, selfie).",
+      "ocrFailed": "Could not read ID card. Try clearer photos or fill in manually.",
       "submissionFailed": "Submission failed.",
       "submitted": "KYC submitted. We will notify you once staff review it."
+    },
+    "sellerContract": {
+      "title": "Platform agreement for sellers",
+      "subtitle": "Only Seller accounts must sign. The agreement takes effect after staff/admin approves your KYC.",
+      "termsTitle": "SELLER AGREEMENT TERMS",
+      "term1": "1. The seller agrees to list and sell products on the auction platform.",
+      "term2": "2. Platform service fee is 20% of the winning bid; 80% is paid to the seller.",
+      "term3": "3. The seller is responsible for declaring and paying personal income tax.",
+      "term4": "4. The seller confirms KYC information is accurate and products are legal.",
+      "term5": "5. The agreement takes effect after signing and successful KYC approval by staff/admin.",
+      "agreeLabel": "I have read, understood and agree to the platform seller agreement terms.",
+      "signButton": "Sign electronic agreement",
+      "signing": "Signing...",
+      "signHint": "You must click Sign before submitting verification.",
+      "signed": "You have signed the electronic agreement.",
+      "viewPdf": "View agreement (PDF)",
+      "agreeRequired": "Please agree to the terms before signing.",
+      "signBeforeSubmit": "Please sign the electronic agreement before submitting verification.",
+      "signSuccess": "Agreement signed. You can now submit KYC for staff review.",
+      "signFailed": "Could not sign the agreement. Please try again."
     }
   },
   "bidding": {

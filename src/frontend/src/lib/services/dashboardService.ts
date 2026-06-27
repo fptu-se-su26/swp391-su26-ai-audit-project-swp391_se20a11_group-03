@@ -138,3 +138,18 @@ export async function getContracts() {
   const response = await apiClient<ApiResponse<ContractRow[]>>("/admin/dashboard/contracts");
   return response.data;
 }
+
+export async function openContractPdf(contractId: number): Promise<void> {
+  const { getStoredToken, resolveApiUrl } = await import("@/lib/apiClient");
+  const token = getStoredToken();
+  const res = await fetch(resolveApiUrl(`/admin/dashboard/contracts/${contractId}/pdf`), {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) {
+    throw new Error("Không thể mở file PDF hợp đồng.");
+  }
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  window.open(url, "_blank", "noopener,noreferrer");
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}

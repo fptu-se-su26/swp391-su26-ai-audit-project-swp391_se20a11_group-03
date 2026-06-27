@@ -6,6 +6,9 @@
     "build": "npm run build --prefix src/frontend",
     "start": "npm run start --prefix src/frontend",
     "lint": "npm run lint --prefix src/frontend",
+    "frontend": "powershell -ExecutionPolicy Bypass -File ./scripts/start-frontend.ps1",
+    "frontend:kill": "powershell -ExecutionPolicy Bypass -File ./scripts/free-port.ps1 -Port 3000",
+    "dev:all": "powershell -ExecutionPolicy Bypass -File ./scripts/start-dev.ps1",
     "backend": "powershell -ExecutionPolicy Bypass -File ./scripts/start-backend.ps1",
     "backend:kill": "powershell -ExecutionPolicy Bypass -File ./scripts/free-port.ps1 -Port 8096"
   }

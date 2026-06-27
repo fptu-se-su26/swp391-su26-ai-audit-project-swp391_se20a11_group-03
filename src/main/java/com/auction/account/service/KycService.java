@@ -1,6 +1,7 @@
 package com.auction.account.service;
 
 import com.auction.account.dao.UserRepository;
+import com.auction.account.dto.CccdDuplicateInfo;
 import com.auction.account.dto.KycSubmissionResponse;
 import com.auction.account.entity.KycProfile;
 import com.auction.account.entity.User;
@@ -36,6 +37,7 @@ public class KycService {
     private final UserRepository userRepository;
     private final ResourceLoader resourceLoader;
     private final ImageForensicsService imageForensicsService;
+    private final CccdOcrService cccdOcrService;
 
     @Value("${app.kyc.upload-dir:#{systemProperties['user.dir']}/src/main/resources/static/uploads/kyc}")
     private String uploadDir;
@@ -43,11 +45,13 @@ public class KycService {
     @Value("${app.kyc.public-prefix:/uploads/kyc}")
     private String publicPrefix;
 
-    public KycService(JdbcTemplate jdbcTemplate, UserRepository userRepository, ResourceLoader resourceLoader, ImageForensicsService imageForensicsService) {
+    public KycService(JdbcTemplate jdbcTemplate, UserRepository userRepository, ResourceLoader resourceLoader,
+                      ImageForensicsService imageForensicsService, CccdOcrService cccdOcrService) {
         this.jdbcTemplate = jdbcTemplate;
         this.userRepository = userRepository;
         this.resourceLoader = resourceLoader;
         this.imageForensicsService = imageForensicsService;
+        this.cccdOcrService = cccdOcrService;
     }
 
     @Transactional
@@ -79,12 +83,6 @@ public class KycService {
 
         User user = userRepository.findById(Math.toIntExact(userId))
                 .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
-
-        // The CCCD number must be unique across the system. Reject duplicates
-        // here so we can return a clear error message before persisting.
-        if (isCccdTakenByOtherUser(cccdNumber, userId)) {
-            throw new IllegalArgumentException("This CCCD number is already linked to another account");
-        }
 
         String frontUrl = saveImage(frontImage, "front");
         String backUrl = saveImage(backImage, "back");
@@ -129,7 +127,7 @@ public class KycService {
                 (rs, rowNum) -> mapRow(rs),
                 userId
         );
-        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
+        return list.isEmpty() ? Optional.empty() : Optional.of(enrich(list.get(0)));
     }
 
     public List<KycSubmissionResponse> listByStatus(String status) {
@@ -143,8 +141,8 @@ public class KycService {
                 + (status != null && !status.isBlank() ? "WHERE k.Status = ? " : "")
                 + "ORDER BY k.SubmittedAt DESC";
         return status != null && !status.isBlank()
-                ? jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs), status)
-                : jdbcTemplate.query(sql, (rs, rowNum) -> mapRow(rs));
+                ? jdbcTemplate.query(sql, (rs, rowNum) -> enrich(mapRow(rs)), status)
+                : jdbcTemplate.query(sql, (rs, rowNum) -> enrich(mapRow(rs)));
     }
 
     @Transactional
@@ -232,7 +230,18 @@ public class KycService {
         if (list.isEmpty()) {
             throw new IllegalArgumentException("KYC submission not found");
         }
-        return list.get(0);
+        return enrich(list.get(0));
+    }
+
+    private KycSubmissionResponse enrich(KycSubmissionResponse response) {
+        if (response == null || response.getCccdNumber() == null || response.getCccdNumber().isBlank()) {
+            return response;
+        }
+        List<CccdDuplicateInfo> dupes = cccdOcrService.findDuplicateAccounts(
+                response.getCccdNumber(), response.getUserId());
+        response.setCccdDuplicate(!dupes.isEmpty());
+        response.setCccdDuplicates(dupes);
+        return response;
     }
 
     private KycSubmissionResponse mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {

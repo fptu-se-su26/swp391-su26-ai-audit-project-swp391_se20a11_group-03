@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import StaffShell from "@/components/layout/StaffShell";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { apiClient } from "@/lib/apiClient";
+import { RealtimeChatMessage, useChatRealtime } from "@/lib/hooks/useChatRealtime";
+import { appendChatMessage } from "@/lib/chatMessages";
 
 type ConversationType = "BUYER_SELLER" | "BUYER_STAFF" | "SELLER_STAFF";
 
@@ -65,6 +67,7 @@ export default function SupportPage() {
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
   const [search, setSearch] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const refreshConversations = useCallback(async () => {
     try {
@@ -135,19 +138,45 @@ export default function SupportPage() {
     };
   }, [selectedId, refreshConversations]);
 
+  const handleRealtimeMessage = useCallback(
+    (msg: RealtimeChatMessage) => {
+      if (msg.conversationId !== selectedId) {
+        void refreshConversations();
+        return;
+      }
+      setMessages((current) => appendChatMessage(current, msg));
+      void refreshConversations();
+    },
+    [selectedId, refreshConversations],
+  );
+
+  const { connected: chatConnected } = useChatRealtime({
+    conversationId: selectedId,
+    onMessage: handleRealtimeMessage,
+    onConversationEvent: refreshConversations,
+    subscribeStaffTopic: true,
+  });
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, selectedId]);
+
   async function sendReply() {
     if (!reply.trim() || !selectedId) return;
+    const content = reply.trim();
     setSending(true);
+    setReply("");
     try {
       const created = await apiClient<Message>("/v1/messages", {
         method: "POST",
-        body: { conversationId: selectedId, content: reply.trim() },
+        body: { conversationId: selectedId, content },
       });
-      setMessages((cur) => [...cur, created]);
-      setReply("");
+      if (!chatConnected) {
+        setMessages((cur) => appendChatMessage(cur, created));
+      }
       refreshConversations();
     } catch {
-      // keep page stable
+      setReply(content);
     } finally {
       setSending(false);
     }
@@ -338,6 +367,7 @@ export default function SupportPage() {
                     );
                   })
                 )}
+                <div ref={messagesEndRef} />
               </div>
 
               {selected.status !== "CLOSED" && (

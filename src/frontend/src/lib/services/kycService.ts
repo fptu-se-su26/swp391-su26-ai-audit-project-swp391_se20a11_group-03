@@ -10,6 +10,30 @@ export type KycImageAnalysis = {
   signals: KycForensicsSignal[];
 };
 
+export type CccdDuplicateInfo = {
+  userId: number;
+  email: string;
+  fullName: string;
+  kycStatus: string;
+  identityVerified?: boolean;
+};
+
+export type CccdOcrResult = {
+  success: boolean;
+  message: string;
+  provider?: string;
+  confidenceScore?: number;
+  fullName?: string;
+  cccdNumber?: string;
+  dob?: string;
+  gender?: string;
+  issueDate?: string;
+  issuePlace?: string;
+  address?: string;
+  cccdDuplicate?: boolean;
+  cccdDuplicates?: CccdDuplicateInfo[];
+};
+
 export type KycSubmission = {
   kycId: number;
   userId: number;
@@ -32,6 +56,8 @@ export type KycSubmission = {
   frontImageAnalysis?: KycImageAnalysis | null;
   backImageAnalysis?: KycImageAnalysis | null;
   selfieImageAnalysis?: KycImageAnalysis | null;
+  cccdDuplicate?: boolean;
+  cccdDuplicates?: CccdDuplicateInfo[];
 };
 
 type ApiEnvelope<T> = { success: boolean; data?: T; message?: string };
@@ -87,6 +113,14 @@ export async function submitKyc(payload: SubmitKycPayload) {
   form.append("backImage", payload.backImage);
   form.append("selfieImage", payload.selfieImage);
   return apiClient<ApiEnvelope<KycSubmission>>("/kyc", { method: "POST", body: form });
+}
+
+export async function scanCccdOcr(frontImage: File, backImage: File): Promise<CccdOcrResult> {
+  const form = new FormData();
+  form.append("frontImage", frontImage);
+  form.append("backImage", backImage);
+  const raw = await apiClient<ApiEnvelope<CccdOcrResult>>("/kyc/ocr", { method: "POST", body: form });
+  return unwrap(raw) ?? { success: false, message: "Không nhận được kết quả OCR" };
 }
 
 export async function getMyKyc() {

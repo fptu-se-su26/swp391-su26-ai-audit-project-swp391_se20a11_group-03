@@ -1,7 +1,9 @@
 package com.auction.account.controller;
 
+import com.auction.account.dto.CccdOcrResult;
 import com.auction.account.dto.KycSubmissionResponse;
 import com.auction.account.security.UserDetailsImpl;
+import com.auction.account.service.CccdOcrService;
 import com.auction.account.service.KycService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -23,6 +25,7 @@ import java.util.Map;
 public class KycController {
 
     private final KycService kycService;
+    private final CccdOcrService cccdOcrService;
 
     /**
      * User submits a KYC application. Multipart so the three ID photos are
@@ -68,6 +71,41 @@ public class KycController {
             return ResponseEntity.status(500).body(Map.of(
                     "success", false,
                     "message", "Failed to save uploaded images: " + ex.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * OCR front + back CCCD images and return extracted fields for user review.
+     */
+    @PostMapping(value = "/ocr", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> ocr(
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
+            @RequestParam("frontImage") MultipartFile frontImage,
+            @RequestParam("backImage") MultipartFile backImage
+    ) {
+        if (currentUser == null) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Please sign in"
+            ));
+        }
+        try {
+            CccdOcrResult result = cccdOcrService.extract(currentUser.getId(), frontImage, backImage);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", result,
+                    "message", result.getMessage()
+            ));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", ex.getMessage()
+            ));
+        } catch (IOException ex) {
+            return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "message", "Failed to process images: " + ex.getMessage()
             ));
         }
     }

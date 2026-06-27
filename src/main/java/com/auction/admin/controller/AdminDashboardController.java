@@ -21,8 +21,13 @@ import com.auction.wallet.entity.Transaction;
 import com.auction.wallet.entity.Wallet;
 import com.auction.wallet.repository.TransactionRepository;
 import com.auction.wallet.repository.WalletRepository;
+import com.auction.product.service.ContractPdfAccessService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -63,6 +69,7 @@ public class AdminDashboardController {
     private final TransactionRepository transactionRepository;
     private final WalletRepository walletRepository;
     private final ContractRepository contractRepository;
+    private final ContractPdfAccessService contractPdfAccessService;
 
     @GetMapping("/summary")
     public ResponseEntity<ApiResponse<DashboardSummaryDTO>> getSummary() {
@@ -340,6 +347,17 @@ public class AdminDashboardController {
         rows.sort(Comparator.comparing(ContractRowDTO::getCreatedAt,
                 Comparator.nullsLast(Comparator.reverseOrder())));
         return ResponseEntity.ok(ApiResponse.success(rows));
+    }
+
+    @GetMapping("/contracts/{contractId}/pdf")
+    public ResponseEntity<Resource> getContractPdf(@PathVariable Long contractId) {
+        Path file = contractPdfAccessService.resolvePdfPath(contractId);
+        FileSystemResource resource = new FileSystemResource(file);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"contract-" + contractId + ".pdf\"")
+                .body(resource);
     }
 
     private String userName(Long userId) {

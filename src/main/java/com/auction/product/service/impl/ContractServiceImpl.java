@@ -9,7 +9,9 @@ import com.auction.product.entity.Product;
 import com.auction.common.exception.BusinessException;
 import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.product.repository.ContractRepository;
+import com.auction.product.repository.ProductRepository;
 import com.auction.product.service.ContractService;
+import com.auction.product.service.ListingContractPdfService;
 import com.auction.product.service.PurchaseContractPdfService;
 import com.auction.product.service.SellerContractPdfService;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +33,9 @@ public class ContractServiceImpl implements ContractService {
     private final ContractRepository contractRepository;
     private final SellerContractPdfService pdfService;
     private final PurchaseContractPdfService purchasePdfService;
+    private final ListingContractPdfService listingContractPdfService;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
     private final AuctionRepository auctionRepository;
 
     @Override
@@ -81,12 +85,24 @@ public class ContractServiceImpl implements ContractService {
             throw new BusinessException("Listing contract already exists for product ID: " + productId);
         }
 
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+        User seller = product.getSellerId() != null
+                ? userRepository.findById(Math.toIntExact(product.getSellerId())).orElse(null)
+                : null;
+        LocalDateTime now = LocalDateTime.now();
+        String fileUrl = listingContractPdfService.generateAndStore(
+                productId,
+                product.getProductName(),
+                seller != null ? displayName(seller) : "—",
+                product.getStartingPrice(),
+                now);
+
         Contract contract = new Contract();
         contract.setContractType("LISTING");
         contract.setReferenceId(productId);
-        // TODO: Replace with actual PDF generation service
-        contract.setFileUrl("/contracts/listing_" + productId + ".pdf");
-        contract.setCreatedAt(LocalDateTime.now());
+        contract.setFileUrl(fileUrl);
+        contract.setCreatedAt(now);
         return contractRepository.save(contract);
     }
 

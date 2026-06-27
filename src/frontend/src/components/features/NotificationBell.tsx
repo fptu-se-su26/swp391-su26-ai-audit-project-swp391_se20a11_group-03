@@ -53,7 +53,7 @@ export default function NotificationBell({ className = "" }: { className?: strin
   const [list, setList] = useState<AppNotification[]>([]);
   const ref = useRef<HTMLDivElement>(null);
 
-  const [hasUser, setHasUser] = useState(() => !!getStoredUser());
+  const [hasUser, setHasUser] = useState(false);
 
   useEffect(() => {
     const sync = () => setHasUser(!!getStoredUser());
