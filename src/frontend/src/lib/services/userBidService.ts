@@ -12,7 +12,9 @@ export type BidInfo = {
   startingPrice?: number;
   paymentStatus?: string | null;
   timeLeft: string;
-  status: "leading" | "outbid" | "won" | "lost" | "deposited";
+  auctionMode?: "LIVE" | "TIMED";
+  priceHidden?: boolean;
+  status: "leading" | "outbid" | "won" | "lost" | "deposited" | "sealed";
   auctionEndTime?: string;
 };
 

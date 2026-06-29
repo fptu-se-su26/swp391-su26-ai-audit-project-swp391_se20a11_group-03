@@ -30,6 +30,16 @@ public class BidResponse {
         return response;
     }
 
+    /** TIMED blind auction — do not expose bid amount or running high in the response. */
+    public static BidResponse successTimedBlind(Long auctionId, LocalDateTime endTime) {
+        BidResponse response = new BidResponse();
+        response.success = true;
+        response.message = "Đã ghi nhận giá đặt ẩn danh";
+        response.auctionId = auctionId;
+        response.endTime = endTime;
+        return response;
+    }
+
     public boolean isSuccess() { return success; }
     public String getMessage() { return message; }
     public Long getAuctionId() { return auctionId; }

@@ -264,9 +264,9 @@ public class ConversationServiceImpl implements ConversationService {
         User requester = userRepository.findById(Math.toIntExact(requesterId))
                 .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
 
-        // Staff tự động "nhận" conversation khi mở lần đầu (chỉ khi support, chưa có ai nhận)
+        // Staff/Admin tự động "nhận" conversation khi mở lần đầu (chỉ khi support, chưa có ai nhận)
         String role = requester.getRole().getRoleName();
-        if ("Staff".equalsIgnoreCase(role)
+        if (("Staff".equalsIgnoreCase(role) || "Admin".equalsIgnoreCase(role))
                 && conv.getType() != ConversationType.BUYER_SELLER
                 && conv.getAssignedStaff() == null) {
             conv.setAssignedStaff(requester);
@@ -274,7 +274,7 @@ public class ConversationServiceImpl implements ConversationService {
                 conv.setStatus(ConversationStatus.IN_PROGRESS);
             }
             conv = conversationRepository.save(conv);
-            log.info("Staff {} auto-assigned conversation {}", requesterId, conversationId);
+            log.info("{} {} auto-assigned conversation {}", role, requesterId, conversationId);
         }
 
         validateViewAccess(conv, requester);

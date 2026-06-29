@@ -3,9 +3,18 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import CollectorShell from "@/components/layout/CollectorShell";
+import ChatMessageList from "@/components/features/ChatMessageList";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { apiClient } from "@/lib/apiClient";
-import { getStoredUser, isAdmin, isBuyer, isSeller, isStaff } from "@/lib/userSession";
+import {
+  StoredUser,
+  getStoredUser,
+  isAdmin,
+  isBuyer,
+  isSeller,
+  isStaff,
+  subscribeStoredUser,
+} from "@/lib/userSession";
 import { RealtimeChatMessage, useChatRealtime } from "@/lib/hooks/useChatRealtime";
 import { appendChatMessage } from "@/lib/chatMessages";
 
@@ -75,9 +84,16 @@ function MessagesPageInner() {
   const [loading, setLoading] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [showNewModal, setShowNewModal] = useState(false);
+  const [currentUser, setCurrentUser] = useState<StoredUser | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const currentUser = getStoredUser();
+  useEffect(() => {
+    const syncUser = () => setCurrentUser(getStoredUser());
+    syncUser();
+    return subscribeStoredUser(syncUser);
+  }, []);
+
+  const currentUserId = currentUser?.userId ?? null;
   const isUserAdmin = isAdmin(currentUser);
   const isUserStaff = isStaff(currentUser);
   const isUserBuyer = isBuyer(currentUser);
@@ -192,8 +208,9 @@ function MessagesPageInner() {
       if (!chatConnected) {
         setMessages((current) => appendChatMessage(current, created));
       }
-    } catch {
+    } catch (err) {
       setInput(content);
+      alert(err instanceof Error ? err.message : t("sendFailed"));
     }
   }
 
@@ -243,7 +260,7 @@ function MessagesPageInner() {
                 conversation={c}
                 active={activeId === c.conversationId}
                 onClick={() => setActiveId(c.conversationId)}
-                currentUserId={currentUser?.userId ?? null}
+                currentUserId={currentUserId}
                 isStaff={isUserStaff}
               />
             ))
@@ -256,7 +273,7 @@ function MessagesPageInner() {
           <>
             <ConversationHeader
               conversation={activeConversation}
-              currentUserId={currentUser?.userId ?? null}
+              currentUserId={currentUserId}
             />
 
             <div className="flex-1 space-y-md overflow-y-auto bg-[radial-gradient(circle_at_80%_15%,rgba(190,157,78,.06),transparent_25%)] p-md">
@@ -267,30 +284,7 @@ function MessagesPageInner() {
                   <p>{t("noMessagesYet")}</p>
                 </div>
               ) : (
-                messages.map((m) => {
-                  const isMe = m.senderId === currentUser?.userId;
-                  return (
-                    <div key={m.messageId} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                      <div
-                        className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                          isMe
-                            ? "rounded-br-md bg-[#c9aa5d] text-[#071626]"
-                            : "rounded-bl-md border border-[#e2dcd1] bg-white text-[#263544] shadow-sm"
-                        }`}
-                      >
-                        {!isMe && (
-                          <p className="mb-1 text-[10px] font-label-sm text-secondary">
-                            {m.senderName} <span className="text-outline">· {m.senderRole}</span>
-                          </p>
-                        )}
-                        <p className="font-body-md whitespace-pre-wrap break-words">{m.content}</p>
-                        <p className={`text-[10px] mt-1 ${isMe ? "text-on-secondary/70" : "text-on-surface-variant"}`}>
-                          {new Date(m.sentAt).toLocaleString("vi-VN")}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })
+                <ChatMessageList messages={messages} currentUserId={currentUserId} />
               )}
               <div ref={messagesEndRef} />
             </div>

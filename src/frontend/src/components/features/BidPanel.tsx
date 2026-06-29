@@ -17,11 +17,9 @@ interface BidPanelProps {
   currentBid: number;
   startingPrice: number;
   bidStep?: number;
-  /** Called after a successful bid so the parent can re-fetch history. */
+  auctionMode?: "LIVE" | "TIMED";
   onBidPlaced?: (newBid: number) => void;
-  /** When false, disables the input/button (e.g. user not deposited yet). */
   canBid?: boolean;
-  /** Show a disabled state with a reason. */
   disabledReason?: string | null;
 }
 
@@ -38,6 +36,7 @@ export function BidPanel({
   currentBid,
   startingPrice,
   bidStep,
+  auctionMode = "LIVE",
   onBidPlaced,
   canBid = true,
   disabledReason,
@@ -49,6 +48,9 @@ export function BidPanel({
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ tone: "success" | "error"; message: string } | null>(null);
 
+  const isTimedBlind =
+    auctionMode === "TIMED" || Boolean(liveState?.priceHidden || liveState?.bidsAnonymous);
+
   useEffect(() => {
     return subscribeAuction(auctionId, (state) => setLiveState(state));
   }, [auctionId]);
@@ -57,16 +59,27 @@ export function BidPanel({
   const effectiveStep = liveState?.bidStep ?? bidStep ?? calculateBidStep(effectiveStarting);
   const effectiveCurrentBid =
     liveState?.currentHighestBid != null ? liveState.currentHighestBid : currentBid;
-  const minRequired = useMemo(
-    () =>
+  const minRequired = useMemo(() => {
+    if (isTimedBlind) {
+      return effectiveStarting;
+    }
+    return (
       liveState?.minNextBid ??
-      computeMinNextBid(effectiveStarting, effectiveCurrentBid, effectiveStep),
-    [liveState?.minNextBid, effectiveStarting, effectiveCurrentBid, effectiveStep],
-  );
+      computeMinNextBid(effectiveStarting, effectiveCurrentBid, effectiveStep)
+    );
+  }, [
+    isTimedBlind,
+    liveState?.minNextBid,
+    effectiveStarting,
+    effectiveCurrentBid,
+    effectiveStep,
+  ]);
 
   useEffect(() => {
-    setAmount(String(minRequired));
-  }, [minRequired]);
+    if (!isTimedBlind) {
+      setAmount(String(minRequired));
+    }
+  }, [minRequired, isTimedBlind]);
 
   const auctionActive = useMemo(() => {
     if (!liveState) return true;
@@ -74,31 +87,43 @@ export function BidPanel({
     if (!liveState.endTime) return true;
     return new Date(liveState.endTime).getTime() > Date.now();
   }, [liveState]);
-  const kycOk = kyc.status === "verified";
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setFeedback(null);
     const num = Number(amount);
-    if (!Number.isFinite(num) || num < minRequired) {
+    if (!Number.isFinite(num) || num < effectiveStarting) {
       setFeedback({
         tone: "error",
-        message: t("bidMustBeAtLeast", { amount: formatVnd(minRequired) }),
+        message: t("bidMustBeAtLeast", { amount: formatVnd(effectiveStarting) }),
       });
       return;
     }
-    if (!isOnBidGrid(effectiveStarting, num, effectiveStep)) {
-      setFeedback({
-        tone: "error",
-        message: t("bidMustBeAtLeast", { amount: formatVnd(minRequired) }),
-      });
-      return;
+    if (!isTimedBlind) {
+      if (num < minRequired) {
+        setFeedback({
+          tone: "error",
+          message: t("bidMustBeAtLeast", { amount: formatVnd(minRequired) }),
+        });
+        return;
+      }
+      if (!isOnBidGrid(effectiveStarting, num, effectiveStep)) {
+        setFeedback({
+          tone: "error",
+          message: t("bidMustBeAtLeast", { amount: formatVnd(minRequired) }),
+        });
+        return;
+      }
     }
     setSubmitting(true);
     try {
       const result = await placeBid(auctionId, num);
       if (result.success) {
-        setFeedback({ tone: "success", message: t("bidPlaced") });
+        setFeedback({
+          tone: "success",
+          message: isTimedBlind ? t("timedBidRecorded") : t("bidPlaced"),
+        });
+        setAmount("");
         forceRefresh(auctionId);
         onBidPlaced?.(num);
       } else {
@@ -151,27 +176,47 @@ export function BidPanel({
       onSubmit={handleSubmit}
       className="space-y-sm rounded-xl border border-surface-variant bg-surface p-md soft-shadow"
     >
-      <div className="flex items-baseline justify-between">
-        <span className="font-label-md text-label-md text-on-surface-variant">{t("currentBid")}</span>
-        <span className="font-headline-sm text-headline-sm text-primary">
-          {formatVnd(effectiveCurrentBid)}
-        </span>
-      </div>
-      <div className="flex items-baseline justify-between text-xs text-on-surface-variant">
-        <span>{t("minimumNextBid")}</span>
-        <span>{formatVnd(minRequired)}</span>
-      </div>
-      <p className="text-xs text-on-surface-variant">
-        {t("stepHint", { step: formatVnd(effectiveStep) })}
-      </p>
+      {isTimedBlind ? (
+        <>
+          <p className="font-label-md text-label-md text-primary">{t("timedBlindTitle")}</p>
+          <p className="text-xs leading-relaxed text-on-surface-variant">{t("timedBlindDesc")}</p>
+          <div className="flex items-baseline justify-between text-sm">
+            <span className="text-on-surface-variant">{t("startingPriceOnly")}</span>
+            <span className="font-headline-sm text-headline-sm text-primary">
+              {formatVnd(effectiveStarting)}
+            </span>
+          </div>
+          {liveState?.totalBids != null && liveState.totalBids > 0 && (
+            <p className="text-xs text-on-surface-variant">
+              {t("timedBidCount", { count: liveState.totalBids })}
+            </p>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="flex items-baseline justify-between">
+            <span className="font-label-md text-label-md text-on-surface-variant">{t("currentBid")}</span>
+            <span className="font-headline-sm text-headline-sm text-primary">
+              {formatVnd(effectiveCurrentBid)}
+            </span>
+          </div>
+          <div className="flex items-baseline justify-between text-xs text-on-surface-variant">
+            <span>{t("minimumNextBid")}</span>
+            <span>{formatVnd(minRequired)}</span>
+          </div>
+          <p className="text-xs text-on-surface-variant">
+            {t("stepHint", { step: formatVnd(effectiveStep) })}
+          </p>
+        </>
+      )}
       <div className="flex gap-sm">
         <input
           type="number"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          placeholder={String(minRequired)}
-          min={minRequired}
-          step={effectiveStep}
+          placeholder={isTimedBlind ? t("timedBidPlaceholder") : String(minRequired)}
+          min={effectiveStarting}
+          step={isTimedBlind ? 1000 : effectiveStep}
           disabled={submitting || !auctionActive}
           className="flex-1 rounded-lg border border-outline-variant bg-surface-container-low px-4 py-2 outline-none focus:ring-2 focus:ring-secondary/20 focus:border-secondary disabled:opacity-50"
         />

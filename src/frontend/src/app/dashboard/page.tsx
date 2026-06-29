@@ -264,9 +264,19 @@ function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void 
   const [startingPrice, setStartingPrice] = useState(0);
   const [currentBid, setCurrentBid] = useState(bid.currentBid || 0);
   const [auctionId, setAuctionId] = useState<number | null>(null);
+  const [auctionMode, setAuctionMode] = useState<"LIVE" | "TIMED">(bid.auctionMode ?? "LIVE");
+  const [priceHidden, setPriceHidden] = useState(Boolean(bid.priceHidden));
   const [timeLeft, setTimeLeft] = useState(bid.timeLeft);
-  const bidStep = calculateBidStep(startingPrice);
-  const minRequired = computeMinNextBid(startingPrice, currentBid, bidStep);
+  const isTimedBlind =
+    (auctionMode === "TIMED" || priceHidden) &&
+    timeLeft !== "Ended" &&
+    bid.timeLeft !== "Ended" &&
+    bid.status !== "won" &&
+    bid.status !== "lost";
+  const bidStep = isTimedBlind ? 1 : calculateBidStep(startingPrice);
+  const minRequired = isTimedBlind
+    ? startingPrice
+    : computeMinNextBid(startingPrice, currentBid, bidStep);
   const [quickAmount, setQuickAmount] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ tone: "success" | "error"; message: string } | null>(null);
@@ -284,6 +294,7 @@ function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void 
         if (cancelled) return;
         setStartingPrice(detail.startingPrice ?? bid.startingPrice ?? 0);
         setCurrentBid(detail.currentBid ?? detail.startingPrice ?? bid.currentBid ?? 0);
+        setAuctionMode((detail.auctionMode ?? bid.auctionMode ?? "LIVE") as "LIVE" | "TIMED");
         setAuctionId(resolvedAuctionId ?? detail.auction?.auctionId ?? detail.auctionId ?? null);
       })
       .catch(() => {});
@@ -295,7 +306,15 @@ function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void 
   useEffect(() => {
     if (!auctionId) return;
     return subscribeAuction(auctionId, (state) => {
-      setCurrentBid(state.currentHighestBid);
+      if (state.priceHidden) {
+        setPriceHidden(true);
+      } else {
+        setPriceHidden(false);
+        setCurrentBid(state.currentHighestBid);
+      }
+      if (state.auctionMode) {
+        setAuctionMode(state.auctionMode);
+      }
       if (state.startingPrice) setStartingPrice(state.startingPrice);
       if (state.endTime) {
         const seconds = Math.max(0, Math.floor((new Date(state.endTime).getTime() - Date.now()) / 1000));
@@ -357,7 +376,9 @@ function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void 
       if (result?.success) {
         setFeedback({
           tone: "success",
-          message: t("quickBidPlaced", { amount: amountNumber.toLocaleString("vi-VN"), product: bid.productName }),
+          message: isTimedBlind
+            ? t("timedBidRecorded")
+            : t("quickBidPlaced", { amount: amountNumber.toLocaleString("vi-VN"), product: bid.productName }),
         });
         onRefresh();
       } else {
@@ -395,7 +416,13 @@ function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void 
             </div>
           </div>
         </td>
-        <td className="p-md text-[16px] font-bold text-primary">₫{currentBid.toLocaleString("vi-VN")}</td>
+        <td className="p-md text-[16px] font-bold text-primary">
+          {isTimedBlind ? (
+            <span className="text-sm font-body-md text-on-surface-variant">{t("priceHidden")}</span>
+          ) : (
+            <>₫{currentBid.toLocaleString("vi-VN")}</>
+          )}
+        </td>
         <td className={`p-md text-sm font-body-md ${bid.status === "outbid" ? "font-bold text-error" : "text-on-surface-variant"}`}>
           {timeLeft}
         </td>
@@ -414,6 +441,11 @@ function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void 
             <span className="inline-flex items-center gap-1 rounded-full bg-surface-container-high px-2 py-1 text-[10px] font-label-sm text-on-surface-variant">
               <span className="material-symbols-outlined text-[12px]">close</span>
               {t("statusLost")}
+            </span>
+          ) : bid.status === "sealed" || (isTimedBlind && bid.status !== "deposited") ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-surface-container-high px-2 py-1 text-[10px] font-label-sm text-on-surface-variant">
+              <span className="material-symbols-outlined text-[12px]">lock</span>
+              {t("statusSealed")}
             </span>
           ) : bid.status === "deposited" ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-secondary-container px-2 py-1 text-[10px] font-label-sm text-on-secondary-container">
@@ -438,6 +470,7 @@ function ActiveBidRow({ bid, onRefresh }: { bid: BidInfo; onRefresh: () => void 
               value={quickAmount}
               onChange={(event) => setQuickAmount(event.target.value)}
               disabled={isSubmitting}
+              placeholder={isTimedBlind ? t("timedBidPlaceholder") : undefined}
               className="w-32 rounded border border-outline-variant bg-surface px-2 py-1 font-body-sm text-body-sm outline-none transition-colors focus:border-secondary disabled:opacity-50"
             />
           )}

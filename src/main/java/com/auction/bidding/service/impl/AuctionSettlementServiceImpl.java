@@ -6,6 +6,11 @@ import com.auction.bidding.entity.AuctionDeposit;
 import com.auction.bidding.repository.AuctionDepositRepository;
 import com.auction.bidding.repository.AuctionRepository;
 import com.auction.bidding.service.AuctionSettlementService;
+import com.auction.notification.entity.Notification;
+import com.auction.notification.service.NotificationService;
+import com.auction.product.entity.Product;
+import com.auction.product.repository.ProductRepository;
+import com.auction.product.service.ContractService;
 import com.auction.wallet.entity.Transaction;
 import com.auction.wallet.entity.Wallet;
 import com.auction.wallet.repository.TransactionRepository;
@@ -25,14 +30,17 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
 
     private static final Logger log = LoggerFactory.getLogger(AuctionSettlementServiceImpl.class);
 
-    /** How long the winner has to pay after the auction ends. */
-    public static final long PAYMENT_WINDOW_HOURS = 12L;
+    /** How long the winner has to pay after the auction ends (3 days). */
+    public static final long PAYMENT_WINDOW_HOURS = 72L;
 
     private final AuctionRepository auctionRepository;
     private final AuctionDepositRepository auctionDepositRepository;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
+    private final NotificationService notificationService;
+    private final ContractService contractService;
 
     @Override
     @Transactional
@@ -83,6 +91,7 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
                     });
             // Losers get their deposit unlocked back to balance as soon as the auction ends.
             refundLoserDeposits(auction, now);
+            notifyAuctionWinner(auction);
             count++;
         }
         return count;
@@ -120,6 +129,8 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
             auction.setPaymentStatus("FORFEITED");
             auction.setSettledAt(now);
             auctionRepository.save(auction);
+
+            queueProductForRelist(auction);
             count++;
         }
         return count;
@@ -163,6 +174,94 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
         deposit.setSettlementType("FORFEITED");
         deposit.setSettledAt(now);
         auctionDepositRepository.save(deposit);
+    }
+
+    private void notifyAuctionWinner(Auction auction) {
+        if (auction.getCurrentWinnerUser() == null) {
+            return;
+        }
+        Product product = auction.getProduct();
+        long finalPrice = auction.getCurrentHighestBid() != null ? auction.getCurrentHighestBid() : 0L;
+        String productName = product != null ? product.getProductName() : "sản phẩm";
+        notificationService.createNotification(
+                (long) auction.getCurrentWinnerUser().getId(),
+                "Chúc mừng! Bạn đã thắng đấu giá",
+                String.format(
+                        "Bạn thắng \"%s\" với giá %,d VND. Vui lòng thanh toán trong 3 ngày.",
+                        productName,
+                        finalPrice),
+                Notification.NotificationType.GENERAL,
+                auction.getAuctionId(),
+                "AUCTION_WON"
+        );
+    }
+
+    /**
+     * Winner did not pay in time — put the product back on the admin approval queue.
+     * Starting price is unchanged; admin can schedule a new auction session on approve.
+     */
+    private void queueProductForRelist(Auction auction) {
+        Product product = auction.getProduct();
+        if (product == null) {
+            return;
+        }
+        product.setStatus("PENDING");
+        product.setScheduledStartTime(null);
+        product.setScheduledDurationSeconds(null);
+        product.setRejectionReason(
+                "Người thắng không thanh toán trong 3 ngày. Chờ admin duyệt đấu giá lại (giá khởi điểm giữ nguyên).");
+        productRepository.save(product);
+
+        contractService.deletePurchaseContract(auction.getAuctionId());
+
+        long startingPrice = product.getStartingPrice() != null ? product.getStartingPrice() : 0L;
+        String title = "Sản phẩm chờ đấu giá lại";
+        String message = String.format(
+                "Phiên đấu giá #%d — \"%s\": người thắng không thanh toán đúng hạn. "
+                        + "Sản phẩm đã vào hàng chờ duyệt với giá khởi điểm %,d VND.",
+                auction.getAuctionId(),
+                product.getProductName(),
+                startingPrice);
+
+        notifyRoleUsers("Admin", title, message, product.getProductId());
+        notifyRoleUsers("Staff", title, message, product.getProductId());
+
+        if (product.getSellerId() != null) {
+            notificationService.createNotification(
+                    product.getSellerId().longValue(),
+                    title,
+                    "Sản phẩm \"" + product.getProductName()
+                            + "\" đã vào hàng chờ duyệt đấu giá lại (giá khởi điểm giữ nguyên).",
+                    Notification.NotificationType.GENERAL,
+                    product.getProductId(),
+                    "PRODUCT_RELIST"
+            );
+        }
+
+        if (auction.getCurrentWinnerUser() != null) {
+            notificationService.createNotification(
+                    (long) auction.getCurrentWinnerUser().getId(),
+                    "Đã hết hạn thanh toán",
+                    "Bạn không thanh toán sản phẩm \"" + product.getProductName()
+                            + "\" trong 3 ngày. Tiền cọc có thể bị tịch thu theo quy định.",
+                    Notification.NotificationType.GENERAL,
+                    auction.getAuctionId(),
+                    "AUCTION_FORFEIT"
+            );
+        }
+    }
+
+    private void notifyRoleUsers(String roleName, String title, String message, Long productId) {
+        for (com.auction.account.entity.User user : userRepository.findAllByRole_RoleName(roleName)) {
+            notificationService.createNotification(
+                    user.getUserId().longValue(),
+                    title,
+                    message,
+                    Notification.NotificationType.GENERAL,
+                    productId,
+                    "PRODUCT_RELIST"
+            );
+        }
     }
 
     /** Returns the platform admin wallet (first Admin user), creating it if missing. */

@@ -59,23 +59,24 @@ public class MessageServiceImpl implements MessageService {
     /**
      * Phân quyền gửi tin nhắn:
      * <ul>
-     *   <li>BUYER_SELLER: chỉ buyer (creator) hoặc seller. Staff KHÔNG gửi được. Admin có thể xem nhưng không gửi trong thread này.</li>
+     *   <li>Admin: được gửi trong mọi conversation (giám sát + phản hồi người dùng).</li>
+     *   <li>BUYER_SELLER: buyer hoặc seller. Staff không gửi được.</li>
      *   <li>BUYER_STAFF / SELLER_STAFF: creator hoặc assigned staff.</li>
      * </ul>
      */
     private void validateSenderAccess(Conversation conv, User sender) {
         String role = sender.getRole().getRoleName();
+        if ("Admin".equalsIgnoreCase(role)) {
+            return;
+        }
         if (conv.getType() == ConversationType.BUYER_SELLER) {
             if ("Staff".equalsIgnoreCase(role)) {
                 throw new AccessDeniedException("Staff không thể gửi tin nhắn trong cuộc hội thoại buyer ↔ seller");
             }
             boolean isBuyer = conv.getUser().getId() == sender.getId();
             boolean isSeller = conv.getSeller() != null && conv.getSeller().getId() == sender.getId();
-            if (!isBuyer && !isSeller && !"Admin".equalsIgnoreCase(role)) {
+            if (!isBuyer && !isSeller) {
                 throw new AccessDeniedException("Bạn không phải thành viên của conversation này");
-            }
-            if ("Admin".equalsIgnoreCase(role)) {
-                throw new AccessDeniedException("Admin chỉ giám sát, không gửi tin trong buyer ↔ seller");
             }
         } else {
             boolean isCreator = conv.getUser().getId() == sender.getId();

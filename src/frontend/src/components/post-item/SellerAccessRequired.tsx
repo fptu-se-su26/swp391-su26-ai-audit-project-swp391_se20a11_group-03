@@ -24,7 +24,7 @@ export default function SellerAccessRequired({ mode }: { mode: "signin" | "upgra
             <h2 className="mt-3 max-w-xl font-display-lg text-2xl font-semibold leading-tight tracking-[-.03em] sm:text-3xl">{mode === "signin" ? "Đăng nhập để đăng sản phẩm đấu giá" : "Nâng cấp tài khoản Seller để bắt đầu"}</h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[#aebbc6]">Vui lòng đăng nhập hoặc nâng cấp tài khoản người bán để gửi sản phẩm, xác minh quyền sở hữu và bắt đầu phiên đấu giá.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href={mode === "signin" ? "/auth" : "/profile"} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#dfbf70] px-6 py-3.5 text-sm font-bold text-[#071626] transition hover:-translate-y-0.5 hover:bg-[#efd694]">{mode === "signin" ? "Đăng nhập" : "Đăng ký Seller Account"}<span className="material-symbols-outlined text-[18px]">arrow_forward</span></Link>
+              <Link href={mode === "signin" ? "/auth" : "/profile#seller-upgrade"} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#dfbf70] px-6 py-3.5 text-sm font-bold text-[#071626] transition hover:-translate-y-0.5 hover:bg-[#efd694]">{mode === "signin" ? "Đăng nhập" : "Đăng ký Seller Account"}<span className="material-symbols-outlined text-[18px]">arrow_forward</span></Link>
               <a href="#selling-process" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-white/[.07]"><span className="material-symbols-outlined text-[18px]">info</span>Tìm hiểu quy trình bán hàng</a>
             </div>
           </div>
@@ -34,7 +34,7 @@ export default function SellerAccessRequired({ mode }: { mode: "signin" | "upgra
           <span className="grid h-11 w-11 place-items-center rounded-full bg-[#eee6d3] text-[#947128]"><span className="material-symbols-outlined">handshake</span></span>
           <h2 className="mt-5 font-display-lg text-xl font-semibold tracking-[-.03em] text-[#071626]">Bạn muốn trở thành người bán?</h2>
           <p className="mt-3 text-sm leading-6 text-[#6d7780]">Mở Seller Account để nhận hỗ trợ định giá, thẩm định chuyên sâu và tiếp cận mạng lưới người mua toàn cầu.</p>
-          <Link href="/profile" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#b9974f] px-5 py-3 text-xs font-bold uppercase tracking-[.1em] text-[#78591b] transition hover:bg-[#071626] hover:text-[#f0d58a]">Đăng ký Seller Account<span className="material-symbols-outlined text-[17px]">north_east</span></Link>
+          <Link href="/profile#seller-upgrade" className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#b9974f] px-5 py-3 text-xs font-bold uppercase tracking-[.1em] text-[#78591b] transition hover:bg-[#071626] hover:text-[#f0d58a]">Đăng ký Seller Account<span className="material-symbols-outlined text-[17px]">north_east</span></Link>
           <div className="mt-6 border-t border-[#e4ded3] pt-5"><p className="flex items-center gap-2 text-[11px] font-semibold text-[#52606c]"><span className="material-symbols-outlined text-[16px] text-[#4d8a75]">verified_user</span>Không phí đăng ký · Bảo mật thông tin</p></div>
         </aside>
       </div>

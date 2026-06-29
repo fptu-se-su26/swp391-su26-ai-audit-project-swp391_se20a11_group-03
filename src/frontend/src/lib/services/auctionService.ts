@@ -40,6 +40,8 @@ export type AuctionState = {
   paymentDeadline: string | null;
   totalBids: number;
   serverNow: string;
+  priceHidden?: boolean;
+  bidsAnonymous?: boolean;
 };
 
 export type BidRecord = {

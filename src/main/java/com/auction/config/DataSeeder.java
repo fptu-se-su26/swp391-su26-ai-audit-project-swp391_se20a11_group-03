@@ -141,6 +141,7 @@ public class DataSeeder implements CommandLineRunner {
         // so the deposit -> bid flow can be tested quickly after each startup.
         // (Runs last so it owns the final state of the demo auctions.)
         seedDemoLiveAuctions();
+        removeDemoWonAuctionForContractTest();
     }
 
     private void ensureCoreTables() {
@@ -977,5 +978,30 @@ public class DataSeeder implements CommandLineRunner {
             // Clear stale bid history so each demo run starts clean.
             jdbcTemplate.update("DELETE FROM Bids WHERE AuctionId = ?", auctionId);
         }
+    }
+
+    /** Removes the contract-test demo lot if it was seeded earlier. */
+    private void removeDemoWonAuctionForContractTest() {
+        final String productName = "Demo Contract Test Lot";
+        Long productId = jdbcTemplate.query(
+                "SELECT TOP 1 ProductId FROM Products WHERE ProductName = ?",
+                rs -> rs.next() ? rs.getLong(1) : null,
+                productName);
+        if (productId == null) {
+            return;
+        }
+        Long auctionId = jdbcTemplate.query(
+                "SELECT TOP 1 AuctionId FROM Auctions WHERE ProductId = ?",
+                rs -> rs.next() ? rs.getLong(1) : null,
+                productId);
+        if (auctionId != null) {
+            jdbcTemplate.update(
+                    "DELETE FROM Contracts WHERE ContractType = 'PURCHASE_AGREEMENT' AND ReferenceId = ?",
+                    auctionId);
+            jdbcTemplate.update("DELETE FROM Bids WHERE AuctionId = ?", auctionId);
+            jdbcTemplate.update("DELETE FROM Auction_Deposits WHERE AuctionId = ?", auctionId);
+            jdbcTemplate.update("DELETE FROM Auctions WHERE AuctionId = ?", auctionId);
+        }
+        jdbcTemplate.update("DELETE FROM Products WHERE ProductId = ?", productId);
     }
 }

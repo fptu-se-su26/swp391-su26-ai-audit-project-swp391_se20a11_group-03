@@ -58,12 +58,8 @@ export default function KYCPage() {
     return subscribeStoredUser(syncUser);
   }, []);
 
-  // Chỉ hiển thị trạng thái đã ký từ server khi hồ sơ đang chờ duyệt / đã duyệt.
-  const kycLockedForContract =
-    existing?.status === "PENDING" || existing?.status === "APPROVED" || identityVerified;
-
   useEffect(() => {
-    if (!isSeller || !kycLockedForContract) {
+    if (!isSeller) {
       setContractSigned(false);
       setContractUrl(null);
       return;
@@ -82,7 +78,7 @@ export default function KYCPage() {
     return () => {
       cancelled = true;
     };
-  }, [isSeller, kycLockedForContract]);
+  }, [isSeller]);
 
   useEffect(() => {
     let cancelled = false;
@@ -535,7 +531,7 @@ export default function KYCPage() {
                       type="checkbox"
                       checked={agreeContract}
                       onChange={(e) => setAgreeContract(e.target.checked)}
-                      disabled={isReadOnly}
+                      disabled={contractSigned}
                       className="mt-1"
                     />
                     <span className="font-body-md text-body-md text-on-surface-variant">
@@ -545,7 +541,7 @@ export default function KYCPage() {
                   <button
                     type="button"
                     onClick={handleSignContract}
-                    disabled={isReadOnly || !agreeContract || signingContract}
+                    disabled={!agreeContract || signingContract}
                     className="inline-flex items-center justify-center gap-xs rounded-xl border-2 border-secondary bg-surface px-lg py-sm font-label-md text-label-md text-secondary transition-colors hover:bg-secondary-container/30 disabled:opacity-50"
                   >
                     <span className="material-symbols-outlined text-[18px]">draw</span>

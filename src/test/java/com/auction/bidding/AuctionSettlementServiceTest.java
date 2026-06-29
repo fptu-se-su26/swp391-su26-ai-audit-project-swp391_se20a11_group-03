@@ -9,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AuctionSettlementServiceTest {
 
     @Test
-    void paymentWindow_is12Hours() {
-        assertEquals(12L, AuctionSettlementServiceImpl.PAYMENT_WINDOW_HOURS);
+    void paymentWindow_isThreeDays() {
+        assertEquals(72L, AuctionSettlementServiceImpl.PAYMENT_WINDOW_HOURS);
     }
 
     @Test

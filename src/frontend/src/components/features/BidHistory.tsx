@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "@/i18n/I18nProvider";
-import { BidRecord, getBidHistory } from "@/lib/services/auctionService";
+import { BidRecord, getAuctionState, getBidHistory } from "@/lib/services/auctionService";
 
 interface BidHistoryProps {
   auctionId: number;
   maxItems?: number;
+  anonymous?: boolean;
 }
 
 function formatVnd(value: number): string {
@@ -17,10 +18,11 @@ function formatVnd(value: number): string {
   }).format(value);
 }
 
-export function BidHistory({ auctionId, maxItems = 10 }: BidHistoryProps) {
+export function BidHistory({ auctionId, maxItems = 10, anonymous = false }: BidHistoryProps) {
   const t = useTranslations("bidHistory");
   const [bids, setBids] = useState<BidRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalBids, setTotalBids] = useState(0);
 
   function timeAgo(iso: string | null | undefined): string {
     if (!iso) return "—";
@@ -32,10 +34,19 @@ export function BidHistory({ auctionId, maxItems = 10 }: BidHistoryProps) {
     if (diffSec < 86400) return t("hoursAgo", { hours: Math.floor(diffSec / 3600) });
     return t("daysAgo", { days: Math.floor(diffSec / 86400) });
   }
+
   useEffect(() => {
     let cancelled = false;
     async function fetchHistory() {
       try {
+        if (anonymous) {
+          const state = await getAuctionState(auctionId);
+          if (!cancelled) {
+            setTotalBids(state.totalBids ?? 0);
+            setBids([]);
+          }
+          return;
+        }
         const list = await getBidHistory(auctionId, maxItems);
         if (!cancelled) setBids(list ?? []);
       } catch (err) {
@@ -45,12 +56,26 @@ export function BidHistory({ auctionId, maxItems = 10 }: BidHistoryProps) {
       }
     }
     fetchHistory();
-    const handle = setInterval(fetchHistory, 3_000);
+    const handle = setInterval(fetchHistory, anonymous ? 5_000 : 3_000);
     return () => {
       cancelled = true;
       clearInterval(handle);
     };
-  }, [auctionId, maxItems]);
+  }, [auctionId, maxItems, anonymous]);
+
+  if (anonymous) {
+    return (
+      <div className="rounded-xl border border-outline-variant bg-surface-container-low p-md text-sm text-on-surface-variant">
+        <p className="font-label-md text-label-md text-primary">{t("timedAnonymousTitle")}</p>
+        <p className="mt-1 text-xs leading-relaxed">{t("timedAnonymousDesc")}</p>
+        {totalBids > 0 && (
+          <p className="mt-2 text-xs font-medium text-secondary">
+            {t("timedBidCount", { count: totalBids })}
+          </p>
+        )}
+      </div>
+    );
+  }
 
   if (loading && bids.length === 0) {
     return (

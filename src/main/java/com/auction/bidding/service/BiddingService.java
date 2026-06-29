@@ -14,6 +14,7 @@ import com.auction.bidding.repository.AuctionDepositRepository;
 import com.auction.bidding.repository.AuctionRepository;
 import com.auction.bidding.repository.AuctionSessionRepository;
 import com.auction.bidding.repository.BidRepository;
+import com.auction.bidding.util.AuctionPhaseUtil;
 import com.auction.product.repository.ProductImageRepository;
 import com.auction.product.repository.ProductRepository;
 
@@ -97,18 +98,29 @@ public class BiddingService {
             long startingPrice = biddingProduct != null && biddingProduct.getStartingPrice() != null
                     ? biddingProduct.getStartingPrice()
                     : 0L;
-            long step = com.auction.bidding.util.StepCalculator.calculate(startingPrice);
             long current = auction.getCurrentHighestBid() == null ? 0L : auction.getCurrentHighestBid();
-            long requiredMinBid = com.auction.bidding.util.StepCalculator.computeMinNextBid(
-                    startingPrice, current, step);
+            boolean timedBlind = auction.getAuctionMode() == com.auction.bidding.entity.AuctionMode.TIMED;
+            boolean hasPriorBids = auction.getCurrentWinnerUserId() != null;
 
             Long bidAmount = request.getBidAmount();
-            if (bidAmount == null || bidAmount < requiredMinBid) {
-                return BidResponse.fail("Giá đặt tối thiểu là " + requiredMinBid + " VND");
-            }
-            if (!com.auction.bidding.util.StepCalculator.isOnBidGrid(startingPrice, bidAmount, step)) {
-                return BidResponse.fail("Giá đặt phải bằng giá khởi điểm cộng bội số của bước giá ("
-                        + step + " VND)");
+            if (timedBlind) {
+                if (bidAmount == null || bidAmount < startingPrice) {
+                    return BidResponse.fail("Giá đặt phải từ " + startingPrice + " VND trở lên");
+                }
+                if (hasPriorBids && bidAmount <= current) {
+                    return BidResponse.fail("Giá đặt phải cao hơn mức giá hiện tại");
+                }
+            } else {
+                long step = com.auction.bidding.util.StepCalculator.calculate(startingPrice);
+                long requiredMinBid = com.auction.bidding.util.StepCalculator.computeMinNextBid(
+                        startingPrice, current, step);
+                if (bidAmount == null || bidAmount < requiredMinBid) {
+                    return BidResponse.fail("Giá đặt tối thiểu là " + requiredMinBid + " VND");
+                }
+                if (!com.auction.bidding.util.StepCalculator.isOnBidGrid(startingPrice, bidAmount, step)) {
+                    return BidResponse.fail("Giá đặt phải bằng giá khởi điểm cộng bội số của bước giá ("
+                            + step + " VND)");
+                }
             }
 
             Bid bid = new Bid();
@@ -136,6 +148,9 @@ public class BiddingService {
 
             auctionSessionRepository.save(auction);
 
+            if (timedBlind) {
+                return BidResponse.successTimedBlind(auction.getAuctionId(), auction.getEndTime());
+            }
             return BidResponse.success(auction.getAuctionId(), request.getUserId(), request.getBidAmount(), auction.getCurrentHighestBid(), auction.getEndTime());
         } finally {
             auctionLock.unlock();
@@ -269,9 +284,15 @@ public class BiddingService {
         map.put("productName", product != null ? product.getProductName() : "Unknown");
         map.put("lotNumber", "LOT-" + (product != null ? product.getProductId() : auction.getAuctionId()));
         map.put("image", product != null ? getPrimaryImageUrl(product.getProductId()) : null);
-        map.put("currentBid", currentBidAmount);
-        map.put("userHighestBid", userHighestBid);
-        map.put("startingPrice", product != null ? product.getStartingPrice() : 0L);
+        long startingPrice = product != null && product.getStartingPrice() != null
+                ? product.getStartingPrice()
+                : 0L;
+        boolean timedBlind = AuctionPhaseUtil.isTimedBlindBiddingOpen(auction);
+        map.put("auctionMode", auction.getAuctionMode() != null ? auction.getAuctionMode().name() : "TIMED");
+        map.put("priceHidden", timedBlind);
+        map.put("currentBid", timedBlind ? startingPrice : currentBidAmount);
+        map.put("userHighestBid", timedBlind ? null : userHighestBid);
+        map.put("startingPrice", startingPrice);
         map.put("paymentStatus", auction.getPaymentStatus());
 
         boolean ended = isAuctionEnded(auction);
@@ -297,7 +318,10 @@ public class BiddingService {
     }
 
     private boolean isAuctionEnded(AuctionSession auction) {
-        if (auction.getStatus() == AuctionStatus.ENDED) {
+        if (auction.getStatus() == AuctionStatus.ENDED
+                || auction.getStatus() == AuctionStatus.AWAITING_PAYMENT
+                || auction.getStatus() == AuctionStatus.PAID
+                || auction.getStatus() == AuctionStatus.FORFEITED) {
             return true;
         }
         return auction.getEndTime() != null && !LocalDateTime.now().isBefore(auction.getEndTime());
@@ -337,6 +361,9 @@ public class BiddingService {
             return auction.getCurrentWinnerUserId() != null && auction.getCurrentWinnerUserId().equals(userId.longValue())
                     ? "won"
                     : "lost";
+        }
+        if (AuctionPhaseUtil.isTimedBlindBiddingOpen(auction)) {
+            return "sealed";
         }
         return auction.getCurrentWinnerUserId() != null && auction.getCurrentWinnerUserId().equals(userId.longValue())
                 ? "leading"

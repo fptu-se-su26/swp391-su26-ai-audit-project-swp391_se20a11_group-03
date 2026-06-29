@@ -91,8 +91,10 @@ public class ProductServiceImpl implements ProductService {
         product.setScheduledDurationSeconds(request.getScheduledDurationSeconds());
         product = productRepository.save(product);
 
-        // Create listing contract
-        contractService.createListingContract(productId, reviewerId);
+        // Create listing contract (skip if product is being re-listed after forfeit)
+        if (!contractService.hasListingContract(productId)) {
+            contractService.createListingContract(productId, reviewerId);
+        }
 
         AuctionMode mode = AuctionMode.valueOf(request.getAuctionMode());
         auctionCreationService.createForApprovedProduct(

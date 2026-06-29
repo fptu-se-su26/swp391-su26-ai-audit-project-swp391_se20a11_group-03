@@ -180,6 +180,18 @@ public class ContractServiceImpl implements ContractService {
         return contractRepository.findByContractTypeAndReferenceId(TYPE_PURCHASE, auctionId).isPresent();
     }
 
+    @Override
+    public boolean hasListingContract(Long productId) {
+        return contractRepository.findByContractTypeAndReferenceId("LISTING", productId).isPresent();
+    }
+
+    @Override
+    @Transactional
+    public void deletePurchaseContract(Long auctionId) {
+        contractRepository.findByContractTypeAndReferenceId(TYPE_PURCHASE, auctionId)
+                .ifPresent(contractRepository::delete);
+    }
+
     private boolean isAdminRole(User user) {
         return user.getRole() != null && "Admin".equalsIgnoreCase(user.getRole().getRoleName());
     }

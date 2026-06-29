@@ -31,4 +31,7 @@ public class AuctionStateResponse {
     private LocalDateTime paymentDeadline;
     private Long totalBids;
     private LocalDateTime serverNow;
+    /** TIMED blind phase: true while auction is open — clients must not show live highest bid. */
+    private Boolean priceHidden;
+    private Boolean bidsAnonymous;
 }

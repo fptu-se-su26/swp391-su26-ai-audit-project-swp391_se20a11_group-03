@@ -22,6 +22,7 @@ import com.auction.bidding.entity.AuctionStatus;
 import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.common.util.KycGuard;
 import com.auction.bidding.util.StepCalculator;
+import com.auction.bidding.util.AuctionPhaseUtil;
 import com.auction.product.entity.Contract;
 import com.auction.product.entity.Product;
 import com.auction.product.repository.ProductRepository;
@@ -89,9 +90,17 @@ public class AuctionController {
         long bidStep = StepCalculator.calculate(startingPrice);
         long minNextBid = StepCalculator.computeMinNextBid(startingPrice, currentHighestBid, bidStep);
 
+        boolean timedBlind = AuctionPhaseUtil.isTimedBlindBiddingOpen(auction);
+        if (timedBlind) {
+            currentHighestBid = startingPrice;
+            bidStep = 0L;
+            minNextBid = startingPrice;
+        }
+
         String effectiveStatus = resolveEffectiveStatus(auction);
         String winnerUsername = null;
-        if (auction.getCurrentWinnerUserId() != null) {
+        Long winnerUserId = timedBlind ? null : auction.getCurrentWinnerUserId();
+        if (!timedBlind && auction.getCurrentWinnerUserId() != null) {
             winnerUsername = userRepository.findById(Math.toIntExact(auction.getCurrentWinnerUserId()))
                     .map(User::getUsername)
                     .orElse(null);
@@ -107,8 +116,10 @@ public class AuctionController {
                 .bidStep(bidStep)
                 .minNextBid(minNextBid)
                 .currentHighestBid(currentHighestBid)
-                .currentWinnerUserId(auction.getCurrentWinnerUserId())
+                .currentWinnerUserId(winnerUserId)
                 .winnerUsername(winnerUsername)
+                .priceHidden(timedBlind)
+                .bidsAnonymous(timedBlind)
                 .startTime(auction.getStartTime())
                 .endTime(auction.getEndTime())
                 .paymentDeadline(auction.getPaymentDeadline())
@@ -141,6 +152,11 @@ public class AuctionController {
             @PathVariable("auctionId") Long auctionId,
             @RequestParam(name = "limit", defaultValue = "20") int limit
     ) {
+        AuctionSession auction = auctionSessionRepository.findById(auctionId).orElse(null);
+        if (auction != null && AuctionPhaseUtil.isTimedBlindBiddingOpen(auction)) {
+            return ResponseEntity.ok(List.of());
+        }
+
         List<Bid> bids = bidRepository.findByAuctionIdOrderByBidAmountDesc(auctionId);
         Map<Integer, String> usernameByUserId = userRepository.findAll().stream()
                 .filter(u -> u.getUsername() != null)
@@ -180,7 +196,13 @@ public class AuctionController {
         request.setUserId(user.getId());
         BidResponse response = biddingService.placeBid(request);
         if (response.isSuccess()) {
-            messagingTemplate.convertAndSend(WebSocketConfig.BID_TOPIC, response);
+            AuctionSession session = auctionSessionRepository.findById(auctionId).orElse(null);
+            if (session == null || !AuctionPhaseUtil.isTimedBlindBiddingOpen(session)) {
+                messagingTemplate.convertAndSend(WebSocketConfig.BID_TOPIC, response);
+            } else {
+                messagingTemplate.convertAndSend(WebSocketConfig.BID_TOPIC,
+                        BidResponse.successTimedBlind(auctionId, response.getEndTime()));
+            }
         }
         return ResponseEntity.ok(response);
     }

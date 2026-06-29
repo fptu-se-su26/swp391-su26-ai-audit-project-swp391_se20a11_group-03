@@ -26,7 +26,7 @@ public class AuctionSettlementScheduler {
         }
     }
 
-    /** Every 5 minutes, forfeit any AWAITING_PAYMENT auction whose 12h deadline has passed. */
+    /** Every 5 minutes, forfeit any AWAITING_PAYMENT auction whose 3-day deadline has passed. */
     @Scheduled(fixedRate = 300_000L, initialDelay = 60_000L)
     public void forfeitExpired() {
         try {

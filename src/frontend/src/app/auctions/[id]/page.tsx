@@ -168,6 +168,13 @@ export default function AuctionDetailPage() {
   }, [product?.imageUrl, product?.imageUrls]);
 
   const highestBid = liveState?.currentHighestBid ?? product?.currentBid ?? product?.startingPrice ?? 0;
+  const isTimedBlind =
+    product?.auctionMode === "TIMED" &&
+    !isAuctionEnded &&
+    Boolean(liveState?.priceHidden ?? true);
+  const displayPrice = isTimedBlind
+    ? (product?.startingPrice ?? 0)
+    : highestBid;
   const countdownTarget =
     effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
       ? effectiveStartTime
@@ -444,9 +451,12 @@ export default function AuctionDetailPage() {
 
                 <div className={`rounded-lg border p-md ${isAuctionEnded ? "border-outline-variant bg-surface" : "border-secondary/30 bg-secondary-container/30"}`}>
                   <p className="font-label-sm text-label-sm text-on-surface-variant">
-                    {isAuctionEnded ? t("priceLabelFinal") : t("priceLabelCurrent")}
+                    {isAuctionEnded ? t("priceLabelFinal") : isTimedBlind ? t("priceLabelStartingTimed") : t("priceLabelCurrent")}
                   </p>
-                  <p className="mt-xs text-[32px] font-bold text-primary">{formatVnd(highestBid)}</p>
+                  <p className="mt-xs text-[32px] font-bold text-primary">{formatVnd(displayPrice)}</p>
+                  {isTimedBlind && (
+                    <p className="mt-1 text-xs text-on-surface-variant">{t("timedBlindPriceHint")}</p>
+                  )}
                   {product.auction ? (
                     <p className="mt-xs text-sm text-on-surface-variant">
                       {t("auctionTimeRange", {

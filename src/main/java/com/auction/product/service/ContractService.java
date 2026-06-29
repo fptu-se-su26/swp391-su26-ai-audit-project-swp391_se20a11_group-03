@@ -22,5 +22,10 @@ public interface ContractService {
     Contract getPurchaseContract(Long auctionId);
 
     boolean hasPurchaseContract(Long auctionId);
+
+    boolean hasListingContract(Long productId);
+
+    /** Remove purchase agreement when an auction is forfeited (relist flow). */
+    void deletePurchaseContract(Long auctionId);
 }
 

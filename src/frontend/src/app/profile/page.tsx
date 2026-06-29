@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import CollectorShell from "@/components/layout/CollectorShell";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
@@ -12,6 +13,8 @@ import {
   getStoredUser,
   getUserDisplayName,
   getUserInitials,
+  isAdmin,
+  isSeller,
   saveStoredUser,
   subscribeStoredUser,
 } from "@/lib/userSession";
@@ -21,16 +24,19 @@ import {
   updateMyProfile,
   type UserProfile,
 } from "@/lib/services/userProfileService";
+import { selectRole } from "@/lib/services/authService";
 import { ApiError, clearStoredAuth, getStoredToken } from "@/lib/apiClient";
 
 export default function ProfilePage() {
   const t = useTranslations("profile");
   const tRoles = useTranslations("roles");
+  const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [currentUser, setCurrentUser] = useState<StoredUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [upgradingSeller, setUpgradingSeller] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [loadErrorCode, setLoadErrorCode] = useState<"unauthorized" | "network" | null>(null);
 
@@ -96,6 +102,42 @@ export default function ProfilePage() {
   const displayName = profile?.fullName || getUserDisplayName(currentUser);
   const initials = getUserInitials({ ...currentUser, username: displayName });
   const roleLabel = tRoles(getRoleLabelKey(currentUser));
+  const canUpgradeToSeller =
+    Boolean(currentUser) && !isSeller(currentUser) && !isAdmin(currentUser);
+
+  async function handleUpgradeSeller() {
+    if (!currentUser?.userId) {
+      return;
+    }
+    setUpgradingSeller(true);
+    setFeedback(null);
+    try {
+      const response = await selectRole({
+        userId: currentUser.userId,
+        role: "Seller",
+      });
+      if (!response.success) {
+        throw new Error(response.message || t("sellerUpgradeError"));
+      }
+      const updatedUser: StoredUser = {
+        ...currentUser,
+        roleName: response.roleName ?? "Seller",
+      };
+      saveStoredUser(updatedUser);
+      setCurrentUser(updatedUser);
+      setFeedback({ type: "ok", text: t("sellerUpgradeSuccess") });
+      const nextPath =
+        profile?.identityVerified || updatedUser.identityVerified ? "/post-item" : "/kyc";
+      window.setTimeout(() => router.push(nextPath), 600);
+    } catch (err) {
+      setFeedback({
+        type: "err",
+        text: err instanceof Error ? err.message : t("sellerUpgradeError"),
+      });
+    } finally {
+      setUpgradingSeller(false);
+    }
+  }
 
   async function handleSave() {
     setSaving(true);
@@ -290,6 +332,46 @@ export default function ProfilePage() {
                 </Link>
               </div>
             )}
+          </div>
+        )}
+
+        {!loading && profile && canUpgradeToSeller && (
+          <div
+            id="seller-upgrade"
+            className="scroll-mt-24 rounded-2xl border border-[#d7c9a8] bg-[#071626] p-6 text-white shadow-[0_20px_55px_rgba(7,22,38,.18)] sm:p-8"
+          >
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-2xl">
+                <p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#d7ba70]">
+                  {t("sellerUpgradeEyebrow")}
+                </p>
+                <h3 className="mt-2 font-display-lg text-2xl font-semibold">{t("sellerUpgradeTitle")}</h3>
+                <p className="mt-3 text-sm leading-6 text-[#aebbc6]">{t("sellerUpgradeDesc")}</p>
+                <ul className="mt-4 space-y-2 text-sm text-[#c5d0d9]">
+                  <li className="flex items-start gap-2">
+                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#d7ba70]">check_circle</span>
+                    {t("sellerUpgradeBenefit1")}
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#d7ba70]">check_circle</span>
+                    {t("sellerUpgradeBenefit2")}
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#d7ba70]">check_circle</span>
+                    {t("sellerUpgradeBenefit3")}
+                  </li>
+                </ul>
+              </div>
+              <button
+                type="button"
+                onClick={handleUpgradeSeller}
+                disabled={upgradingSeller}
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#dfbf70] px-6 py-3.5 text-sm font-bold text-[#071626] transition hover:bg-[#efd694] disabled:opacity-60"
+              >
+                <span className="material-symbols-outlined text-[18px]">storefront</span>
+                {upgradingSeller ? t("sellerUpgrading") : t("sellerUpgradeCta")}
+              </button>
+            </div>
           </div>
         )}
       </div>

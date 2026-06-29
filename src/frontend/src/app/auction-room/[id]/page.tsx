@@ -116,6 +116,10 @@ export default function AuctionRoomPage() {
       ? effectiveStartTime
       : effectiveEndTime;
   const displayCurrentBid = liveState?.currentHighestBid ?? currentBid;
+  const isTimedBlind =
+    product.auctionMode === "TIMED" &&
+    !isAuctionEnded &&
+    Boolean(liveState?.priceHidden ?? true);
   const sellerCanEnter = isSellerOfProduct;
   const canEnterBidding = sellerCanEnter || eligibility?.alreadyDeposited;
 
@@ -244,10 +248,15 @@ export default function AuctionRoomPage() {
             </div>
 
             <div className="rounded-lg border border-error/30 bg-error-container/10 p-md">
-              <p className="font-label-sm text-label-sm uppercase tracking-widest text-error">{t("currentPrice")}</p>
-              <p className="mt-1 text-[36px] font-bold text-primary">
-                {formatVnd(displayCurrentBid)}
+              <p className="font-label-sm text-label-sm uppercase tracking-widest text-error">
+                {isTimedBlind ? t("timedBlindPriceLabel") : t("currentPrice")}
               </p>
+              <p className="mt-1 text-[36px] font-bold text-primary">
+                {isTimedBlind ? formatVnd(startingPrice) : formatVnd(displayCurrentBid)}
+              </p>
+              {isTimedBlind && (
+                <p className="mt-1 text-xs text-on-surface-variant">{t("timedBlindPriceHint")}</p>
+              )}
               {!isAuctionEnded && (
                 <div className="mt-sm flex items-center gap-sm">
                   <span className="font-label-sm text-label-sm text-on-surface-variant">
@@ -286,6 +295,7 @@ export default function AuctionRoomPage() {
                 currentBid={displayCurrentBid}
                 startingPrice={startingPrice}
                 bidStep={bidStep}
+                auctionMode={product.auctionMode === "TIMED" ? "TIMED" : "LIVE"}
                 canBid={true}
                 onBidPlaced={() => {
                   getProductDetail(params.id).then((p) => setProduct(p)).catch(() => {});
@@ -322,7 +332,13 @@ export default function AuctionRoomPage() {
               </div>
             )}
 
-            {auctionId && <BidHistory auctionId={auctionId} maxItems={8} />}
+            {auctionId && (
+              <BidHistory
+                auctionId={auctionId}
+                maxItems={8}
+                anonymous={isTimedBlind}
+              />
+            )}
           </div>
 
           {/* Right: Live chat */}

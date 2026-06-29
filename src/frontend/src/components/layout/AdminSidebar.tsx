@@ -1,9 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { clearStoredAuth } from "@/lib/apiClient";
-import { getStoredUser, getUserDisplayName } from "@/lib/userSession";
+import {
+  StoredUser,
+  getStoredUser,
+  getUserDisplayName,
+  getUserInitials,
+  subscribeStoredUser,
+} from "@/lib/userSession";
 import { ADMIN_HOME } from "@/lib/roleRouting";
 import { ADMIN_NAV_GROUPS, ADMIN_OVERVIEW_HREF } from "@/lib/adminNav";
 
@@ -24,8 +31,16 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const adminName = getUserDisplayName(getStoredUser());
+  const [currentUser, setCurrentUser] = useState<StoredUser | null>(null);
+  const adminName = getUserDisplayName(currentUser);
+  const adminInitials = getUserInitials(currentUser);
   const onDashboard = pathname === ADMIN_OVERVIEW_HREF || pathname === "/admin";
+
+  useEffect(() => {
+    const syncUser = () => setCurrentUser(getStoredUser());
+    syncUser();
+    return subscribeStoredUser(syncUser);
+  }, []);
 
   const handleLogout = () => {
     clearStoredAuth();
@@ -103,7 +118,7 @@ export default function AdminSidebar() {
         <div className="mt-3 shrink-0 space-y-2 border-t border-white/10 pt-4">
           <div className="hidden items-center gap-2 px-2 xl:flex">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#d4b56a]/30 text-sm font-bold text-[#f0dfa0]">
-              {adminName.charAt(0).toUpperCase()}
+              {adminInitials}
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{adminName}</p>

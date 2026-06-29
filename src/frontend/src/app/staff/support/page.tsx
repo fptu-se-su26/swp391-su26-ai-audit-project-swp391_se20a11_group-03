@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import StaffShell from "@/components/layout/StaffShell";
+import ChatMessageList from "@/components/features/ChatMessageList";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { apiClient } from "@/lib/apiClient";
+import { getStoredUser, subscribeStoredUser, StoredUser } from "@/lib/userSession";
 import { RealtimeChatMessage, useChatRealtime } from "@/lib/hooks/useChatRealtime";
 import { appendChatMessage } from "@/lib/chatMessages";
 
@@ -67,7 +69,16 @@ export default function SupportPage() {
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
   const [search, setSearch] = useState("");
+  const [currentUser, setCurrentUser] = useState<StoredUser | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const syncUser = () => setCurrentUser(getStoredUser());
+    syncUser();
+    return subscribeStoredUser(syncUser);
+  }, []);
+
+  const currentUserId = currentUser?.userId ?? null;
 
   const refreshConversations = useCallback(async () => {
     try {
@@ -308,7 +319,7 @@ export default function SupportPage() {
                 </div>
               </header>
 
-              <div className="flex-1 overflow-y-auto p-md space-y-md no-scrollbar">
+              <div className="flex-1 space-y-md overflow-y-auto bg-[radial-gradient(circle_at_80%_15%,rgba(190,157,78,.06),transparent_25%)] p-md no-scrollbar">
                 {loadingMessages ? (
                   <div className="text-center text-on-surface-variant">
                     {t("loadingMessages")}
@@ -318,54 +329,7 @@ export default function SupportPage() {
                     <p>{t("noMessagesYet")}</p>
                   </div>
                 ) : (
-                  messages.map((m) => {
-                    const isStaff = m.senderRole === "Staff";
-                    return (
-                      <div
-                        key={m.messageId}
-                        className={`flex items-start gap-md ${
-                          isStaff ? "flex-row-reverse" : ""
-                        }`}
-                      >
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                            isStaff
-                              ? "bg-secondary-container text-secondary"
-                              : "bg-primary-container text-secondary"
-                          }`}
-                        >
-                          <span className="material-symbols-outlined">
-                            {isStaff ? "support_agent" : "person"}
-                          </span>
-                        </div>
-                        <div className="flex-1">
-                          <div
-                            className={`flex items-center gap-sm mb-xs ${
-                              isStaff ? "flex-row-reverse" : ""
-                            }`}
-                          >
-                            <span className="font-label-md text-primary">
-                              {m.senderName}
-                            </span>
-                            <span className="text-[10px] text-outline">
-                              {formatDate(m.sentAt)}
-                            </span>
-                          </div>
-                          <div
-                            className={`rounded-2xl p-md soft-shadow max-w-[80%] ${
-                              isStaff
-                                ? "bg-secondary text-on-secondary rounded-tr-none ml-auto glow-accent"
-                                : "bg-surface border border-outline-variant/20 rounded-tl-none"
-                            }`}
-                          >
-                            <p className="font-body-md text-sm whitespace-pre-wrap break-words">
-                              {m.content}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
+                  <ChatMessageList messages={messages} currentUserId={currentUserId} />
                 )}
                 <div ref={messagesEndRef} />
               </div>
