@@ -1,15 +1,25 @@
 import Link from "next/link";
+import Image from "next/image";
+import { memo } from "react";
 import { LuxuryLot } from "./types";
 import CountdownBadge from "@/components/ui/CountdownBadge";
 import StatusBadge from "@/components/ui/StatusBadge";
 
 const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
-export default function FeaturedLotCard({ lot }: { lot: LuxuryLot }) {
+function FeaturedLotCard({ lot }: { lot: LuxuryLot }) {
   return (
     <article className="animate-fade-up group relative overflow-hidden rounded-[28px] border border-white/15 bg-white/[0.08] p-3 shadow-[0_30px_80px_rgba(0,0,0,.38)] backdrop-blur-xl transition duration-500 hover:-translate-y-1.5 hover:border-[#d6a84f]/60">
-      <div className="relative overflow-hidden rounded-[20px] bg-slate-900">
-        <img src={lot.image} alt={lot.title} className="aspect-[16/11] w-full object-cover transition duration-700 group-hover:scale-[1.04]" />
+      <div className="relative aspect-[16/11] overflow-hidden rounded-[20px] bg-slate-900">
+        <Image
+          src={lot.image}
+          alt={lot.title}
+          fill
+          priority
+          sizes="(max-width: 1024px) 100vw, 52vw"
+          className="object-cover transition duration-700 group-hover:scale-[1.04]"
+          unoptimized
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/28 to-black/20" />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
           <StatusBadge status="ACTIVE" label="Live auction" className="bg-red-50 text-red-700" />
@@ -37,3 +47,5 @@ export default function FeaturedLotCard({ lot }: { lot: LuxuryLot }) {
     </article>
   );
 }
+
+export default memo(FeaturedLotCard);

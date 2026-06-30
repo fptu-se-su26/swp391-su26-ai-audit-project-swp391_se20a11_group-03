@@ -38,6 +38,7 @@ export function BidHistory({ auctionId, maxItems = 10, anonymous = false }: BidH
   useEffect(() => {
     let cancelled = false;
     async function fetchHistory() {
+      if (document.hidden) return;
       try {
         if (anonymous) {
           const state = await getAuctionState(auctionId);
@@ -57,9 +58,12 @@ export function BidHistory({ auctionId, maxItems = 10, anonymous = false }: BidH
     }
     fetchHistory();
     const handle = setInterval(fetchHistory, anonymous ? 5_000 : 3_000);
+    const onVisible = () => fetchHistory();
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
       clearInterval(handle);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [auctionId, maxItems, anonymous]);
 

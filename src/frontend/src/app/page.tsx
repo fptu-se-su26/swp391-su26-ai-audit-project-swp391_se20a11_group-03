@@ -86,7 +86,7 @@ function HomepageContent() {
   const featured = useMemo(() => liveLots[0] || sampleLots[0], [liveLots]);
 
   return (
-    <main className="min-h-screen overflow-x-hidden premium-page text-slate-950">
+    <main className="min-h-screen overflow-x-clip premium-page text-slate-950">
       <Header />
       <HeroSection featuredLot={featured} />
       <ScrollReveal>

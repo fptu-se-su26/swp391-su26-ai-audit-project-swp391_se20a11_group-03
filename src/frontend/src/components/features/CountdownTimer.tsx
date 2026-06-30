@@ -51,6 +51,7 @@ export function CountdownTimer({
   className,
 }: CountdownTimerProps) {
   const targetDate = endsAt ? new Date(endsAt) : null;
+  const targetTime = targetDate?.getTime() ?? null;
   const [now, setNow] = useState<Date>(() => new Date());
   const firedExpireRef = useRef(false);
 
@@ -59,12 +60,28 @@ export function CountdownTimer({
   }, [endsAt]);
 
   useEffect(() => {
-    if (!targetDate) return;
-    const tick = () => setNow(new Date());
+    if (!targetTime) return;
+    const tick = () => {
+      if (!document.hidden) setNow(new Date());
+    };
     tick();
     const handle = setInterval(tick, 1_000);
-    return () => clearInterval(handle);
-  }, [targetDate?.getTime()]);
+    const onVisible = () => setNow(new Date());
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(handle);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [targetTime]);
+
+  const remaining = targetDate ? diffSeconds(targetDate, now) : 0;
+
+  useEffect(() => {
+    if (remaining === 0 && !firedExpireRef.current && onExpire) {
+      firedExpireRef.current = true;
+      onExpire();
+    }
+  }, [remaining, onExpire]);
 
   if (!targetDate) {
     return (
@@ -73,15 +90,6 @@ export function CountdownTimer({
       </span>
     );
   }
-
-  const remaining = diffSeconds(targetDate, now);
-
-  useEffect(() => {
-    if (remaining === 0 && !firedExpireRef.current && onExpire) {
-      firedExpireRef.current = true;
-      onExpire();
-    }
-  }, [remaining, onExpire]);
 
   return (
     <span

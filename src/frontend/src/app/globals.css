@@ -109,9 +109,9 @@
     background:
       radial-gradient(circle at 25% 30%, rgba(20, 52, 142, 0.28), transparent 28%),
       radial-gradient(circle at 70% 55%, rgba(154, 107, 19, 0.22), transparent 30%);
-    filter: blur(36px);
-    opacity: 0.72;
-    animation: aurora-drift 12s ease-in-out infinite alternate;
+    filter: blur(24px);
+    opacity: 0.58;
+    animation: aurora-drift 16s ease-in-out infinite alternate;
     will-change: transform;
   }
 
@@ -123,10 +123,10 @@
     height: 2px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 0 12px rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.75);
     transform: rotate(135deg);
     opacity: var(--meteor-opacity, 0.7);
-    animation: meteor-fall var(--meteor-duration, 6.5s) linear infinite;
+    animation: meteor-fall var(--meteor-duration, 7.5s) linear infinite;
     animation-delay: var(--meteor-delay, 0s);
     contain: paint;
     will-change: transform, opacity;
@@ -137,7 +137,7 @@
     position: absolute;
     right: 2px;
     top: 0;
-    width: var(--meteor-tail, 120px);
+    width: var(--meteor-tail, 96px);
     height: 1px;
     border-radius: 999px;
     background: linear-gradient(90deg, rgba(255, 255, 255, 0.92), transparent);
@@ -162,18 +162,18 @@
       radial-gradient(circle, rgba(255, 255, 255, 0.86) 0 1px, rgba(255, 255, 255, 0.32) 2px, transparent 8px);
     background-size: 150px 150px, 220px 220px, 295px 295px;
     background-position: 12px 18px, 90px 36px, 140px 92px;
-    opacity: 0.48;
+    opacity: 0.42;
     mix-blend-mode: screen;
     transform: translate3d(0, 0, 0);
-    animation: sparkle-twinkle 4.8s ease-in-out infinite alternate;
+    animation: sparkle-twinkle 6.5s ease-in-out infinite alternate;
     will-change: transform, opacity;
   }
 
   .sparkle-field::after {
     inset: -20%;
-    opacity: 0.34;
+    opacity: 0.26;
     transform: translate3d(3%, -2%, 0);
-    animation-duration: 7s;
+    animation-duration: 9s;
     animation-delay: 1.4s;
   }
 
@@ -207,16 +207,17 @@
 
   .scroll-reveal {
     opacity: 0;
-    transform: translate3d(0, 18px, 0);
+    transform: translate3d(0, 12px, 0);
     transition:
-      opacity 0.48s cubic-bezier(0.22, 1, 0.36, 1),
-      transform 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+      opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
     will-change: opacity, transform;
   }
 
   .scroll-reveal.is-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0);
+    will-change: auto;
   }
 
   .skeleton-shimmer {
@@ -332,17 +333,28 @@
 }
 
 @media (max-width: 900px) {
-  .meteor:nth-child(n + 25) {
+  .meteor:nth-child(n + 19) {
     display: none;
   }
 }
 
 @media (max-width: 560px) {
-  .meteor:nth-child(n + 17) {
+  .meteor:nth-child(n + 11) {
     display: none;
   }
 
   .sparkle-field::after {
     display: none;
+  }
+}
+
+@media (update: slow), (prefers-reduced-data: reduce) {
+  .meteor:nth-child(n + 13) {
+    display: none;
+  }
+
+  .sparkle-field::after,
+  .aurora-panel::before {
+    animation: none;
   }
 }

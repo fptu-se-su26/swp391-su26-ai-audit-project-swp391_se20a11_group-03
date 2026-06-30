@@ -27,7 +27,7 @@ export default function ScrollReveal({
         element.classList.add("is-visible");
         observer.unobserve(element);
       },
-      { rootMargin: "0px 0px 18% 0px", threshold: 0.03 },
+      { rootMargin: "20% 0px 28% 0px", threshold: 0.01 },
     );
 
     observer.observe(element);
@@ -38,7 +38,7 @@ export default function ScrollReveal({
     <Tag
       ref={ref as never}
       className={`scroll-reveal ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
+      style={{ transitionDelay: `${Math.min(delay, 120)}ms` }}
     >
       {children}
     </Tag>

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Image from "next/image";
+import { memo } from "react";
 import CountdownBadge from "@/components/ui/CountdownBadge";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { LuxuryLot } from "./types";
@@ -9,16 +11,19 @@ const money = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
-export default function AuctionCard({ lot }: { lot: LuxuryLot }) {
+function AuctionCard({ lot }: { lot: LuxuryLot }) {
   const isLive = lot.status === "live";
 
   return (
     <article className="animate-fade-up group overflow-hidden rounded-[24px] border border-slate-200/80 bg-white shadow-[0_14px_45px_rgba(15,23,42,.08)] transition duration-500 hover:-translate-y-2 hover:border-blue-200 hover:shadow-[0_24px_70px_rgba(15,23,42,.14)]">
-      <div className="relative overflow-hidden bg-slate-100">
-        <img
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+        <Image
           src={lot.image}
           alt={lot.title}
-          className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-105"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+          className="object-cover transition duration-700 group-hover:scale-105"
+          unoptimized
         />
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
           <StatusBadge status={isLive ? "ACTIVE" : lot.status} label={isLive ? "Live" : lot.status} />
@@ -78,3 +83,5 @@ export default function AuctionCard({ lot }: { lot: LuxuryLot }) {
     </article>
   );
 }
+
+export default memo(AuctionCard);

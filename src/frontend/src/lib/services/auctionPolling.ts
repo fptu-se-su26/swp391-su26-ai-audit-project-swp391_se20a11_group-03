@@ -10,7 +10,7 @@ import { getAuctionState, AuctionState } from "./auctionService";
  * Pattern modeled after `src/lib/watchlist.ts`.
  */
 
-const POLL_INTERVAL_MS = 1_000;
+const POLL_INTERVAL_MS = 2_000;
 const AUCTION_TICK_EVENT = "auction:tick";
 
 type Listener = (state: AuctionState) => void;
@@ -38,6 +38,7 @@ function notify(auctionId: number) {
 }
 
 async function pollOnce(auctionId: number) {
+  if (typeof document !== "undefined" && document.hidden) return;
   try {
     const fresh = await getAuctionState(auctionId);
     stateCache.set(auctionId, fresh);
@@ -63,7 +64,17 @@ export function subscribeAuction(auctionId: number, listener: Listener): () => v
     intervalsByAuction.set(auctionId, handle);
   }
 
+  const onVisible = () => {
+    if (!document.hidden) pollOnce(auctionId);
+  };
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", onVisible);
+  }
+
   return () => {
+    if (typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", onVisible);
+    }
     const set = listenersByAuction.get(auctionId);
     if (set) {
       set.delete(listener);

@@ -63,6 +63,7 @@ export default function NotificationBell({ className = "" }: { className?: strin
 
   useEffect(() => {
     const loadCount = () => {
+      if (document.hidden) return;
       if (!getStoredUser()) {
         setCount(0);
         setList([]);
@@ -74,7 +75,14 @@ export default function NotificationBell({ className = "" }: { className?: strin
     };
     loadCount();
     const interval = setInterval(loadCount, 30_000);
-    return subscribeStoredUser(loadCount);
+    const onVisible = () => loadCount();
+    document.addEventListener("visibilitychange", onVisible);
+    const unsubscribe = subscribeStoredUser(loadCount);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {

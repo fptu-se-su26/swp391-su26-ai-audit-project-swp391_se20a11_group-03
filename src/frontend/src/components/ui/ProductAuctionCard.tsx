@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { memo } from "react";
 import WatchlistButton from "@/components/features/WatchlistButton";
 import { getProductImage } from "@/lib/productPresentation";
 import type { ProductSummary } from "@/lib/services/productService";
@@ -27,7 +29,7 @@ function formatTime(t: Translator, endTime?: string | null) {
   return t("timeFormat.minutesShort", { minutes });
 }
 
-export default function ProductAuctionCard({
+function ProductAuctionCard({
   product,
   t,
   index = 0,
@@ -50,11 +52,14 @@ export default function ProductAuctionCard({
       style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }}
     >
       <Link href={`/auctions/${product.productId}`} className="absolute inset-0 z-10" aria-label={`View ${product.productName}`} />
-      <div className="relative overflow-hidden bg-slate-100">
-        <img
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+        <Image
           src={getProductImage(product.imageUrl)}
           alt={product.productName}
-          className="aspect-[4/3] w-full object-cover transition duration-700 group-hover:scale-105"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+          className="object-cover transition duration-700 group-hover:scale-105"
+          unoptimized
         />
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
           <StatusBadge status={product.auctionStatus} label={isLive ? t("lotCard.live") : product.auctionStatus || "Lot"} />
@@ -102,3 +107,5 @@ export default function ProductAuctionCard({
     </article>
   );
 }
+
+export default memo(ProductAuctionCard);

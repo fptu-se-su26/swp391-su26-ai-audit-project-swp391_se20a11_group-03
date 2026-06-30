@@ -51,8 +51,8 @@ export default function DashboardPage() {
   }, []);
 
   // Fetch real bids from API
-  const fetchBids = useCallback(async () => {
-    setIsLoadingBids(true);
+  const fetchBids = useCallback(async (silent = false) => {
+    if (!silent) setIsLoadingBids(true);
     try {
       const [myBids, won] = await Promise.all([getMyBids(), getWonItems()]);
       setBids(myBids);
@@ -62,14 +62,21 @@ export default function DashboardPage() {
       setBids([]);
       setWonItems([]);
     } finally {
-      setIsLoadingBids(false);
+      if (!silent) setIsLoadingBids(false);
     }
   }, []);
 
   useEffect(() => {
     fetchBids();
-    const handle = setInterval(fetchBids, 5_000);
-    return () => clearInterval(handle);
+    const fetchWhenVisible = () => {
+      if (!document.hidden) fetchBids(true);
+    };
+    const handle = setInterval(fetchWhenVisible, 5_000);
+    document.addEventListener("visibilitychange", fetchWhenVisible);
+    return () => {
+      clearInterval(handle);
+      document.removeEventListener("visibilitychange", fetchWhenVisible);
+    };
   }, [fetchBids]);
 
   const displayName = getUserDisplayName(currentUser);
