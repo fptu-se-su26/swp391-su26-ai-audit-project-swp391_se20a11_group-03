@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -59,7 +59,7 @@ export default function OnboardingPage() {
       {/* Header */}
       <header className="w-full flex justify-center pt-12 pb-8 relative z-10">
         <h1 className="font-headline-md text-headline-md font-extrabold tracking-tighter text-secondary-fixed">
-          LuxeAuction
+          BidZone
         </h1>
       </header>
 
@@ -137,3 +137,4 @@ export default function OnboardingPage() {
     </div>
   );
 }
+

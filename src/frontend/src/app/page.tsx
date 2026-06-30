@@ -9,6 +9,7 @@ import LiveAuctionGrid from "@/components/home/LiveAuctionGrid";
 import MarketSections from "@/components/home/MarketSections";
 import SellCTA from "@/components/home/SellCTA";
 import Footer from "@/components/home/Footer";
+import ScrollReveal from "@/components/ui/ScrollReveal";
 import { sampleLots } from "@/components/home/sampleLots";
 import { LuxuryLot } from "@/components/home/types";
 import { getProductImage } from "@/lib/productPresentation";
@@ -54,7 +55,7 @@ function fallbackByStatus(status: LuxuryLot["status"]) {
 }
 
 export default function HomePage() {
-  return <Suspense fallback={<div className="min-h-screen bg-[#f7f4ed]" />}><HomepageContent /></Suspense>;
+  return <Suspense fallback={<div className="min-h-screen premium-page" />}><HomepageContent /></Suspense>;
 }
 
 function HomepageContent() {
@@ -85,14 +86,24 @@ function HomepageContent() {
   const featured = useMemo(() => liveLots[0] || sampleLots[0], [liveLots]);
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#fffdf8] text-[#071626]">
+    <main className="min-h-screen overflow-x-hidden premium-page text-slate-950">
       <Header />
       <HeroSection featuredLot={featured} />
-      <StatsStrip />
-      <LiveAuctionGrid lots={liveLots} loading={loading && liveLots.length === 0} />
-      <MarketSections upcoming={upcomingLots} results={resultLots} />
-      <SellCTA />
-      <Footer />
+      <ScrollReveal>
+        <StatsStrip />
+      </ScrollReveal>
+      <ScrollReveal>
+        <LiveAuctionGrid lots={liveLots} loading={loading && liveLots.length === 0} />
+      </ScrollReveal>
+      <ScrollReveal>
+        <MarketSections upcoming={upcomingLots} results={resultLots} />
+      </ScrollReveal>
+      <ScrollReveal>
+        <SellCTA />
+      </ScrollReveal>
+      <ScrollReveal>
+        <Footer />
+      </ScrollReveal>
     </main>
   );
 }

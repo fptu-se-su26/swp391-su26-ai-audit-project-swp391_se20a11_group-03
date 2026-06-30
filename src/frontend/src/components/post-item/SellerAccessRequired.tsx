@@ -3,7 +3,7 @@ import SellerBenefits from "./SellerBenefits";
 
 const steps = [
   ["01", "Gửi thông tin sản phẩm", "Hình ảnh, nguồn gốc và mô tả chi tiết."],
-  ["02", "LuxeAuction xác minh", "Chuyên gia thẩm định tính xác thực và giá trị."],
+  ["02", "BidZone xác minh", "Chuyên gia thẩm định tính xác thực và giá trị."],
   ["03", "Mở phiên đấu giá", "Tiếp cận collector và nhận bid trực tiếp."],
 ];
 
@@ -11,7 +11,7 @@ export default function SellerAccessRequired({ mode }: { mode: "signin" | "upgra
   return (
     <div className="mx-auto max-w-[1260px] px-4 py-10 sm:px-7 lg:px-10 lg:py-14">
       <div className="mb-8 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
-        <div><div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#c6a75a]/30 bg-[#c6a75a]/10 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.18em] text-[#87651f]"><span className="material-symbols-outlined text-[14px]">diamond</span>Private seller services</div><h1 className="font-display-lg text-3xl font-semibold tracking-[-.04em] text-[#071626] sm:text-4xl">Sell with LuxeAuction</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-[#65717b]">List your rare watches, art, jewelry, and collectibles for verified luxury auctions.</p></div>
+        <div><div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#c6a75a]/30 bg-[#c6a75a]/10 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[.18em] text-[#87651f]"><span className="material-symbols-outlined text-[14px]">diamond</span>Private seller services</div><h1 className="font-display-lg text-3xl font-semibold tracking-[-.04em] text-[#071626] sm:text-4xl">Sell with BidZone</h1><p className="mt-3 max-w-2xl text-sm leading-6 text-[#65717b]">List your rare watches, art, jewelry, and collectibles for verified luxury auctions.</p></div>
         <Link href="/" className="inline-flex w-fit items-center gap-2 text-xs font-bold text-[#86631c] hover:text-[#071626]"><span className="material-symbols-outlined text-[17px]">arrow_back</span>Trở về trang chủ</Link>
       </div>
 
@@ -48,3 +48,4 @@ export default function SellerAccessRequired({ mode }: { mode: "signin" | "upgra
     </div>
   );
 }
+

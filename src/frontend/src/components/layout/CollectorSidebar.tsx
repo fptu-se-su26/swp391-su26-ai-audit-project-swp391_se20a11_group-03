@@ -16,6 +16,7 @@ import {
   isSeller,
 } from "@/lib/userSession";
 import { useTranslations } from "@/i18n/I18nProvider";
+import BrandLogo from "@/components/ui/BrandLogo";
 import { useEffect, useState } from "react";
 
 const MY_AUCTIONS = [
@@ -215,9 +216,7 @@ export default function CollectorSidebar() {
       </nav>
 
       <header className="sticky top-0 z-30 flex items-center justify-between bg-surface px-margin-mobile py-sm shadow-sm md:hidden">
-        <Link href="/" className="font-headline-md text-headline-md font-bold text-primary">
-          {tCommon("appName")}
-        </Link>
+        <BrandLogo />
         <Link
           href="/profile"
           className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-container text-sm font-bold uppercase text-on-primary-container"

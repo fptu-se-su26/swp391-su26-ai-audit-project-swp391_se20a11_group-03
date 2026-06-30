@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "@/i18n/I18nProvider";
+import BrandLogo from "@/components/ui/BrandLogo";
 
 const NAV_ITEMS = [
   { href: "/staff/approvals", icon: "task_alt", labelKey: "itemApprovals" },
@@ -19,7 +20,7 @@ export default function StaffSidebar() {
     <aside className="h-screen w-72 fixed left-0 top-0 flex flex-col bg-surface-container-low border-r border-outline-variant shadow-sm z-40">
       <div className="flex flex-col h-full py-lg px-md">
         <div className="mb-xl px-sm">
-          <h1 className="font-headline-md text-headline-md font-bold tracking-tight text-primary">{t("appName")}</h1>
+          <BrandLogo />
           <p className="font-label-md text-label-md text-on-surface-variant">{t("role")}</p>
         </div>
 

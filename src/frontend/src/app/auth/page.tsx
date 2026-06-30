@@ -312,26 +312,26 @@ export default function AuthPage() {
   }
 
   return (
-    <main className="flex h-screen overflow-hidden">
+    <main className="grid min-h-screen overflow-hidden bg-slate-50 lg:grid-cols-[0.92fr_1.08fr]">
       {/* Left: Hero */}
-      <section className="hidden lg:flex lg:w-1/2 relative flex-col justify-end p-lg overflow-hidden">
-        <div className="absolute inset-0 bg-primary-container">
+      <section className="relative hidden overflow-hidden p-8 lg:flex lg:flex-col lg:justify-end">
+        <div className="absolute inset-0 bg-slate-950">
           <img
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0_QH_jlR5knRFMIzliDGgOx7IevRtXO86U-bV1eC5yp0vN_mU8rMMBu6rp0xfOvOMnLLTNAmmeyZ-Hgn2KzXRgr32O4Mk6STYqCaN8-GXPmB2YFM1FqTInWHyrJ3IbzP7bPcNb18zk62zl8Mv-CILX_75WIJQRWBTrpVi2nm84LoTk-1sVdi5O6kudZF1oj9AJ83P3zGe8HD97zTlepjT9XoyscVPA6dprYAId1yy95lPDzU_uee4r7_8tW4Umvw-fL7ZI15STdLl"
             alt="Luxury Watch"
-            className="w-full h-full object-cover grayscale opacity-60"
+            className="h-full w-full object-cover opacity-60 grayscale"
           />
-          <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(13,28,50,0.2) 0%, rgba(13,28,50,0.8) 100%)" }} />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,.35),transparent_28%),linear-gradient(180deg,rgba(2,6,23,.18)_0%,rgba(2,6,23,.88)_100%)]" />
         </div>
         <div className="relative z-10 max-w-lg">
           <div className="mb-sm">
-            <span className="text-secondary font-headline-md text-headline-md font-bold tracking-widest uppercase">{t("appName")}</span>
+            <span className="font-headline-md text-headline-md font-bold uppercase tracking-widest text-cyan-200">{t("appName")}</span>
           </div>
-          <h2 className="text-[34px] font-bold leading-tight text-on-primary-fixed mb-sm italic">
+          <h2 className="mb-sm text-[34px] font-bold leading-tight text-white">
             {t("tagline")}
           </h2>
-          <div className="w-16 h-1 bg-secondary mb-md" />
-          <p className="font-body-md text-on-primary-fixed opacity-70">
+          <div className="mb-md h-1 w-16 rounded-full bg-blue-400" />
+          <p className="font-body-md text-slate-300">
             {t("heroTagline")}
           </p>
         </div>
@@ -341,8 +341,8 @@ export default function AuthPage() {
       </section>
 
       {/* Right: Auth form */}
-      <section className="w-full lg:w-1/2 flex items-center justify-center p-md bg-surface-container-lowest overflow-hidden">
-        <div className="w-full max-w-[460px] flex flex-col">
+      <section className="flex h-screen w-full items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_80%_0%,rgba(37,99,235,.1),transparent_28%),linear-gradient(180deg,#ffffff,#f8fafc)] p-4 sm:p-6">
+        <div className="flex max-h-[calc(100vh-32px)] w-full max-w-[520px] flex-col overflow-hidden">
           {/* Mobile logo */}
           <div className="lg:hidden flex justify-center mb-md flex-shrink-0">
             <span className="text-primary font-headline-md text-headline-md font-extrabold tracking-tight">{t("appName")}</span>
@@ -350,13 +350,13 @@ export default function AuthPage() {
 
           {/* Role Selection Screen */}
           {isSelectRole && (
-            <div className="bg-surface p-md rounded-xl shadow-sm border border-outline-variant/30 flex flex-col">
+            <div className="premium-card animate-fade-up flex max-h-[calc(100vh-32px)] flex-col overflow-y-auto rounded-[28px] p-5 sm:p-6">
               <div className="text-center mb-sm">
-                <div className="w-16 h-16 bg-secondary-container rounded-full flex items-center justify-center mx-auto mb-md">
-                  <span className="material-symbols-outlined text-3xl text-secondary">how_to_reg</span>
+                <div className="mx-auto mb-md flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50">
+                  <span className="material-symbols-outlined text-3xl text-blue-700">how_to_reg</span>
                 </div>
-                <h1 className="text-[26px] font-bold text-primary mb-xs">{t("chooseRole")}</h1>
-                <p className="text-sm text-on-surface-variant">
+                <h1 className="mb-xs text-[26px] font-bold text-slate-950">{t("chooseRole")}</h1>
+                <p className="text-sm text-slate-600">
                   {t("chooseRoleDesc")}
                 </p>
               </div>
@@ -372,11 +372,11 @@ export default function AuthPage() {
                 <button
                   onClick={() => handleSelectRole("BUYER")}
                   disabled={isSubmitting}
-                  className="w-full p-4 rounded-xl border-2 border-outline-variant hover:border-secondary transition-all text-left group disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="group w-full rounded-2xl border border-slate-200 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-primary-container rounded-lg flex items-center justify-center">
-                      <span className="material-symbols-outlined text-2xl text-primary">shopping_bag</span>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-950">
+                      <span className="material-symbols-outlined text-2xl text-white">shopping_bag</span>
                     </div>
                     <div className="flex-1">
                       <h3 className="font-headline-sm text-headline-sm text-primary group-hover:text-secondary transition-colors">
@@ -392,11 +392,11 @@ export default function AuthPage() {
                 <button
                   onClick={() => handleSelectRole("SELLER")}
                   disabled={isSubmitting}
-                  className="w-full p-4 rounded-xl border-2 border-outline-variant hover:border-secondary transition-all text-left group disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="group w-full rounded-2xl border border-slate-200 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-tertiary-container rounded-lg flex items-center justify-center">
-                      <span className="material-symbols-outlined text-2xl text-tertiary">sell</span>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
+                      <span className="material-symbols-outlined text-2xl text-blue-700">sell</span>
                     </div>
                     <div className="flex-1">
                       <h3 className="font-headline-sm text-headline-sm text-primary group-hover:text-secondary transition-colors">
@@ -432,9 +432,9 @@ export default function AuthPage() {
 
           {/* Login/Signup Form */}
           {!isSelectRole && (
-            <div className="bg-surface p-md rounded-xl shadow-sm border border-outline-variant/30 flex flex-col">
+            <div className="premium-card animate-fade-up flex max-h-[calc(100vh-32px)] flex-col overflow-y-auto rounded-[28px] p-5 sm:p-6">
               {/* Toggle */}
-              <div className="flex p-xs bg-surface-container-low rounded-lg mb-sm flex-shrink-0">
+              <div className="mb-sm flex flex-shrink-0 rounded-2xl bg-slate-100 p-1">
                 {(["login", "signup"] as const).map((m) => (
                   <button
                     type="button"
@@ -444,10 +444,10 @@ export default function AuthPage() {
                       setErrorMessage("");
                       setSuccessMessage("");
                     }}
-                    className={`flex-1 py-2 text-label-md font-label-md rounded-md transition-all ${
+                    className={`flex-1 rounded-xl py-2.5 text-label-md font-label-md transition-all ${
                       mode === m
-                        ? "bg-surface shadow-sm text-primary"
-                        : "text-on-surface-variant hover:text-primary"
+                        ? "bg-white text-slate-950 shadow-sm"
+                        : "text-slate-500 hover:text-slate-950"
                     }`}
                   >
                     {m === "login" ? t("logIn") : t("createAccount")}
@@ -456,10 +456,10 @@ export default function AuthPage() {
               </div>
 
               <div className="text-center mb-sm flex-shrink-0">
-                <h1 className="text-[26px] font-bold text-primary mb-xs">
+                <h1 className="mb-xs text-[28px] font-bold tracking-[-.03em] text-slate-950">
                   {isLogin ? t("welcomeBack") : t("joinCollection")}
                 </h1>
-                <p className="text-sm text-on-surface-variant">
+                <p className="text-sm text-slate-600">
                   {isLogin
                     ? t("welcomeBackDesc")
                     : t("joinCollectionDesc")}
@@ -490,7 +490,7 @@ export default function AuthPage() {
                       onChange={(event) => setFullName(event.target.value)}
                       autoComplete="name"
                       required={isSignup}
-                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
+                      className="premium-input"
                     />
                   </div>
                 )}
@@ -506,7 +506,7 @@ export default function AuthPage() {
                         onChange={(event) => setPhone(event.target.value)}
                         autoComplete="tel"
                         required={isSignup}
-                        className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
+                        className="premium-input"
                       />
                     </div>
                   </div>
@@ -521,7 +521,7 @@ export default function AuthPage() {
                     onChange={(event) => setEmail(event.target.value)}
                     autoComplete="email"
                     required
-                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
+                    className="premium-input"
                   />
                 </div>
 
@@ -540,7 +540,7 @@ export default function AuthPage() {
                       autoComplete={isLogin ? "current-password" : "new-password"}
                       required
                       placeholder="••••••••"
-                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
+                      className="premium-input pr-12"
                     />
                     <button
                       type="button"
@@ -562,7 +562,7 @@ export default function AuthPage() {
                       autoComplete="new-password"
                       required={isSignup}
                       placeholder="••••••••"
-                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
+                      className="premium-input"
                     />
                   </div>
                 )}
@@ -583,7 +583,7 @@ export default function AuthPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-primary-container text-white py-3 rounded-lg font-label-md text-label-md hover:shadow-lg hover:shadow-primary-container/20 active:scale-[0.98] transition-all flex items-center justify-center gap-sm group disabled:cursor-not-allowed disabled:opacity-70"
+                    className="group flex w-full items-center justify-center gap-sm rounded-full bg-slate-950 py-3.5 font-label-md text-label-md text-white shadow-[0_14px_35px_rgba(15,23,42,.18)] transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-[0_18px_42px_rgba(37,99,235,.2)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     <span>{isSubmitting ? (isLogin ? t("loggingIn") : t("creatingAccount")) : isLogin ? t("loginSubmit") : t("signupSubmit")}</span>
                     <span className="material-symbols-outlined text-[18px] text-secondary-fixed-dim group-hover:translate-x-1 transition-transform">
@@ -611,7 +611,7 @@ export default function AuthPage() {
                     type="button"
                     onClick={handleDemoGoogle}
                     disabled={isSubmitting}
-                    className="w-full flex items-center justify-center gap-xs py-2.5 px-4 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-all font-label-md text-label-md disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex w-full items-center justify-center gap-xs rounded-full border border-slate-200 bg-white px-4 py-3 font-label-md text-label-md transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

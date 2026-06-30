@@ -16,7 +16,12 @@ export function computeEffectiveAuctionStatus(
   startTime?: string | null,
   endTime?: string | null,
   now: Date = new Date(),
-): "UPCOMING" | "ACTIVE" | "ENDED" {
+): "UPCOMING" | "ACTIVE" | "ENDED" | "AWAITING_PAYMENT" | "PAID" | "FORFEITED" {
+  const upper = (status ?? "").toUpperCase();
+  if (upper === "AWAITING_PAYMENT" || upper === "PAID" || upper === "FORFEITED") {
+    return upper;
+  }
+
   const start = startTime ? new Date(startTime) : null;
   const end = endTime ? new Date(endTime) : null;
 
@@ -31,7 +36,6 @@ export function computeEffectiveAuctionStatus(
   }
 
   // Fall back to the persisted value if we cannot infer from timestamps.
-  const upper = (status ?? "").toUpperCase();
   if (upper === "UPCOMING" || upper === "ACTIVE" || upper === "ENDED") {
     return upper;
   }

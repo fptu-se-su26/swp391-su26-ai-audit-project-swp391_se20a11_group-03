@@ -13,6 +13,7 @@ import {
 } from "@/lib/userSession";
 import { ADMIN_HOME } from "@/lib/roleRouting";
 import { ADMIN_NAV_GROUPS, ADMIN_OVERVIEW_HREF } from "@/lib/adminNav";
+import BrandLogo from "@/components/ui/BrandLogo";
 
 function isNavActive(pathname: string, searchParams: URLSearchParams, href: string): boolean {
   const [path, query] = href.split("?");
@@ -21,7 +22,7 @@ function isNavActive(pathname: string, searchParams: URLSearchParams, href: stri
     return !searchParams.get("payment");
   }
   const expected = new URLSearchParams(query);
-  for (const [key, value] of expected.entries()) {
+  for (const [key, value] of Array.from(expected.entries())) {
     if (searchParams.get(key) !== value) return false;
   }
   return true;
@@ -51,9 +52,9 @@ export default function AdminSidebar() {
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-[72px] flex-col border-r border-[#1e2d3d] bg-[#071626] text-white xl:w-60">
       <div className="flex min-h-0 flex-1 flex-col px-2 py-5 xl:px-3">
         <div className="mb-5 shrink-0 px-1 xl:px-2">
-          <p className="hidden font-bold tracking-tight text-[#d4b56a] xl:block">LuxeAuction</p>
+          <div className="hidden xl:block"><BrandLogo inverted /></div>
           <p className="hidden text-[10px] uppercase tracking-widest text-white/50 xl:block">Quản trị</p>
-          <span className="material-symbols-outlined text-[#d4b56a] xl:hidden">admin_panel_settings</span>
+          <span className="xl:hidden"><BrandLogo compact inverted /></span>
         </div>
 
         <nav className="custom-scrollbar min-h-0 flex-1 space-y-5 overflow-y-auto pr-0.5" aria-label="Admin navigation">
@@ -139,3 +140,4 @@ export default function AdminSidebar() {
     </aside>
   );
 }
+

@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "LuxeAuction",
+    "appName": "BidZone",
     "logout": "Đăng xuất",
     "login": "Đăng nhập",
     "register": "Đăng ký",
@@ -48,7 +48,7 @@
   },
   "home": {
     "heroSubtitle": "Đấu giá sang trọng được tuyển chọn",
-    "heroTitle": "LuxeAuction",
+    "heroTitle": "BidZone",
     "heroDescription": "Khám phá đồng hồ, tranh, đồ thiết kế và đồ sưu tầm hiếm có đã được xác thực từ một sàn giao dịch dành cho những nhà sưu tầm nghiêm túc.",
     "viewDetailAuction": "Xem chi tiết đấu giá",
     "goToDashboard": "Vào bảng điều khiển",
@@ -129,7 +129,7 @@
     "loginAgain": "Đăng nhập lại",
     "sellerUpgradeEyebrow": "Trở thành người bán",
     "sellerUpgradeTitle": "Đăng ký Seller Account",
-    "sellerUpgradeDesc": "Nâng cấp tài khoản để đăng sản phẩm, mở phiên đấu giá và tiếp cận mạng lưới người mua trên LuxeAuction.",
+    "sellerUpgradeDesc": "Nâng cấp tài khoản để đăng sản phẩm, mở phiên đấu giá và tiếp cận mạng lưới người mua trên BidZone.",
     "sellerUpgradeBenefit1": "Không phí đăng ký — chỉ chia sẻ phí dịch vụ khi bán thành công",
     "sellerUpgradeBenefit2": "Đội ngũ thẩm định và hỗ trợ định giá",
     "sellerUpgradeBenefit3": "Đăng sản phẩm ngay sau khi hoàn tất KYC (nếu chưa xác minh)",
@@ -139,11 +139,11 @@
     "sellerUpgradeError": "Không thể nâng cấp tài khoản Seller. Vui lòng thử lại."
   },
   "auth": {
-    "appName": "LuxeAuction",
+    "appName": "BidZone",
     "tagline": "Hành trình theo đuổi sự xuất sắc không có điểm dừng.",
     "heroTagline": "Tham gia cộng đồng nhà sưuu tầm đẳng cấp nhất thế giới. Sang trọng đã xác thực, tiếp cận toàn cầu.",
     "chooseRole": "Chọn vai trò của bạn",
-    "chooseRoleDesc": "Chọn cách bạn muốn sử dụng LuxeAuction",
+    "chooseRoleDesc": "Chọn cách bạn muốn sử dụng BidZone",
     "buyerTitle": "Tôi là người mua",
     "buyerDesc": "Khám phá các phiên đấu giá, đặt giá và sở hữu những sản phẩm độc quyền",
     "sellerTitle": "Tôi là người bán",
@@ -174,7 +174,7 @@
     "google": "Google",
     "continueWithGoogle": "Tiếp tục với Google",
     "googleNotConfigured": "Đăng nhập Google chưa được cấu hình.",
-    "termsPrefix": "Khi sử dụng LuxeAuction, bạn đồng ý với",
+    "termsPrefix": "Khi sử dụng BidZone, bạn đồng ý với",
     "terms": "Điều khoản dịch vụ",
     "and": "và",
     "auctionRules": "Quy tắc đấu giá",
@@ -480,7 +480,7 @@
     "schedReportDailyLedger": "Sổ kế toán Hàng ngày"
   },
   "staffSidebar": {
-    "appName": "LuxeAuction",
+    "appName": "BidZone",
     "role": "Nhân viên vận hành",
     "staffMember": "Nhân viên",
     "onDuty": "Đang trực",
@@ -491,7 +491,7 @@
     "logout": "Đăng xuất"
   },
   "adminSidebar": {
-    "appName": "LuxeAuction",
+    "appName": "BidZone",
     "role": "Trung tâm quản trị",
     "adminProfile": "Quản trị viên",
     "activeStatus": "Trạng thái hoạt động",
@@ -506,13 +506,13 @@
     "logout": "Đăng xuất"
   },
   "footer": {
-    "appName": "LuxeAuction",
+    "appName": "BidZone",
     "terms": "Điều khoản dịch vụ",
     "privacy": "Chính sách bảo mật",
     "biddingRules": "Quy tắc đấu giá",
     "contactUs": "Liên hệ",
     "careers": "Tuyển dụng",
-    "copyright": "© 2024 LuxeAuction. Đấu giá chính xác cao."
+    "copyright": "© 2024 BidZone. Đấu giá chính xác cao."
   },
   "kyc": {
     "pageTitle": "Xác minh KYC",
@@ -799,7 +799,7 @@
     "pageTitle": "Đăng sản phẩm mới",
     "pageSubtitle": "Nhập thông tin lô, tải lên hình ảnh chất lượng cao và yêu cầu định giá AI.",
     "kycRequiredTitle": "Cần xác thực danh tính trước khi đăng bán",
-    "kycRequiredDesc": "Để bảo vệ người mua, LuxeAuction yêu cầu mọi người bán hoàn tất xác thực danh tính (KYC) trước khi đăng sản phẩm. Hãy kiểm tra lại thông tin cá nhân cho khớp với CCCD rồi nộp hồ sơ KYC.",
+    "kycRequiredDesc": "Để bảo vệ người mua, BidZone yêu cầu mọi người bán hoàn tất xác thực danh tính (KYC) trước khi đăng sản phẩm. Hãy kiểm tra lại thông tin cá nhân cho khớp với CCCD rồi nộp hồ sơ KYC.",
     "kycRequiredCta": "Xác thực ngay",
     "kycRequiredProfile": "Cập nhật thông tin cá nhân",
     "kycLoading": "Đang kiểm tra trạng thái xác thực...",
@@ -842,7 +842,7 @@
     "duration": "Thời lượng (giờ, 6-12)",
     "submitForReview": "Gửi để xét duyệt",
     "uploading": "Đang tải lên...",
-    "termsAgree": "Bằng cách gửi, bạn đồng ý với Điều khoản Ký gửi của LuxeAuction.",
+    "termsAgree": "Bằng cách gửi, bạn đồng ý với Điều khoản Ký gửi của BidZone.",
     "aiValuation": "Trợ lý định giá AI",
     "aiValuationDesc": "Tải lên hình ảnh và mô tả để nhận ước tính thị trường thời gian thực dựa trên kết quả đấu giá gần đây. AI của chúng tôi phân tích dữ liệu lịch sử từ hơn 5.000 nhà đấu giá trên toàn cầu.",
     "getAiValuation": "Định giá AI",
@@ -1145,8 +1145,8 @@
     "sending": "Đang gửi..."
   },
   "onboarding": {
-    "appName": "LuxeAuction",
-    "heroTitle": "Chào mừng đến với LuxeAuction! Bạn muốn tham gia như thế nào?",
+    "appName": "BidZone",
+    "heroTitle": "Chào mừng đến với BidZone! Bạn muốn tham gia như thế nào?",
     "heroSubtitle": "Chọn mục tiêu chính của bạn. Bạn có thể luôn thay đổi hoặc nâng cấp loại tài khoản sau.",
     "collectorTitle": "Tôi là nhà sưu tầm",
     "collectorDesc": "Đặt giá các sản phẩm xa xỉ độc quyền, theo dõi đấu giá trực tiếp và xây dựng bộ sưu tập của bạn.",

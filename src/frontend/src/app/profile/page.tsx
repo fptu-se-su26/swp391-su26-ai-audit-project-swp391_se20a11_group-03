@@ -175,7 +175,7 @@ export default function ProfilePage() {
           {!loading && profile && (
             <button
               onClick={() => (editing ? setEditing(false) : handleStartEdit())}
-              className="flex items-center gap-2 rounded-full border border-[#d4ccbe] bg-white px-5 py-2.5 text-xs font-bold text-[#4f5b65] transition hover:border-[#b9974f]"
+              className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-700"
             >
               <span className="material-symbols-outlined text-[18px]">{editing ? "close" : "edit"}</span>
               {editing ? t("cancel") : t("editProfile")}
@@ -183,17 +183,17 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="relative flex items-center gap-6 overflow-hidden rounded-3xl border border-white/10 bg-[#071626] p-7 text-white shadow-[0_20px_55px_rgba(7,22,38,.18)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_15%,rgba(212,180,99,.25),transparent_26%)]" />
+        <div className="relative flex items-center gap-6 overflow-hidden rounded-[28px] border border-slate-200 bg-slate-950 p-7 text-white shadow-[0_22px_70px_rgba(15,23,42,.16)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_15%,rgba(37,99,235,.35),transparent_26%)]" />
           <div className="relative">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-[#d6b969] bg-[#10283d] text-[28px] font-bold uppercase text-[#e6cc85] shadow-lg">
+            <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-white/15 bg-white/10 text-[28px] font-bold uppercase text-white shadow-lg backdrop-blur">
               {initials}
             </div>
           </div>
           <div className="relative">
             <h2 className="font-display-lg text-2xl font-semibold">{displayName}</h2>
-            <p className="mt-1 text-xs font-semibold text-[#d6b969]">{roleLabel}</p>
-            {profile?.email && <p className="mt-2 text-sm text-[#9dabb7]">{profile.email}</p>}
+            <p className="mt-1 text-xs font-semibold text-cyan-200">{roleLabel}</p>
+            {profile?.email && <p className="mt-2 text-sm text-slate-300">{profile.email}</p>}
             <div className="mt-sm flex items-center gap-xs">
               {profile?.identityVerified ? (
                 <>
@@ -238,8 +238,8 @@ export default function ProfilePage() {
             )}
           </div>
         ) : (
-          <div className="rounded-2xl border border-[#e0d9ce] bg-white/80 p-6 shadow-[0_8px_28px_rgba(18,31,44,.05)]">
-            <h3 className="mb-lg border-b border-surface-variant pb-sm font-headline-sm text-headline-sm text-primary">
+          <div className="premium-card rounded-[28px] p-6">
+            <h3 className="mb-lg border-b border-slate-200 pb-sm font-headline-sm text-headline-sm text-slate-950">
               {t("accountDetails")}
             </h3>
 
@@ -338,26 +338,26 @@ export default function ProfilePage() {
         {!loading && profile && canUpgradeToSeller && (
           <div
             id="seller-upgrade"
-            className="scroll-mt-24 rounded-2xl border border-[#d7c9a8] bg-[#071626] p-6 text-white shadow-[0_20px_55px_rgba(7,22,38,.18)] sm:p-8"
+            className="scroll-mt-24 rounded-[28px] border border-slate-200 bg-slate-950 p-6 text-white shadow-[0_22px_70px_rgba(15,23,42,.16)] sm:p-8"
           >
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="max-w-2xl">
-                <p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#d7ba70]">
+                <p className="text-[10px] font-bold uppercase tracking-[.2em] text-cyan-200">
                   {t("sellerUpgradeEyebrow")}
                 </p>
                 <h3 className="mt-2 font-display-lg text-2xl font-semibold">{t("sellerUpgradeTitle")}</h3>
-                <p className="mt-3 text-sm leading-6 text-[#aebbc6]">{t("sellerUpgradeDesc")}</p>
-                <ul className="mt-4 space-y-2 text-sm text-[#c5d0d9]">
+                <p className="mt-3 text-sm leading-6 text-slate-300">{t("sellerUpgradeDesc")}</p>
+                <ul className="mt-4 space-y-2 text-sm text-slate-200">
                   <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#d7ba70]">check_circle</span>
+                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-cyan-200">check_circle</span>
                     {t("sellerUpgradeBenefit1")}
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#d7ba70]">check_circle</span>
+                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-cyan-200">check_circle</span>
                     {t("sellerUpgradeBenefit2")}
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#d7ba70]">check_circle</span>
+                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-cyan-200">check_circle</span>
                     {t("sellerUpgradeBenefit3")}
                   </li>
                 </ul>
@@ -366,7 +366,7 @@ export default function ProfilePage() {
                 type="button"
                 onClick={handleUpgradeSeller}
                 disabled={upgradingSeller}
-                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#dfbf70] px-6 py-3.5 text-sm font-bold text-[#071626] transition hover:bg-[#efd694] disabled:opacity-60"
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-blue-600 px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-500 disabled:opacity-60"
               >
                 <span className="material-symbols-outlined text-[18px]">storefront</span>
                 {upgradingSeller ? t("sellerUpgrading") : t("sellerUpgradeCta")}
@@ -398,21 +398,21 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-xs block font-label-md text-label-md text-on-surface-variant">{label}</label>
+      <label className="mb-xs block font-label-md text-label-md text-slate-600">{label}</label>
       {editing && !readOnly ? (
         <input
           type={type}
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
-          className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-4 py-2.5 outline-none transition-all focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+          className="premium-input"
         />
       ) : (
-        <p className="rounded-lg border border-surface-variant bg-surface-container-low px-4 py-2.5 font-body-md text-body-md text-on-surface">
+        <p className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-body-md text-body-md text-slate-950">
           {value}
         </p>
       )}
       {hint && !editing && (
-        <p className="mt-xs text-xs text-on-surface-variant">{hint}</p>
+        <p className="mt-xs text-xs text-slate-500">{hint}</p>
       )}
     </div>
   );

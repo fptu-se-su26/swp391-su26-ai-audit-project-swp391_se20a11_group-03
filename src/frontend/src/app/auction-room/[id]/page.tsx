@@ -117,7 +117,7 @@ export default function AuctionRoomPage() {
       : effectiveEndTime;
   const displayCurrentBid = liveState?.currentHighestBid ?? currentBid;
   const isTimedBlind =
-    product.auctionMode === "TIMED" &&
+    product?.auctionMode === "TIMED" &&
     !isAuctionEnded &&
     Boolean(liveState?.priceHidden ?? true);
   const sellerCanEnter = isSellerOfProduct;

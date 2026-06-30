@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import AdminShell from "@/components/layout/AdminShell";
@@ -27,6 +27,14 @@ function formatDateTime(value: string | null): string {
 type PaymentTab = "ALL" | "PAID" | "UNPAID";
 
 export default function AuctionHistoryPage() {
+  return (
+    <Suspense fallback={<AdminShell><div className="p-margin-desktop">Đang tải lịch sử đấu giá...</div></AdminShell>}>
+      <AuctionHistoryContent />
+    </Suspense>
+  );
+}
+
+function AuctionHistoryContent() {
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get("payment")?.toUpperCase() as PaymentTab) || "ALL";
   const [rows, setRows] = useState<AuctionSessionRow[]>([]);

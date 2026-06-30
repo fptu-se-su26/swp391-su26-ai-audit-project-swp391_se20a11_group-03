@@ -8,6 +8,7 @@ import WatchlistButton from "@/components/features/WatchlistButton";
 import CountdownTimer from "@/components/features/CountdownTimer";
 import PurchaseContractPanel from "@/components/features/PurchaseContractPanel";
 import AuctionResultBanner from "@/components/features/AuctionResultBanner";
+import StatusBadge from "@/components/ui/StatusBadge";
 import { ApiError, getStoredToken } from "@/lib/apiClient";
 import { useNavigationContext } from "@/lib/NavigationContext";
 import { useTranslations } from "@/i18n/I18nProvider";
@@ -302,7 +303,7 @@ export default function AuctionDetailPage() {
       return (
         <Link
           href="/auth"
-          className="rounded-md bg-primary px-4 py-3 text-center font-label-md text-label-md text-on-primary hover:opacity-90"
+          className="rounded-full bg-slate-950 px-4 py-3 text-center font-label-md text-label-md text-white transition hover:-translate-y-0.5 hover:bg-blue-700"
         >
           {t("endsLoginToDeposit")}
         </Link>
@@ -321,7 +322,7 @@ export default function AuctionDetailPage() {
       return (
         <Link
           href="/kyc"
-          className="flex items-center justify-center gap-2 rounded-md bg-secondary px-4 py-3 text-center font-label-md text-label-md text-on-secondary transition-colors hover:bg-secondary-fixed-dim"
+          className="flex items-center justify-center gap-2 rounded-full bg-blue-600 px-4 py-3 text-center font-label-md text-label-md text-white transition hover:-translate-y-0.5 hover:bg-blue-700"
         >
           <span className="material-symbols-outlined text-[20px]">verified_user</span>
           {t("endsKycRequired")}
@@ -333,7 +334,7 @@ export default function AuctionDetailPage() {
       return (
         <Link
           href={`/auction-room/${productId}`}
-          className="flex items-center justify-center gap-2 rounded-md bg-tertiary-fixed px-4 py-3 text-center font-label-md text-label-md text-on-tertiary-fixed-variant transition-colors hover:opacity-90"
+          className="flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-3 text-center font-label-md text-label-md text-white transition hover:-translate-y-0.5 hover:bg-emerald-700"
         >
           <span className="material-symbols-outlined text-[20px]">gavel</span>
           {t("endsEnterRoom")}
@@ -346,7 +347,7 @@ export default function AuctionDetailPage() {
         <button
           type="button"
           disabled
-          className="rounded-md bg-surface-container-low px-4 py-3 text-center font-label-md text-label-md text-on-surface-variant"
+          className="rounded-full bg-slate-100 px-4 py-3 text-center font-label-md text-label-md text-slate-500"
         >
           {t("endsDepositTimeExpired")}
         </button>
@@ -357,7 +358,7 @@ export default function AuctionDetailPage() {
       return (
         <Link
           href="/wallet"
-          className="rounded-md bg-primary px-4 py-3 text-center font-label-md text-label-md text-on-primary hover:opacity-90"
+          className="rounded-full bg-slate-950 px-4 py-3 text-center font-label-md text-label-md text-white transition hover:-translate-y-0.5 hover:bg-blue-700"
         >
           {t("endsTopUp", { amount: formatVnd(shortfall) })}
         </Link>
@@ -369,7 +370,7 @@ export default function AuctionDetailPage() {
         type="button"
         onClick={handlePlaceDeposit}
         disabled={depositSubmitting}
-        className="rounded-md bg-primary px-4 py-3 text-center font-label-md text-label-md text-on-primary hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-full bg-slate-950 px-4 py-3 text-center font-label-md text-label-md text-white transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {depositSubmitting ? t("endsDepositing") : t("endsDeposit", { amount: formatVnd(depositAmount) })}
       </button>
@@ -377,22 +378,22 @@ export default function AuctionDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-surface-container-lowest text-on-surface">
+    <main className="min-h-screen premium-page text-slate-950">
       <TopNav />
 
       <div className="mx-auto max-w-screen-2xl px-margin-mobile py-lg md:px-margin-desktop">
-        <nav className="mb-md flex items-center gap-xs text-label-sm text-on-surface-variant">
-          <Link href="/" className="hover:text-primary">{t("breadcrumbHome")}</Link>
+        <nav className="mb-md flex items-center gap-xs text-label-sm text-slate-500">
+          <Link href="/" className="hover:text-blue-700">{t("breadcrumbHome")}</Link>
           <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-          <Link href={breadcrumbHref} className="hover:text-primary">
+          <Link href={breadcrumbHref} className="hover:text-blue-700">
             {parentPage === "results" ? t("breadcrumbResults") : parentPage === "upcoming" ? t("breadcrumbUpcoming") : t("breadcrumbStorefront")}
           </Link>
           <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-          <span className="text-primary">{t("breadcrumbLot", { id: params.id })}</span>
+          <span className="text-slate-950">{t("breadcrumbLot", { id: params.id })}</span>
         </nav>
 
         {loading && (
-          <div className="rounded-lg border border-outline-variant bg-surface p-xl text-center text-on-surface-variant">
+          <div className="premium-card skeleton-shimmer rounded-[24px] p-xl text-center text-slate-500">
             {t("loadingDetail")}
           </div>
         )}
@@ -407,20 +408,20 @@ export default function AuctionDetailPage() {
           <>
             <section className="grid gap-lg lg:grid-cols-[1.05fr_0.95fr]">
               <div>
-                <div className="relative overflow-hidden rounded-lg border border-outline-variant bg-surface">
+                <div className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_55px_rgba(15,23,42,.1)]">
                   <img
                     src={images[activeImage]}
                     alt={product.productName}
-                    className="aspect-[4/3] w-full object-cover"
+                    className="aspect-[4/3] w-full object-cover transition duration-700 hover:scale-[1.02]"
                   />
-                  <WatchlistButton productId={product.productId} className="absolute right-3 top-3 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-surface/90 text-on-surface shadow-sm backdrop-blur-sm transition-all hover:scale-110 hover:text-error" />
+                  <WatchlistButton productId={product.productId} className="absolute right-4 top-4 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-sm backdrop-blur-sm transition-all hover:scale-110 hover:text-red-600" />
                 </div>
                 <div className="mt-sm grid grid-cols-4 gap-sm">
                   {images.map((image, index) => (
                     <button
                       key={`${image}-${index}`}
                       onClick={() => setActiveImage(index)}
-                      className={`overflow-hidden rounded-md border ${activeImage === index ? "border-secondary" : "border-outline-variant opacity-70 hover:opacity-100"}`}
+                      className={`overflow-hidden rounded-2xl border bg-white p-1 transition ${activeImage === index ? "border-blue-500 shadow-[0_0_0_4px_rgba(37,99,235,.12)]" : "border-slate-200 opacity-70 hover:opacity-100"}`}
                     >
                       <img src={image} alt="" className="aspect-[4/3] w-full object-cover" />
                     </button>
@@ -432,33 +433,27 @@ export default function AuctionDetailPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="mb-sm flex items-center gap-sm">
-                      <span className="font-label-sm text-label-sm text-on-surface-variant">LOT #{product.productId}</span>
-                      <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${
-                        isAuctionEnded
-                          ? "bg-error-container text-on-error-container"
-                          : "bg-tertiary-fixed text-on-tertiary-fixed-variant"
-                      }`}>
-                        {isAuctionEnded ? "ENDED" : auctionStatus}
-                      </span>
+                      <span className="font-label-sm text-label-sm text-slate-500">LOT #{product.productId}</span>
+                      <StatusBadge status={isAuctionEnded ? "ENDED" : auctionStatus} label={isAuctionEnded ? "ENDED" : auctionStatus} />
                     </div>
-                    <h1 className="text-[36px] font-bold leading-tight text-primary">{product.productName}</h1>
-                    <p className="mt-sm font-body-md text-on-surface-variant">
+                    <h1 className="text-[38px] font-bold leading-tight tracking-[-.04em] text-slate-950">{product.productName}</h1>
+                    <p className="mt-sm font-body-md text-slate-600">
                       {product.categoryName ?? t("uncategorized")} · {isAuctionEnded ? t("priceLabelFinal") : t("priceLabelCurrent")} {formatVnd(product.startingPrice)}
                     </p>
                   </div>
-                  <WatchlistButton productId={product.productId} className="relative !static flex h-12 w-12 items-center justify-center rounded-full border border-outline-variant bg-surface text-on-surface-variant shadow-sm hover:border-error hover:text-error hover:scale-105 transition-all" />
+                  <WatchlistButton productId={product.productId} className="relative !static flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all hover:scale-105 hover:border-red-200 hover:text-red-600" />
                 </div>
 
-                <div className={`rounded-lg border p-md ${isAuctionEnded ? "border-outline-variant bg-surface" : "border-secondary/30 bg-secondary-container/30"}`}>
-                  <p className="font-label-sm text-label-sm text-on-surface-variant">
+                <div className={`rounded-[24px] border p-md shadow-[0_16px_45px_rgba(15,23,42,.07)] ${isAuctionEnded ? "border-slate-200 bg-white" : "border-blue-200 bg-blue-50/80"}`}>
+                  <p className="font-label-sm text-label-sm text-slate-500">
                     {isAuctionEnded ? t("priceLabelFinal") : isTimedBlind ? t("priceLabelStartingTimed") : t("priceLabelCurrent")}
                   </p>
-                  <p className="mt-xs text-[32px] font-bold text-primary">{formatVnd(displayPrice)}</p>
+                  <p className="mt-xs text-[34px] font-extrabold tracking-[-.03em] text-slate-950">{formatVnd(displayPrice)}</p>
                   {isTimedBlind && (
                     <p className="mt-1 text-xs text-on-surface-variant">{t("timedBlindPriceHint")}</p>
                   )}
                   {product.auction ? (
-                    <p className="mt-xs text-sm text-on-surface-variant">
+                    <p className="mt-xs text-sm text-slate-600">
                       {t("auctionTimeRange", {
                         start: formatDateTime(product.auction.startTime, t),
                         end: formatDateTime(product.auction.endTime, t),
@@ -467,7 +462,7 @@ export default function AuctionDetailPage() {
                   ) : null}
                   {!isAuctionEnded && countdownTarget && (
                     <div className="mt-sm flex items-center gap-sm">
-                      <span className="font-label-sm text-label-sm text-on-surface-variant">
+                      <span className="font-label-sm text-label-sm text-slate-600">
                         {effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
                           ? "Bắt đầu sau"
                           : t("priceTimeLeft")}
@@ -502,9 +497,9 @@ export default function AuctionDetailPage() {
                 )}
 
                 {!isAuctionEnded && !isSellerOfProduct && (
-                  <div className="rounded-lg border border-outline-variant bg-surface p-md shadow-sm">
-                    <h2 className="mb-xs font-headline-sm text-headline-sm text-primary">{t("biddingRequired")}</h2>
-                    <p className="text-sm leading-relaxed text-on-surface-variant">
+                  <div className="rounded-[24px] border border-slate-200 bg-white p-md shadow-[0_16px_45px_rgba(15,23,42,.07)]">
+                    <h2 className="mb-xs font-headline-sm text-headline-sm text-slate-950">{t("biddingRequired")}</h2>
+                    <p className="text-sm leading-relaxed text-slate-600">
                       {t("eligibilityDepositInfo", {
                         amount: formatVnd(depositAmount),
                         deadline: formatDateTime(eligibility?.depositDeadline, t),

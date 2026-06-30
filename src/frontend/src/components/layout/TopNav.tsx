@@ -19,6 +19,7 @@ import {
 import { ADMIN_HOME } from "@/lib/roleRouting";
 import { getUnreadCount, markAsRead, markAllAsRead, AppNotification } from "@/lib/services/notificationService";
 import LanguageSwitcher from "@/components/features/LanguageSwitcher";
+import BrandLogo from "@/components/ui/BrandLogo";
 import { useI18n, useTranslations } from "@/i18n/I18nProvider";
 
 type NotifTimeFormatter = (dateStr: string) => string;
@@ -210,9 +211,7 @@ export default function TopNav() {
     <nav className="sticky top-0 z-50 w-full border-b border-outline-variant/20 bg-surface/90 backdrop-blur-xl shadow-sm">
       <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between px-margin-mobile md:px-margin-desktop">
         <div className="flex items-center gap-8">
-          <Link href="/" className="font-headline-md text-headline-md font-bold tracking-tight text-primary">
-            {tCommon("appName")}
-          </Link>
+          <BrandLogo />
           <div className="hidden items-center gap-6 md:flex">
             {navItems.map((item) => (
               <Link

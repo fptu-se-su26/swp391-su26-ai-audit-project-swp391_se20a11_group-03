@@ -1,24 +1,19 @@
 import type { Metadata } from "next";
-import { Inter, Montserrat } from "next/font/google";
+import { Be_Vietnam_Pro } from "next/font/google";
 import { NavigationProvider } from "@/lib/NavigationContext";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import AdminRouteGuard from "@/components/layout/AdminRouteGuard";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
+const beVietnam = Be_Vietnam_Pro({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-brand",
   display: "swap",
-});
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  variable: "--font-montserrat",
-  display: "swap",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
-  title: "LuxeAuction — Rare objects. Remarkable stories.",
+  title: "BidZone - Modern auction marketplace",
   description: "Bid on authenticated watches, art, design and rare collectibles from trusted sellers worldwide.",
 };
 
@@ -31,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
       </head>
-      <body className={`${inter.variable} ${montserrat.variable} bg-background text-on-surface font-body-md`}>
+      <body className={`${beVietnam.variable} bg-background text-on-surface font-body-md`}>
         <I18nProvider>
           <NavigationProvider>
             <AdminRouteGuard>{children}</AdminRouteGuard>

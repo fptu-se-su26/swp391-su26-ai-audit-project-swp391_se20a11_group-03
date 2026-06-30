@@ -25,13 +25,6 @@ const BASE_STATS = [
   { icon: "payments", label: "Total Spent", value: "₫0", color: "secondary-fixed-dim" },
 ];
 
-const STAT_ACCENTS: Record<string, string> = {
-  "primary-fixed-dim": "bg-primary-fixed-dim",
-  "tertiary-fixed-dim": "bg-tertiary-fixed-dim",
-  "secondary-fixed-dim": "bg-secondary-fixed-dim",
-  "outline-variant": "bg-outline-variant",
-};
-
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
   const [currentUser, setCurrentUser] = useState<StoredUser | null>(null);
@@ -102,7 +95,7 @@ export default function DashboardPage() {
 
   return (
     <CollectorShell>
-      <div className="mx-auto max-w-[1260px] space-y-8 px-4 py-10 sm:px-7 lg:px-10 lg:py-14">
+      <div className="mx-auto max-w-[1320px] space-y-8 px-4 py-8 sm:px-7 lg:px-10 lg:py-12">
         <section>
           <DashboardHeader title={t("pageTitle")} subtitle={t("welcomeBack", { name: displayName })} actionLabel="Khám phá phiên đấu giá" actionHref="/live" />
 
@@ -113,11 +106,11 @@ export default function DashboardPage() {
 
         <WonItemsBanner wonItems={wonItems} onRefresh={fetchBids} />
 
-        <div className="grid grid-cols-1 gap-lg xl:grid-cols-3">
-          <section className="space-y-md xl:col-span-2">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+          <section className="space-y-5 xl:col-span-1">
             <div>
-              <p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#9a7429]">Live bidding activity</p>
-              <h3 className="mt-2 font-display-lg text-xl font-semibold text-[#071626]">{t("myActiveBids")}</h3>
+              <p className="text-[9px] font-black uppercase tracking-[.2em] text-[#9a7429]">Live bidding activity</p>
+              <h3 className="mt-2 font-display-lg text-2xl font-black tracking-[-.04em] text-[#071626]">{t("myActiveBids")}</h3>
             </div>
             <div>
               {isLoadingBids ? (
@@ -131,7 +124,7 @@ export default function DashboardPage() {
                   actionHref="/live"
                 />
               ) : activeBids.length === 0 ? (
-                <div className="rounded-xl border border-outline-variant bg-surface p-md text-sm text-on-surface-variant">
+                <div className="rounded-2xl border border-[#e1d6c2] bg-white/80 p-5 text-sm text-[#667386] shadow-[0_12px_34px_rgba(15,23,42,.06)] backdrop-blur">
                   Không có phiên đang diễn ra. Xem lịch sử tham gia bên dưới.
                 </div>
               ) : (
@@ -148,10 +141,10 @@ export default function DashboardPage() {
             </div>
 
             {endedBids.length > 0 && (
-              <div className="mt-lg space-y-md">
+              <div className="mt-8 space-y-5">
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#9a7429]">Lịch sử tham gia</p>
-                  <h3 className="mt-2 font-display-lg text-xl font-semibold text-[#071626]">Phiên đã kết thúc</h3>
+                  <p className="text-[9px] font-black uppercase tracking-[.2em] text-[#9a7429]">Lịch sử tham gia</p>
+                  <h3 className="mt-2 font-display-lg text-2xl font-black tracking-[-.04em] text-[#071626]">Phiên đã kết thúc</h3>
                 </div>
                 <DataTable
                   headers={["tableLotItem", "tableCurrentBid", "Giá của bạn", "tableStatus", "Thanh toán", "tableActions"].map(
@@ -166,40 +159,46 @@ export default function DashboardPage() {
             )}
           </section>
 
-          <section className="space-y-md">
-            <div className="relative overflow-hidden rounded-2xl border border-[#e1d7c5] bg-white/75 p-5 shadow-[0_8px_28px_rgba(18,31,44,.04)]">
-              <div className="absolute left-0 top-0 h-full w-1 bg-[#bd963f]" />
-              <div className="flex items-start gap-sm">
-                <span className="material-symbols-outlined mt-1 text-error">timer</span>
+          <section className="space-y-5">
+            <div className="relative overflow-hidden rounded-[24px] border border-[#e1d7c5] bg-white/82 p-6 shadow-[0_18px_50px_rgba(15,23,42,.08)] backdrop-blur">
+              <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-[#d2ad55]/16 blur-2xl" />
+              <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-[#b8860b] via-[#d7b55c] to-transparent" />
+              <div className="relative flex items-start gap-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#fff4d7] text-[#a86f04] shadow-inner shadow-white/70">
+                  <span className="material-symbols-outlined text-[22px]">timer</span>
+                </span>
                 <div>
-                  <h4 className="font-bold text-on-surface">{t("quickTips")}</h4>
-                  <p className="mt-1 text-sm font-body-md text-on-surface-variant">
+                  <h4 className="font-display-lg text-lg font-black tracking-[-.03em] text-[#071626]">{t("quickTips")}</h4>
+                  <p className="mt-2 text-sm leading-6 text-[#687586]">
                     {t("depositTip")}
                   </p>
-                  <Link href="/wallet" className="mt-sm inline-block font-label-sm text-label-sm text-secondary hover:underline">
+                  <Link href="/wallet" className="mt-3 inline-flex items-center gap-1 text-xs font-black text-[#9a6b13] hover:underline">
                     {t("depositFunds")}
+                    <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                   </Link>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl bg-[#071626] p-6 text-white shadow-[0_18px_45px_rgba(7,22,38,.18)]">
-              <h3 className="mb-sm font-headline-sm text-headline-sm text-on-primary">{t("quickAccess")}</h3>
-              <p className="mb-md text-sm font-body-md opacity-80">{t("quickAccessDesc")}</p>
+            <div className="relative overflow-hidden rounded-[28px] bg-[#071626] p-6 text-white shadow-[0_24px_70px_rgba(7,22,38,.24)]">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[#1d4ed8]/22 blur-3xl" />
+              <div className="pointer-events-none absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-[#d2ad55]/70 to-transparent" />
+              <h3 className="relative mb-2 font-display-lg text-2xl font-black tracking-[-.05em] text-white">{t("quickAccess")}</h3>
+              <p className="relative mb-5 text-sm leading-6 text-[#b8c5d3]">{t("quickAccessDesc")}</p>
               {pendingPayment.length > 0 && (
-                <p className="mb-md rounded-lg bg-secondary/20 px-3 py-2 text-sm">
+                <p className="relative mb-5 rounded-2xl border border-[#d2ad55]/20 bg-[#d2ad55]/12 px-4 py-3 text-sm text-[#f0d98b]">
                   {pendingPayment.length} phiên chờ thanh toán · ₫
                   {pendingPayment.reduce((s, w) => s + w.finalPrice, 0).toLocaleString("vi-VN")}
                 </p>
               )}
-              <div className="grid gap-sm">
-                <Link href="/won-items" className="rounded-lg border border-outline-variant px-4 py-3 text-center font-label-md transition-colors hover:bg-on-primary/10">
+              <div className="relative grid gap-3">
+                <Link href="/won-items" className="rounded-2xl border border-white/12 px-4 py-3 text-center text-sm font-bold text-[#dce8f5] transition hover:-translate-y-0.5 hover:border-[#d2ad55]/45 hover:bg-white/[.06]">
                   Sản phẩm đã thắng ({wonCount})
                 </Link>
-                <Link href="/watchlist" className="rounded-lg border border-outline-variant px-4 py-3 text-center font-label-md transition-colors hover:bg-on-primary/10">
+                <Link href="/watchlist" className="rounded-2xl border border-white/12 px-4 py-3 text-center text-sm font-bold text-[#dce8f5] transition hover:-translate-y-0.5 hover:border-[#d2ad55]/45 hover:bg-white/[.06]">
                   {t("openWatchlist")}
                 </Link>
-                <Link href="/wallet" className="rounded-lg bg-secondary px-4 py-3 text-center font-label-md text-on-secondary transition-colors hover:bg-secondary-fixed-dim">
+                <Link href="/wallet" className="rounded-2xl bg-gradient-to-r from-[#b8860b] via-[#d7b55c] to-[#f0d98b] px-4 py-3 text-center text-sm font-black text-[#06111f] shadow-[0_16px_34px_rgba(199,160,62,.22)] transition hover:-translate-y-0.5">
                   {t("manageWallet")}
                 </Link>
               </div>
