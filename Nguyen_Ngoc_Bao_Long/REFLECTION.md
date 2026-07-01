@@ -11,7 +11,7 @@
 | Tên bài tập / Project |  |
 | Tên sinh viên / Nhóm |  |
 | MSSV / Danh sách MSSV |  |
-| Giảng viên hướng dẫn |  |
+| Giảng viên hướng dẫn | QuangLTN3 |
 | Ngày hoàn thành reflection |  |
 
 ---
