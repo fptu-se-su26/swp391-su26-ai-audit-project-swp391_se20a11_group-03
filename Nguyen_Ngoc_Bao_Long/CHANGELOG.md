@@ -19,17 +19,17 @@ Nguyên tắc ghi changelog:
 
 | Thông tin | Nội dung |
 |---|---|
-| Môn học |  |
-| Mã môn học |  |
-| Lớp |  |
-| Học kỳ |  |
-| Tên bài tập / Project |  |
-| Tên sinh viên / Nhóm |  |
-| MSSV / Danh sách MSSV |  |
-| Giảng viên hướng dẫn |  |
-| Repository URL |  |
-| Ngày bắt đầu |  |
-| Ngày hoàn thành |  |
+| Môn học | Software Project (SWP391) |
+| Mã môn học | SWP391 |
+| Lớp | SE20A11 |
+| Học kỳ | SU26 |
+| Tên bài tập / Project | Real-time Bidding System (Hệ thống đấu giá trực tuyến thời gian thực) |
+| Tên sinh viên / Nhóm | Nhóm 3 – Nguyen Ngoc Bao Long (Leader) |
+| MSSV / Danh sách MSSV | DE190344 (Long), DE190062 (Sang), DE190404 (Thang), DE191098 (Duc), DE190463 (Tuan) |
+| Giảng viên hướng dẫn | QuangLTN3 |
+| Repository URL | https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03 |
+| Ngày bắt đầu | 11/05/2026 |
+| Ngày hoàn thành | Đang thực hiện |
 
 ---
 
@@ -37,12 +37,12 @@ Nguyên tắc ghi changelog:
 
 | Phiên bản/Giai đoạn | Thời gian | Nội dung chính | Trạng thái |
 |---|---|---|---|
-| Phase 01 |  | Khởi tạo project | Not Started / In Progress / Completed |
-| Phase 02 |  | Phân tích yêu cầu | Not Started / In Progress / Completed |
-| Phase 03 |  | Thiết kế hệ thống | Not Started / In Progress / Completed |
-| Phase 04 |  | Implementation | Not Started / In Progress / Completed |
-| Phase 05 |  | Testing & Debug | Not Started / In Progress / Completed |
-| Phase 06 |  | Hoàn thiện báo cáo và demo | Not Started / In Progress / Completed |
+| Phase 01 | 11/05/2026 | Khởi tạo project, cấu trúc thư mục cá nhân | Completed |
+| Phase 02 | 15–20/05/2026 | Phân tích yêu cầu module Bidding | Completed |
+| Phase 03 | 20–22/05/2026 | Thiết kế entity, API, WebSocket | Completed |
+| Phase 04 | 22–28/05/2026 | Implementation module Bidding | Completed |
+| Phase 05 | 28/05/2026 | Unit test & debug logic đấu giá | Completed |
+| Phase 06 | 07/2026 | Hoàn thiện báo cáo và demo | In Progress |
 
 ---
 
@@ -51,52 +51,54 @@ Nguyên tắc ghi changelog:
 ## Ngày thực hiện
 
 ```text
-DD/MM/YYYY
+11/05/2026
 ```
 
 ## Đã hoàn thành
 
-- [ ] Tạo repository
-- [ ] Tạo cấu trúc thư mục project
-- [ ] Tạo file README.md
+- [x] Tạo repository
+- [x] Tạo cấu trúc thư mục project
+- [x] Tạo file README.md (ở root repo nhóm)
 - [ ] Tạo thư mục `docs/`
-- [ ] Tạo file `AI_AUDIT_LOG.md`
-- [ ] Tạo file `PROMPTS.md`
-- [ ] Tạo file `REFLECTION.md`
-- [ ] Tạo file `CHANGELOG.md`
-- [ ] Khởi tạo source code ban đầu
-- [ ] Cài đặt thư viện/công cụ cần thiết
-- [ ] Cấu hình môi trường chạy project
+- [x] Tạo file `AI_AUDIT_LOG.md`
+- [x] Tạo file `PROMPTS.md`
+- [x] Tạo file `REFLECTION.md`
+- [x] Tạo file `CHANGELOG.md`
+- [x] Khởi tạo source code ban đầu
+- [x] Cài đặt thư viện/công cụ cần thiết
+- [x] Cấu hình môi trường chạy project
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+| 1 | Clone repository nhóm từ template SWP391 AI Audit | Nguyen Ngoc Bao Long | Root repo | https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03 |
+| 2 | Tạo thư mục cá nhân `Nguyen_Ngoc_Bao_Long/` theo quy định nhóm | Nguyen Ngoc Bao Long | `Nguyen_Ngoc_Bao_Long/` | Commit `5edada3` |
+| 3 | Khởi tạo các file audit bắt buộc (AI_AUDIT_LOG, PROMPTS, REFLECTION, CHANGELOG) | Nguyen Ngoc Bao Long | `Nguyen_Ngoc_Bao_Long/*.md` | Commit `5edada3` |
+| 4 | Cập nhật thông tin dự án và danh sách thành viên nhóm trên README | Nguyen Ngoc Bao Long | `README.md` | Commit `5edada3` |
 
 ## AI có hỗ trợ không?
 
 - [ ] Có
-- [ ] Không
+- [x] Không
 
 Nếu có, mô tả AI đã hỗ trợ phần nào:
 
 ```text
-Viết tại đây...
+Không sử dụng AI trong giai đoạn khởi tạo project.
 ```
 
 ## Commit/Screenshot minh chứng
 
 ```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
+[DE190344] docs: cap nhat thong tin du an va thanh vien
+https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03/commit/5edada3
 ```
 
 ## Ghi chú
 
 ```text
-Viết tại đây...
+Nhóm 3 gồm 5 thành viên. Long (DE190344) đảm nhiệm vai trò Leader và phụ trách module Bidding.
 ```
 
 ---
@@ -106,51 +108,56 @@ Viết tại đây...
 ## Ngày thực hiện
 
 ```text
-DD/MM/YYYY
+15/05/2026 – 20/05/2026
 ```
 
 ## Đã hoàn thành
 
-- [ ] Xác định problem statement
-- [ ] Xác định user roles
+- [x] Xác định problem statement
+- [x] Xác định user roles
 - [ ] Viết user stories
 - [ ] Viết use cases
-- [ ] Xác định functional requirements
-- [ ] Xác định non-functional requirements
-- [ ] Xác định business rules
-- [ ] Xác định acceptance criteria
-- [ ] Review yêu cầu với giảng viên/nhóm
+- [x] Xác định functional requirements
+- [x] Xác định non-functional requirements
+- [x] Xác định business rules
+- [x] Xác định acceptance criteria
+- [x] Review yêu cầu với giảng viên/nhóm
 - [ ] Chỉnh sửa yêu cầu sau feedback
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+| 1 | Xác định bài toán: đấu giá thời gian thực với cập nhật giá qua WebSocket | Nguyen Ngoc Bao Long | Module Bidding | Thảo luận nhóm |
+| 2 | Xác định vai trò: Buyer (đặt giá), Seller (tạo phiên), Admin (quản lý) | Nguyen Ngoc Bao Long | Toàn hệ thống | README nhóm |
+| 3 | Business rule: bước nhảy giá tối thiểu 1.000.000 VND | Nguyen Ngoc Bao Long | `BiddingService` | `MIN_BID_INCREMENT = 1_000_000L` |
+| 4 | Business rule: anti-sniper – mỗi bid hợp lệ kéo dài phiên thêm 10 giây | Nguyen Ngoc Bao Long | `BiddingService` | `ANTI_SNIPER_EXTENSION_SECONDS = 10L` |
+| 5 | Business rule: điều kiện vào phòng – xác nhận cọc trước giờ bắt đầu 30 phút | Nguyen Ngoc Bao Long | `BiddingService.canJoinRoom()` | `DEPOSIT_DEADLINE_BEFORE_START_MINUTES = 30L` |
+| 6 | Non-functional: xử lý đồng thời nhiều request đặt giá (race condition) | Nguyen Ngoc Bao Long | `BiddingService` | `ReentrantLock` + `findByIdForUpdate` |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
+- [x] Có
 - [ ] Không
 
 Nếu có, mô tả AI đã hỗ trợ phần nào:
 
 ```text
-Viết tại đây...
+Cursor hỗ trợ gợi ý các pattern xử lý race condition (ReentrantLock, pessimistic locking)
+và cơ chế anti-sniper phổ biến trong hệ thống đấu giá. Sinh viên tự đánh giá, chọn và triển khai.
 ```
 
 ## Commit/Screenshot minh chứng
 
 ```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
+Yêu cầu được triển khai trong commit Module_5_BiddingSystem:
+https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03/commit/f3d2b89
 ```
 
 ## Ghi chú
 
 ```text
-Viết tại đây...
+Module Bidding là trách nhiệm chính của DE190344 trong nhóm 3.
 ```
 
 ---
@@ -160,51 +167,57 @@ Viết tại đây...
 ## Ngày thực hiện
 
 ```text
-DD/MM/YYYY
+20/05/2026 – 22/05/2026
 ```
 
 ## Đã hoàn thành
 
-- [ ] Thiết kế kiến trúc tổng quan
-- [ ] Thiết kế database/ERD
-- [ ] Thiết kế API
+- [x] Thiết kế kiến trúc tổng quan
+- [x] Thiết kế database/ERD
+- [x] Thiết kế API
 - [ ] Thiết kế giao diện/wireframe
-- [ ] Thiết kế flow xử lý
-- [ ] Thiết kế class diagram
+- [x] Thiết kế flow xử lý
+- [x] Thiết kế class diagram
 - [ ] Thiết kế sequence diagram
 - [ ] Thiết kế security/authorization flow
-- [ ] Review thiết kế
+- [x] Review thiết kế
 - [ ] Chỉnh sửa thiết kế sau feedback
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+| 1 | Thiết kế entity `AuctionSession` map bảng `dbo.Auctions` | Nguyen Ngoc Bao Long | `entity/AuctionSession.java` | Commit `f3d2b89` |
+| 2 | Thiết kế entity `Bid` lưu lịch sử đặt giá | Nguyen Ngoc Bao Long | `entity/Bid.java` | Commit `f3d2b89` |
+| 3 | Thiết kế enum `AuctionStatus` (UPCOMING, ACTIVE, ENDED) | Nguyen Ngoc Bao Long | `entity/AuctionStatus.java` | Commit `f3d2b89` |
+| 4 | Thiết kế REST API: `GET /api/bidding/rooms`, `POST /api/bidding/bid` | Nguyen Ngoc Bao Long | `controller/BiddingController.java` | Commit `f3d2b89` |
+| 5 | Thiết kế WebSocket STOMP: endpoint `/ws-bidding`, topic `/topic/bids` | Nguyen Ngoc Bao Long | `config/WebSocketConfig.java` | Commit `f3d2b89` |
+| 6 | Thiết kế DTO: `BidRequest`, `BidResponse`, `AuctionSessionDto` | Nguyen Ngoc Bao Long | `dto/*.java` | Commit `f3d2b89` |
+| 7 | Thiết kế repository interface: `AuctionSessionRepository`, `BidRepository` | Nguyen Ngoc Bao Long | `repository/*.java` | Commit `f3d2b89` |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
+- [x] Có
 - [ ] Không
 
 Nếu có, mô tả AI đã hỗ trợ phần nào:
 
 ```text
-Viết tại đây...
+Cursor hỗ trợ gợi ý cấu trúc package theo Spring convention (controller/service/repository/entity/dto/config)
+và cấu hình WebSocket STOMP cơ bản. Sinh viên tự điều chỉnh endpoint, topic và mapping entity theo schema DB nhóm.
 ```
 
 ## Commit/Screenshot minh chứng
 
 ```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
+https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03/commit/f3d2b89
 ```
 
 ## Ghi chú
 
 ```text
-Viết tại đây...
+Module được tách riêng trong thư mục Nguyen_Ngoc_Bao_Long/ với pom.xml độc lập để phát triển và test đơn lẻ.
+Sau đó tích hợp vào main project tại package com.auction.bidding.
 ```
 
 ---
@@ -214,55 +227,64 @@ Viết tại đây...
 ## Ngày thực hiện
 
 ```text
-DD/MM/YYYY
+22/05/2026 – 28/05/2026
 ```
 
 ## Đã hoàn thành
 
-- [ ] Tạo project structure
-- [ ] Cài đặt database connection
-- [ ] Xây dựng backend
+- [x] Tạo project structure
+- [x] Cài đặt database connection
+- [x] Xây dựng backend
 - [ ] Xây dựng frontend
 - [ ] Xây dựng authentication/authorization
-- [ ] Xử lý CRUD
-- [ ] Xử lý validation
-- [ ] Tích hợp API
+- [x] Xử lý CRUD
+- [x] Xử lý validation
+- [x] Tích hợp API
 - [ ] Xử lý upload/download file
-- [ ] Xử lý lỗi
+- [x] Xử lý lỗi
 - [ ] Tối ưu giao diện
-- [ ] Cập nhật README hướng dẫn chạy
+- [x] Cập nhật README hướng dẫn chạy
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
-| 4 |  |  |  |  |
-| 5 |  |  |  |  |
+| 1 | Triển khai `BiddingService.placeBid()` – validate phiên ACTIVE, kiểm tra bước nhảy giá, lưu bid, cập nhật winner | Nguyen Ngoc Bao Long | `service/BiddingService.java` | Commit `f3d2b89` |
+| 2 | Triển khai anti-sniper: mỗi bid hợp lệ cộng thêm 10 giây vào `endTime` | Nguyen Ngoc Bao Long | `service/BiddingService.java` | Commit `f3d2b89` |
+| 3 | Triển khai `ReentrantLock` để đồng bộ hóa request đặt giá đồng thời | Nguyen Ngoc Bao Long | `service/BiddingService.java` | Commit `f3d2b89` |
+| 4 | Triển khai `canJoinRoom()` – kiểm tra deposit confirmed trước deadline 30 phút | Nguyen Ngoc Bao Long | `service/BiddingService.java` | Commit `f3d2b89` |
+| 5 | Triển khai `BiddingController` – REST + WebSocket broadcast bid thành công | Nguyen Ngoc Bao Long | `controller/BiddingController.java` | Commit `f3d2b89` |
+| 6 | Cấu hình WebSocket STOMP broker và endpoint | Nguyen Ngoc Bao Long | `config/WebSocketConfig.java` | Commit `f3d2b89` |
+| 7 | Tạo `pom.xml` với Spring Web, WebSocket, JPA API, JUnit 5, Mockito | Nguyen Ngoc Bao Long | `pom.xml` | Commit `f3d2b89` |
+| 8 | Tích hợp module vào main project nhóm tại `com.auction.bidding` | Nguyen Ngoc Bao Long | `src/main/java/com/auction/bidding/` | Commit `d7aceb3`, `e7b61d3` |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
+- [x] Có
 - [ ] Không
 
 Nếu có, mô tả AI đã hỗ trợ phần nào:
 
 ```text
-Viết tại đây...
+Cursor hỗ trợ sinh code khung cho service, controller, entity và gợi ý cấu trúc test.
+Sinh viên tự review, chỉnh sửa logic nghiệp vụ (bước nhảy giá, anti-sniper, lock) và tích hợp vào project nhóm.
 ```
 
 ## Commit/Screenshot minh chứng
 
 ```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
+Module độc lập:
+https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03/commit/f3d2b89
+
+Tích hợp vào main project:
+https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03/commit/d7aceb3
+https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03/commit/e7b61d3
 ```
 
 ## Ghi chú
 
 ```text
-Viết tại đây...
+Frontend auction UI do các thành viên khác phụ trách. Long tập trung backend logic bidding và WebSocket realtime.
 ```
 
 ---
@@ -272,62 +294,69 @@ Viết tại đây...
 ## Ngày thực hiện
 
 ```text
-DD/MM/YYYY
+28/05/2026
 ```
 
 ## Đã hoàn thành
 
-- [ ] Viết test case
-- [ ] Chạy test chức năng chính
-- [ ] Kiểm tra output
-- [ ] Kiểm tra validation
+- [x] Viết test case
+- [x] Chạy test chức năng chính
+- [x] Kiểm tra output
+- [x] Kiểm tra validation
 - [ ] Kiểm tra lỗi giao diện
 - [ ] Kiểm tra lỗi database
 - [ ] Kiểm tra phân quyền
 - [ ] Kiểm tra bảo mật cơ bản
-- [ ] Fix bug
-- [ ] Chạy lại sau khi fix bug
-- [ ] Ghi nhận kết quả test
+- [x] Fix bug
+- [x] Chạy lại sau khi fix bug
+- [x] Ghi nhận kết quả test
 
 ## Danh sách lỗi đã xử lý
 
 | STT | Lỗi phát hiện | Nguyên nhân | Cách xử lý | Trạng thái |
 |---:|---|---|---|---|
-| 1 |  |  |  | Open / Fixed / Pending |
-| 2 |  |  |  | Open / Fixed / Pending |
-| 3 |  |  |  | Open / Fixed / Pending |
-| 4 |  |  |  | Open / Fixed / Pending |
-| 5 |  |  |  | Open / Fixed / Pending |
+| 1 | Hai user cùng đặt một mức giá đều được chấp nhận | Thiếu cơ chế đồng bộ hóa khi xử lý concurrent bid | Thêm `ReentrantLock` trong `placeBid()` và test concurrent với `ExecutorService` | Fixed |
+| 2 | Bid thấp hơn mức tối thiểu vẫn pass | Thiếu validation bước nhảy giá | Thêm kiểm tra `bidAmount >= currentHighestBid + MIN_BID_INCREMENT` | Fixed |
+| 3 | Phiên đấu giá kết thúc ngay khi có bid cuối | Chưa có cơ chế anti-sniper | Mỗi bid hợp lệ cộng thêm 10 giây vào `endTime` | Fixed |
+| 4 | User chưa xác nhận cọc vẫn vào phòng | Thiếu kiểm tra deposit | Thêm `canJoinRoom()` với deadline 30 phút trước start | Fixed |
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
-| 2 |  |  |  |  |
-| 3 |  |  |  |  |
+| 1 | Viết 6 unit test cho `BiddingService` | Nguyen Ngoc Bao Long | `BiddingServiceTest.java` | Commit `008e921` |
+| 2 | Test concurrent: cùng mức giá – request trước thắng, request sau reject | Nguyen Ngoc Bao Long | `sameBidAmount_firstRequestWins_secondRejected` | Commit `008e921` |
+| 3 | Test concurrent: bid cao hơn đến trước, bid thấp hơn bị reject | Nguyen Ngoc Bao Long | `higherBidFirst_lowerBidRejected` | Commit `008e921` |
+| 4 | Test anti-sniper: bid hợp lệ kéo dài endTime thêm 10 giây | Nguyen Ngoc Bao Long | `successfulBid_extendsEndTimeBy10Seconds` | Commit `008e921` |
+| 5 | Test validation bước nhảy giá và message lỗi | Nguyen Ngoc Bao Long | `bidBelowMinimumIncrement_isRejectedWithCorrectMessage` | Commit `008e921` |
+| 6 | Test điều kiện vào phòng (deposit + deadline) | Nguyen Ngoc Bao Long | `canJoinRoom_requiresConfirmedDepositBeforeDeadline` | Commit `008e921` |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
+- [x] Có
 - [ ] Không
 
 Nếu có, mô tả AI đã hỗ trợ phần nào:
 
 ```text
-Viết tại đây...
+Cursor hỗ trợ gợi ý test case concurrent bidding với CountDownLatch và ExecutorService,
+cùng in-memory repository để test độc lập không cần database. Sinh viên tự viết assertion và chạy verify.
 ```
 
 ## Commit/Screenshot minh chứng
 
 ```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
+#DE190344 Update logic test
+https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03/commit/008e921
+
+Kết quả: 6/6 tests passed (BiddingServiceTest)
 ```
 
 ## Ghi chú
 
 ```text
-Viết tại đây...
+Test chạy độc lập trong module Nguyen_Ngoc_Bao_Long/ bằng Maven Surefire.
+Sử dụng in-memory repository, không phụ thuộc SQL Server.
 ```
 
 ---
@@ -337,7 +366,7 @@ Viết tại đây...
 ## Ngày thực hiện
 
 ```text
-DD/MM/YYYY
+07/2026 (đang thực hiện)
 ```
 
 ## Đã hoàn thành
@@ -350,38 +379,39 @@ DD/MM/YYYY
 - [ ] Kiểm tra lại `AI_AUDIT_LOG.md`
 - [ ] Kiểm tra lại `PROMPTS.md`
 - [ ] Hoàn thiện `REFLECTION.md`
-- [ ] Kiểm tra lại `CHANGELOG.md`
+- [x] Kiểm tra lại `CHANGELOG.md`
 - [ ] Đóng gói bài nộp
 
 ## Thay đổi chi tiết
 
 | STT | Nội dung thay đổi | Người thực hiện | File/Module liên quan | Minh chứng |
 |---:|---|---|---|---|
-| 1 |  |  |  |  |
+| 1 | Điền nội dung CHANGELOG theo các phase đã hoàn thành | Nguyen Ngoc Bao Long | `CHANGELOG.md` | Phiên làm việc 02/07/2026 |
 | 2 |  |  |  |  |
 | 3 |  |  |  |  |
 
 ## AI có hỗ trợ không?
 
-- [ ] Có
+- [x] Có
 - [ ] Không
 
 Nếu có, mô tả AI đã hỗ trợ phần nào:
 
 ```text
-Viết tại đây...
+Cursor hỗ trợ tổng hợp thông tin từ source code, git history và README để điền CHANGELOG.
+Sinh viên review và bổ sung thông tin còn thiếu (giảng viên, ngày hoàn thành, minh chứng demo).
 ```
 
 ## Commit/Screenshot minh chứng
 
 ```text
-Dán link commit, screenshot hoặc mô tả minh chứng tại đây...
+Chưa commit – sẽ cập nhật sau khi hoàn thiện toàn bộ Phase 06.
 ```
 
 ## Ghi chú
 
 ```text
-Viết tại đây...
+Cần hoàn thiện AI_AUDIT_LOG, PROMPTS, REFLECTION trước khi nộp bài.
 ```
 
 ---
@@ -392,11 +422,14 @@ Viết tại đây...
 
 | STT | Chức năng | Trạng thái | Minh chứng | Ghi chú |
 |---:|---|---|---|---|
-| 1 |  | Completed / Partial / Not Completed |  |  |
-| 2 |  | Completed / Partial / Not Completed |  |  |
-| 3 |  | Completed / Partial / Not Completed |  |  |
-| 4 |  | Completed / Partial / Not Completed |  |  |
-| 5 |  | Completed / Partial / Not Completed |  |  |
+| 1 | Đặt giá (place bid) với validation bước nhảy tối thiểu | Completed | `BiddingService.placeBid()`, test `bidBelowMinimumIncrement_*` | Bước nhảy 1.000.000 VND |
+| 2 | Anti-sniper – kéo dài phiên 10 giây mỗi bid hợp lệ | Completed | `ANTI_SNIPER_EXTENSION_SECONDS`, test `successfulBid_extendsEndTimeBy10Seconds` |  |
+| 3 | Xử lý đồng thời (race condition) khi nhiều user bid cùng lúc | Completed | `ReentrantLock`, test concurrent | Request vào trước thắng |
+| 4 | Điều kiện vào phòng đấu giá (deposit + deadline) | Completed | `canJoinRoom()`, test `canJoinRoom_*` | Cọc trước 30 phút |
+| 5 | Realtime broadcast bid qua WebSocket STOMP | Completed | `BiddingController`, `WebSocketConfig` | Topic `/topic/bids` |
+| 6 | REST API lấy danh sách phòng đấu giá | Completed | `GET /api/bidding/rooms` |  |
+| 7 | Frontend auction UI | Partial | Commit `e51280e` | Do thành viên khác phụ trách chính |
+| 8 | Authentication / Authorization cho bidding | Not Completed |  | Chưa tích hợp trong module cá nhân |
 
 ---
 
@@ -404,9 +437,9 @@ Viết tại đây...
 
 | STT | Chức năng | Lý do chưa hoàn thành | Hướng cải thiện |
 |---:|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
+| 1 | Phân quyền khi đặt giá (chỉ user đã login/deposit) | Tập trung logic core trước | Tích hợp Spring Security + wallet/deposit check |
+| 2 | Sequence diagram và tài liệu thiết kế chi tiết | Ưu tiên implementation | Bổ sung trong báo cáo cuối kỳ |
+| 3 | Integration test với SQL Server thật | Đã dùng in-memory test | Thêm test @SpringBootTest với DB |
 
 ---
 
@@ -414,21 +447,24 @@ Viết tại đây...
 
 | Hạng mục | AI có hỗ trợ không? | Mức độ hỗ trợ | Ghi chú |
 |---|---|---|---|
-| Requirement | Có / Không | Ít / Trung bình / Nhiều |  |
-| Design | Có / Không | Ít / Trung bình / Nhiều |  |
-| Database | Có / Không | Ít / Trung bình / Nhiều |  |
-| Coding | Có / Không | Ít / Trung bình / Nhiều |  |
-| Debug | Có / Không | Ít / Trung bình / Nhiều |  |
-| Testing | Có / Không | Ít / Trung bình / Nhiều |  |
-| Report | Có / Không | Ít / Trung bình / Nhiều |  |
-| Presentation | Có / Không | Ít / Trung bình / Nhiều |  |
+| Requirement | Có | Ít | Gợi ý business rule anti-sniper, concurrent handling |
+| Design | Có | Trung bình | Gợi ý cấu trúc package, WebSocket config |
+| Database | Không | Ít | Entity mapping theo schema nhóm có sẵn |
+| Coding | Có | Trung bình | Sinh code khung, sinh viên tự chỉnh logic |
+| Debug | Có | Trung bình | Gợi ý test concurrent, fix race condition |
+| Testing | Có | Nhiều | Gợi ý test case và in-memory repository |
+| Report | Có | Ít | Hỗ trợ điền CHANGELOG (phiên 02/07/2026) |
+| Presentation | Không | Ít |  |
 
 ---
 
 ## 4.4. Bài học rút ra
 
 ```text
-Viết tại đây...
+- Hiểu rõ hơn về xử lý race condition trong hệ thống realtime (lock, pessimistic locking).
+- Nắm được cơ chế anti-sniper phổ biến trong đấu giá trực tuyến.
+- Biết cách tách module để phát triển và test độc lập trước khi merge vào project nhóm.
+- Cần ghi log AI và changelog song song với code, không để dồn cuối kỳ.
 ```
 
 ---
@@ -436,7 +472,10 @@ Viết tại đây...
 ## 4.5. Hướng cải thiện tiếp theo
 
 ```text
-Viết tại đây...
+- Tích hợp Spring Security cho API bidding.
+- Thêm integration test với database thật.
+- Bổ sung monitoring/logging cho WebSocket connection.
+- Hoàn thiện AI_AUDIT_LOG, PROMPTS, REFLECTION đồng bộ với CHANGELOG.
 ```
 
 ---
@@ -447,4 +486,4 @@ Sinh viên/nhóm cam kết rằng nội dung changelog phản ánh đúng các t
 
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
-|  |  |
+| Nguyen Ngoc Bao Long (DE190344) | 02/07/2026 |
