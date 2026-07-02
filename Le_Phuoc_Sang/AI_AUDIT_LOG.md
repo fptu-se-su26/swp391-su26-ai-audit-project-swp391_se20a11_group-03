@@ -146,9 +146,8 @@ Sinh viên/nhóm học được gì sau lần sử dụng AI này?
 
 ```text
 Viết tại đây...
-```
 Qua lần sử dụng AI này, em học được cách chuyển yêu cầu UI/UX mô tả bằng ngôn ngữ tự nhiên thành layout component-based trong React. Tuy nhiên, AI chỉ đưa ra concept và code gợi ý; em vẫn phải kiểm tra giao diện thực tế, sửa lỗi Tailwind, điều chỉnh màu sắc và đảm bảo không phá logic hiện tại của project.
----
+```
 
 ### Lần sử dụng AI số 2
 
