@@ -4,459 +4,497 @@
 
 | Thông tin | Nội dung |
 |---|---|
-| Môn học |  |
-| Mã môn học |  |
-| Lớp |  |
-| Học kỳ |  |
-| Tên bài tập / Project |  |
-| Tên sinh viên / Nhóm |  |
-| MSSV / Danh sách MSSV |  |
-| Giảng viên hướng dẫn |  |
-| Ngày bắt đầu |  |
-| Ngày cập nhật gần nhất |  |
+| Môn học | Software Development Project |
+| Mã môn học | SWP391 |
+| Lớp | SE20A11 |
+| Học kỳ | 5 |
+| Tên bài tập / Project | Realtime Bidding System |
+| Tên sinh viên / Nhóm | Phạm Mạnh Thắng – Nhóm 5 |
+| MSSV | DE190404 |
+| Giảng viên hướng dẫn | Lê Thiện Nhật Quang |
+| Ngày bắt đầu | 18/05/2026 |
+| Ngày cập nhật gần nhất | 12/07/2026 |
+
+### Phạm vi phụ trách (5 chức năng)
+
+| Mã | Module | Chức năng |
+|:---:|---|---|
+| M2.1 | Module 2: Quản lý Sản phẩm | Xác thực & Duyệt sản phẩm đấu giá |
+| M2.2 | Module 2: Quản lý Sản phẩm | Tự động ký & gửi Hợp đồng ủy quyền lên sàn (Listing Contract) |
+| M2.3 | Module 2: Quản lý Sản phẩm | Quản lý danh mục & Thuộc tính SP |
+| M8.1 | Module 8: Admin Dashboard & Báo cáo | Thống kê doanh thu & Giao dịch |
+| M8.2 | Module 8: Admin Dashboard & Báo cáo | Xuất báo cáo dữ liệu (Excel/CSV) |
 
 ---
 
 ## 2. Mục đích của file Prompt Log
 
-File này dùng để ghi lại các prompt quan trọng đã sử dụng trong quá trình thực hiện bài tập, lab, assignment hoặc project.
-
-Sinh viên/nhóm cần ghi lại:
-
-- Đã hỏi AI điều gì.
-- Mục đích sử dụng prompt.
-- Công cụ AI đã sử dụng.
-- AI đã trả lời hoặc gợi ý gì.
-- Kết quả đó có được áp dụng vào bài hay không.
-- Sinh viên/nhóm đã kiểm tra, chỉnh sửa hoặc cải tiến gì sau khi nhận kết quả từ AI.
+Ghi lại các prompt quan trọng em đã dùng với ChatGPT và Cursor khi phát triển module trong folder `Pham_Manh_Thang`.
 
 ---
 
 ## 3. Công cụ AI đã sử dụng
 
-Đánh dấu các công cụ AI đã sử dụng.
-
-- [ ] ChatGPT
+- [x] ChatGPT
 - [ ] Gemini
 - [ ] Claude
 - [ ] GitHub Copilot
-- [ ] Cursor
-- [ ] Antigravity
-- [ ] Microsoft Copilot
-- [ ] Perplexity
-- [ ] Công cụ khác: ....................................
+- [x] Cursor
 
 ---
 
 ## 4. Bảng tổng hợp prompt đã sử dụng
 
-| STT | Ngày | Công cụ AI | Mục đích | Prompt tóm tắt | Kết quả chính | Có sử dụng vào bài không? | Minh chứng |
-|---:|---|---|---|---|---|---|---|
-| 1 |  |  |  |  |  | Có / Không |  |
-| 2 |  |  |  |  |  | Có / Không |  |
-| 3 |  |  |  |  |  | Có / Không |  |
-| 4 |  |  |  |  |  | Có / Không |  |
-| 5 |  |  |  |  |  | Có / Không |  |
-| 6 |  |  |  |  |  | Có / Không |  |
-| 7 |  |  |  |  |  | Có / Không |  |
-| 8 |  |  |  |  |  | Có / Không |  |
-| 9 |  |  |  |  |  | Có / Không |  |
-| 10 |  |  |  |  |  | Có / Không |  |
+| STT | Mã | Ngày | Công cụ AI | Mục đích | Prompt tóm tắt | Kết quả chính | Có sử dụng? | Minh chứng |
+|---:|:---:|---|---|---|---|---|---|---|
+| 1 | M2.1, M2.3 | 22/05/2026 | ChatGPT | JPA Entity mapping | Map entity SQL Server PascalCase | Entity + naming strategy | Có | `entity/*.java` |
+| 2 | M2.1 | 02/06/2026 | Cursor | Debug Bean | Lỗi autowire Repository | Kiểm tra @Repository, package scan | Có | `ProductServiceImpl` |
+| 3 | M2.1 | 10/06/2026 | Cursor | Product Approval | Approve/reject pending products | Controller/Service/DTO | Có | `ProductAdminController` |
+| 4 | M2.1 | 22/06/2026 | Cursor | Thymeleaf UI | Admin product approvals page | HTML + Tailwind | Có | `product-approvals.html` |
+| 5 | M2.2 | 25/06/2026 | ChatGPT | Contract PDF + Email | Listing contract sau approve | Flying Saucer + Thymeleaf | Có | `ContractServiceImpl` |
+| 6 | M2.3 | 15/06/2026 | Cursor | Category Validation | Validate category name regex | BusinessException server-side | Có | `CategoryServiceImpl` |
+| 7 | M2.3 | 18/06/2026 | ChatGPT | Debug Database | FK error xóa category | CASCADE delete | Có | Script DB + service |
+| 8 | M8.1 | 05/07/2026 | Cursor | Revenue statistics | Summary, revenue chart, transactions | JPQL + native query | Có | `StatisticsServiceImpl` |
+| 9 | M8.2 | 05/07/2026 | Cursor | Export Excel/CSV | Download transactions.xlsx/csv | Apache POI + UTF-8 BOM | Có | `data-reports.html` |
+| 10 | M8.1, M8.2 | 08/07/2026 | Cursor | Date filter validation | End date không sớm hơn start date | Frontend + backend validation | Có | `revenue-analytics.html` |
+| 11 | M8.1, M8.2 | 10/07/2026 | Cursor | UI sync | Đồng bộ UI admin pages | Sidebar, font, English | Có | `data-reports.html` |
+| 12 | — | 12/07/2026 | Cursor | Report | Điền AI Audit docs | Audit log từ source | Có | `AI_AUDIT_LOG.md` |
 
 ---
 
 ## 5. Prompt chi tiết
 
-> Sinh viên/nhóm có thể nhân bản mẫu “Prompt số...” nhiều lần tùy số lượng prompt thực tế đã sử dụng.
-
----
-
-### Prompt số 1
+### Prompt số 1 – JPA Entity Mapping (M2.1, M2.3)
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích |  |
-| Phần việc liên quan | Requirement / Design / Database / Coding / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỏi ý tưởng / Hỏi giải thích / Hỏi review / Hỏi debug / Hỏi sinh code / Hỏi tối ưu |
+| Chức năng | M2.1 Duyệt SP, M2.3 Danh mục |
+| Ngày sử dụng | 22/05/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích | Map entity với SQL Server |
+| Phần việc liên quan | Database / Coding |
+| Mức độ sử dụng | Hỏi sinh code |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
+Spring Boot 3 + JPA + SQL Server database SWP_Nhom3.
+Bảng Products có cột ProductId, SellerId, CategoryId, ProductName, StartingPrice BIGINT.
+Hãy viết entity Java với @Column đúng tên cột PascalCase.
 ```
 
-#### 5.2. Bối cảnh khi viết prompt
+#### 5.2. Bối cảnh
 
-Mô tả ngắn gọn vì sao sinh viên/nhóm cần dùng prompt này.
-
-```text
-Viết tại đây...
-```
+Em mới setup project, cần map entity đúng schema nhóm để Hibernate không tạo sai tên bảng.
 
 #### 5.3. Kết quả AI trả về
 
-Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+AI sinh class `Product` với `@Table(name = "Products")`, `@Column(name = "ProductId")`, và gợi ý `PhysicalNamingStrategyStandardImpl`.
 
-```text
-Viết tại đây...
-```
+#### 5.4. Kết quả đã áp dụng
 
-#### 5.4. Kết quả đã áp dụng vào bài
+Dùng cấu trúc entity và cấu hình naming strategy trong `application.properties`.
 
-Mô tả phần nào từ kết quả AI đã được sử dụng vào bài tập/project.
+#### 5.5. Phần chỉnh sửa
 
-```text
-Viết tại đây...
-```
-
-#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
-
-Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với kết quả AI trả về.
-
-```text
-Viết tại đây...
-```
-
-#### 5.6. Đánh giá chất lượng prompt
-
-Đánh dấu các nhận xét phù hợp.
-
-- [ ] Prompt rõ ràng
-- [ ] Prompt có đủ bối cảnh
-- [ ] Prompt còn thiếu thông tin
-- [ ] Prompt tạo ra kết quả tốt
-- [ ] Prompt tạo ra kết quả chưa phù hợp
-- [ ] Cần hỏi lại AI nhiều lần
-- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
-- [ ] Kết quả AI có lỗi hoặc chưa chính xác
-
-#### 5.7. Minh chứng liên quan
-
-| Loại minh chứng | Nội dung |
-|---|---|
-| Link commit |  |
-| File liên quan |  |
-| Screenshot |  |
-| Kết quả chạy/test |  |
-| Link tài liệu/báo cáo |  |
-| Ghi chú khác |  |
-
-#### 5.8. Ghi chú thêm
-
-```text
-Viết tại đây...
-```
+Em giữ `sellerId`/`categoryId` kiểu Long thay vì `@ManyToOne` vì schema nhóm dùng FK trực tiếp.
 
 ---
 
-### Prompt số 2
+### Prompt số 2 – Product Approval (M2.1)
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích |  |
-| Phần việc liên quan | Requirement / Design / Database / Coding / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỏi ý tưởng / Hỏi giải thích / Hỏi review / Hỏi debug / Hỏi sinh code / Hỏi tối ưu |
+| Chức năng | M2.1 Xác thực & Duyệt sản phẩm đấu giá |
+| Ngày sử dụng | 10/06/2026 |
+| Công cụ AI | Cursor |
+| Mục đích | Approve/reject product pending |
+| Phần việc liên quan | Backend |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
+Implement Product Approval theo clean architecture:
+GET /api/admin/products/pending
+POST /api/admin/products/{id}/approve
+POST /api/admin/products/{id}/reject
+Lưu ProductApprovals, chỉ approve khi status=PENDING.
+Dùng ApiResponse wrapper, BusinessException, ResourceNotFoundException.
 ```
 
-#### 5.2. Bối cảnh khi viết prompt
+#### 5.2. Bối cảnh
 
-```text
-Viết tại đây...
-```
+Em cần module admin duyệt sản phẩm seller đăng ký đấu giá.
 
 #### 5.3. Kết quả AI trả về
 
-```text
-Viết tại đây...
-```
+`ProductAdminController`, `ProductServiceImpl`, `ProductApprovalRequestDTO`, flow lưu lịch sử approval.
 
-#### 5.4. Kết quả đã áp dụng vào bài
+#### 5.4. Kết quả đã áp dụng
 
-```text
-Viết tại đây...
-```
+Toàn bộ flow approve/reject cơ bản.
 
-#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+#### 5.5. Phần chỉnh sửa
 
-```text
-Viết tại đây...
-```
-
-#### 5.6. Đánh giá chất lượng prompt
-
-- [ ] Prompt rõ ràng
-- [ ] Prompt có đủ bối cảnh
-- [ ] Prompt còn thiếu thông tin
-- [ ] Prompt tạo ra kết quả tốt
-- [ ] Prompt tạo ra kết quả chưa phù hợp
-- [ ] Cần hỏi lại AI nhiều lần
-- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
-- [ ] Kết quả AI có lỗi hoặc chưa chính xác
-
-#### 5.7. Minh chứng liên quan
-
-| Loại minh chứng | Nội dung |
-|---|---|
-| Link commit |  |
-| File liên quan |  |
-| Screenshot |  |
-| Kết quả chạy/test |  |
-| Link tài liệu/báo cáo |  |
-| Ghi chú khác |  |
-
-#### 5.8. Ghi chú thêm
-
-```text
-Viết tại đây...
-```
+Em tách flow M2.2 (contract) sang prompt riêng; M2.1 chỉ giữ approve/reject + validation PENDING.
 
 ---
 
-### Prompt số 3
+### Prompt số 3 – Category Validation (M2.3)
 
 | Nội dung | Thông tin |
 |---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích |  |
-| Phần việc liên quan | Requirement / Design / Database / Coding / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỏi ý tưởng / Hỏi giải thích / Hỏi review / Hỏi debug / Hỏi sinh code / Hỏi tối ưu |
+| Chức năng | M2.3 Quản lý danh mục & Thuộc tính SP |
+| Ngày sử dụng | 15/06/2026 |
+| Công cụ AI | Cursor |
+| Mục đích | Validation tên category |
+| Phần việc liên quan | Backend / Frontend |
 
 #### 5.1. Prompt nguyên văn
 
 ```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
-```
-
-#### 5.2. Bối cảnh khi viết prompt
-
-```text
-Viết tại đây...
+Validate category name: chỉ chữ cái và khoảng trắng (có dấu tiếng Việt),
+không số, không ký tự đặc biệt, không trùng tên.
+Validate cả server (CategoryServiceImpl) và client (JavaScript).
 ```
 
 #### 5.3. Kết quả AI trả về
 
-```text
-Viết tại đây...
-```
+Regex `^[a-zA-ZÀ-ỹ\\s]+$`, `existsByCategoryName`, JS `validateCategoryName()`.
 
-#### 5.4. Kết quả đã áp dụng vào bài
+#### 5.4. Kết quả đã áp dụng
 
-```text
-Viết tại đây...
-```
+Validation trong `CategoryServiceImpl` và `category-management.html`.
 
-#### 5.5. Phần sinh viên/nhóm đã chỉnh sửa hoặc cải tiến
+---
 
-```text
-Viết tại đây...
-```
+### Prompt số 4 – Debug Foreign Key CASCADE (M2.3)
 
-#### 5.6. Đánh giá chất lượng prompt
-
-- [ ] Prompt rõ ràng
-- [ ] Prompt có đủ bối cảnh
-- [ ] Prompt còn thiếu thông tin
-- [ ] Prompt tạo ra kết quả tốt
-- [ ] Prompt tạo ra kết quả chưa phù hợp
-- [ ] Cần hỏi lại AI nhiều lần
-- [ ] Cần tự kiểm tra và chỉnh sửa nhiều
-- [ ] Kết quả AI có lỗi hoặc chưa chính xác
-
-#### 5.7. Minh chứng liên quan
-
-| Loại minh chứng | Nội dung |
+| Nội dung | Thông tin |
 |---|---|
-| Link commit |  |
-| File liên quan |  |
-| Screenshot |  |
-| Kết quả chạy/test |  |
-| Link tài liệu/báo cáo |  |
-| Ghi chú khác |  |
+| Chức năng | M2.3 Quản lý danh mục & Thuộc tính SP |
+| Ngày sử dụng | 18/06/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích | Debug lỗi xóa category |
+| Phần việc liên quan | Database / Debug |
 
-#### 5.8. Ghi chú thêm
+#### 5.1. Prompt nguyên văn
 
 ```text
-Viết tại đây...
+SQL Server báo lỗi FK khi DELETE FROM Categories.
+CategoryAttributes và AttributeOptions vẫn reference CategoryId.
+Cách xử lý ON DELETE CASCADE hoặc xóa con trước?
 ```
+
+#### 5.3. Kết quả
+
+Script `ALTER TABLE ... ON DELETE CASCADE` và gợi ý xóa attribute trước trong service.
+
+#### 5.5. Phần chỉnh sửa
+
+Nhóm chạy script trên SSMS; em test lại xóa category trên UI.
+
+---
+
+### Prompt số 5 – Thymeleaf Admin UI (M2.1)
+
+| Nội dung | Thông tin |
+|---|---|
+| Chức năng | M2.1 Xác thực & Duyệt sản phẩm đấu giá |
+| Ngày sử dụng | 22/06/2026 |
+| Công cụ AI | Cursor |
+| Mục đích | UI admin product approvals |
+| Phần việc liên quan | Frontend |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Tạo trang Thymeleaf admin pending product approvals:
+sidebar LuxeAuction, bảng product, nút approve/reject,
+Tailwind CSS, font Inter + Montserrat, tiếng Anh.
+```
+
+#### 5.4. Kết quả đã áp dụng
+
+`product-approvals.html`, `AdminProductViewController`.
+
+---
+
+### Prompt số 6 – Contract PDF + Email
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 25/06/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích | Generate PDF contract |
+| Phần việc liên quan | Backend |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Spring Boot generate PDF từ Thymeleaf template dùng Flying Saucer.
+Sau khi approve product, tạo contract LISTING và gửi email kèm PDF.
+```
+
+#### 5.4. Kết quả đã áp dụng
+
+`ThymeleafPDFUtil`, `listing-contract.html`, `EmailServiceImpl`.
+
+---
+
+### Prompt số 7 – Revenue Statistics (M8.1)
+
+| Nội dung | Thông tin |
+|---|---|
+| Chức năng | M8.1 Thống kê doanh thu & Giao dịch |
+| Ngày sử dụng | 05/07/2026 |
+| Công cụ AI | Cursor |
+| Mục đích | Summary, revenue chart, transaction table |
+| Phần việc liên quan | Backend / Database / Frontend |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Implement M8.1 – Thống kê doanh thu & Giao dịch:
+- GET /api/admin/dashboard/summary (totalRevenue, totalTransactions, success/failed)
+- GET /api/admin/dashboard/revenue?from=&to= (group by day, PAY_AUCTION + COMPLETED)
+- GET /api/admin/dashboard/transactions?page=&size= (join Wallets→Users)
+- UI /admin/revenue với Chart.js, summary cards, date filter
+Tables: Transactions, Wallets, Users. Clean architecture, SQL Server SWP_Nhom3.
+```
+
+#### 5.4. Kết quả đã áp dụng
+
+`AdminDashboardController`, `StatisticsServiceImpl`, `TransactionRepository`, `revenue-analytics.html`.
+
+#### 5.5. Phần chỉnh sửa
+
+Native query `CAST(CreatedAt AS DATE)`; sample data trong `DataInitializer`.
+
+---
+
+### Prompt số 7b – Export Excel/CSV (M8.2)
+
+| Nội dung | Thông tin |
+|---|---|
+| Chức năng | M8.2 Xuất báo cáo dữ liệu (Excel/CSV) |
+| Ngày sử dụng | 05/07/2026 |
+| Công cụ AI | Cursor |
+| Mục đích | Export transactions.xlsx và transactions.csv |
+| Phần việc liên quan | Backend / Frontend |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Implement M8.2 – Xuất báo cáo dữ liệu:
+- GET /api/admin/dashboard/export/excel?from=&to= → transactions.xlsx (Apache POI)
+- GET /api/admin/dashboard/export/csv?from=&to= → transactions.csv (UTF-8 BOM)
+- UI /admin/reports với date filter, nút Download Excel/CSV
+Columns: Transaction ID, Username, Amount, Type, Status, Created At
+```
+
+#### 5.4. Kết quả đã áp dụng
+
+`StatisticsServiceImpl.exportTransactionsToExcel/Csv()`, `data-reports.html`.
+
+---
+
+### Prompt số 8 – Debug Date Filter (M8.1, M8.2)
+
+| Nội dung | Thông tin |
+|---|---|
+| Chức năng | M8.1, M8.2 |
+| Ngày sử dụng | 08/07/2026 |
+| Công cụ AI | Cursor |
+| Mục đích | Validate date range filter |
+| Phần việc liên quan | Frontend / Backend |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Date filter không được phép end date sớm hơn start date.
+Thêm validation frontend (min/max input, disable button)
+và backend BusinessException trong StatisticsServiceImpl.
+Hiện banner: "This report is from ... to ..." bằng tiếng Anh.
+```
+
+#### 5.4. Kết quả đã áp dụng
+
+`validateDateRange()`, `buildFilterReportMessage()` trong HTML; backend `buildDateRange()`.
+
+---
+
+### Prompt số 9 – Debug Bean Injection (chưa hiệu quả lần đầu)
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 02/06/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích | Fix autowire error |
+| Phần việc liên quan | Debug |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Fix Spring autowire error ProductRepository
+```
+
+#### 5.2. Bối cảnh
+
+Prompt quá ngắn, thiếu log lỗi chi tiết.
+
+#### 5.3. Kết quả
+
+AI trả lời chung chung về @ComponentScan, không đúng root cause.
+
+#### 5.5. Phần cải tiến
+
+Prompt lại với full stack trace và file path → Cursor tìm đúng thiếu method `findByStatus`.
+
+---
+
+### Prompt số 10 – Authentication (chưa áp dụng)
+
+| Nội dung | Thông tin |
+|---|---|
+| Ngày sử dụng | 12/06/2026 |
+| Công cụ AI | ChatGPT |
+| Mục đích | Hỏi Spring Security JWT |
+| Phần việc liên quan | Backend |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Cách implement JWT authentication Spring Boot 3 cho admin API?
+```
+
+#### 5.3. Kết quả
+
+AI sinh SecurityConfig, JwtFilter, UserDetailsService đầy đủ.
+
+#### 5.4. Kết quả đã áp dụng
+
+**Không** – nhóm chưa merge module auth. Em chỉ ghi TODO trong `INTEGRATION_NOTE.md`.
 
 ---
 
 ## 6. Prompt quan trọng nhất
 
-Chọn một prompt có ảnh hưởng lớn nhất đến bài tập/project.
-
 ### 6.1. Prompt được chọn
 
 ```text
-Dán prompt quan trọng nhất tại đây.
+Implement M8.1 – Thống kê doanh thu & Giao dịch với clean architecture:
+summary, revenue by day, paginated transactions.
+Database SWP_Nhom3 SQL Server. Tables: Transactions, Wallets, Users.
+Revenue = SUM(Amount) WHERE Status=COMPLETED AND TransactionType=PAY_AUCTION.
+Không viết query trong controller.
 ```
 
 ### 6.2. Vì sao prompt này quan trọng?
 
-```text
-Viết tại đây...
-```
+M8.1 là module phức tạp nhất em làm: kết hợp JPQL, native query SQL Server, pagination, và Thymeleaf UI với Chart.js. M8.2 tách riêng prompt export.
 
-### 6.3. Kết quả prompt này mang lại
+### 6.3. Kết quả
 
-```text
-Viết tại đây...
-```
+`StatisticsServiceImpl`, `TransactionRepository`, `revenue-analytics.html` (M8.1); `data-reports.html` (M8.2).
 
-### 6.4. Sinh viên/nhóm đã kiểm tra kết quả như thế nào?
+### 6.4. Kiểm tra
 
-```text
-Viết tại đây...
-```
+Em chạy `mvn compile`, insert sample transactions, test API và download file Excel/CSV.
 
-### 6.5. Sinh viên/nhóm đã cải tiến gì từ kết quả AI?
+### 6.5. Cải tiến
 
-```text
-Viết tại đây...
-```
+Đồng bộ UI, thêm date validation, highlight banner thông báo filter.
 
 ---
 
 ## 7. Prompt chưa hiệu quả
 
-Ghi lại ít nhất một prompt chưa tạo ra kết quả tốt hoặc chưa phù hợp.
-
 ### 7.1. Prompt chưa hiệu quả
 
 ```text
-Dán prompt chưa hiệu quả tại đây.
+Fix Spring autowire error
 ```
 
-### 7.2. Vì sao prompt này chưa hiệu quả?
+### 7.2. Vì sao chưa hiệu quả?
 
-```text
-Viết tại đây...
-```
+Quá ngắn, không có stack trace, không nêu class/file cụ thể.
 
-Gợi ý nguyên nhân:
+### 7.3. Cách cải thiện
 
-- Prompt quá ngắn.
-- Thiếu bối cảnh bài toán.
-- Không nêu rõ yêu cầu đầu ra.
-- Không cung cấp ngôn ngữ lập trình/công nghệ đang dùng.
-- Không đưa lỗi cụ thể.
-- Không đưa ví dụ input/output.
-- Không yêu cầu AI giải thích.
-- Hỏi AI làm toàn bộ thay vì hỏi từng phần.
-
-### 7.3. Cách cải thiện prompt
-
-```text
-Viết tại đây...
-```
+Thêm log lỗi đầy đủ, tên bean, file path, và framework version.
 
 ### 7.4. Prompt sau khi cải tiến
 
 ```text
-Dán prompt đã được cải tiến tại đây.
+Spring Boot 3.2 báo: Could not autowire ProductApprovalRepository
+trong ProductServiceImpl.java line 33.
+Project dùng @RequiredArgsConstructor Lombok.
+Package: com.swp391. Hãy kiểm tra repository interface và annotation.
 ```
 
-### 7.5. Kết quả sau khi cải tiến prompt
+### 7.5. Kết quả sau cải tiến
 
-```text
-Viết tại đây...
-```
+AI (Cursor) chỉ đúng file thiếu method custom trong repository.
 
 ---
 
 ## 8. Bài học về cách viết prompt
 
-### 8.1. Khi viết prompt, em/nhóm cần cung cấp thông tin gì để AI trả lời tốt hơn?
+### 8.1. Thông tin cần cung cấp
 
-```text
-Viết tại đây...
-```
+- Mục tiêu rõ ràng (CRUD, debug, export...).
+- Công nghệ: Spring Boot 3.2, Java 21, SQL Server, JPA.
+- Schema database hoặc tên bảng/cột.
+- Ràng buộc: clean architecture, không logic trong controller.
+- Log lỗi đầy đủ khi debug.
+- Format output mong muốn (API response, file download...).
 
-Gợi ý:
+### 8.2. Học được gì
 
-- Mục tiêu cần đạt.
-- Bối cảnh bài toán.
-- Công nghệ/ngôn ngữ lập trình đang dùng.
-- Input/output mong muốn.
-- Ràng buộc của đề bài.
-- Lỗi đang gặp.
-- Format kết quả mong muốn.
-- Yêu cầu AI giải thích từng bước.
+Prompt càng cụ thể, AI càng ít "đoán mò". Em nên hỏi từng phần nhỏ thay vì "làm hết project giúp tôi".
 
-### 8.2. Em/nhóm đã học được gì về cách đặt câu hỏi cho AI?
+### 8.3. Cải thiện lần sau
 
-```text
-Viết tại đây...
-```
-
-### 8.3. Lần sau em/nhóm sẽ cải thiện prompt như thế nào?
-
-```text
-Viết tại đây...
-```
+Luôn attach context project (folder `Pham_Manh_Thang`), nêu file liên quan, và yêu cầu AI giải thích trước khi sinh code dài.
 
 ---
 
 ## 9. Phân loại prompt đã sử dụng
 
-Đánh dấu số lượng prompt theo từng nhóm.
-
-| Loại prompt | Số lượng | Ví dụ prompt tiêu biểu |
+| Loại prompt | Số lượng | Ví dụ tiêu biểu |
 |---|---:|---|
-| Prompt phân tích yêu cầu |  |  |
-| Prompt giải thích kiến thức |  |  |
-| Prompt thiết kế giải pháp |  |  |
-| Prompt thiết kế database |  |  |
-| Prompt sinh code mẫu |  |  |
-| Prompt debug lỗi |  |  |
-| Prompt viết test case |  |  |
-| Prompt review code |  |  |
-| Prompt tối ưu code |  |  |
-| Prompt viết báo cáo |  |  |
-| Prompt chuẩn bị thuyết trình |  |  |
-| Prompt khác |  |  |
+| Prompt phân tích yêu cầu | 2 | Use case product approval |
+| Prompt giải thích kiến thức | 3 | JPA mapping, CASCADE |
+| Prompt thiết kế giải pháp | 2 | Dashboard architecture |
+| Prompt thiết kế database | 3 | Entity mapping, native query |
+| Prompt sinh code mẫu | 8 | CRUD, dashboard, Thymeleaf |
+| Prompt debug lỗi | 4 | Autowire, FK, date filter |
+| Prompt review code | 1 | UI sync check |
+| Prompt viết báo cáo | 2 | AI Audit docs |
+| Prompt khác | 1 | Email/PDF integration |
 
 ---
 
 ## 10. Checklist chất lượng prompt
 
-Sinh viên/nhóm tự kiểm tra chất lượng prompt đã dùng.
-
 | Tiêu chí | Đã đạt? | Ghi chú |
 |---|:---:|---|
-| Prompt có mục tiêu rõ ràng |  |  |
-| Prompt có đủ bối cảnh |  |  |
-| Prompt có nêu công nghệ/ngôn ngữ sử dụng |  |  |
-| Prompt có nêu yêu cầu đầu ra |  |  |
-| Prompt không yêu cầu AI làm toàn bộ bài một cách máy móc |  |  |
-| Prompt có yêu cầu AI giải thích hoặc phân tích |  |  |
-| Kết quả AI được kiểm tra lại |  |  |
-| Kết quả AI được chỉnh sửa trước khi sử dụng |  |  |
-| Prompt quan trọng được ghi lại đầy đủ |  |  |
-| Prompt sai/chưa hiệu quả được rút kinh nghiệm |  |  |
+| Prompt có mục tiêu rõ ràng | x | Cải thiện dần qua các phase |
+| Prompt có đủ bối cảnh | x | Cursor tốt hơn khi có full project |
+| Prompt có nêu công nghệ/ngôn ngữ | x | Spring Boot 3, SQL Server |
+| Prompt có nêu yêu cầu đầu ra | x | API format, file export |
+| Không yêu cầu AI làm toàn bộ máy móc | x | Em chia nhỏ từng module |
+| Có yêu cầu AI giải thích |  | Cần cải thiện thêm |
+| Kết quả AI được kiểm tra lại | x | mvn compile + test thủ công |
+| Kết quả AI được chỉnh sửa trước khi dùng | x | Luôn review |
+| Prompt quan trọng được ghi lại | x | File này |
+| Prompt sai được rút kinh nghiệm | x | Mục 7 |
 
 ---
 
 ## 11. Cam kết sử dụng prompt minh bạch
 
-Sinh viên/nhóm cam kết rằng:
-
-- Các prompt quan trọng đã được ghi lại trung thực.
-- Không che giấu việc sử dụng AI trong các phần quan trọng của bài.
-- Không nộp nguyên văn kết quả AI nếu chưa kiểm tra và chỉnh sửa.
-- Có khả năng giải thích các phần đã sử dụng từ AI.
-- Chịu trách nhiệm với sản phẩm cuối cùng.
-
 | Đại diện sinh viên/nhóm | Ngày xác nhận |
 |---|---|
-|  |  |
+| Phạm Mạnh Thắng – DE190404 | 12/07/2026 |
