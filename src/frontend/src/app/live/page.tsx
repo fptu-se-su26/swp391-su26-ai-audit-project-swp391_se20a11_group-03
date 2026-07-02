@@ -2,8 +2,10 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 import TopNav from "@/components/layout/TopNav";
-import { LiveLotCard, formatTimeRemaining } from "@/components/features/LiveLotCard";
+import { formatTimeRemaining } from "@/components/features/LiveLotCard";
+import ProductAuctionCard from "@/components/ui/ProductAuctionCard";
 import { useTranslations } from "@/i18n/I18nProvider";
 import {
   CategorySummary,
@@ -34,6 +36,7 @@ export default function LivePage() {
 
 function LivePageContent() {
   const t = useTranslations("livePage");
+  const tCard = useTranslations("storefront");
   const searchParams = useSearchParams();
   const { setParentPage } = useNavigationContext();
   const [keyword, setKeyword] = useState("");
@@ -120,49 +123,56 @@ function LivePageContent() {
   }, [products]);
 
   return (
-    <main className="min-h-screen bg-surface-container-lowest text-on-surface">
+    <main className="min-h-screen overflow-x-clip bg-[#eef3f8] text-slate-950">
       <TopNav />
 
-      <section className="relative overflow-hidden bg-primary-container text-on-primary-container">
-        <div className="absolute inset-0">
-          <img
+      <section className="relative isolate overflow-hidden bg-[#071626] text-white">
+        <div className="absolute inset-0 -z-10">
+          <Image
             src={heroImage}
             alt={featuredProduct?.productName ?? "Live auctions"}
-            className="h-full w-full object-cover opacity-25"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-25"
+            unoptimized
           />
-          <div className="absolute inset-0 bg-primary-container/80" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_22%,rgba(29,78,216,.34),transparent_30%),radial-gradient(circle_at_12%_85%,rgba(184,134,11,.22),transparent_34%),linear-gradient(135deg,rgba(1,5,15,.92),rgba(8,18,36,.9)_56%,rgba(17,24,39,.92))]" />
+          <div className="absolute inset-0 opacity-[.055] [background-image:linear-gradient(rgba(255,255,255,.28)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.28)_1px,transparent_1px)] [background-size:72px_72px]" />
         </div>
 
-        <div className="relative mx-auto grid min-h-[440px] max-w-screen-2xl items-center gap-xl px-margin-mobile py-2xl md:grid-cols-[1.1fr_0.9fr] md:px-margin-desktop">
+        <div className="relative mx-auto grid min-h-[520px] max-w-[1440px] items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[.95fr_1.05fr] lg:px-10 lg:py-20">
           <div className="max-w-3xl">
-            <p className="mb-sm font-label-md text-label-md uppercase tracking-widest text-secondary-fixed-dim">
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#d6a84f]/30 bg-white/[.06] px-3 py-2 text-[10px] font-black uppercase tracking-[.22em] text-[#f2d786] backdrop-blur">
+              <span className="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_18px_rgba(239,68,68,.8)]" />
               {t("heroLabel")}
             </p>
-            <h1 className="mb-md font-display-lg text-display-lg text-white">
+            <h1 className="font-display-lg text-[42px] font-black leading-[1.04] tracking-[-.055em] text-transparent bg-clip-text bg-gradient-to-r from-[#fff8df] via-[#d9b55b] to-[#a87918] sm:text-[58px] lg:text-[72px]">
               {t("heroTitle")}
             </h1>
-            <p className="mb-lg max-w-2xl font-body-lg text-body-lg text-white/80">
+            <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
               {t("heroDesc")}
             </p>
             {featuredProduct && (
-              <div className="flex flex-wrap gap-sm">
+              <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href={`/auctions/${featuredProduct.productId}`}
-                  className="rounded-lg bg-secondary px-6 py-3 font-label-md text-label-md text-on-secondary shadow-sm transition-opacity hover:opacity-90"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#b8860b] via-[#d7b55c] to-[#f0d98b] px-6 py-3.5 text-sm font-black text-[#06111f] shadow-[0_18px_40px_rgba(199,160,62,.24)] transition hover:-translate-y-0.5"
                 >
                   {t("viewFeaturedLot")}
+                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </Link>
                 {currentUser ? (
                   <Link
                     href="/dashboard"
-                    className="rounded-lg border border-white/40 px-6 py-3 font-label-md text-label-md text-white transition-colors hover:bg-white/10"
+                    className="inline-flex items-center rounded-full border border-white/20 px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/[.08]"
                   >
                     {t("goToDashboard")}
                   </Link>
                 ) : (
                   <Link
                     href="/auth"
-                    className="rounded-lg border border-white/40 px-6 py-3 font-label-md text-label-md text-white transition-colors hover:bg-white/10"
+                    className="inline-flex items-center rounded-full border border-white/20 px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-white/[.08]"
                   >
                     {t("signInToBid")}
                   </Link>
@@ -172,22 +182,31 @@ function LivePageContent() {
           </div>
 
           {featuredProduct && (
-            <div className="hidden rounded-lg border border-white/20 bg-white/10 p-sm shadow-xl backdrop-blur md:block">
-              <img
-                src={heroImage}
-                alt={featuredProduct.productName}
-                className="aspect-[4/3] w-full rounded-md object-cover"
-              />
-              <div className="mt-sm flex items-center justify-between text-white">
-                <div>
-                  <p className="font-label-sm text-label-sm text-white/60">Lot #{featuredProduct.productId}</p>
-                  <h2 className="font-headline-sm text-headline-sm">{featuredProduct.productName}</h2>
+            <div className="hidden rounded-[30px] border border-white/15 bg-white/[.08] p-3 shadow-[0_30px_80px_rgba(0,0,0,.36)] backdrop-blur-xl md:block">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[22px] bg-slate-900">
+                <Image
+                  src={heroImage}
+                  alt={featuredProduct.productName}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/20" />
+                <div className="absolute left-4 top-4 rounded-full bg-red-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.12em] text-red-700">
+                  Live auction
                 </div>
-                <div className="text-right">
-                  <p className="font-label-sm text-label-sm text-white/60">{t("currentBid")}</p>
-                  <p className="font-headline-sm text-headline-sm">{numberFormatter.format(heroBid)} VND</p>
-                  <p className="font-label-sm text-label-sm text-white/60">{t("endsIn")}</p>
-                  <p className="font-headline-sm text-headline-sm text-error">{featuredProduct ? formatTimeRemaining(featuredProduct.auctionEndTime) : t("tbd")}</p>
+              </div>
+              <div className="mt-5 flex items-center justify-between gap-4 px-2 pb-2 text-white">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#d8bd75]">Lot #{featuredProduct.productId}</p>
+                  <h2 className="mt-1 max-w-[420px] font-display-lg text-2xl font-black tracking-[-.04em]">{featuredProduct.productName}</h2>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="text-[10px] uppercase tracking-[.14em] text-white/50">{t("currentBid")}</p>
+                  <p className="mt-1 text-xl font-black text-[#f0d98b]">{numberFormatter.format(heroBid)} VND</p>
+                  <p className="mt-3 text-[10px] uppercase tracking-[.14em] text-white/50">{t("endsIn")}</p>
+                  <p className="mt-1 text-sm font-black text-red-200">{heroTime}</p>
                 </div>
               </div>
             </div>
@@ -195,33 +214,33 @@ function LivePageContent() {
         </div>
       </section>
 
-      <section id="catalogue" className="mx-auto max-w-screen-2xl px-margin-mobile py-xl md:px-margin-desktop">
-        <div className="mb-lg flex flex-col gap-xs md:flex-row md:items-end md:justify-between">
+      <section id="catalogue" className="relative mx-auto max-w-[1440px] px-4 py-12 sm:px-6 lg:px-10 lg:py-16">
+        <div className="mb-7 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="font-label-md text-label-md uppercase tracking-widest text-tertiary-fixed">{t("biddingInProgress")}</p>
-            <h2 className="font-headline-lg text-headline-lg text-primary">{t("allLiveSessions")}</h2>
+            <p className="text-[10px] font-black uppercase tracking-[.24em] text-[#9a6b13]">{t("biddingInProgress")}</p>
+            <h2 className="mt-2 font-display-lg text-4xl font-black tracking-[-.05em] text-[#071626]">{t("allLiveSessions")}</h2>
           </div>
-          <p className="font-body-md text-body-md text-on-surface-variant">
+          <p className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm">
             {isLoading ? t("loadingLiveLots") : t("liveItemsCount", { count: numberFormatter.format(totalProducts) })}
           </p>
         </div>
 
-        <div className="mb-lg grid gap-sm rounded-lg border border-outline-variant bg-surface p-md shadow-sm lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto]">
+        <div className="mb-8 grid gap-4 rounded-[28px] border border-white/70 bg-white/82 p-4 shadow-[0_18px_55px_rgba(15,23,42,.08)] backdrop-blur lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto]">
           <label className="block">
-            <span className="mb-1 block font-label-sm text-label-sm text-on-surface-variant">{t("search")}</span>
+            <span className="mb-2 block text-[11px] font-black uppercase tracking-[.12em] text-slate-500">{t("search")}</span>
             <input
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
               placeholder={t("searchPlaceholder")}
-              className="w-full rounded-md border border-outline-variant bg-surface-container-lowest px-3 py-2 font-body-md text-body-md outline-none transition-colors focus:border-secondary"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm outline-none transition focus:border-[#d2ad55] focus:bg-white focus:shadow-[0_0_0_4px_rgba(210,173,85,.16)]"
             />
           </label>
           <label className="block">
-            <span className="mb-1 block font-label-sm text-label-sm text-on-surface-variant">{t("category")}</span>
+            <span className="mb-2 block text-[11px] font-black uppercase tracking-[.12em] text-slate-500">{t("category")}</span>
             <select
               value={categoryId}
               onChange={(event) => setCategoryId(event.target.value)}
-              className="w-full rounded-md border border-outline-variant bg-surface-container-lowest px-3 py-2 font-body-md text-body-md outline-none transition-colors focus:border-secondary"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm outline-none transition focus:border-[#d2ad55] focus:bg-white focus:shadow-[0_0_0_4px_rgba(210,173,85,.16)]"
             >
               <option value="">{t("allCategories")}</option>
               {categories.map((category) => (
@@ -232,54 +251,60 @@ function LivePageContent() {
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block font-label-sm text-label-sm text-on-surface-variant">{t("minPrice")}</span>
+            <span className="mb-2 block text-[11px] font-black uppercase tracking-[.12em] text-slate-500">{t("minPrice")}</span>
             <input
               value={minPrice}
               onChange={(event) => setMinPrice(event.target.value)}
               type="number"
               min="0"
               placeholder="0"
-              className="w-full rounded-md border border-outline-variant bg-surface-container-lowest px-3 py-2 font-body-md text-body-md outline-none transition-colors focus:border-secondary"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm outline-none transition focus:border-[#d2ad55] focus:bg-white focus:shadow-[0_0_0_4px_rgba(210,173,85,.16)]"
             />
           </label>
           <label className="block">
-            <span className="mb-1 block font-label-sm text-label-sm text-on-surface-variant">{t("maxPrice")}</span>
+            <span className="mb-2 block text-[11px] font-black uppercase tracking-[.12em] text-slate-500">{t("maxPrice")}</span>
             <input
               value={maxPrice}
               onChange={(event) => setMaxPrice(event.target.value)}
               type="number"
               min="0"
               placeholder={t("any")}
-              className="w-full rounded-md border border-outline-variant bg-surface-container-lowest px-3 py-2 font-body-md text-body-md outline-none transition-colors focus:border-secondary"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm outline-none transition focus:border-[#d2ad55] focus:bg-white focus:shadow-[0_0_0_4px_rgba(210,173,85,.16)]"
             />
           </label>
           <button
             type="button"
             onClick={clearFilters}
-            className="self-end rounded-md border border-outline-variant px-4 py-2 font-label-md text-label-md text-on-surface-variant transition-colors hover:border-secondary hover:text-secondary"
+            className="self-end rounded-2xl border border-slate-200 px-5 py-3 text-sm font-black text-slate-600 transition hover:-translate-y-0.5 hover:border-[#d2ad55] hover:text-[#9a6b13]"
           >
             {t("clear")}
           </button>
         </div>
 
         {errorMessage && (
-          <div className="mb-md rounded-lg border border-error/30 bg-error-container px-4 py-3 font-body-md text-body-md text-error">
+          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
             {errorMessage}
           </div>
         )}
 
         {!isLoading && !errorMessage && sortedProducts.length === 0 && (
-          <div className="rounded-lg border border-dashed border-outline-variant bg-surface p-xl text-center">
-            <h3 className="font-headline-sm text-headline-sm text-primary">{t("noLiveAuctions")}</h3>
-            <p className="mt-xs font-body-md text-body-md text-on-surface-variant">
+          <div className="rounded-[28px] border border-dashed border-[#d2ad55]/45 bg-white/75 px-6 py-16 text-center shadow-[0_18px_55px_rgba(15,23,42,.06)]">
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-[#071626] text-[#f0d98b]">
+              <span className="material-symbols-outlined text-[30px]">gavel</span>
+            </span>
+            <h3 className="mt-5 font-display-lg text-2xl font-black tracking-[-.04em] text-[#071626]">{t("noLiveAuctions")}</h3>
+            <p className="mt-2 text-sm text-slate-600">
               {t("checkUpcoming")} <Link href="/upcoming" className="text-secondary hover:underline">{t("upcomingCatalogue")}</Link> {t("sessionsOpeningSoon")}
             </p>
           </div>
         )}
 
-        <div className="grid gap-md sm:grid-cols-2 lg:grid-cols-4">
-          {sortedProducts.map((product) => (
-            <LiveLotCard key={product.productId} product={product} />
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          {isLoading && sortedProducts.length === 0 && Array.from({ length: 8 }).map((_, index) => (
+            <div key={index} className="skeleton-shimmer h-[430px] rounded-[24px]" />
+          ))}
+          {sortedProducts.map((product, index) => (
+            <ProductAuctionCard key={product.productId} product={product} t={tCard} index={index} />
           ))}
         </div>
       </section>
