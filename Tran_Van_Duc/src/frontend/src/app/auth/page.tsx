@@ -1,52 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { saveCurrentUser, getDashboardPath, CurrentUser } from "@/lib/useCurrentUser";
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+import Link from "next/link";
 
 export default function AuthPage() {
-  const router = useRouter();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [showPass, setShowPass] = useState(false);
-  const [usernameOrEmail, setUsernameOrEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const isLogin = mode === "login";
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!usernameOrEmail.trim() || !password.trim()) {
-      setError("Vui lòng nhập tên đăng nhập và mật khẩu");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usernameOrEmail, password }),
-      });
-
-      if (!res.ok) {
-        const msg = await res.text();
-        setError(msg || "Đăng nhập thất bại");
-        return;
-      }
-
-      const data: CurrentUser = await res.json();
-      saveCurrentUser(data);
-      router.push(getDashboardPath(data.roleName));
-    } catch {
-      setError("Không thể kết nối đến server. Vui lòng thử lại.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <main className="flex min-h-screen">
@@ -91,7 +52,7 @@ export default function AuthPage() {
               {(["login", "signup"] as const).map((m) => (
                 <button
                   key={m}
-                  onClick={() => { setMode(m); setError(""); }}
+                  onClick={() => setMode(m)}
                   className={`flex-1 py-3 text-label-md font-label-md rounded-md transition-all ${
                     mode === m
                       ? "bg-surface shadow-sm text-primary"
@@ -114,16 +75,8 @@ export default function AuthPage() {
               </p>
             </div>
 
-            {/* Error */}
-            {error && (
-              <div className="mb-sm px-4 py-3 rounded-lg bg-error-container text-on-error-container text-sm font-label-md flex items-center gap-sm">
-                <span className="material-symbols-outlined text-[18px]">error</span>
-                {error}
-              </div>
-            )}
-
             {/* Form */}
-            <form className="space-y-3 flex-grow" onSubmit={isLogin ? handleLogin : (e) => e.preventDefault()}>
+            <form className="space-y-3 flex-grow" onSubmit={(e) => e.preventDefault()}>
               {!isLogin && (
                 <div>
                   <label className="block font-label-md text-label-md text-on-surface-variant mb-1">Full Name</label>
@@ -136,14 +89,10 @@ export default function AuthPage() {
               )}
 
               <div>
-                <label className="block font-label-md text-label-md text-on-surface-variant mb-1">
-                  {isLogin ? "Username hoặc Email" : "Email Address"}
-                </label>
+                <label className="block font-label-md text-label-md text-on-surface-variant mb-1">Email Address</label>
                 <input
-                  type="text"
-                  value={isLogin ? usernameOrEmail : ""}
-                  onChange={(e) => isLogin && setUsernameOrEmail(e.target.value)}
-                  placeholder={isLogin ? "staff01 hoặc staff01@luxeauction.com" : "collector@luxe.com"}
+                  type="email"
+                  placeholder="collector@luxe.com"
                   className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
                 />
               </div>
@@ -158,8 +107,6 @@ export default function AuthPage() {
                 <div className="relative">
                   <input
                     type={showPass ? "text" : "password"}
-                    value={isLogin ? password : ""}
-                    onChange={(e) => isLogin && setPassword(e.target.value)}
                     placeholder="••••••••"
                     className="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline-variant/60"
                   />
@@ -185,37 +132,19 @@ export default function AuthPage() {
               )}
 
               <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={loading || (!isLogin)}
-                  className="w-full bg-primary-container text-white py-3.5 rounded-lg font-label-md text-label-md hover:shadow-lg hover:shadow-primary-container/20 active:scale-[0.98] transition-all flex items-center justify-center gap-sm group disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <>
-                      <span className="material-symbols-outlined animate-spin text-[18px]">sync</span>
-                      Đang đăng nhập...
-                    </>
-                  ) : (
-                    <>
-                      <span>{isLogin ? "Access Account" : "Create Account"}</span>
-                      <span className="material-symbols-outlined text-[18px] text-secondary-fixed-dim group-hover:translate-x-1 transition-transform">
-                        arrow_forward
-                      </span>
-                    </>
-                  )}
-                </button>
+                <Link href="/auth/onboarding">
+                  <button
+                    type="button"
+                    className="w-full bg-primary-container text-white py-3.5 rounded-lg font-label-md text-label-md hover:shadow-lg hover:shadow-primary-container/20 active:scale-[0.98] transition-all flex items-center justify-center gap-sm group"
+                  >
+                    <span>{isLogin ? "Access Account" : "Create Account"}</span>
+                    <span className="material-symbols-outlined text-[18px] text-secondary-fixed-dim group-hover:translate-x-1 transition-transform">
+                      arrow_forward
+                    </span>
+                  </button>
+                </Link>
               </div>
             </form>
-
-            {/* Quick test accounts hint */}
-            {isLogin && (
-              <div className="mt-4 p-3 rounded-lg bg-surface-container-low border border-outline-variant/30 text-xs text-on-surface-variant space-y-1">
-                <p className="font-label-sm font-bold text-outline uppercase tracking-wider mb-1">Test Accounts</p>
-                <p><span className="text-secondary">staff01</span> / password123 → Staff</p>
-                <p><span className="text-secondary">collector01</span> / password123 → Buyer</p>
-                <p><span className="text-secondary">seller01</span> / password123 → Seller</p>
-              </div>
-            )}
 
             {/* Social logins */}
             <div className="relative my-6">

@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { mockUser } from "@/lib/mock-data";
-import { clearCurrentUser } from "@/lib/useCurrentUser";
+import LiveChat from "@/components/features/LiveChat";
 
 const MY_AUCTIONS = [
   { href: "/dashboard", icon: "account_balance_wallet", label: "My Active Bids", badge: "red" },
@@ -27,12 +27,6 @@ const SELLER_PORTAL = [
 
 export default function CollectorSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-
-  const handleLogout = () => {
-    clearCurrentUser();
-    router.push("/auth");
-  };
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
@@ -137,10 +131,10 @@ export default function CollectorSidebar() {
               </a>
             </li>
             <li>
-              <button onClick={handleLogout} className="w-full flex items-center gap-sm px-4 py-2 text-on-surface-variant hover:bg-surface-variant transition-colors group rounded-md">
+              <a className="flex items-center gap-sm px-4 py-2 text-on-surface-variant hover:bg-surface-variant transition-colors group rounded-md" href="/auth">
                 <span className="material-symbols-outlined text-outline group-hover:text-error text-[20px]">logout</span>
                 <span className="font-label-sm text-label-sm group-hover:text-error">Logout</span>
-              </button>
+              </a>
             </li>
           </ul>
         </div>
@@ -154,6 +148,7 @@ export default function CollectorSidebar() {
         </div>
       </header>
 
+      <LiveChat />
     </>
   );
 }

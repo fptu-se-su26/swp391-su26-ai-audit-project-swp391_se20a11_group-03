@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import "./globals.css";
+import PortalSwitcher from "@/components/layout/PortalSwitcher";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${inter.variable} ${montserrat.variable} bg-background text-on-surface font-body-md`}>
         {children}
+        <PortalSwitcher />
       </body>
     </html>
   );
