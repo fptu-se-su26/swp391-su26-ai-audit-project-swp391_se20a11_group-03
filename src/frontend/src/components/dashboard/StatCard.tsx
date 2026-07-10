@@ -33,17 +33,17 @@ export default function StatCard({ icon, label, value, detail, tone = "navy" }: 
   const style = tones[tone];
 
   return (
-    <div className="group relative overflow-hidden rounded-[24px] border border-white/70 bg-white/82 p-5 shadow-[0_16px_45px_rgba(15,23,42,.075)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-[#d2ad55]/45 hover:shadow-[0_24px_60px_rgba(15,23,42,.12)]">
+    <div className="group relative overflow-hidden rounded-[24px] border border-white/10 bg-[#0e0d0b] p-5 shadow-[0_16px_45px_rgba(0,0,0,.4)] transition duration-300 hover:-translate-y-1 hover:border-[#d2ad55]/45 hover:shadow-[0_24px_60px_rgba(0,0,0,.55)]">
       <div className={`absolute -right-10 -top-10 h-28 w-28 rounded-full ${style.glow} blur-2xl transition group-hover:scale-125`} />
       <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${style.accent}`} />
       <div className="relative flex items-start justify-between">
         <span className={`grid h-11 w-11 place-items-center rounded-2xl ${style.icon} shadow-inner shadow-white/60`}>
           <span className="material-symbols-outlined text-[21px]">{icon}</span>
         </span>
-        {detail && <span className="rounded-full bg-[#06111f]/5 px-2.5 py-1 text-[10px] font-bold text-[#516173]">{detail}</span>}
+        {detail && <span className="rounded-full border border-white/10 bg-white/[.04] px-2.5 py-1 text-[10px] font-bold text-[#c8bda9]">{detail}</span>}
       </div>
-      <p className="relative mt-6 text-[10px] font-black uppercase tracking-[.14em] text-[#7b8490]">{label}</p>
-      <p className="relative mt-1 font-display-lg text-3xl font-black tracking-[-.05em] text-[#071626]">{value}</p>
+      <p className="relative mt-6 text-[10px] font-black uppercase tracking-[.14em] text-[#9d948a]">{label}</p>
+      <p className="relative mt-1 font-display-lg text-3xl font-black tracking-[-.05em] text-[#f5ead9]">{value}</p>
     </div>
   );
 }

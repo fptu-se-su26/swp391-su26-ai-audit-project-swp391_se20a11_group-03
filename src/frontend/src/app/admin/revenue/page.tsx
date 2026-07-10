@@ -124,10 +124,10 @@ export default function RevenuePage() {
         {summary && (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-md">
             {[
-              { label: "Doanh thu nền tảng (hoa hồng 20% + cọc tịch thu)", value: formatCurrency(summary.totalRevenue) },
-              { label: "Số dư ví Admin", value: formatCurrency(summary.adminBalance) },
-              { label: "Tổng nạp SePay", value: formatCurrency(summary.totalTopUps) },
-              { label: "Cọc đang giữ", value: formatCurrency(summary.depositsHeld) },
+              { label: t("platformRevenue"), value: formatCurrency(summary.totalRevenue) },
+              { label: t("adminWalletBalance"), value: formatCurrency(summary.adminBalance) },
+              { label: t("totalSepayTopUps"), value: formatCurrency(summary.totalTopUps) },
+              { label: t("depositsHeld"), value: formatCurrency(summary.depositsHeld) },
             ].map((card) => (
               <div key={card.label} className="bg-primary-container rounded-xl p-md soft-shadow border border-surface-variant">
                 <p className="font-label-md text-label-md text-on-primary-container">{card.label}</p>

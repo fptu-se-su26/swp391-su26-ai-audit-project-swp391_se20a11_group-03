@@ -54,7 +54,7 @@ public class AdminCategoryController {
     }
 
     @PostMapping("/{categoryId}/delete")
-    public String deleteCategory(@PathVariable Integer categoryId, RedirectAttributes redirectAttributes) {
+    public String deleteCategory(@PathVariable("categoryId") Integer categoryId, RedirectAttributes redirectAttributes) {
         try {
             categoryService.deleteCategory(categoryId);
             redirectAttributes.addFlashAttribute("message", "Category deleted successfully!");

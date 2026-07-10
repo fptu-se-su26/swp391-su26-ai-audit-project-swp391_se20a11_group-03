@@ -197,8 +197,8 @@ public class ProductServiceImpl implements ProductService {
             product.setCategoryId(request.getCategoryId());
             product.setProductName(request.getProductName());
             product.setDescription(request.getDescription());
-            product.setStartingPrice(request.getStartingPrice());
-            product.setStepPrice(StepCalculator.calculate(request.getStartingPrice()));
+            product.setStartingPrice(normalizeStartingPrice(request.getStartingPrice()));
+            product.setStepPrice(StepCalculator.calculate(product.getStartingPrice()));
             product.setTaxPercent(request.getTaxPercent() != null ? request.getTaxPercent() : 5);
             product.setStatus("PENDING");
             product.setAuctionMode(request.getAuctionMode());
@@ -337,8 +337,15 @@ public class ProductServiceImpl implements ProductService {
 
         return products.stream().map(product -> {
             Auction auction = auctionsByProductId.get(product.getProductId());
-            Long currentBid = auction != null && auction.getCurrentHighestBid() != null
-                    ? auction.getCurrentHighestBid() : product.getStartingPrice();
+            Long currentBid = null;
+            if (auction != null) {
+                currentBid = auction.getCurrentHighestBid() != null
+                        ? auction.getCurrentHighestBid()
+                        : product.getStartingPrice();
+            }
+            String mode = auction != null && auction.getAuctionMode() != null
+                    ? auction.getAuctionMode().name()
+                    : product.getAuctionMode();
             return ProductSummaryResponse.builder()
                     .productId(product.getProductId())
                     .productName(product.getProductName())
@@ -352,8 +359,9 @@ public class ProductServiceImpl implements ProductService {
                     .auctionStatus(auction != null ? auction.getStatus() : null)
                     .auctionStartTime(auction != null && auction.getStartTime() != null ? auction.getStartTime().toString() : null)
                     .auctionEndTime(auction != null && auction.getEndTime() != null ? auction.getEndTime().toString() : null)
-                    .auctionMode(product.getAuctionMode())
+                    .auctionMode(mode)
                     .scheduledDurationSeconds(product.getScheduledDurationSeconds())
+                    .rejectionReason(product.getRejectionReason())
                     .build();
         }).toList();
     }
@@ -436,7 +444,8 @@ public class ProductServiceImpl implements ProductService {
             product.setDescription(request.getDescription());
         }
         if (request.getStartingPrice() != null && request.getStartingPrice() > 0) {
-            product.setStartingPrice(request.getStartingPrice());
+            product.setStartingPrice(normalizeStartingPrice(request.getStartingPrice()));
+            product.setStepPrice(StepCalculator.calculate(product.getStartingPrice()));
         }
 
         product = productRepository.save(product);
@@ -521,7 +530,7 @@ public class ProductServiceImpl implements ProductService {
                 product.getProductName(),
                 product.getDescription(),
                 product.getStartingPrice(),
-                product.getStepPrice(),
+                StepCalculator.calculate(product.getStartingPrice()),
                 product.getTaxPercent(),
                 product.getStatus(),
                 product.getSubmittedAt(),
@@ -537,5 +546,12 @@ public class ProductServiceImpl implements ProductService {
                 imgDTOs,
                 attrDTOs
         );
+    }
+
+    private static long normalizeStartingPrice(Long raw) {
+        if (raw == null || raw <= 0) {
+            throw new BusinessException("startingPrice must be greater than 0");
+        }
+        return raw;
     }
 }

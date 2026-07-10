@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import TopNav from "@/components/layout/TopNav";
 import WatchlistButton from "@/components/features/WatchlistButton";
-import CountdownTimer from "@/components/features/CountdownTimer";
+import AuctionCountdownPanel from "@/components/features/AuctionCountdownPanel";
 import PurchaseContractPanel from "@/components/features/PurchaseContractPanel";
 import AuctionResultBanner from "@/components/features/AuctionResultBanner";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -13,6 +13,7 @@ import { ApiError, getStoredToken } from "@/lib/apiClient";
 import { useNavigationContext } from "@/lib/NavigationContext";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { computeEffectiveAuctionStatus, getProductImage } from "@/lib/productPresentation";
+import { canPayForWonAuction, isForfeitedPayment } from "@/lib/auctionPayment";
 import {
   AuctionDeposit,
   AuctionEligibility,
@@ -27,6 +28,7 @@ import { forceRefresh, subscribeAuction } from "@/lib/services/auctionPolling";
 import { getStoredUser } from "@/lib/userSession";
 import { getPurchaseContract } from "@/lib/services/purchaseContractService";
 import { calculateBidStep } from "@/lib/bidStep";
+import { displayFont } from "@/components/luxe/theme";
 
 const formatVnd = (value: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
@@ -44,6 +46,8 @@ export default function AuctionDetailPage() {
   const router = useRouter();
   const { parentPage, setParentPage } = useNavigationContext();
   const t = useTranslations("auction");
+  const tCountdown = useTranslations("countdown");
+  const tContracts = useTranslations("contracts");
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [eligibility, setEligibility] = useState<AuctionEligibility | null>(null);
   const [wallet, setWallet] = useState<Wallet | null>(null);
@@ -156,7 +160,7 @@ export default function AuctionDetailPage() {
       return;
     }
     getPurchaseContract(auctionId)
-      .then((c) => setPurchaseContractSigned(Boolean(c.signed)))
+      .then((c) => setPurchaseContractSigned(Boolean(c.signed || c.acknowledged)))
       .catch(() => setPurchaseContractSigned(false));
   }, [auctionId, isAuctionEnded, hasToken, liveState?.currentWinnerUserId]);
 
@@ -184,7 +188,7 @@ export default function AuctionDetailPage() {
   const walletBalance = wallet?.balance ?? 0;
   const needsTopUp = hasToken && eligibility != null && !eligibility.alreadyDeposited && walletBalance < depositAmount;
   const shortfall = Math.max(0, depositAmount - walletBalance);
-  const breadcrumbHref = parentPage === "results" ? "/results" : parentPage === "upcoming" ? "/upcoming" : "/";
+  const breadcrumbHref = parentPage === "results" ? "/results" : parentPage === "upcoming" ? "/upcoming" : "/browse";
 
   const currentUserId = getStoredUser()?.userId;
   const isSellerOfProduct =
@@ -293,7 +297,7 @@ export default function AuctionDetailPage() {
 
     if (!auctionId) {
       return (
-        <div className="rounded-md bg-surface-container-low px-4 py-3 text-sm text-on-surface-variant">
+        <div className="rounded-md bg-white/[0.04] px-4 py-3 text-sm text-[#b7aea3]">
           {t("endsNotConfigured")}
         </div>
       );
@@ -303,7 +307,7 @@ export default function AuctionDetailPage() {
       return (
         <Link
           href="/auth"
-          className="rounded-full bg-slate-950 px-4 py-3 text-center font-label-md text-label-md text-white transition hover:-translate-y-0.5 hover:bg-blue-700"
+          className="rounded-full bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] px-4 py-3 text-center font-label-md text-label-md text-[#100d08] transition hover:-translate-y-0.5 hover:brightness-110"
         >
           {t("endsLoginToDeposit")}
         </Link>
@@ -312,7 +316,7 @@ export default function AuctionDetailPage() {
 
     if (eligibilityLoading && !eligibility) {
       return (
-        <div className="rounded-md bg-surface-container-low px-4 py-3 text-center text-sm text-on-surface-variant">
+        <div className="rounded-md bg-white/[0.04] px-4 py-3 text-center text-sm text-[#b7aea3]">
           {t("endsCheckingEligibility")}
         </div>
       );
@@ -347,7 +351,7 @@ export default function AuctionDetailPage() {
         <button
           type="button"
           disabled
-          className="rounded-full bg-slate-100 px-4 py-3 text-center font-label-md text-label-md text-slate-500"
+          className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-3 text-center font-label-md text-label-md text-[#9d948a]"
         >
           {t("endsDepositTimeExpired")}
         </button>
@@ -358,7 +362,7 @@ export default function AuctionDetailPage() {
       return (
         <Link
           href="/wallet"
-          className="rounded-full bg-slate-950 px-4 py-3 text-center font-label-md text-label-md text-white transition hover:-translate-y-0.5 hover:bg-blue-700"
+          className="rounded-full bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] px-4 py-3 text-center font-label-md text-label-md text-[#100d08] transition hover:-translate-y-0.5 hover:brightness-110"
         >
           {t("endsTopUp", { amount: formatVnd(shortfall) })}
         </Link>
@@ -370,7 +374,7 @@ export default function AuctionDetailPage() {
         type="button"
         onClick={handlePlaceDeposit}
         disabled={depositSubmitting}
-        className="rounded-full bg-slate-950 px-4 py-3 text-center font-label-md text-label-md text-white transition hover:-translate-y-0.5 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-full bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] px-4 py-3 text-center font-label-md text-label-md text-[#100d08] transition hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {depositSubmitting ? t("endsDepositing") : t("endsDeposit", { amount: formatVnd(depositAmount) })}
       </button>
@@ -378,28 +382,28 @@ export default function AuctionDetailPage() {
   }
 
   return (
-    <main className="min-h-screen premium-page text-slate-950">
+    <main className="min-h-screen luxe-page text-[#f5ead9]">
       <TopNav />
 
       <div className="mx-auto max-w-screen-2xl px-margin-mobile py-lg md:px-margin-desktop">
-        <nav className="mb-md flex items-center gap-xs text-label-sm text-slate-500">
-          <Link href="/" className="hover:text-blue-700">{t("breadcrumbHome")}</Link>
+        <nav className="mb-md flex items-center gap-xs text-label-sm text-[#9d948a]">
+          <Link href="/browse" className="hover:text-[#d4aa61]">{t("breadcrumbHome")}</Link>
           <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-          <Link href={breadcrumbHref} className="hover:text-blue-700">
+          <Link href={breadcrumbHref} className="hover:text-[#d4aa61]">
             {parentPage === "results" ? t("breadcrumbResults") : parentPage === "upcoming" ? t("breadcrumbUpcoming") : t("breadcrumbStorefront")}
           </Link>
           <span className="material-symbols-outlined text-[16px]">chevron_right</span>
-          <span className="text-slate-950">{t("breadcrumbLot", { id: params.id })}</span>
+          <span className="text-[#f5ead9]">{t("breadcrumbLot", { id: params.id })}</span>
         </nav>
 
         {loading && (
-          <div className="premium-card skeleton-shimmer rounded-[24px] p-xl text-center text-slate-500">
+          <div className="luxe-card skeleton-shimmer rounded-[24px] p-xl text-center text-[#9d948a]">
             {t("loadingDetail")}
           </div>
         )}
 
         {error && (
-          <div className="rounded-lg border border-error/30 bg-error-container p-md text-error">
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-md text-red-300">
             {error}
           </div>
         )}
@@ -408,20 +412,20 @@ export default function AuctionDetailPage() {
           <>
             <section className="grid gap-lg lg:grid-cols-[1.05fr_0.95fr]">
               <div>
-                <div className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_55px_rgba(15,23,42,.1)]">
+                <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#0e0d0b] shadow-[0_18px_55px_rgba(0,0,0,.5)]">
                   <img
                     src={images[activeImage]}
                     alt={product.productName}
                     className="aspect-[4/3] w-full object-cover transition duration-700 hover:scale-[1.02]"
                   />
-                  <WatchlistButton productId={product.productId} className="absolute right-4 top-4 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-sm backdrop-blur-sm transition-all hover:scale-110 hover:text-red-600" />
+                  <WatchlistButton productId={product.productId} className="absolute right-4 top-4 z-20 flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-black/45 text-[#d4aa61] backdrop-blur-sm transition-all hover:scale-110 hover:bg-black/60" />
                 </div>
                 <div className="mt-sm grid grid-cols-4 gap-sm">
                   {images.map((image, index) => (
                     <button
                       key={`${image}-${index}`}
                       onClick={() => setActiveImage(index)}
-                      className={`overflow-hidden rounded-2xl border bg-white p-1 transition ${activeImage === index ? "border-blue-500 shadow-[0_0_0_4px_rgba(37,99,235,.12)]" : "border-slate-200 opacity-70 hover:opacity-100"}`}
+                      className={`overflow-hidden rounded-2xl border bg-[#0e0d0b] p-1 transition ${activeImage === index ? "border-[#d4aa61] shadow-[0_0_0_4px_rgba(212,170,97,.14)]" : "border-white/10 opacity-70 hover:opacity-100"}`}
                     >
                       <img src={image} alt="" className="aspect-[4/3] w-full object-cover" />
                     </button>
@@ -433,27 +437,27 @@ export default function AuctionDetailPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="mb-sm flex items-center gap-sm">
-                      <span className="font-label-sm text-label-sm text-slate-500">LOT #{product.productId}</span>
+                      <span className="font-label-sm text-label-sm text-[#9d948a]">LOT #{product.productId}</span>
                       <StatusBadge status={isAuctionEnded ? "ENDED" : auctionStatus} label={isAuctionEnded ? "ENDED" : auctionStatus} />
                     </div>
-                    <h1 className="text-[38px] font-bold leading-tight tracking-[-.04em] text-slate-950">{product.productName}</h1>
-                    <p className="mt-sm font-body-md text-slate-600">
+                    <h1 className={`${displayFont} text-[38px] font-medium leading-tight text-white`}>{product.productName}</h1>
+                    <p className="mt-sm font-body-md text-[#b7aea3]">
                       {product.categoryName ?? t("uncategorized")} · {isAuctionEnded ? t("priceLabelFinal") : t("priceLabelCurrent")} {formatVnd(product.startingPrice)}
                     </p>
                   </div>
-                  <WatchlistButton productId={product.productId} className="relative !static flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition-all hover:scale-105 hover:border-red-200 hover:text-red-600" />
+                  <WatchlistButton productId={product.productId} className="relative !static flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[#9d948a] transition-all hover:scale-105 hover:border-[#d4aa61]/40 hover:text-[#d4aa61]" />
                 </div>
 
-                <div className={`rounded-[24px] border p-md shadow-[0_16px_45px_rgba(15,23,42,.07)] ${isAuctionEnded ? "border-slate-200 bg-white" : "border-blue-200 bg-blue-50/80"}`}>
-                  <p className="font-label-sm text-label-sm text-slate-500">
+                <div className={`rounded-[24px] border p-md ${isAuctionEnded ? "border-white/10 bg-[#0e0d0b]" : "border-[#d4aa61]/30 bg-[#d4aa61]/[0.06]"}`}>
+                  <p className="font-label-sm text-label-sm text-[#9d948a]">
                     {isAuctionEnded ? t("priceLabelFinal") : isTimedBlind ? t("priceLabelStartingTimed") : t("priceLabelCurrent")}
                   </p>
-                  <p className="mt-xs text-[34px] font-extrabold tracking-[-.03em] text-slate-950">{formatVnd(displayPrice)}</p>
+                  <p className="mt-xs text-[34px] font-extrabold tracking-[-.03em] text-[#efcf88]">{formatVnd(displayPrice)}</p>
                   {isTimedBlind && (
-                    <p className="mt-1 text-xs text-on-surface-variant">{t("timedBlindPriceHint")}</p>
+                    <p className="mt-1 text-xs text-[#9d948a]">{t("timedBlindPriceHint")}</p>
                   )}
                   {product.auction ? (
-                    <p className="mt-xs text-sm text-slate-600">
+                    <p className="mt-xs text-sm text-[#b7aea3]">
                       {t("auctionTimeRange", {
                         start: formatDateTime(product.auction.startTime, t),
                         end: formatDateTime(product.auction.endTime, t),
@@ -461,27 +465,22 @@ export default function AuctionDetailPage() {
                     </p>
                   ) : null}
                   {!isAuctionEnded && countdownTarget && (
-                    <div className="mt-sm flex items-center gap-sm">
-                      <span className="font-label-sm text-label-sm text-slate-600">
-                        {effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
-                          ? "Bắt đầu sau"
-                          : t("priceTimeLeft")}
-                      </span>
-                      <CountdownTimer
-                        key={countdownTarget}
-                        endsAt={countdownTarget}
-                        variant={product.auctionMode === "TIMED" ? "timed" : "live"}
-                      />
-                      {product.auctionMode && (
-                        <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${
-                          product.auctionMode === "LIVE"
-                            ? "bg-error-container text-on-error-container animate-pulse"
-                            : "bg-secondary-container text-on-secondary-container"
-                        }`}>
-                          {product.auctionMode}
-                        </span>
-                      )}
-                    </div>
+                    <AuctionCountdownPanel
+                      key={countdownTarget}
+                      endsAt={countdownTarget}
+                      mode={
+                        effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
+                          ? "upcoming"
+                          : "live"
+                      }
+                      label={
+                        effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
+                          ? tCountdown("startsIn")
+                          : t("priceTimeLeft")
+                      }
+                      auctionMode={product.auctionMode}
+                      className="!mt-4"
+                    />
                   )}
                 </div>
 
@@ -493,13 +492,14 @@ export default function AuctionDetailPage() {
                     winnerUsername={liveState?.winnerUsername}
                     winnerUserId={liveState?.currentWinnerUserId}
                     paymentStatus={liveState?.paymentStatus}
+                    paymentDeadline={liveState?.paymentDeadline}
                   />
                 )}
 
                 {!isAuctionEnded && !isSellerOfProduct && (
-                  <div className="rounded-[24px] border border-slate-200 bg-white p-md shadow-[0_16px_45px_rgba(15,23,42,.07)]">
-                    <h2 className="mb-xs font-headline-sm text-headline-sm text-slate-950">{t("biddingRequired")}</h2>
-                    <p className="text-sm leading-relaxed text-slate-600">
+                  <div className="rounded-[24px] border border-white/10 bg-[#0e0d0b] p-md">
+                    <h2 className={`${displayFont} mb-xs text-headline-sm text-white`}>{t("biddingRequired")}</h2>
+                    <p className="text-sm leading-relaxed text-[#b7aea3]">
                       {t("eligibilityDepositInfo", {
                         amount: formatVnd(depositAmount),
                         deadline: formatDateTime(eligibility?.depositDeadline, t),
@@ -507,32 +507,32 @@ export default function AuctionDetailPage() {
                     </p>
 
                     {eligibility?.message && (
-                      <div className="mt-sm rounded-md bg-surface-container-low px-4 py-3 text-sm text-on-surface-variant">
+                      <div className="mt-sm rounded-md bg-white/[0.04] px-4 py-3 text-sm text-[#b7aea3]">
                         {eligibility.message}
                       </div>
                     )}
 
                     {wallet && (
-                      <div className="mt-sm grid grid-cols-2 gap-sm rounded-md border border-outline-variant bg-surface-container-low p-sm text-sm">
+                      <div className="mt-sm grid grid-cols-2 gap-sm rounded-md border border-white/10 bg-white/[0.03] p-sm text-sm">
                         <div>
-                          <p className="text-on-surface-variant">{t("walletAvailable")}</p>
-                          <p className="mt-1 font-bold text-on-surface">{formatVnd(wallet.balance)}</p>
+                          <p className="text-[#9d948a]">{t("walletAvailable")}</p>
+                          <p className="mt-1 font-bold text-[#f5ead9]">{formatVnd(wallet.balance)}</p>
                         </div>
                         <div>
-                          <p className="text-on-surface-variant">{t("walletHeld")}</p>
-                          <p className="mt-1 font-bold text-on-surface">{formatVnd(wallet.holdBalance)}</p>
+                          <p className="text-[#9d948a]">{t("walletHeld")}</p>
+                          <p className="mt-1 font-bold text-[#f5ead9]">{formatVnd(wallet.holdBalance)}</p>
                         </div>
                       </div>
                     )}
 
                     {panelMessage && (
-                      <div className="mt-sm rounded-md border border-tertiary-fixed/40 bg-tertiary-fixed/15 px-4 py-3 text-sm text-on-tertiary-fixed-variant">
+                      <div className="mt-sm rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
                         {panelMessage}
                       </div>
                     )}
 
                     {panelError && (
-                      <div className="mt-sm rounded-md border border-error/30 bg-error-container/25 px-4 py-3 text-sm text-error">
+                      <div className="mt-sm rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                         {panelError}
                       </div>
                     )}
@@ -541,7 +541,7 @@ export default function AuctionDetailPage() {
                       {renderEligibilityAction()}
                       <Link
                         href="/wallet"
-                        className="rounded-md border border-outline-variant px-4 py-3 text-center font-label-md text-label-md text-on-surface hover:bg-surface-container-low"
+                        className="rounded-md border border-white/10 px-4 py-3 text-center font-label-md text-label-md text-[#cfc6ba] hover:bg-white/[0.05]"
                       >
                         {t("openWallet")}
                       </Link>
@@ -550,11 +550,11 @@ export default function AuctionDetailPage() {
                 )}
 
                 {!isAuctionEnded && eligibility?.alreadyDeposited && auctionId && (
-                  <div className="rounded-lg border border-outline-variant bg-surface p-md">
-                    <h3 className="font-title-md text-title-md text-on-surface">
+                  <div className="rounded-lg border border-white/10 bg-[#0e0d0b] p-md">
+                    <h3 className={`${displayFont} text-title-md text-white`}>
                       {t("depositPaid")}
                     </h3>
-                    <p className="mt-xs text-sm text-on-surface-variant">
+                    <p className="mt-xs text-sm text-[#b7aea3]">
                       {t("depositPaidDesc")}
                     </p>
                   </div>
@@ -568,10 +568,28 @@ export default function AuctionDetailPage() {
                     Number(me.userId) === Number(liveState.currentWinnerUserId);
                   if (!amWinner) return null;
                   const alreadyPaid = liveState?.paymentStatus === "PAID" || liveState?.status === "PAID";
+                  const paymentExpired = isForfeitedPayment(
+                    liveState?.paymentStatus ?? liveState?.status,
+                    liveState?.paymentDeadline,
+                  );
+                  const canPay = canPayForWonAuction(
+                    liveState?.paymentStatus ?? liveState?.status,
+                    liveState?.paymentDeadline,
+                  );
+
+                  if (paymentExpired) {
+                    return (
+                      <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-md">
+                        <p className="font-headline-sm text-headline-sm text-red-300">{t("paymentOverdueTitle")}</p>
+                        <p className="mt-2 text-sm text-[#b7aea3]">{t("paymentOverdueMsg")}</p>
+                      </div>
+                    );
+                  }
+
                   return (
-                    <div className="rounded-lg border border-outline-variant bg-surface p-md">
-                      <div className="rounded-md border border-tertiary-fixed/40 bg-tertiary-container px-4 py-3 text-on-tertiary-container">
-                        <p className="font-headline-sm text-headline-sm">{t("winnerTitle")}</p>
+                    <div className="rounded-lg border border-white/10 bg-[#0e0d0b] p-md">
+                      <div className="rounded-md border border-[#d4aa61]/40 bg-[#d4aa61]/[0.08] px-4 py-3 text-[#f5ead9]">
+                        <p className={`${displayFont} text-headline-sm text-white`}>{t("winnerTitle")}</p>
                         <p className="mt-1 text-sm">
                           {alreadyPaid
                             ? t("paymentAlreadyPaid")
@@ -579,7 +597,7 @@ export default function AuctionDetailPage() {
                               ? t("winnerPaymentMsg", { deadline: formatDateTime(liveState.paymentDeadline, t) })
                               : t("winnerPaymentMsgNoDeadline")}
                         </p>
-                        {!alreadyPaid && auctionId && (
+                        {canPay && !alreadyPaid && auctionId && (
                           <div className="mt-sm">
                             <PurchaseContractPanel
                               auctionId={auctionId}
@@ -588,37 +606,39 @@ export default function AuctionDetailPage() {
                             />
                           </div>
                         )}
-                        <button
-                          type="button"
-                          onClick={handlePayAuction}
-                          disabled={alreadyPaid || paymentSubmitting || (!alreadyPaid && !purchaseContractSigned)}
-                          className="mt-sm inline-block rounded-md bg-tertiary-fixed px-4 py-2 text-on-tertiary-fixed-variant hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {alreadyPaid
-                            ? t("paymentPaid")
-                            : paymentSubmitting
-                              ? t("paymentProcessing")
-                              : purchaseContractSigned
-                                ? t("winnerPayNow")
-                                : "Ký hợp đồng trước khi thanh toán"}
-                        </button>
+                        {canPay && (
+                          <button
+                            type="button"
+                            onClick={handlePayAuction}
+                            disabled={alreadyPaid || paymentSubmitting || (!alreadyPaid && !purchaseContractSigned)}
+                            className="mt-sm inline-block rounded-md bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] px-4 py-2 text-[#100d08] font-bold hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {alreadyPaid
+                              ? t("paymentPaid")
+                              : paymentSubmitting
+                                ? t("paymentProcessing")
+                                : purchaseContractSigned
+                                  ? t("winnerPayNow")
+                                  : tContracts("signBeforePay")}
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
                 })()}
 
                 {isAuctionEnded && (
-                  <div className="rounded-lg border border-outline-variant bg-surface p-md">
+                  <div className="rounded-lg border border-white/10 bg-[#0e0d0b] p-md">
                     <div className="grid gap-xs">
                       <Link
                         href="/results"
-                        className="rounded-md bg-primary px-4 py-3 text-center font-label-md text-label-md text-on-primary hover:opacity-90"
+                        className="rounded-md bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] px-4 py-3 text-center font-label-md text-label-md text-[#100d08] hover:brightness-110"
                       >
                         {t("btnViewOtherAuctions")}
                       </Link>
                       <Link
                         href="/upcoming"
-                        className="rounded-md border border-outline-variant px-4 py-3 text-center font-label-md text-label-md text-on-surface hover:bg-surface-container-low"
+                        className="rounded-md border border-white/10 px-4 py-3 text-center font-label-md text-label-md text-[#cfc6ba] hover:bg-white/[0.05]"
                       >
                         {t("btnViewUpcoming")}
                       </Link>
@@ -627,42 +647,40 @@ export default function AuctionDetailPage() {
                 )}
 
                 {auctionStatus === "ACTIVE" && !isAuctionEnded && !isSellerOfProduct && (
-                  <div className="rounded-lg border border-error/30 bg-error-container/10 p-md">
-                    <p className="font-label-sm text-label-sm uppercase tracking-widest text-error">{t("auctionLive")}</p>
-                    <p className="mt-1 text-sm text-on-surface-variant">
+                  <div className="rounded-lg border border-red-500/30 bg-red-500/[0.08] p-md">
+                    <p className="font-label-sm text-label-sm uppercase tracking-widest text-red-300">{t("auctionLive")}</p>
+                    <p className="mt-1 text-sm text-[#b7aea3]">
                       {t("auctionLiveDesc")}
                     </p>
-                    {eligibility?.alreadyDeposited ? (
-                      <Link
-                        href={`/auction-room/${params.id}`}
-                        className="mt-sm inline-flex w-full items-center justify-center gap-sm rounded-md bg-error px-4 py-3 font-label-md text-label-md text-on-error hover:opacity-90"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">videocam</span>
-                        {t("endsEnterRoom")}
-                      </Link>
-                    ) : null}
+                    <Link
+                      href={`/auction-room/${params.id}`}
+                      className="mt-sm inline-flex w-full items-center justify-center gap-sm rounded-md bg-red-600 px-4 py-3 font-label-md text-label-md text-white hover:bg-red-700"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">videocam</span>
+                      {eligibility?.alreadyDeposited ? t("endsEnterRoom") : t("watchLive")}
+                    </Link>
                   </div>
                 )}
               </aside>
             </section>
 
-            <section className="mt-xl grid gap-lg border-t border-outline-variant pt-lg md:grid-cols-3">
+            <section className="mt-xl grid gap-lg border-t border-white/10 pt-lg md:grid-cols-3">
               <div>
-                <h2 className="mb-sm font-label-md text-label-md uppercase tracking-widest text-secondary">{t("sectionDescription")}</h2>
-                <p className="font-body-md leading-relaxed text-on-surface-variant">
+                <h2 className="mb-sm font-label-md text-label-md uppercase tracking-widest text-[#d4aa61]">{t("sectionDescription")}</h2>
+                <p className="font-body-md leading-relaxed text-[#b7aea3]">
                   {product.description || t("conditionDefault")}
                 </p>
               </div>
               <div>
-                <h2 className="mb-sm font-label-md text-label-md uppercase tracking-widest text-secondary">{t("sectionCondition")}</h2>
-                <div className="rounded-md bg-surface p-md text-sm text-on-surface-variant">
-                  <p className="font-bold text-on-surface">{t("conditionStatus", { status: product.status })}</p>
+                <h2 className="mb-sm font-label-md text-label-md uppercase tracking-widest text-[#d4aa61]">{t("sectionCondition")}</h2>
+                <div className="rounded-md border border-white/10 bg-[#0e0d0b] p-md text-sm text-[#b7aea3]">
+                  <p className="font-bold text-[#f5ead9]">{t("conditionStatus", { status: product.status })}</p>
                   <p className="mt-xs">{t("conditionReviewed")}</p>
                 </div>
               </div>
               <div>
-                <h2 className="mb-sm font-label-md text-label-md uppercase tracking-widest text-secondary">{t("sectionProvenance")}</h2>
-                <p className="font-body-md leading-relaxed text-on-surface-variant">
+                <h2 className="mb-sm font-label-md text-label-md uppercase tracking-widest text-[#d4aa61]">{t("sectionProvenance")}</h2>
+                <p className="font-body-md leading-relaxed text-[#b7aea3]">
                   {t("provenanceDetail", { category: product.categoryName ?? t("uncategorized"), productId: product.productId })}
                 </p>
               </div>

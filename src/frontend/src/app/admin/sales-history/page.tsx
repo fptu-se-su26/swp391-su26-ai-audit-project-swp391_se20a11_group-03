@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import AdminShell from "@/components/layout/AdminShell";
 import { SalesHistoryRow, getSalesHistory } from "@/lib/services/dashboardService";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("vi-VN", {
@@ -28,6 +29,7 @@ function formatDateTime(value: string | null): string {
 }
 
 export default function SalesHistoryPage() {
+  const t = useTranslations("adminSalesHistory");
   const [rows, setRows] = useState<SalesHistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,9 +38,9 @@ export default function SalesHistoryPage() {
   useEffect(() => {
     getSalesHistory()
       .then(setRows)
-      .catch(() => setError("Không thể tải lịch sử mua bán."))
+      .catch(() => setError(t("loadError")))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -74,19 +76,17 @@ export default function SalesHistoryPage() {
     <AdminShell>
       <div className="mx-auto max-w-[1400px] space-y-lg p-margin-mobile md:p-margin-desktop">
         <div>
-          <h1 className="font-display-lg-mobile text-primary md:font-display-lg">Lịch sử mua bán</h1>
-          <p className="mt-xs font-body-lg text-on-surface-variant">
-            Các phiên đấu giá đã thanh toán thành công trên toàn nền tảng.
-          </p>
+          <h1 className="font-display-lg-mobile text-primary md:font-display-lg">{t("pageTitle")}</h1>
+          <p className="mt-xs font-body-lg text-on-surface-variant">{t("pageSubtitle")}</p>
         </div>
 
         {error && <div className="rounded-xl bg-error-container p-md text-on-error-container">{error}</div>}
 
         <div className="grid grid-cols-1 gap-md sm:grid-cols-3">
           {[
-            { label: "Tổng giá trị giao dịch (GMV)", value: formatCurrency(totals.gmv) },
-            { label: "Hoa hồng nền tảng (20%)", value: formatCurrency(totals.commission) },
-            { label: "Số giao dịch", value: String(totals.count) },
+            { label: t("statGmv"), value: formatCurrency(totals.gmv) },
+            { label: t("statCommission"), value: formatCurrency(totals.commission) },
+            { label: t("statCount"), value: String(totals.count) },
           ].map((c) => (
             <div key={c.label} className="rounded-xl border border-surface-variant bg-surface p-md soft-shadow">
               <p className="font-label-md text-label-md text-on-surface-variant">{c.label}</p>
@@ -100,7 +100,7 @@ export default function SalesHistoryPage() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm theo sản phẩm, người bán, người mua..."
+            placeholder={t("searchPlaceholder")}
             className="w-full rounded-lg border border-outline-variant bg-surface py-2 pl-10 pr-3 outline-none focus:border-secondary"
           />
         </div>
@@ -108,7 +108,7 @@ export default function SalesHistoryPage() {
         {filtered.length === 0 ? (
           <div className="rounded-xl bg-surface p-xl text-center">
             <span className="material-symbols-outlined mb-sm block text-4xl text-on-surface-variant">receipt_long</span>
-            <p className="text-on-surface-variant">Chưa có giao dịch nào.</p>
+            <p className="text-on-surface-variant">{t("noSales")}</p>
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border border-surface-variant bg-surface soft-shadow">
@@ -116,7 +116,7 @@ export default function SalesHistoryPage() {
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-surface-variant bg-surface-container-low">
-                    {["Phiên", "Sản phẩm", "Người bán", "Người mua", "Giá chốt", "Hoa hồng", "Người bán nhận", "Thanh toán lúc"].map((h) => (
+                    {[t("tableSession"), t("tableProduct"), t("tableSeller"), t("tableBuyer"), t("tableFinalPrice"), t("tableCommission"), t("tableSellerPayout"), t("tablePaidAt")].map((h) => (
                       <th key={h} className="whitespace-nowrap p-md font-label-sm text-label-sm text-on-surface-variant">
                         {h}
                       </th>

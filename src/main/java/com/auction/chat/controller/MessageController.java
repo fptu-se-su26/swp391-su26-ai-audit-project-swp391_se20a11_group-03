@@ -31,7 +31,7 @@ public class MessageController {
     @GetMapping("/conversation/{conversationId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<MessageResponse>> getMessages(
-            @PathVariable Long conversationId,
+            @PathVariable("conversationId") Long conversationId,
             @AuthenticationPrincipal UserDetailsImpl me) {
         return ResponseEntity.ok(messageService.getMessages(conversationId, me.getId()));
     }
@@ -39,7 +39,7 @@ public class MessageController {
     @PatchMapping("/conversation/{conversationId}/read")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> markRead(
-            @PathVariable Long conversationId,
+            @PathVariable("conversationId") Long conversationId,
             @AuthenticationPrincipal UserDetailsImpl me) {
         messageService.markAsRead(conversationId, me.getId());
         return ResponseEntity.noContent().build();

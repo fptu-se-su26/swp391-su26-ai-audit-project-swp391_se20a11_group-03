@@ -5,7 +5,9 @@ import com.auction.account.dto.KycSubmissionResponse;
 import com.auction.account.security.UserDetailsImpl;
 import com.auction.account.service.CccdOcrService;
 import com.auction.account.service.KycService;
+import com.auction.common.service.GeminiOcrService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,7 @@ public class KycController {
 
     private final KycService kycService;
     private final CccdOcrService cccdOcrService;
+    private final GeminiOcrService geminiOcrService;
 
     /**
      * User submits a KYC application. Multipart so the three ID photos are
@@ -43,7 +46,8 @@ public class KycController {
             @RequestParam("issuePlace") String issuePlace,
             @RequestParam("frontImage") MultipartFile frontImage,
             @RequestParam("backImage") MultipartFile backImage,
-            @RequestParam("selfieImage") MultipartFile selfieImage
+            @RequestParam("selfieImage") MultipartFile selfieImage,
+            @RequestParam(value = "signSellerAgreement", defaultValue = "false") boolean signSellerAgreement
     ) {
         if (currentUser == null) {
             return ResponseEntity.status(401).body(Map.of(
@@ -55,7 +59,7 @@ public class KycController {
             KycSubmissionResponse result = kycService.submit(
                     currentUser.getId(),
                     fullName, phone, cccdNumber, dob, gender, issueDate, issuePlace,
-                    frontImage, backImage, selfieImage
+                    frontImage, backImage, selfieImage, signSellerAgreement
             );
             return ResponseEntity.ok(Map.of(
                     "success", true,
@@ -66,6 +70,14 @@ public class KycController {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", ex.getMessage()
+            ));
+        } catch (DataIntegrityViolationException ex) {
+            String message = ex.getMessage() != null && ex.getMessage().contains("CccdNumber")
+                    ? "Số CCCD này đã được đăng ký trên hệ thống. Vui lòng đăng nhập đúng tài khoản hoặc liên hệ nhân viên hỗ trợ."
+                    : "Không thể lưu hồ sơ KYC. Vui lòng thử lại hoặc liên hệ nhân viên.";
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", message
             ));
         } catch (IOException ex) {
             return ResponseEntity.status(500).body(Map.of(
@@ -110,6 +122,32 @@ public class KycController {
         }
     }
 
+    /**
+     * Scan a single CCCD image via Google Gemini and return raw extracted JSON.
+     */
+    @CrossOrigin(origins = "*")
+    @PostMapping(value = "/scan-cccd", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> scanCccd(@RequestParam("image") MultipartFile image) {
+        try {
+            String json = geminiOcrService.scanIdCard(image);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(json);
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.badRequest()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"error\":\"" + escapeJson(ex.getMessage()) + "\"}");
+        } catch (IOException ex) {
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"error\":\"" + escapeJson("Failed to read image: " + ex.getMessage()) + "\"}");
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"error\":\"" + escapeJson(ex.getMessage()) + "\"}");
+        }
+    }
+
     @GetMapping("/me")
     public ResponseEntity<Map<String, Object>> myLatest(@AuthenticationPrincipal UserDetailsImpl currentUser) {
         if (currentUser == null) {
@@ -136,7 +174,7 @@ public class KycController {
     @PreAuthorize("hasRole('Staff') or hasRole('Admin')")
     public ResponseEntity<?> approve(
             @AuthenticationPrincipal UserDetailsImpl currentUser,
-            @PathVariable Long kycId
+            @PathVariable("kycId") Long kycId
     ) {
         try {
             return ResponseEntity.ok(Map.of(
@@ -155,7 +193,7 @@ public class KycController {
     @PreAuthorize("hasRole('Staff') or hasRole('Admin')")
     public ResponseEntity<?> reject(
             @AuthenticationPrincipal UserDetailsImpl currentUser,
-            @PathVariable Long kycId,
+            @PathVariable("kycId") Long kycId,
             @RequestParam("reason") String reason
     ) {
         try {
@@ -175,7 +213,7 @@ public class KycController {
     @PreAuthorize("hasRole('Staff') or hasRole('Admin')")
     public ResponseEntity<?> requestInfo(
             @AuthenticationPrincipal UserDetailsImpl currentUser,
-            @PathVariable Long kycId,
+            @PathVariable("kycId") Long kycId,
             @RequestParam(name = "reason", required = false) String reason
     ) {
         try {
@@ -189,5 +227,16 @@ public class KycController {
                     "message", ex.getMessage()
             ));
         }
+    }
+
+    private static String escapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r");
     }
 }

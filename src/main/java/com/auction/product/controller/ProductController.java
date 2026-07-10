@@ -41,20 +41,20 @@ public class ProductController {
 
     @GetMapping("/by-seller/{sellerId}")
     public ResponseEntity<ApiResponse<List<ProductSummaryResponse>>> getProductsBySeller(
-            @PathVariable Long sellerId) {
+            @PathVariable("sellerId") Long sellerId) {
         List<ProductSummaryResponse> products = productService.getProductsBySellerId(sellerId);
         return ResponseEntity.ok(ApiResponse.success(products));
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductResponseDTO>> getProductById(@PathVariable Long productId) {
+    public ResponseEntity<ApiResponse<ProductResponseDTO>> getProductById(@PathVariable("productId") Long productId) {
         ProductResponseDTO product = productService.getProductById(productId);
         return ResponseEntity.ok(ApiResponse.success(product));
     }
 
     @DeleteMapping("/{productId}")
     public ResponseEntity<ApiResponse<Void>> deleteProduct(
-            @PathVariable Long productId,
+            @PathVariable("productId") Long productId,
             @AuthenticationPrincipal UserDetailsImpl user) {
         productService.deleteProduct(productId, user.getId());
         return ResponseEntity.ok(ApiResponse.success("Product deleted successfully", null));
@@ -62,7 +62,7 @@ public class ProductController {
 
     @PutMapping("/{productId}")
     public ResponseEntity<ApiResponse<ProductResponseDTO>> updateProduct(
-            @PathVariable Long productId,
+            @PathVariable("productId") Long productId,
             @AuthenticationPrincipal UserDetailsImpl user,
             @Valid @RequestBody UpdateProductRequestDTO request) {
         ProductResponseDTO updated = productService.updateProduct(productId, request, user.getId());

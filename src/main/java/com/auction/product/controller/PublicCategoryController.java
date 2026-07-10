@@ -30,7 +30,7 @@ public class PublicCategoryController {
 
     @GetMapping("/{categoryId}/attributes")
     public ResponseEntity<ApiResponse<List<CategoryAttributeDTO>>> getCategoryAttributes(
-            @PathVariable Integer categoryId) {
+            @PathVariable("categoryId") Integer categoryId) {
         List<CategoryAttributeDTO> attributes = categoryService.getAttributesByCategoryId(categoryId);
         return ResponseEntity.ok(ApiResponse.success(attributes));
     }

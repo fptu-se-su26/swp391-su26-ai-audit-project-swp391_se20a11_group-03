@@ -1,172 +1,259 @@
-# LuxeAuction — AI Context (compact)
+# LuxeAuction — AI Project Context (single source of truth)
 
-> **Purpose:** Single-file onboarding for AI assistants. Read this before exploring the repo.  
-> **Course:** SWP391 SU26 · Group 3 · Real-time bidding platform.
+> **Đọc file này trước** khi sửa code hoặc onboard AI assistant khác.  
+> **Course:** SWP391 SU26 · Group 3 · Nền tảng đấu giá realtime.
 
 ---
 
-## Stack
+## Stack & chạy local
 
 | Layer | Tech |
 |-------|------|
-| Backend | Java 17, Spring Boot 3.3, JPA/Hibernate, Spring Security + JWT |
+| Backend | Java 17, Spring Boot 3.3, JPA, Spring Security + JWT |
 | Frontend | Next.js 14 (App Router), React, TypeScript, Tailwind |
-| DB | SQL Server (`SWP_Nhom3_App` in dev) |
-| Realtime | STOMP/WebSocket (`/ws/chat`) for bids + chat |
-| OCR | FPT.AI Vision (CCCD) via `FPT_AI_API_KEY` |
-| Payments | Internal wallet + SePay webhook |
+| DB | SQL Server dev: `SWP_Nhom3_App` |
+| Realtime chat | STOMP/WebSocket `SockJS → /ws/chat` |
+| Realtime bid UI | **HTTP poll 1s** (`auctionPolling.ts`) — backend vẫn broadcast `/topic/bids` nhưng frontend chưa subscribe STOMP cho bid |
+| OCR KYC | FPT.AI Vision (`FPT_AI_API_KEY`) |
+| Thanh toán | Ví nội bộ + SePay webhook |
 
-**Ports:** Backend `8096` · Frontend `3000`  
-**Config:** `src/main/resources/application.properties` · `src/frontend/.env.local` (`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`)
+**Ports:** Backend `8096` · Frontend `3000`
 
-**Run (root):**
 ```bash
-npm run backend      # or mvn spring-boot:run
-npm run frontend     # Next.js dev
-npm run backend:kill # free port 8096 if conflict
+npm run backend       # hoặc mvn spring-boot:run
+npm run frontend      # Next.js :3000
+npm run backend:kill  # giải phóng :8096
+npm run dev:all       # cả hai
 ```
 
+**IntelliJ / IDE:** Bật compiler flag `-parameters` (project đã có `.idea/compiler.xml` và `maven.compiler.parameters=true` trong `pom.xml`). Nếu chạy Run từ IDE mà POST `/api/kyc/{id}/approve` báo lỗi `Name for argument of type [java.lang.Long]`, rebuild project hoặc chạy qua `mvn spring-boot:run`.
+
+**Config:** `src/main/resources/application.properties` · `src/frontend/.env.local`  
+(`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`)
+
+**Demo** (seed, mật khẩu `123456`):  
+`user123@gmail.com` · `seller123@gmail.com` · `staff123@gmail.com` · `admin123@gmail.com`
+
 ---
 
-## Repo layout (active code only)
+## Cấu trúc repo (code đang chạy)
 
 ```
-src/main/java/com/auction/     # Monolithic backend (all domains)
-src/frontend/src/              # Next.js app
-src/main/resources/            # application.properties, static uploads, SQL migrations
-scripts/                       # start-backend.ps1, start-frontend.ps1, free-port.ps1
-docs/                          # AI audit docs + this file
-sql/                           # Legacy/reference SQL
+src/main/java/com/auction/   # Backend monolith
+src/frontend/src/          # Next.js
+scripts/                   # start-backend.ps1, start-frontend.ps1
+docs/AI_PROJECT_CONTEXT.md  # ← file này
 ```
 
-Ignore: `Nguyen_Ngoc_Bao_Long/`, `Le_Phuoc_Sang/`, `Hoang_Xuan_Anh_Tuan/` (old submodules), `target/`, `.next/`.
+Bỏ qua: `target/`, `.next/`, các folder thành viên cũ ở root repo.
 
 ---
 
-## Roles & UI shells
+## Vai trò & UI
 
-| Role | Frontend shell | Main areas |
-|------|----------------|------------|
-| **User** (buyer) | `CollectorShell` | bid, watchlist, won-items, wallet, KYC, `/messages` |
-| **Seller** | `CollectorShell` + seller nav | post-item, inventory, earnings |
-| **Staff** | `StaffShell` | approvals, KYC review, withdrawals, `/staff/support` |
-| **Admin** | `AdminShell` + can use Collector routes | dashboard, users, contracts, revenue, `/messages` (all convos) |
+| Role | Shell | Trang chính |
+|------|-------|-------------|
+| User (buyer) | `CollectorShell` | dashboard, auctions, wallet, KYC, messages |
+| Seller | `CollectorShell` + nav seller | post-item, đăng sản phẩm |
+| Staff | `StaffShell` | approvals, kyc-review, support |
+| Admin | `AdminShell` | dashboard, contracts, users, revenue |
 
-Auth: `POST /api/auth/login`, Google `POST /api/auth/google`. JWT in `localStorage` (`token`, `currentUser`).  
-Frontend session: `src/frontend/src/lib/userSession.ts`, API: `src/frontend/src/lib/apiClient.ts`.
-
-**Demo accounts** (seeded, password `123456` for gmail demos):
-- `user123@gmail.com` · `seller123@gmail.com` · `staff123@gmail.com` · `admin123@gmail.com`
-- Legacy: `admin@example.com` / `password`, etc.
+**Auth:** `POST /api/auth/login`, `POST /api/auth/google`, `POST /api/auth/select-role`  
+JWT: `localStorage.token` + `localStorage.currentUser`  
+Helpers: `src/frontend/src/lib/userSession.ts`, `apiClient.ts`
 
 ---
 
-## Backend modules (`com.auction.*`)
+## Luồng nghiệp vụ chính
 
-| Package | Responsibility |
-|---------|----------------|
-| `account` | Users, roles, login, Google OAuth, KYC submit/review, OCR (`KycController`, `CccdOcrService`, `FptAiService`) |
-| `bidding` | Auctions LIVE/TIMED, bids, deposits, settlement, payment after win |
-| `product` | Products, categories, staff approve → schedule auction, contracts PDF |
-| `wallet` | Balance, hold, deposit (VietQR/SePay), withdraw, transactions |
-| `chat` | Conversations + messages, WebSocket |
-| `notification` | In-app notifications |
-| `admin` | Dashboard KPIs, sales history, contract listing |
-| `config` | Security, JWT filter, `DataSeeder` (dev data) |
-| `common` | Exceptions, file upload, mail |
+### Đăng sản phẩm (seller)
+1. Seller `POST /api/seller/products` → `PENDING`
+2. Staff/Admin duyệt → `AuctionCreationServiceImpl` tạo phiên `UPCOMING`
+3. PDF hợp đồng niêm yết (`LISTING`)
 
-Entry: `com.auction.AuctionApplication`
+**Điều kiện đăng bán** (`ProductServiceImpl`): KYC đã duyệt + đã ký **hợp đồng nền tảng seller** (trừ Admin).
 
----
+### Đấu giá
+1. User nạp ví → đặt cọc phiên (`AuctionDeposit`)
+2. `BiddingService.placeBid` cập nhật `AuctionSession` (cùng bảng `Auctions`)
 
-## Core business flows
+**LIVE**
+- Có bước giá (`StepCalculator`)
+- Giá công khai realtime (poll)
+- Anti-sniper: mỗi bid +10s `endTime`
 
-### 1. Seller lists item
-`POST` product → status `PENDING` → Staff/Admin approve (`ProductServiceImpl.approveProduct`) → `AuctionCreationServiceImpl` creates auction (`UPCOMING`) → listing contract PDF.
+**TIMED (đấu giá kín)**
+- Không bước giá; bid ≥ giá khởi điểm (và > giá hiện tại nếu đã có bid)
+- **Không** cập nhật giá công khai; API mask `priceHidden`, `bidsAnonymous`
+- Lịch sử bid trống khi phiên đang mở
+- **Không** gia hạn thời gian
+- Kết phiên: `AuctionSettlementServiceImpl` thông báo người thắng + giá cao nhất
 
-### 2. Bidding
-User deposits to wallet hold → `BiddingService.placeBid` → `AuctionSession` row (same `Auctions` table) updated. Modes: **LIVE** (3 min), **TIMED** (6–12h).
+Utils: `AuctionPhaseUtil.isTimedBlindBiddingOpen()`
 
-### 3. Auction ends → payment
-`AuctionSettlementServiceImpl`: ended → `AWAITING_PAYMENT`, **72h** payment window.  
-Winner must **sign purchase contract** (`ContractServiceImpl.signPurchaseContract`) then `AuctionPaymentServiceImpl.payAuction`.  
-Frontend: `PurchaseContractPanel.tsx`, `/won-items`, `/auctions/[id]`.
-
-### 4. Payment forfeit / relist
-After 72h: forfeit deposit, product → `PENDING`, notify Admin/Staff/Seller. Admin re-approves → `AuctionCreationServiceImpl` resets `FORFEITED` auction.
-
-### 5. KYC (Seller)
-User uploads CCCD → FPT OCR auto-fill → manual sign seller agreement on KYC page (no auto-sign) → staff reviews.
-
-### 6. Chat
-Types: `BUYER_SELLER`, `BUYER_STAFF`, `SELLER_STAFF`.  
-API: `/api/v1/conversations`, `/api/v1/messages`. Admin can send in all threads. UI bubbles: `ChatMessageList.tsx` (me=right, other=left).
+### Kết phiên → thanh toán
+- `AWAITING_PAYMENT`, cửa sổ **72h**
+- Người thắng: ký **hợp đồng mua** (`PurchaseContractPanel`) → `payAuction`
+- Quá hạn: thu cọc, sản phẩm `PENDING`, admin duyệt lại
 
 ---
 
-## Contracts (PDF)
+## Profile, KYC & xác minh danh tính
 
-| Type | Constant | When |
-|------|----------|------|
-| Seller agreement | `SELLER_AGREEMENT` | KYC (seller signs once) |
-| Listing | `LISTING` | Product approved |
-| Purchase | `PURCHASE_AGREEMENT` | Winner signs before pay (`referenceId` = auctionId) |
+> Gộp từ hướng dẫn Profile cũ — ánh xạ **code hiện tại** (Spring + Next.js).
 
-Services: `SellerContractPdfService`, `ListingContractPdfService`, `PurchaseContractPdfService` · orchestration: `ContractServiceImpl`.
+### Trang Profile (`/profile`)
+- **Đã có:** xem/sửa họ tên, SĐT; hiển thị email, CCCD (read-only), hạng thành viên, `profileStatus`, badge KYC
+- **API:** `GET/PUT /api/users/profile` (`UserProfileController`)
+- **Chưa có / stub:** verify Gmail bằng link token, đổi mật khẩu trong profile, lịch sử audit trên UI
+
+### KYC (`/kyc`)
+- Upload CCCD 3 ảnh (front/back/selfie)
+- **FPT OCR** auto-fill (`POST /api/kyc/ocr`)
+- Cảnh báo CCCD trùng tài khoản khác
+- Staff duyệt tại `/staff/kyc-review`
+- Trường user: `identityVerified`, `profileStatus`, `identityVerifiedAt`
+
+### Trạng thái đề xuất (một phần đã dùng)
+`PENDING` · `VERIFIED` · `REJECTED` — staff set khi duyệt KYC.
+
+### Nguyên tắc bảo mật (áp dụng khi mở rộng)
+- Token verify email: hash trong DB, TTL ngắn, one-time
+- Ảnh KYC: lưu ngoài public root, giới hạn MIME/size, `ProtectedKycImage` khi hiển thị
+- Không hardcode SMTP/secret trong source
 
 ---
 
-## Key files (jump here first)
+## Đăng ký Seller & hợp đồng nền tảng
+
+**Luồng chuẩn** (không chỉ đổi role trên profile):
+
+```
+/post-item (User) → /become-seller
+  → xem trước PDF (watermark "BẢN XEM TRƯỚC")
+  → tick đồng ý điều khoản
+  → POST /api/seller-contract/sign
+       (tự nâng User → Seller nếu cần + tạo PDF ký điện tử)
+  → đã KYC? → /post-item : → /kyc (ký lại hợp đồng trên KYC nếu cần)
+```
+
+| Thành phần | File / API |
+|------------|------------|
+| Trang đăng ký | `src/frontend/src/app/become-seller/page.tsx` |
+| UI hợp đồng | `components/features/SellerContractPanel.tsx` |
+| Preview PDF | `GET /api/seller-contract/preview-pdf` (JWT, watermark) |
+| Ký + PDF | `POST /api/seller-contract/sign` |
+| PDF service | `SellerContractPdfService` → `/uploads/contracts/seller_agreement_user_{id}.pdf` |
+| DB | `Contracts` type `SELLER_AGREEMENT`, `referenceId` = userId |
+
+**Profile** (`/profile#seller-upgrade`): khối CTA → link **`/become-seller`** (không ký hợp đồng trực tiếp trên profile).
+
+**Điều khoản chính trong PDF:** phí nền tảng 20% giá chốt; seller tự kê khai thuế TNCN; hiệu lực sau khi staff duyệt KYC.
+
+---
+
+## Hợp đồng PDF (tổng hợp)
+
+| Loại | Constant | Khi ký |
+|------|----------|--------|
+| Nền tảng seller | `SELLER_AGREEMENT` | Đăng ký seller / KYC |
+| Niêm yết | `LISTING` | Staff duyệt sản phẩm |
+| Mua bán | `PURCHASE_AGREEMENT` | Người thắng, trước thanh toán (`referenceId` = auctionId) |
+
+Orchestration: `ContractServiceImpl` · PDF: `*ContractPdfService`
+
+---
+
+## Module backend (`com.auction.*`)
+
+| Package | Việc |
+|---------|------|
+| `account` | User, auth, Google, KYC, OCR, profile API |
+| `bidding` | Auction LIVE/TIMED, bid, deposit, settlement, payment |
+| `product` | Sản phẩm, duyệt, contracts |
+| `wallet` | Số dư, hold, nạp/rút, SePay |
+| `chat` | Hội thoại + message + WS |
+| `notification` | Thông báo in-app |
+| `admin` | KPI, sales history, contracts admin |
+| `config` | Security, JWT, `DataSeeder` |
+
+---
+
+## File quan trọng (nhảy nhanh)
 
 **Backend**
-- `config/DataSeeder.java` — dev users/products/auctions
-- `bidding/service/impl/AuctionSettlementServiceImpl.java` — 72h window, forfeit, relist
-- `bidding/service/impl/AuctionPaymentServiceImpl.java` — pay requires purchase contract
-- `product/service/impl/ContractServiceImpl.java` — all contract logic
-- `chat/service/impl/MessageServiceImpl.java` — send permissions
-- `config/SecurityConfig.java` — route rules
+- `bidding/service/BiddingService.java` — placeBid, LIVE vs TIMED
+- `bidding/util/AuctionPhaseUtil.java` — TIMED blind
+- `bidding/service/impl/AuctionSettlementServiceImpl.java` — 72h, forfeit
+- `product/controller/SellerContractController.java` — preview + sign seller
+- `product/service/impl/ContractServiceImpl.java`
+- `config/DataSeeder.java`
 
 **Frontend**
-- `app/messages/page.tsx` — inbox (user/admin)
-- `app/kyc/page.tsx` — KYC + seller contract sign
+- `app/become-seller/page.tsx`, `components/features/SellerContractPanel.tsx`
+- `app/profile/page.tsx`, `app/kyc/page.tsx`
 - `components/features/PurchaseContractPanel.tsx`
-- `components/features/ChatMessageList.tsx`
-- `lib/services/*` — API wrappers
+- `lib/services/auctionPolling.ts` — poll state 1s
 - `i18n/messages/vi.json`, `en.json`
 
 ---
 
-## API patterns
+## API & realtime
 
-- REST prefix: `/api/...` · Chat: `/api/v1/...`
-- Public GET: products, categories, auction details
-- Auth header: `Authorization: Bearer <jwt>`
-- WebSocket: SockJS → `/ws/chat`, topics `/topic/conversation/{id}`
-
----
-
-## Conventions for AI edits
-
-1. **Minimize diff** — match existing naming (DTOs, services, Tailwind palette `#071626`, `#c9aa5d`).
-2. **Don't commit** unless user asks.
-3. **Port 8096** — only one backend (IDE *or* `npm run backend`).
-4. **Hydration** — never read `localStorage` during SSR; use `useState` + `useEffect` (see `AdminSidebar`, `CollectorSidebar`).
-5. **`AuctionStatus` enum** must include `AWAITING_PAYMENT`, `PAID`, `FORFEITED` (shared `Auctions` table with JPA + native bidding).
-6. **User ID:** JPA `User.id` == DB `UserId`; API often returns `userId` (Long).
+- REST: `/api/...` · Chat: `/api/v1/...`
+- Header: `Authorization: Bearer <jwt>`
+- Uploads public: `/uploads/**`
+- Chat WS: `/ws/chat`, topic `/topic/conversation/{id}`
 
 ---
 
-## DataSeeder notes
+## Quy ước khi AI sửa code
 
-Enabled when `app.seed.enabled=true`. Creates roles, demo users, wallets, products, upcoming auctions, demo LIVE windows.  
-Removed: demo won-auction lot (`Demo Contract Test Lot`) — cleanup runs on startup.
-
----
-
-## Out of scope / stubs
-
-Some admin pages are UI-only (broadcasts, disputes, financial-policies). Member folders at repo root are not the running app.
+1. Diff nhỏ, giữ palette `#071626`, `#c9aa5d`
+2. Không commit trừ khi user yêu cầu
+3. Chỉ **một** backend trên `:8096`
+4. **Hydration:** không đọc `localStorage` lúc SSR — `useState` + `useEffect`
+5. `AuctionStatus`: cần `AWAITING_PAYMENT`, `PAID`, `FORFEITED`
+6. User ID: JPA `User.id` = DB `UserId`
 
 ---
 
-*Last updated: 2026-06-29 — maintain when architecture changes.*
+## DataSeeder
+
+`app.seed.enabled=true` → roles, demo users, ví, sản phẩm, phiên sắp diễn ra.
+
+---
+
+## Chưa làm / stub
+
+- Admin: broadcasts, disputes, financial-policies (UI placeholder)
+- Verify Gmail bằng email link (có controller legacy JSP, chưa gắn Next.js profile)
+- **AI Smart Auto-Bidder** — chưa implement (xem roadmap bên dưới)
+- **AI Fraud / Shill detector** — chưa implement
+
+---
+
+## Roadmap AI (đã phân tích, chưa code)
+
+### Smart Auto-Bidder (bidding + wallet)
+- **MVP khả thi:** server-side rule engine — `maxBudget`, hook sau `placeBid`, snipe LIVE trong X giây cuối
+- **TIMED:** logic khác — thường 1 sealed bid trong budget, không snipe
+- Cần bảng `AutoBidConfig`, API bật/tắt, kiểm tra cọc + ví
+- Không nên chạy auto-bid trên browser tab (user đóng là mất)
+
+### Fraud & Shill detector (bidding + wallet + chat)
+- **MVP khả thi:** rule engine — bidder chỉ bid hàng của 1 seller, ví nạp thấp bid cao, flag + notify admin
+- Chat NLP/LLM: tuỳ chọn sau
+- Cần `FraudFlag`, tăng cọc hoặc chặn bid khi score cao
+
+Ưu tiên SWP391 demo: Auto-Bidder MVP **hoặc** Fraud rules v1 — không cần train ML.
+
+---
+
+## Trang admin / staff stub
+
+Một số menu admin chỉ có UI, chưa nối API đầy đủ.
+
+---
+
+*Cập nhật: 2026-06-29 — gộp Profile guide + seller contract flow + TIMED blind. Chỉ maintain file này.*

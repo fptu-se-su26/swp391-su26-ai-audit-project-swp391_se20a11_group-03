@@ -1,5 +1,6 @@
 package com.auction.product.service;
 
+import com.auction.product.dto.PurchaseContractPreviewDTO;
 import com.auction.product.entity.Contract;
 
 /**
@@ -16,10 +17,17 @@ public interface ContractService {
 
     boolean hasSellerContract(Long userId);
 
-    /** Buyer signs the purchase agreement before paying for a won auction. */
+    /** Records buyer acknowledgment of the purchase agreement (in-memory until payment). */
+    void acknowledgePurchaseContract(Long auctionId, Long buyerUserId);
+
+    boolean hasPurchaseContractAcknowledgment(Long auctionId, Long buyerUserId);
+
+    /** Persists the purchase agreement PDF and contract row (called on successful payment). */
     Contract signPurchaseContract(Long auctionId, Long buyerUserId);
 
     Contract getPurchaseContract(Long auctionId);
+
+    PurchaseContractPreviewDTO getPurchaseContractPreview(Long auctionId, Long buyerUserId);
 
     boolean hasPurchaseContract(Long auctionId);
 

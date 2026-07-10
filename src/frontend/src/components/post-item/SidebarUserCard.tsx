@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -61,9 +61,9 @@ export default function SidebarUserCard({ user }: { user: StoredUser | null }) {
       <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[#d2ad55]/15 blur-2xl" />
       <div className="pointer-events-none absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-[#d2ad55]/40 to-transparent" />
       <div className="relative flex items-center gap-3">
-        <Link href="/profile" className="relative grid h-14 w-14 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#e4ca84] via-[#b99445] to-[#244c76] p-[2px] shadow-lg">
-          <span className="grid h-full w-full place-items-center rounded-full bg-[#10253a] text-xs font-bold tracking-wider text-[#f3d88e]">{initials}</span>
-          <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#10253a] ${identityVerified ? "bg-[#55b596]" : "bg-[#8fa0ae]"}`} />
+        <Link href="/profile" className="relative grid h-14 w-14 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#e4ca84] via-[#b99445] to-[#5a4118] p-[2px] shadow-lg">
+          <span className="grid h-full w-full place-items-center rounded-full bg-[#100d08] text-xs font-bold tracking-wider text-[#f3d88e]">{initials}</span>
+          <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-[#100d08] ${identityVerified ? "bg-[#55b596]" : "bg-[#8fa0ae]"}`} />
         </Link>
         <div className="min-w-0">
           <p className="truncate font-display-lg text-sm font-semibold text-white">{name}</p>

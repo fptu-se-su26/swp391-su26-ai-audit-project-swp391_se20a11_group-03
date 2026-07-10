@@ -21,4 +21,5 @@ public class ProductSummaryResponse {
     private String auctionEndTime;
     private String auctionMode;
     private Long scheduledDurationSeconds;
+    private String rejectionReason;
 }

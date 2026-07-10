@@ -5,6 +5,7 @@ import com.auction.bidding.entity.Auction;
 import com.auction.bidding.entity.AuctionDeposit;
 import com.auction.bidding.repository.AuctionDepositRepository;
 import com.auction.bidding.repository.AuctionRepository;
+import com.auction.account.service.UserPaymentStrikeService;
 import com.auction.account.dao.UserRepository;
 import com.auction.account.entity.User;
 import com.auction.bidding.service.AuctionPaymentService;
@@ -33,6 +34,7 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
     private final ContractService contractService;
+    private final UserPaymentStrikeService userPaymentStrikeService;
 
     @Override
     @Transactional
@@ -47,8 +49,11 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
             throw new IllegalStateException("Only the winning bidder can pay for this auction");
         }
         if (!contractService.hasPurchaseContract(auctionId)) {
-            throw new IllegalStateException(
-                    "Bạn cần ký hợp đồng mua bán điện tử trước khi hoàn tất thanh toán.");
+            if (!contractService.hasPurchaseContractAcknowledgment(auctionId, userId)) {
+                throw new IllegalStateException(
+                        "Bạn cần ký hợp đồng mua bán điện tử trước khi hoàn tất thanh toán.");
+            }
+            contractService.signPurchaseContract(auctionId, userId);
         }
         if ("PAID".equalsIgnoreCase(auction.getPaymentStatus()) || "PAID".equalsIgnoreCase(auction.getStatus())) {
             throw new IllegalStateException("Auction is already paid");
@@ -166,6 +171,9 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
         auction.setPaymentStatus("PAID");
         auction.setSettledAt(now);
         auctionRepository.save(auction);
+
+        userRepository.findById(Math.toIntExact(userId))
+                .ifPresent(u -> userPaymentStrikeService.recordSuccessfulPayment(u, auctionId));
 
         return AuctionPaymentResponse.builder()
                 .auctionId(auction.getAuctionId())

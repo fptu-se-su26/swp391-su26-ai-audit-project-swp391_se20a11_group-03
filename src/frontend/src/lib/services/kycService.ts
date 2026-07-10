@@ -81,6 +81,7 @@ export type SubmitKycPayload = {
   frontImage: File;
   backImage: File;
   selfieImage: File;
+  signSellerAgreement?: boolean;
 };
 
 export async function submitKyc(payload: SubmitKycPayload) {
@@ -112,6 +113,9 @@ export async function submitKyc(payload: SubmitKycPayload) {
   form.append("frontImage", payload.frontImage);
   form.append("backImage", payload.backImage);
   form.append("selfieImage", payload.selfieImage);
+  if (payload.signSellerAgreement) {
+    form.append("signSellerAgreement", "true");
+  }
   return apiClient<ApiEnvelope<KycSubmission>>("/kyc", { method: "POST", body: form });
 }
 

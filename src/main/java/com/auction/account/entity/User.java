@@ -72,6 +72,12 @@ public class User {
     @Column(name = "Username", length = 255)
     private String username;
 
+    @Column(name = "PaymentStrikeCount", nullable = false)
+    private int paymentStrikeCount = 0;
+
+    @Column(name = "LockedByPaymentStrikes", nullable = false)
+    private boolean lockedByPaymentStrikes = false;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "RoleId")
     private Role role;
@@ -255,6 +261,22 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public int getPaymentStrikeCount() {
+        return paymentStrikeCount;
+    }
+
+    public void setPaymentStrikeCount(int paymentStrikeCount) {
+        this.paymentStrikeCount = paymentStrikeCount;
+    }
+
+    public boolean isLockedByPaymentStrikes() {
+        return lockedByPaymentStrikes;
+    }
+
+    public void setLockedByPaymentStrikes(boolean lockedByPaymentStrikes) {
+        this.lockedByPaymentStrikes = lockedByPaymentStrikes;
     }
 }
 

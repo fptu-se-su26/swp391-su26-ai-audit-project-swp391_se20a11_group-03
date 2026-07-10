@@ -71,6 +71,21 @@ public class PurchaseContractPdfService {
         }
     }
 
+    public byte[] renderPdf(PurchaseContractData data) {
+        try {
+            ITextRenderer renderer = new ITextRenderer();
+            registerUnicodeFont(renderer);
+            renderer.setDocumentFromString(buildHtml(data));
+            renderer.layout();
+            java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+            renderer.createPDF(bos);
+            return bos.toByteArray();
+        } catch (Exception ex) {
+            log.error("Failed to render purchase contract PDF for auction {}", data.auctionId(), ex);
+            return new byte[0];
+        }
+    }
+
     private void registerUnicodeFont(ITextRenderer renderer) {
         for (String path : FONT_CANDIDATES) {
             try {

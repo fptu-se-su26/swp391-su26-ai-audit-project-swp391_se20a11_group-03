@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { displayFont } from "@/components/luxe/theme";
 
 type Props = {
   eyebrow?: string;
@@ -24,15 +25,17 @@ export default function SectionHeader({
     <div className={`flex flex-col gap-5 ${centered ? "items-center text-center" : "lg:flex-row lg:items-end lg:justify-between"}`}>
       <div className={centered ? "mx-auto max-w-2xl" : "max-w-2xl"}>
         {eyebrow && (
-          <p className={`mb-3 text-[11px] font-extrabold uppercase tracking-[.22em] ${dark ? "text-[#d8bd75]" : "text-[#9a6b13]"}`}>
+          <p className={`mb-3 text-[11px] font-extrabold uppercase tracking-[.22em] ${dark ? "text-[#d4aa61]" : "text-[#9a6b13]"}`}>
             {eyebrow}
           </p>
         )}
-        <h2 className={`font-display-lg text-3xl font-black tracking-[-.05em] sm:text-4xl ${dark ? "text-white" : "text-slate-950"}`}>
+        <h2 className={dark
+          ? `${displayFont} text-3xl font-medium leading-tight sm:text-4xl text-white`
+          : "font-display-lg text-3xl font-black tracking-[-.05em] sm:text-4xl text-slate-950"}>
           {title}
         </h2>
         {description && (
-          <p className={`mt-3 text-sm leading-6 sm:text-base ${dark ? "text-slate-300" : "text-slate-600"}`}>
+          <p className={`mt-3 text-sm leading-6 sm:text-base ${dark ? "text-[#b7aea3]" : "text-slate-600"}`}>
             {description}
           </p>
         )}

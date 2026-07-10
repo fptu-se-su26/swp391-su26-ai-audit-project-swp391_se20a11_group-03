@@ -24,7 +24,7 @@ public class KycProfile {
     @Column(name = "Phone", nullable = false)
     private String phone;
 
-    @Column(name = "CccdNumber", nullable = false, unique = true)
+    @Column(name = "CccdNumber", nullable = false)
     private String cccdNumber;
 
     @Column(name = "FullName", nullable = false)

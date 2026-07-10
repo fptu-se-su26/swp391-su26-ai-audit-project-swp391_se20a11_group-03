@@ -14,12 +14,15 @@ public class AdminUserDTO {
     private String email;
     private String phone;
     private String identityNumber;
+    private String latestKycCccd;
     private String roleName;
     private String status;
     private String profileStatus;
     private boolean active;
     private boolean emailVerified;
     private boolean identityVerified;
+    private int paymentStrikeCount;
+    private boolean lockedByPaymentStrikes;
 
     public static AdminUserDTO from(User user) {
         return new AdminUserDTO(
@@ -28,12 +31,21 @@ public class AdminUserDTO {
                 user.getEmail(),
                 user.getPhone(),
                 user.getIdentityNumber(),
+                null,
                 user.getRole() != null ? user.getRole().getRoleName() : null,
                 user.getStatus(),
                 user.getProfileStatus(),
                 user.isActive(),
                 user.isEmailVerified(),
-                user.isIdentityVerified()
+                user.isIdentityVerified(),
+                user.getPaymentStrikeCount(),
+                user.isLockedByPaymentStrikes()
         );
+    }
+
+    public static AdminUserDTO from(User user, String latestKycCccd) {
+        AdminUserDTO dto = from(user);
+        dto.setLatestKycCccd(latestKycCccd);
+        return dto;
     }
 }

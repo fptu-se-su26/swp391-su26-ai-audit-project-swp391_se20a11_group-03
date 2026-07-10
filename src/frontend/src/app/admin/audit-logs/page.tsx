@@ -1,31 +1,34 @@
+"use client";
+
 import AdminUseCasePage from "@/components/admin/AdminUseCasePage";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 export default function AuditLogsPage() {
+  const t = useTranslations("adminAuditLogs");
   return (
     <AdminUseCasePage
-      title="Nhật ký hệ thống"
-      subtitle="Theo dõi các hành động quan trọng trong hệ thống để phục vụ kiểm toán."
+      title={t("pageTitle")}
+      subtitle={t("pageSubtitle")}
       sections={[
         {
-          icon: "login",
-          title: "Đăng nhập & bảo mật",
-          description: "Ghi nhận đăng nhập, đăng xuất, khóa tài khoản và các lần xác thực thất bại.",
+          icon: "security",
+          title: t("section1Title"),
+          description: t("section1Desc"),
         },
         {
-          icon: "rule",
-          title: "Thao tác quản trị",
-          description: "Theo dõi thay đổi danh mục, quyền, chính sách và dữ liệu nhạy cảm.",
-          status: "Admin",
+          icon: "admin_panel_settings",
+          title: t("section2Title"),
+          description: t("section2Desc"),
         },
         {
           icon: "gavel",
-          title: "Hoạt động đấu giá",
-          description: "Lưu dấu bid, đặt cọc, hoàn cọc, kết thúc phiên và xử lý người thắng.",
+          title: t("section3Title"),
+          description: t("section3Desc"),
         },
         {
           icon: "webhook",
-          title: "Webhook thanh toán",
-          description: "Giám sát webhook SePay, trạng thái nạp tiền và lỗi đối soát.",
+          title: t("section4Title"),
+          description: t("section4Desc"),
         },
       ]}
     />

@@ -3,19 +3,24 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import CollectorShell from "@/components/layout/CollectorShell";
-import PurchaseContractPanel from "@/components/features/PurchaseContractPanel";
+import PurchaseContractSignModal from "@/components/features/PurchaseContractSignModal";
 import { useTranslations } from "@/i18n/I18nProvider";
+import { canPayForWonAuction, isForfeitedPayment } from "@/lib/auctionPayment";
 import { getProductImage } from "@/lib/productPresentation";
 import { payAuction } from "@/lib/services/auctionService";
-import { getPurchaseContract } from "@/lib/services/purchaseContractService";
+import { getPurchaseContract, openPurchaseContractPdf } from "@/lib/services/purchaseContractService";
 import { WonItem, getWonItems } from "@/lib/services/userBidService";
 
 export default function WonItemsPage() {
   const t = useTranslations("wonItems");
+  const tContracts = useTranslations("contracts");
+  const tCommon = useTranslations("common");
   const [items, setItems] = useState<WonItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [payingId, setPayingId] = useState<number | null>(null);
   const [contractSigned, setContractSigned] = useState<Record<number, boolean>>({});
+  const [contractModalAuctionId, setContractModalAuctionId] = useState<number | null>(null);
+  const [openingPdfId, setOpeningPdfId] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -27,20 +32,19 @@ export default function WonItemsPage() {
         setItems(wonItems);
         const signed: Record<number, boolean> = {};
         await Promise.all(
-          wonItems
-            .filter((item) => item.status === "pending_payment")
-            .map(async (item) => {
-              try {
-                const c = await getPurchaseContract(item.id);
-                signed[item.id] = Boolean(c.signed);
-              } catch {
-                signed[item.id] = false;
-              }
-            }),
+          wonItems.map(async (item) => {
+            const auctionId = item.auctionId ?? item.id;
+            try {
+              const c = await getPurchaseContract(auctionId);
+              signed[auctionId] = Boolean(c.signed || c.acknowledged);
+            } catch {
+              signed[auctionId] = false;
+            }
+          }),
         );
         setContractSigned(signed);
-      } catch (error) {
-        console.error("Failed to fetch won items:", error);
+      } catch (err) {
+        console.error("Failed to fetch won items:", err);
         setItems([]);
       } finally {
         setLoading(false);
@@ -56,13 +60,25 @@ export default function WonItemsPage() {
     try {
       await payAuction(item.auctionId ?? item.id);
       setItems((current) =>
-        current.map((row) => (row.id === item.id ? { ...row, status: "paid" } : row)),
+        current.map((row) => (row.id === item.id ? { ...row, status: "paid", paymentStatus: "PAID" } : row)),
       );
       setMessage(t("paySuccess"));
     } catch (err) {
       setError(err instanceof Error ? err.message : t("payError"));
     } finally {
       setPayingId(null);
+    }
+  }
+
+  async function handleOpenContractPdf(auctionId: number) {
+    setOpeningPdfId(auctionId);
+    setError("");
+    try {
+      await openPurchaseContractPdf(auctionId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("pdfLoadError"));
+    } finally {
+      setOpeningPdfId(null);
     }
   }
 
@@ -106,82 +122,120 @@ export default function WonItemsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {items.map((item) => (
-                      <tr key={item.id} className="border-b border-surface-variant hover:bg-surface-container-lowest transition-colors">
-                        <td className="p-md font-body-md text-sm text-on-surface">{item.wonDate}</td>
-                        <td className="p-md">
-                          <div className="flex items-center gap-sm">
+                    {items.map((item) => {
+                      const auctionId = item.auctionId ?? item.id;
+                      const forfeited =
+                        item.status === "forfeited" ||
+                        isForfeitedPayment(item.paymentStatus, item.paymentDeadline);
+                      const canPay = canPayForWonAuction(item.paymentStatus, item.paymentDeadline);
+
+                      return (
+                        <tr
+                          key={item.id}
+                          className={`border-b border-surface-variant transition-colors hover:bg-surface-container-lowest ${
+                            forfeited ? "bg-error-container/20" : ""
+                          }`}
+                        >
+                          <td className={`p-md font-body-md text-sm ${forfeited ? "text-error" : "text-on-surface"}`}>
+                            {item.wonDate}
+                          </td>
+                          <td className="p-md">
+                            <div className="flex items-center gap-sm">
                               <div className="w-12 h-12 rounded bg-surface-variant overflow-hidden shrink-0">
-                              <img src={getProductImage(item.image)} alt={item.productName} className="w-full h-full object-cover" />
+                                <img src={getProductImage(item.image)} alt={item.productName} className="w-full h-full object-cover" />
                               </div>
-                            <div>
-                              <p className="font-label-md text-label-md text-primary">{item.lotNumber}</p>
-                              <p className="font-body-md text-sm text-on-surface-variant truncate w-40">{item.productName}</p>
+                              <div>
+                                <p className={`font-label-md text-label-md ${forfeited ? "text-error" : "text-primary"}`}>
+                                  {item.lotNumber}
+                                </p>
+                                <p className="font-body-md text-sm text-on-surface-variant truncate w-40">{item.productName}</p>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="p-md font-headline-sm text-[16px] font-bold text-primary">
-                          ₫{item.finalPrice.toLocaleString('vi-VN')}
-                        </td>
-                        <td className="p-md">
-                          {item.status === "paid" ? (
-                            <span className="inline-flex items-center gap-1 bg-tertiary-fixed text-on-tertiary-fixed-variant px-2 py-1 rounded-full font-label-sm text-[10px]">
-                              {t("paid")}
-                            </span>
-                          ) : item.status === "shipped" || item.status === "delivered" ? (
-                            <span className="inline-flex items-center gap-1 bg-primary-container text-on-primary-container px-2 py-1 rounded-full font-label-sm text-[10px]">
-                              {item.status === "delivered" ? t("delivered") : t("shipped")}
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1 rounded-full font-label-sm text-[10px]">
-                              {t("pending")}
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-md text-right">
-                          {item.status === "pending_payment" ? (
-                            <div className="flex flex-col items-end gap-sm min-w-[220px]">
-                              {!contractSigned[item.id] && (
-                                <PurchaseContractPanel
-                                  auctionId={item.id}
-                                  compact
-                                  onSigned={() =>
-                                    setContractSigned((current) => ({ ...current, [item.id]: true }))
-                                  }
-                                />
-                              )}
+                          </td>
+                          <td className={`p-md font-headline-sm text-[16px] font-bold ${forfeited ? "text-error" : "text-primary"}`}>
+                            ₫{item.finalPrice.toLocaleString("vi-VN")}
+                          </td>
+                          <td className="p-md">
+                            {item.status === "paid" || item.paymentStatus === "PAID" ? (
+                              <span className="inline-flex items-center gap-1 bg-tertiary-fixed text-on-tertiary-fixed-variant px-2 py-1 rounded-full font-label-sm text-[10px]">
+                                {t("paid")}
+                              </span>
+                            ) : forfeited ? (
+                              <span className="inline-flex items-center gap-1 bg-error-container text-error px-2 py-1 rounded-full font-label-sm text-[10px]">
+                                {t("forfeited")}
+                              </span>
+                            ) : item.status === "shipped" || item.status === "delivered" ? (
+                              <span className="inline-flex items-center gap-1 bg-primary-container text-on-primary-container px-2 py-1 rounded-full font-label-sm text-[10px]">
+                                {item.status === "delivered" ? t("delivered") : t("shipped")}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 bg-secondary-container text-on-secondary-container px-2 py-1 rounded-full font-label-sm text-[10px]">
+                                {t("pending")}
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-md text-right">
+                            {forfeited ? (
+                              <p className="text-xs text-error max-w-[220px] ml-auto">{t("overdueMsg")}</p>
+                            ) : canPay ? (
+                              <div className="flex flex-col items-end gap-sm min-w-[220px]">
+                                {!contractSigned[auctionId] ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setContractModalAuctionId(auctionId)}
+                                    className="w-full rounded-lg border border-secondary/50 bg-secondary-container/20 px-3 py-2 text-xs font-semibold text-secondary hover:bg-secondary-container/40"
+                                  >
+                                    {tCommon("readAndSign")}
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => void handleOpenContractPdf(auctionId)}
+                                    disabled={openingPdfId === auctionId}
+                                    className="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-1.5 text-xs text-on-surface-variant hover:text-primary"
+                                  >
+                                    <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                                    {openingPdfId === auctionId ? tCommon("opening") : tContracts("downloadPurchasePdf")}
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => void handlePay(item)}
+                                  disabled={payingId === item.id || !contractSigned[auctionId]}
+                                  className="rounded-lg bg-secondary px-md py-sm font-label-sm text-label-sm text-on-secondary transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  {payingId === item.id
+                                    ? t("paying")
+                                    : contractSigned[auctionId]
+                                      ? t("payNow")
+                                      : tContracts("signBeforePayShort")}
+                                </button>
+                                <Link
+                                  href={`/auctions/${item.productId}`}
+                                  className="text-[11px] text-secondary hover:underline"
+                                >
+                                  {t("viewSessionDetail")}
+                                </Link>
+                              </div>
+                            ) : contractSigned[auctionId] || item.status === "paid" || item.paymentStatus === "PAID" ? (
                               <button
-                                onClick={() => void handlePay(item)}
-                                disabled={payingId === item.id || !contractSigned[item.id]}
-                                className="rounded-lg bg-secondary px-md py-sm font-label-sm text-label-sm text-on-secondary transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                                type="button"
+                                onClick={() => void handleOpenContractPdf(auctionId)}
+                                disabled={openingPdfId === auctionId || !contractSigned[auctionId]}
+                                className="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-1.5 text-xs text-on-surface-variant hover:text-primary disabled:opacity-50"
+                                title={tContracts("downloadPurchasePdf")}
                               >
-                                {payingId === item.id
-                                  ? t("paying")
-                                  : contractSigned[item.id]
-                                    ? t("payNow")
-                                    : "Ký hợp đồng trước"}
+                                <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                                {openingPdfId === auctionId ? "..." : t("contractPdf")}
                               </button>
-                              <Link
-                                href={`/auctions/${item.productId}`}
-                                className="text-[11px] text-secondary hover:underline"
-                              >
-                                Xem chi tiết phiên
-                              </Link>
-                            </div>
-                          ) : (
-                            <button className="text-on-surface-variant hover:text-primary transition-colors p-1" title={t("downloadInvoice")}>
-                              <span className="material-symbols-outlined">receipt</span>
-                            </button>
-                          )}
-                          <button
-                            className={`p-1 ml-2 transition-colors ${item.status === "paid" || item.status === "shipped" ? "text-on-surface-variant hover:text-primary" : "text-outline-variant cursor-not-allowed"}`}
-                            title={t("trackShipping")}
-                          >
-                            <span className="material-symbols-outlined">local_shipping</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                            ) : (
+                              <button className="text-on-surface-variant hover:text-primary transition-colors p-1" title={t("downloadInvoice")}>
+                                <span className="material-symbols-outlined">receipt</span>
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -189,6 +243,18 @@ export default function WonItemsPage() {
           </div>
         </section>
       </div>
+
+      {contractModalAuctionId != null && (
+        <PurchaseContractSignModal
+          auctionId={contractModalAuctionId}
+          open
+          onClose={() => setContractModalAuctionId(null)}
+          onSigned={() => {
+            setContractSigned((current) => ({ ...current, [contractModalAuctionId]: true }));
+            setContractModalAuctionId(null);
+          }}
+        />
+      )}
     </CollectorShell>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import AdminShell from "@/components/layout/AdminShell";
 import { ContractRow, getContracts, openContractPdf } from "@/lib/services/dashboardService";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 function formatDateTime(value: string | null): string {
   if (!value) return "—";
@@ -22,12 +23,29 @@ function formatDateTime(value: string | null): string {
 type Filter = "all" | "SELLER_AGREEMENT" | "LISTING" | "PURCHASE_AGREEMENT";
 
 export default function AdminContractsPage() {
+  const t = useTranslations("adminContracts");
+  const tc = useTranslations("common");
   const [rows, setRows] = useState<ContractRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
+  const [cccdQuery, setCccdQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [openingId, setOpeningId] = useState<number | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
+
+  async function loadContracts(cccd?: string) {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getContracts(cccd);
+      setRows(data);
+    } catch {
+      setError(t("loadError"));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleOpenPdf(contractId: number) {
     setOpeningId(contractId);
@@ -35,18 +53,20 @@ export default function AdminContractsPage() {
     try {
       await openContractPdf(contractId);
     } catch {
-      setPdfError("Không thể mở PDF. Hãy thử lại hoặc khởi động lại backend.");
+      setPdfError(t("pdfError"));
     } finally {
       setOpeningId(null);
     }
   }
 
   useEffect(() => {
-    getContracts()
-      .then(setRows)
-      .catch(() => setError("Không thể tải danh sách hợp đồng."))
-      .finally(() => setLoading(false));
-  }, []);
+    void loadContracts(cccdQuery || undefined);
+  }, [cccdQuery]);
+
+  function handleSearchCccd(event: React.FormEvent) {
+    event.preventDefault();
+    setCccdQuery(searchInput.trim());
+  }
 
   const filtered = useMemo(
     () => (filter === "all" ? rows : rows.filter((r) => r.contractType === filter)),
@@ -54,10 +74,10 @@ export default function AdminContractsPage() {
   );
 
   const tabs: { id: Filter; label: string }[] = [
-    { id: "all", label: `Tất cả (${rows.length})` },
-    { id: "SELLER_AGREEMENT", label: "Hợp đồng người bán" },
-    { id: "PURCHASE_AGREEMENT", label: "Hợp đồng mua bán" },
-    { id: "LISTING", label: "Hợp đồng niêm yết" },
+    { id: "all", label: t("tabAll", { count: rows.length }) },
+    { id: "SELLER_AGREEMENT", label: t("tabSeller") },
+    { id: "PURCHASE_AGREEMENT", label: t("tabPurchase") },
+    { id: "LISTING", label: t("tabListing") },
   ];
 
   if (loading) {
@@ -74,14 +94,46 @@ export default function AdminContractsPage() {
     <AdminShell>
       <div className="mx-auto max-w-[1400px] space-y-lg p-margin-mobile md:p-margin-desktop">
         <div>
-          <h1 className="font-display-lg-mobile text-primary md:font-display-lg">Hợp đồng điện tử</h1>
-          <p className="mt-xs font-body-lg text-on-surface-variant">
-            Tất cả hợp đồng điện tử (PDF) đã ký trên nền tảng: hợp đồng người bán và hợp đồng niêm yết.
-          </p>
+          <h1 className="font-display-lg-mobile text-primary md:font-display-lg">{t("pageTitle")}</h1>
+          <p className="mt-xs font-body-lg text-on-surface-variant">{t("pageSubtitle")}</p>
         </div>
 
         {error && <div className="rounded-xl bg-error-container p-md text-on-error-container">{error}</div>}
         {pdfError && <div className="rounded-xl bg-error-container p-md text-on-error-container">{pdfError}</div>}
+
+        <form onSubmit={handleSearchCccd} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-on-surface-variant">
+              badge
+            </span>
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder={t("searchPlaceholder")}
+              className="w-full rounded-xl border border-surface-variant bg-surface py-3 pl-11 pr-4 font-body-md text-body-md outline-none focus:border-secondary"
+            />
+          </div>
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-label-md text-label-md text-on-primary"
+          >
+            <span className="material-symbols-outlined text-[18px]">search</span>
+            {t("search")}
+          </button>
+          {cccdQuery && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchInput("");
+                setCccdQuery("");
+              }}
+              className="rounded-xl border border-surface-variant px-5 py-3 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-low"
+            >
+              {t("clearFilter")}
+            </button>
+          )}
+        </form>
 
         <div className="flex flex-wrap gap-sm">
           {tabs.map((tab) => (
@@ -103,7 +155,7 @@ export default function AdminContractsPage() {
         {filtered.length === 0 ? (
           <div className="rounded-xl bg-surface p-xl text-center">
             <span className="material-symbols-outlined mb-sm block text-4xl text-on-surface-variant">contract</span>
-            <p className="text-on-surface-variant">Chưa có hợp đồng nào.</p>
+            <p className="text-on-surface-variant">{t("noContracts")}</p>
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border border-surface-variant bg-surface soft-shadow">
@@ -111,7 +163,7 @@ export default function AdminContractsPage() {
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b border-surface-variant bg-surface-container-low">
-                    {["Mã", "Loại hợp đồng", "Bên liên quan", "Ngày ký", "Tài liệu"].map((h) => (
+                    {[t("tableId"), t("tableType"), t("tableParty"), t("tableIdNumber"), t("tableSignedAt"), t("tableDocument")].map((h) => (
                       <th key={h} className="whitespace-nowrap p-md font-label-sm text-label-sm text-on-surface-variant">
                         {h}
                       </th>
@@ -134,6 +186,9 @@ export default function AdminContractsPage() {
                         </span>
                       </td>
                       <td className="p-md font-label-md text-label-md text-on-surface">{c.referenceName}</td>
+                      <td className="whitespace-nowrap p-md font-mono text-sm text-on-surface-variant">
+                        {c.identityNumber || "—"}
+                      </td>
                       <td className="whitespace-nowrap p-md text-sm text-on-surface-variant">{formatDateTime(c.createdAt)}</td>
                       <td className="p-md">
                         {c.fileUrl ? (
@@ -144,7 +199,7 @@ export default function AdminContractsPage() {
                             className="inline-flex items-center gap-xs rounded-lg border border-secondary/50 px-3 py-1.5 font-label-md text-label-md text-secondary hover:bg-secondary-container/30 disabled:opacity-50"
                           >
                             <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
-                            {openingId === c.contractId ? "Đang mở..." : "Xem PDF"}
+                            {openingId === c.contractId ? tc("opening") : tc("viewPdf")}
                           </button>
                         ) : (
                           <span className="text-sm text-on-surface-variant">—</span>

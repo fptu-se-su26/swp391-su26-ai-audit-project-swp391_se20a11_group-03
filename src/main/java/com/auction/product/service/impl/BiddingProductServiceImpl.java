@@ -110,11 +110,15 @@ public class BiddingProductServiceImpl implements BiddingProductService {
                 .sellerId(product.getSellerId())
                 .startingPrice(product.getStartingPrice())
                 .stepPrice(StepCalculator.calculate(product.getStartingPrice()))
-                .currentBid(auction != null && auction.getCurrentHighestBid() != null ? auction.getCurrentHighestBid() : product.getStartingPrice())
+                .currentBid(auction != null
+                        ? (auction.getCurrentHighestBid() != null ? auction.getCurrentHighestBid() : product.getStartingPrice())
+                        : product.getStartingPrice())
                 .status(product.getStatus())
                 .imageUrl(primaryImageUrl)
                 .imageUrls(imageUrls)
-                .auctionMode(auction != null && auction.getAuctionMode() != null ? auction.getAuctionMode().name() : null)
+                .auctionMode(auction != null && auction.getAuctionMode() != null
+                        ? auction.getAuctionMode().name()
+                        : product.getAuctionMode())
                 .scheduledDurationSeconds(auction != null ? auction.getScheduledDurationSeconds() : null)
                 .auctionId(auction != null ? auction.getAuctionId() : null)
                 .auctionStatus(auction != null ? auction.getStatus() : null)
@@ -126,21 +130,55 @@ public class BiddingProductServiceImpl implements BiddingProductService {
                 .build();
     }
 
+    @Override
+    public List<ProductSummaryResponse> getProductSummariesByIds(List<Long> productIds) {
+        if (productIds == null || productIds.isEmpty()) {
+            return List.of();
+        }
+        List<Long> distinctIds = productIds.stream()
+                .filter(id -> id != null && id > 0)
+                .distinct()
+                .toList();
+        if (distinctIds.isEmpty()) {
+            return List.of();
+        }
+        List<Product> products = productRepository.findAllById(distinctIds);
+        Map<Long, Auction> auctionsByProductId = getAuctionsByProductId(products);
+        Map<Long, String> imageUrlsByProductId = getPrimaryImageUrlsByProductId(products);
+        Map<Long, Product> productById = new HashMap<>();
+        for (Product product : products) {
+            productById.put(product.getProductId(), product);
+        }
+        return distinctIds.stream()
+                .map(productById::get)
+                .filter(product -> product != null)
+                .map(product -> toSummaryResponse(
+                        product,
+                        auctionsByProductId.get(product.getProductId()),
+                        imageUrlsByProductId.get(product.getProductId())))
+                .toList();
+    }
+
     private ProductSummaryResponse toSummaryResponse(Product product, Auction auction, String imageUrl) {
+        Long currentBid = auction != null
+                ? (auction.getCurrentHighestBid() != null ? auction.getCurrentHighestBid() : product.getStartingPrice())
+                : null;
         return ProductSummaryResponse.builder()
                 .productId(product.getProductId())
                 .productName(product.getProductName())
                 .categoryId(product.getCategory() != null ? product.getCategory().getCategoryId().longValue() : null)
                 .categoryName(product.getCategory() != null ? product.getCategory().getCategoryName() : null)
                 .startingPrice(product.getStartingPrice())
-                .currentBid(auction != null && auction.getCurrentHighestBid() != null ? auction.getCurrentHighestBid() : product.getStartingPrice())
+                .currentBid(currentBid)
                 .status(product.getStatus())
                 .imageUrl(imageUrl)
                 .auctionId(auction != null ? auction.getAuctionId() : null)
                 .auctionStatus(auction != null ? auction.getStatus() : null)
                 .auctionStartTime(auction != null && auction.getStartTime() != null ? auction.getStartTime().toString() : null)
                 .auctionEndTime(auction != null && auction.getEndTime() != null ? auction.getEndTime().toString() : null)
-                .auctionMode(auction != null && auction.getAuctionMode() != null ? auction.getAuctionMode().name() : null)
+                .auctionMode(auction != null && auction.getAuctionMode() != null
+                        ? auction.getAuctionMode().name()
+                        : product.getAuctionMode())
                 .scheduledDurationSeconds(auction != null ? auction.getScheduledDurationSeconds() : null)
                 .build();
     }

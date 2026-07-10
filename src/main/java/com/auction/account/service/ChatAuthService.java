@@ -26,7 +26,7 @@ public class ChatAuthService {
     public LoginResponse login(LoginRequest request) {
         String identifier = request.getUsernameOrEmail();
 
-        User user = userRepository.findByUsernameOrEmail(identifier, identifier)
+        User user = resolveUser(identifier)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.UNAUTHORIZED, "Tài khoản không tồn tại"));
 
@@ -54,6 +54,18 @@ public class ChatAuthService {
                 .identityVerified(user.isIdentityVerified())
                 .profileStatus(user.getProfileStatus())
                 .build();
+    }
+
+    private java.util.Optional<User> resolveUser(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            return java.util.Optional.empty();
+        }
+        String trimmed = identifier.trim();
+        if (trimmed.contains("@")) {
+            return userRepository.findByEmail(trimmed);
+        }
+        return userRepository.findFirstByUsernameIgnoreCase(trimmed)
+                .or(() -> userRepository.findByUsernameOrEmail(trimmed, trimmed));
     }
 
     private boolean passwordMatches(String rawPassword, User user) {

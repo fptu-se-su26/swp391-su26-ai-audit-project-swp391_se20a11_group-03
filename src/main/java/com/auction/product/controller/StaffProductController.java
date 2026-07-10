@@ -32,7 +32,7 @@ public class StaffProductController {
 
     @PostMapping("/{productId}/approve")
     public String approveProduct(
-            @PathVariable Long productId,
+            @PathVariable("productId") Long productId,
             RedirectAttributes redirectAttributes) {
         try {
             // TODO: Replace with actual authenticated user ID from Spring Security
@@ -49,7 +49,7 @@ public class StaffProductController {
 
     @PostMapping("/{productId}/reject")
     public String rejectProduct(
-            @PathVariable Long productId,
+            @PathVariable("productId") Long productId,
             @RequestParam("reason") String reason,
             RedirectAttributes redirectAttributes) {
         try {

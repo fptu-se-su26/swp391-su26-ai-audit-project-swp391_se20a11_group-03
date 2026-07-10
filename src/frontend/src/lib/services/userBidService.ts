@@ -11,6 +11,7 @@ export type BidInfo = {
   userHighestBid?: number | null;
   startingPrice?: number;
   paymentStatus?: string | null;
+  paymentDeadline?: string | null;
   timeLeft: string;
   auctionMode?: "LIVE" | "TIMED";
   priceHidden?: boolean;
@@ -28,7 +29,8 @@ export type WonItem = {
   finalPrice: number;
   wonDate: string;
   paymentStatus?: string | null;
-  status: "pending_payment" | "paid" | "shipped" | "delivered";
+  paymentDeadline?: string | null;
+  status: "pending_payment" | "paid" | "forfeited" | "shipped" | "delivered";
 };
 
 export type WatchlistItem = {

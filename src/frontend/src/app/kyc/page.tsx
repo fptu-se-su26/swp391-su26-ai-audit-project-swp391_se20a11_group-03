@@ -3,13 +3,19 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import CollectorShell from "@/components/layout/CollectorShell";
-import { CccdDuplicateInfo, KycSubmission, getMyKyc, scanCccdOcr, submitKyc } from "@/lib/services/kycService";
+import { KycSubmission, getMyKyc, scanCccdOcr, submitKyc } from "@/lib/services/kycService";
 import ProtectedKycImage from "@/components/features/ProtectedKycImage";
-import { StoredUser, getStoredUser, subscribeStoredUser } from "@/lib/userSession";
+import { StoredUser, getStoredUser, saveStoredUser, subscribeStoredUser } from "@/lib/userSession";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { getMyProfile } from "@/lib/services/userProfileService";
-import { getMySellerContract, signSellerContract } from "@/lib/services/sellerContractService";
-import { resolveApiUrl } from "@/lib/apiClient";
+import {
+  acknowledgeSellerContract,
+  fetchSellerContractPreviewBlobUrl,
+  getMySellerContract,
+  hasLocalSellerContractAck,
+  openSellerContractPdf,
+  setLocalSellerContractAck,
+} from "@/lib/services/sellerContractService";
 
 const dateFormatter = new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" });
 
@@ -37,6 +43,7 @@ export default function KYCPage() {
   const [feedback, setFeedback] = useState<{ tone: "success" | "error"; message: string } | null>(null);
 
   const [contractSigned, setContractSigned] = useState(false);
+  const [contractAcknowledged, setContractAcknowledged] = useState(false);
   const [contractUrl, setContractUrl] = useState<string | null>(null);
   const [agreeContract, setAgreeContract] = useState(false);
   const [signingContract, setSigningContract] = useState(false);
@@ -44,9 +51,9 @@ export default function KYCPage() {
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrMessage, setOcrMessage] = useState<string | null>(null);
   const [ocrReady, setOcrReady] = useState(false);
-  const [duplicateAccounts, setDuplicateAccounts] = useState<CccdDuplicateInfo[]>([]);
 
-  const isSeller = (currentUser?.roleName ?? "").trim().toLowerCase() === "seller";
+  const isSeller = (currentUser?.roleName ?? "").trim().toLowerCase().includes("seller");
+  const contractReady = contractSigned || (isSeller && (agreeContract || contractAcknowledged));
   const formLocked =
     existing?.status === "PENDING" ||
     existing?.status === "APPROVED" ||
@@ -61,14 +68,20 @@ export default function KYCPage() {
   useEffect(() => {
     if (!isSeller) {
       setContractSigned(false);
+      setContractAcknowledged(false);
       setContractUrl(null);
       return;
+    }
+    if (hasLocalSellerContractAck(currentUser?.userId)) {
+      setContractAcknowledged(true);
     }
     let cancelled = false;
     getMySellerContract()
       .then((c) => {
         if (!cancelled) {
-          setContractSigned(Boolean(c?.signed));
+          const persisted = Boolean(c?.signed);
+          setContractSigned(persisted);
+          setContractAcknowledged(persisted || Boolean(c?.acknowledged) || hasLocalSellerContractAck(currentUser?.userId));
           setContractUrl(c?.fileUrl ?? null);
         }
       })
@@ -78,7 +91,7 @@ export default function KYCPage() {
     return () => {
       cancelled = true;
     };
-  }, [isSeller]);
+  }, [isSeller, currentUser?.userId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -139,45 +152,46 @@ export default function KYCPage() {
     };
   }, [currentUser?.userId, currentUser?.identityVerified]);
 
-  useEffect(() => {
+  function friendlyOcrError(message: string) {
+    const lower = message.toLowerCase();
+    if (lower.includes("429") || lower.includes("quota") || lower.includes("resource_exhausted")) {
+      return t("errors.ocrBusy");
+    }
+    if (lower.includes("gemini api http")) {
+      return t("errors.ocrFailed");
+    }
+    return message;
+  }
+
+  async function handleRunOcr() {
     if (formLocked || !frontDoc?.file || !backDoc?.file) {
+      setOcrMessage(t("errors.ocrNeedBothSides"));
+      setOcrReady(false);
       return;
     }
-    let cancelled = false;
+
     setOcrLoading(true);
     setOcrMessage(null);
     setOcrReady(false);
-    setDuplicateAccounts([]);
-
-    scanCccdOcr(frontDoc.file, backDoc.file)
-      .then((result) => {
-        if (cancelled) return;
-        setOcrMessage(result.message);
-        setOcrReady(result.success);
-        if (result.fullName) setFullName(result.fullName);
-        if (result.cccdNumber) setCccdNumber(result.cccdNumber);
-        if (result.dob) setDob(result.dob);
-        if (result.gender) setGender(result.gender);
-        if (result.issueDate) setIssueDate(result.issueDate);
-        if (result.issuePlace) setIssuePlace(result.issuePlace);
-        if (result.cccdDuplicates?.length) {
-          setDuplicateAccounts(result.cccdDuplicates);
-        }
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          setOcrMessage(error instanceof Error ? error.message : t("errors.ocrFailed"));
-          setOcrReady(false);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setOcrLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [frontDoc?.file, backDoc?.file, formLocked, t]);
+    try {
+      const result = await scanCccdOcr(frontDoc.file, backDoc.file);
+      setOcrMessage(result.message);
+      setOcrReady(result.success);
+      if (result.fullName) setFullName(result.fullName);
+      if (result.cccdNumber) setCccdNumber(result.cccdNumber);
+      if (result.dob) setDob(result.dob);
+      if (result.gender) setGender(result.gender);
+      if (result.issueDate) setIssueDate(result.issueDate);
+      if (result.issuePlace) setIssuePlace(result.issuePlace);
+    } catch (error) {
+      setOcrMessage(
+        friendlyOcrError(error instanceof Error ? error.message : t("errors.ocrFailed")),
+      );
+      setOcrReady(false);
+    } finally {
+      setOcrLoading(false);
+    }
+  }
 
   // Revoke object URLs when the component unmounts to avoid leaking memory.
   useEffect(() => {
@@ -196,12 +210,12 @@ export default function KYCPage() {
     }
     if (!['image/jpeg', 'image/png'].includes(file.type)) {
       event.target.value = "";
-      setFeedback({ tone: "error", message: "Chỉ chấp nhận ảnh JPEG hoặc PNG." });
+      setFeedback({ tone: "error", message: t("errors.invalidImageType") });
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
       event.target.value = "";
-      setFeedback({ tone: "error", message: "Mỗi ảnh KYC không được vượt quá 8 MB." });
+      setFeedback({ tone: "error", message: t("errors.imageTooLarge") });
       return;
     }
     setter({ file, preview: URL.createObjectURL(file) });
@@ -238,10 +252,13 @@ export default function KYCPage() {
     setSigningContract(true);
     setFeedback(null);
     try {
-      const signed = await signSellerContract();
-      setContractSigned(true);
-      setContractUrl(signed?.fileUrl ?? null);
-      setFeedback({ tone: "success", message: t("sellerContract.signSuccess") });
+      await acknowledgeSellerContract();
+      setLocalSellerContractAck(currentUser?.userId);
+      setContractAcknowledged(true);
+      setFeedback({
+        tone: "success",
+        message: t("errors.contractConfirmedPending"),
+      });
     } catch (error) {
       setFeedback({
         tone: "error",
@@ -252,16 +269,38 @@ export default function KYCPage() {
     }
   };
 
+  const handleOpenContractPdf = async () => {
+    try {
+      if (contractSigned) {
+        await openSellerContractPdf();
+        return;
+      }
+      const url = await fetchSellerContractPreviewBlobUrl();
+      const opened = window.open(url, "_blank", "noopener,noreferrer");
+      if (!opened) {
+        const a = document.createElement("a");
+        a.href = url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.click();
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      setFeedback({ tone: "error", message: t("sellerContract.signFailed") });
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFeedback(null);
 
     if (!frontDoc || !backDoc || !selfieDoc) {
       setFeedback({ tone: "error", message: t("errors.missingPhotos") });
+      document.getElementById("kyc-photos")?.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
 
-    if (isSeller && !contractSigned) {
+    if (isSeller && !contractReady) {
       setFeedback({ tone: "error", message: t("sellerContract.signBeforeSubmit") });
       return;
     }
@@ -279,10 +318,22 @@ export default function KYCPage() {
         frontImage: frontDoc.file,
         backImage: backDoc.file,
         selfieImage: selfieDoc.file,
+        signSellerAgreement: isSeller && contractReady,
       });
       if (result.success && result.data) {
         setExisting(result.data);
+        if (isSeller && contractReady) {
+          setContractSigned(true);
+          const user = getStoredUser();
+          if (user) {
+            saveStoredUser({ ...user, roleName: "Seller" });
+          }
+        }
+        if (currentUser?.userId) {
+          sessionStorage.removeItem(`bz_seller_contract_ack_${currentUser.userId}`);
+        }
         setFeedback({ tone: "success", message: result.message || t("errors.submitted") });
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         setFeedback({ tone: "error", message: result.message || t("errors.submissionFailed") });
       }
@@ -318,8 +369,22 @@ export default function KYCPage() {
         {existing?.status === "REJECTED" && existing.rejectionReason && (
           <div className="rounded-lg border border-error/40 bg-error-container px-md py-sm text-on-error-container">
             <p className="font-label-md text-label-md">{t("rejectedTitle")}</p>
-            <p className="mt-xs font-body-md text-body-md">{existing.rejectionReason}</p>
+            <p className="mt-xs font-body-md text-body-md">
+              <span className="font-semibold">{t("rejectionReasonLabel")}: </span>
+              {existing.rejectionReason}
+            </p>
             <p className="mt-xs font-body-sm text-body-sm">{t("rejectedHelp")}</p>
+          </div>
+        )}
+
+        {existing?.status === "INFO_REQUIRED" && existing.rejectionReason && (
+          <div className="rounded-lg border border-secondary/40 bg-secondary-container/40 px-md py-sm text-on-secondary-container">
+            <p className="font-label-md text-label-md">{t("infoRequiredTitle")}</p>
+            <p className="mt-xs font-body-md text-body-md">
+              <span className="font-semibold">{t("rejectionReasonLabel")}: </span>
+              {existing.rejectionReason}
+            </p>
+            <p className="mt-xs font-body-sm text-body-sm">{t("infoRequiredHelp")}</p>
           </div>
         )}
 
@@ -343,9 +408,14 @@ export default function KYCPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-md rounded-xl border border-surface-variant bg-surface p-lg soft-shadow">
-          <div>
+          <div id="kyc-photos">
             <h2 className="font-headline-sm text-headline-sm text-primary">{t("sectionPhotos")}</h2>
             <p className="mt-xs font-body-sm text-body-sm text-on-surface-variant">{t("ocrFlowHint")}</p>
+            {!isReadOnly && (!frontDoc || !backDoc || !selfieDoc) && (
+              <p className="mt-sm rounded-lg border border-secondary/30 bg-secondary-container/20 px-3 py-2 text-sm text-on-secondary-container">
+                {t("errors.submitNeedThreePhotos")}
+              </p>
+            )}
           </div>
 
           {isReadOnly && existing && (existing.frontImageUrl || existing.backImageUrl || existing.selfieImageUrl) && (
@@ -380,6 +450,25 @@ export default function KYCPage() {
             />
           </div>
 
+          {!isReadOnly && (
+            <div className="flex flex-col gap-sm sm:flex-row sm:items-center">
+              <button
+                type="button"
+                onClick={() => void handleRunOcr()}
+                disabled={ocrLoading || !frontDoc?.file || !backDoc?.file}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-secondary/50 bg-surface px-md py-sm font-label-md text-label-md text-secondary transition hover:bg-secondary-container/30 disabled:opacity-50"
+              >
+                <span className={`material-symbols-outlined text-[18px] ${ocrLoading ? "animate-spin" : ""}`}>
+                  {ocrLoading ? "progress_activity" : "document_scanner"}
+                </span>
+                {ocrLoading ? t("ocrScanning") : t("errors.scanCccdAi")}
+              </button>
+              <p className="text-sm text-on-surface-variant">
+                OCR không bắt buộc — bạn có thể điền thủ công và gửi hồ sơ.
+              </p>
+            </div>
+          )}
+
           {!isReadOnly && (ocrLoading || ocrMessage) && (
             <div className={`rounded-lg border px-md py-sm ${ocrLoading ? "border-secondary/40 bg-secondary-container/30 text-on-secondary-container" : ocrReady ? "border-tertiary/40 bg-tertiary-container/40 text-on-tertiary-container" : "border-outline-variant bg-surface-container-low text-on-surface-variant"}`}>
               <p className="flex items-center gap-sm font-label-md text-label-md">
@@ -388,20 +477,6 @@ export default function KYCPage() {
                 </span>
                 {ocrLoading ? t("ocrScanning") : ocrMessage}
               </p>
-            </div>
-          )}
-
-          {!isReadOnly && duplicateAccounts.length > 0 && (
-            <div className="rounded-lg border border-error/40 bg-error-container/30 px-md py-sm text-on-error-container">
-              <p className="font-label-md text-label-md">{t("duplicateWarningTitle")}</p>
-              <ul className="mt-xs list-disc space-y-1 pl-5 font-body-sm text-body-sm">
-                {duplicateAccounts.map((dup) => (
-                  <li key={dup.userId}>
-                    {dup.fullName || dup.email} ({dup.email}) — {t("duplicateStatus", { status: dup.kycStatus })}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-xs font-body-sm text-body-sm">{t("duplicateWarningHint")}</p>
             </div>
           )}
 
@@ -506,23 +581,22 @@ export default function KYCPage() {
                 <p className="mt-xs">{t("sellerContract.term4")}</p>
                 <p className="mt-xs">{t("sellerContract.term5")}</p>
               </div>
-              {contractSigned ? (
+              {contractReady ? (
                 <div className="mt-sm flex flex-wrap items-center gap-sm text-on-tertiary-container">
                   <span className="flex items-center gap-xs">
                     <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-                    <span className="font-label-md text-label-md">{t("sellerContract.signed")}</span>
+                    <span className="font-label-md text-label-md">
+                      {contractSigned ? t("sellerContract.signed") : t("errors.contractConfirmedOnSubmit")}
+                    </span>
                   </span>
-                  {contractUrl && (
-                    <a
-                      href={resolveApiUrl(contractUrl)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-xs rounded-lg border border-secondary/50 bg-surface px-3 py-1.5 font-label-md text-label-md text-secondary hover:bg-secondary-container/30"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
-                      {t("sellerContract.viewPdf")}
-                    </a>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => void handleOpenContractPdf()}
+                    className="inline-flex items-center gap-xs rounded-lg border border-secondary/50 bg-surface px-3 py-1.5 font-label-md text-label-md text-secondary hover:bg-secondary-container/30"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                    {t("sellerContract.viewPdf")}
+                  </button>
                 </div>
               ) : (
                 <div className="mt-sm space-y-sm">
@@ -555,7 +629,7 @@ export default function KYCPage() {
 
           <button
             type="submit"
-            disabled={isSubmitting || isReadOnly || (isSeller && !contractSigned)}
+            disabled={isSubmitting || isReadOnly || (isSeller && !contractReady)}
             className="flex w-full items-center justify-center gap-xs rounded-xl bg-secondary py-md font-headline-sm text-headline-sm text-on-secondary transition-colors hover:bg-secondary-fixed-dim disabled:opacity-50"
           >
             <span className="material-symbols-outlined">send</span>

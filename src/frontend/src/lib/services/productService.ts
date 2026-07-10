@@ -6,7 +6,7 @@ export type ProductSummary = {
   categoryId: number | null;
   categoryName: string | null;
   startingPrice: number;
-  currentBid: number;
+  currentBid: number | null;
   stepPrice?: number;
   status: string;
   imageUrl: string | null;
@@ -17,6 +17,7 @@ export type ProductSummary = {
   auctionMode: "LIVE" | "TIMED" | null;
   scheduledStartTime: string | null;
   scheduledDurationSeconds: number | null;
+  rejectionReason?: string | null;
   sellerId?: number | null;
 };
 

@@ -29,14 +29,14 @@ public class ProductAdminController {
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<ApiResponse<ProductResponseDTO>> getProductById(@PathVariable Long productId) {
+    public ResponseEntity<ApiResponse<ProductResponseDTO>> getProductById(@PathVariable("productId") Long productId) {
         ProductResponseDTO product = productService.getProductById(productId);
         return ResponseEntity.ok(ApiResponse.success(product));
     }
 
     @PostMapping("/{productId}/approve")
     public ResponseEntity<ApiResponse<ProductResponseDTO>> approveProduct(
-            @PathVariable Long productId,
+            @PathVariable("productId") Long productId,
             @AuthenticationPrincipal UserDetailsImpl user,
             @Valid @RequestBody ProductApprovalRequestDTO request) {
         ProductResponseDTO product = productService.approveProduct(productId, request, user.getId());
@@ -45,7 +45,7 @@ public class ProductAdminController {
 
     @PostMapping("/{productId}/reject")
     public ResponseEntity<ApiResponse<ProductResponseDTO>> rejectProduct(
-            @PathVariable Long productId,
+            @PathVariable("productId") Long productId,
             @AuthenticationPrincipal UserDetailsImpl user,
             @Valid @RequestBody(required = false) ProductApprovalRequestDTO request) {
         if (request == null) {

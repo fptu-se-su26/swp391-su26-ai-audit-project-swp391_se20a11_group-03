@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import StaffShell from "@/components/layout/StaffShell";
+import PortalShell from "@/components/layout/PortalShell";
 import { apiClient } from "@/lib/apiClient";
+import { calculateBidStep } from "@/lib/bidStep";
 import { useTranslations } from "@/i18n/I18nProvider";
 
 type ProductImage = {
@@ -290,10 +291,10 @@ function ProductDetailModal({ product, onClose, t }: { product: Product; onClose
                 <p className="font-label-sm text-label-sm text-on-surface-variant">{t("startingPrice")}</p>
                 <p className="font-headline-sm text-headline-sm text-primary font-bold">{formatCurrency(product.startingPrice)}</p>
               </div>
-              {product.stepPrice !== undefined && product.stepPrice !== null && (
+              {product.auctionMode !== "TIMED" && product.startingPrice != null && (
                 <div>
                   <p className="font-label-sm text-label-sm text-on-surface-variant">{t("stepPrice")}</p>
-                  <p className="font-body-md text-on-surface">{formatCurrency(product.stepPrice)}</p>
+                  <p className="font-body-md text-on-surface">{formatCurrency(calculateBidStep(product.startingPrice))}</p>
                 </div>
               )}
               {product.taxPercent !== undefined && product.taxPercent !== null && (
@@ -428,30 +429,30 @@ export default function ApprovalsPage() {
 
   if (loading) {
     return (
-      <StaffShell>
+      <PortalShell>
         <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
           <div className="flex items-center justify-center h-64">
             <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
           </div>
         </div>
-      </StaffShell>
+      </PortalShell>
     );
   }
 
   if (error) {
     return (
-      <StaffShell>
+      <PortalShell>
         <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
           <div className="bg-error-container rounded-xl p-lg text-center">
             <p className="text-on-error-container">{error}</p>
           </div>
         </div>
-      </StaffShell>
+      </PortalShell>
     );
   }
 
   return (
-    <StaffShell>
+    <PortalShell>
       <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg">
         <div>
           <h1 className="font-display-lg-mobile md:font-display-lg text-primary">{t("pageTitle")}</h1>
@@ -535,6 +536,9 @@ export default function ApprovalsPage() {
                           )}
                           {item.status === "REJECTED" && item.rejectionReason && (
                             <p className="text-xs text-error mt-xs line-clamp-1">{t("reason")}: {item.rejectionReason}</p>
+                          )}
+                          {item.status === "PENDING" && item.rejectionReason && (
+                            <p className="text-xs text-amber-700 mt-xs line-clamp-2">{item.rejectionReason}</p>
                           )}
                         </td>
                         <td className="p-md font-body-sm text-sm text-on-surface-variant">
@@ -669,6 +673,6 @@ export default function ApprovalsPage() {
           t={t}
         />
       )}
-    </StaffShell>
+    </PortalShell>
   );
 }

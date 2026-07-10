@@ -59,6 +59,26 @@ public class ListingContractPdfService {
         }
     }
 
+    public byte[] renderPdf(
+            Long productId,
+            String productName,
+            String sellerName,
+            Long startingPrice,
+            LocalDateTime approvedAt) {
+        try {
+            ITextRenderer renderer = new ITextRenderer();
+            registerUnicodeFont(renderer);
+            renderer.setDocumentFromString(buildHtml(productId, productName, sellerName, startingPrice, approvedAt));
+            renderer.layout();
+            java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+            renderer.createPDF(bos);
+            return bos.toByteArray();
+        } catch (Exception ex) {
+            log.error("Failed to render listing contract PDF for product {}", productId, ex);
+            return new byte[0];
+        }
+    }
+
     private void registerUnicodeFont(ITextRenderer renderer) {
         for (String path : FONT_CANDIDATES) {
             try {

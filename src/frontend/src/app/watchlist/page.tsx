@@ -51,8 +51,8 @@ export default function WatchlistPage() {
   return (
     <CollectorShell>
       <div className="mx-auto max-w-[1260px] space-y-7 px-4 py-10 sm:px-7 lg:px-10 lg:py-14">
-        <DashboardHeader eyebrow="Your private collection" title={t("title")} subtitle={t("subtitle")} actionLabel="Khám phá live lots" actionHref="/live" />
-        <div className="flex flex-wrap items-center gap-2 border-y border-[#ddd6c9] py-4"><button className="rounded-full bg-[#071626] px-4 py-2 text-xs font-semibold text-white">Tất cả</button>{["Watches","Art","Jewelry","Cars"].map(x=><button key={x} className="rounded-full px-4 py-2 text-xs font-semibold text-[#68737c] hover:bg-white">{x}</button>)}<button className="ml-auto inline-flex items-center gap-2 rounded-full border border-[#d6cec0] bg-white px-4 py-2 text-xs font-semibold text-[#4f5b65]"><span className="material-symbols-outlined text-[17px]">sort</span>Ending soon</button></div>
+        <DashboardHeader eyebrow="Your private collection" title={t("title")} subtitle={t("subtitle")} actionLabel={t("exploreLiveLots")} actionHref="/live" />
+        <div className="flex flex-wrap items-center gap-2 border-y border-white/10 py-4"><button className="rounded-full bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] px-4 py-2 text-xs font-semibold text-[#100d08]">Tất cả</button>{["Watches","Art","Jewelry","Cars"].map(x=><button key={x} className="rounded-full px-4 py-2 text-xs font-semibold text-[#9d948a] hover:bg-white/[.06] hover:text-[#f0d98b]">{x}</button>)}<button className="ml-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[.04] px-4 py-2 text-xs font-semibold text-[#c8bda9]"><span className="material-symbols-outlined text-[17px]">sort</span>Ending soon</button></div>
 
         {error && (
           <div className="rounded-xl border border-error/30 bg-error-container px-4 py-3 text-error">
@@ -69,7 +69,7 @@ export default function WatchlistPage() {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="group overflow-hidden rounded-2xl border border-[#ded8cc] bg-white shadow-[0_8px_28px_rgba(18,31,44,.05)] transition hover:-translate-y-1 hover:border-[#c4a55a] hover:shadow-[0_18px_42px_rgba(18,31,44,.11)]"
+                className="group overflow-hidden rounded-2xl border border-white/10 bg-[#0e0d0b] shadow-[0_8px_28px_rgba(0,0,0,.4)] transition hover:-translate-y-1 hover:border-[#c4a55a] hover:shadow-[0_18px_42px_rgba(0,0,0,.55)]"
               >
                 <div className="relative">
                   <div className="aspect-square overflow-hidden bg-surface-variant">
@@ -119,7 +119,7 @@ export default function WatchlistPage() {
                   <div className="mt-md flex gap-sm">
                     <Link
                       href={`/auctions/${item.productId}`}
-                      className="flex-1 rounded-full bg-[#071626] py-2.5 text-center text-xs font-bold text-[#e4c77b] transition hover:bg-[#102a42]"
+                      className="flex-1 rounded-full bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] py-2.5 text-center text-xs font-bold text-[#100d08] transition hover:brightness-110"
                     >
                       {t("viewDetails")}
                     </Link>

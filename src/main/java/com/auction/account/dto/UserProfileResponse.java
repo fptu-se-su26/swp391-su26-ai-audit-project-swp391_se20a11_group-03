@@ -23,4 +23,7 @@ public class UserProfileResponse {
     private boolean identityVerified;
     private String profileStatus;
     private LocalDateTime identityVerifiedAt;
+    private boolean active;
+    private int paymentStrikeCount;
+    private boolean lockedByPaymentStrikes;
 }

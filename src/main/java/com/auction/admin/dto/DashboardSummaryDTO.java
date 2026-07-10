@@ -16,7 +16,7 @@ public class DashboardSummaryDTO {
     private long activeAuctions;
     private long totalRevenue;        // platform commission + forfeited deposits (admin earnings)
     private long totalTopUps;         // sum of completed DEPOSIT (SePay)
-    private long depositsHeld;        // sum of HOLD_BID
+    private long depositsHeld;        // live sum of LOCKED / HELD_FOR_PAYMENT auction deposits
     private long pendingWithdrawals;  // count of WITHDRAWAL with status PENDING
     private long adminBalance;        // current balance of the platform admin wallet
 }

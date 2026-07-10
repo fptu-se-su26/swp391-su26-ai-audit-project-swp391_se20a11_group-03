@@ -69,7 +69,7 @@ public class ConversationController {
     @PatchMapping("/{id}/assign")
     @PreAuthorize("hasRole('Staff')")
     public ResponseEntity<ConversationResponse> assign(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @AuthenticationPrincipal UserDetailsImpl me) {
         return ResponseEntity.ok(
                 conversationService.assignConversationToStaff(id, me.getId()));
@@ -78,7 +78,7 @@ public class ConversationController {
     @PatchMapping("/{id}/close")
     @PreAuthorize("hasAnyRole('Staff','Admin')")
     public ResponseEntity<ConversationResponse> close(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @AuthenticationPrincipal UserDetailsImpl me) {
         return ResponseEntity.ok(
                 conversationService.closeConversation(id, me.getId()));
@@ -87,7 +87,7 @@ public class ConversationController {
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ConversationDetailResponse> getDetail(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @AuthenticationPrincipal UserDetailsImpl me) {
         return ResponseEntity.ok(
                 conversationService.getConversationDetail(id, me.getId()));

@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import StaffShell from "@/components/layout/StaffShell";
-import ChatMessageList from "@/components/features/ChatMessageList";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import PortalShell from "@/components/layout/PortalShell";
+import SupportChatPanel from "@/components/features/SupportChatPanel";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { apiClient } from "@/lib/apiClient";
 import { getStoredUser, subscribeStoredUser, StoredUser } from "@/lib/userSession";
@@ -46,9 +46,9 @@ type ConversationDetail = {
 };
 
 const STATUS_CFG: Record<Conversation["status"], string> = {
-  OPEN: "bg-secondary-container text-on-secondary-container",
-  IN_PROGRESS: "bg-primary-fixed text-on-primary-fixed-variant",
-  CLOSED: "bg-tertiary-fixed text-on-tertiary-fixed-variant",
+  OPEN: "bg-[#d4aa61]/20 text-[#efcf88]",
+  IN_PROGRESS: "bg-blue-500/20 text-blue-300",
+  CLOSED: "bg-white/10 text-[#9d948a]",
 };
 
 function formatDate(iso: string): string {
@@ -70,7 +70,6 @@ export default function SupportPage() {
   const [sending, setSending] = useState(false);
   const [search, setSearch] = useState("");
   const [currentUser, setCurrentUser] = useState<StoredUser | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const syncUser = () => setCurrentUser(getStoredUser());
@@ -168,10 +167,6 @@ export default function SupportPage() {
     subscribeStaffTopic: true,
   });
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, selectedId]);
-
   async function sendReply() {
     if (!reply.trim() || !selectedId) return;
     const content = reply.trim();
@@ -206,15 +201,15 @@ export default function SupportPage() {
   }
 
   return (
-    <StaffShell>
-      <div className="flex h-full overflow-hidden">
-        <aside className="w-80 border-r border-outline-variant flex flex-col h-full bg-surface-container-low shrink-0">
-          <div className="p-md border-b border-outline-variant">
-            <h2 className="font-headline-sm text-headline-sm text-primary font-bold">
+    <PortalShell>
+      <div className="flex h-full overflow-hidden bg-[#070706]">
+        <aside className="flex h-full w-80 shrink-0 flex-col border-r border-white/10 bg-[#080706]">
+          <div className="border-b border-white/10 p-md">
+            <h2 className="font-headline-sm text-headline-sm font-bold text-[#f0dfa0]">
               {t("pageTitle")}
             </h2>
-            <div className="mt-sm relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">
+            <div className="relative mt-sm">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#9d948a]">
                 search
               </span>
               <input
@@ -222,17 +217,17 @@ export default function SupportPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("searchPlaceholder")}
-                className="w-full pl-9 pr-3 py-2 bg-surface border border-outline-variant rounded-lg text-sm focus:border-secondary outline-none"
+                className="w-full rounded-lg border border-white/15 bg-[#0e0d0b] py-2 pl-9 pr-3 text-sm text-white/90 outline-none focus:border-[#d4aa61]"
               />
             </div>
           </div>
           <div className="flex-1 overflow-y-auto">
             {loading ? (
-              <div className="p-md text-center text-on-surface-variant">
+              <div className="p-md text-center text-[#9d948a]">
                 {t("loading")}
               </div>
             ) : filteredConversations.length === 0 ? (
-              <div className="p-md text-center text-on-surface-variant">
+              <div className="p-md text-center text-[#9d948a]">
                 <p className="mb-sm">{t("emptyTitle")}</p>
                 <p className="text-sm">{t("emptyDesc")}</p>
               </div>
@@ -241,37 +236,37 @@ export default function SupportPage() {
                 <button
                   key={c.conversationId}
                   onClick={() => setSelectedId(c.conversationId)}
-                  className={`w-full text-left p-md border-b border-outline-variant/30 hover:bg-surface-container-high transition-colors ${
+                  className={`w-full border-b border-white/10 p-md text-left transition-colors hover:bg-white/5 ${
                     selectedId === c.conversationId
-                      ? "bg-surface-container-high border-r-2 border-r-secondary"
+                      ? "border-r-2 border-r-[#d4aa61] bg-white/5"
                       : ""
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-xs">
-                    <span className="font-label-md text-primary text-sm truncate flex-1">
+                  <div className="mb-xs flex items-center justify-between">
+                    <span className="flex-1 truncate text-sm font-medium text-white/90">
                       {c.type === "BUYER_STAFF" ? c.userName : c.userName}
                       {c.assignedStaffId == null && (
-                        <span className="ml-2 inline-block rounded-full bg-tertiary-container px-2 py-0.5 text-[9px] font-label-sm text-on-tertiary-container">
+                        <span className="ml-2 inline-block rounded-full bg-[#d4aa61]/20 px-2 py-0.5 text-[9px] font-label-sm text-[#efcf88]">
                           {t("unassignedBadge")}
                         </span>
                       )}
                     </span>
                     {c.unreadCount > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-secondary text-on-secondary text-[10px] flex items-center justify-center flex-shrink-0">
+                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#d4aa61] text-[10px] text-[#100d08]">
                         {c.unreadCount}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-on-surface-variant truncate mb-xs">
+                  <p className="mb-xs truncate text-xs text-[#9d948a]">
                     {c.subject}
                   </p>
                   <div className="flex gap-xs">
                     <span
-                      className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${STATUS_CFG[c.status]}`}
+                      className={`rounded px-2 py-0.5 text-[9px] font-bold uppercase ${STATUS_CFG[c.status]}`}
                     >
                       {t(`status${c.status.charAt(0) + c.status.slice(1).toLowerCase()}`)}
                     </span>
-                    <span className="text-[10px] text-outline">
+                    <span className="text-[10px] text-[#756d64]">
                       {formatDate(c.updatedAt)}
                     </span>
                   </div>
@@ -281,99 +276,61 @@ export default function SupportPage() {
           </div>
         </aside>
 
-        <section className="flex-1 flex flex-col h-full overflow-hidden bg-background">
+        <section className="flex h-full flex-1 flex-col overflow-hidden">
           {selected ? (
-            <>
-              <header className="p-md border-b border-outline-variant bg-surface flex justify-between items-start">
-                <div>
-                  <h3 className="font-headline-sm text-headline-sm text-primary">
-                    {selected.subject}
-                  </h3>
-                  <div className="flex items-center gap-sm mt-xs">
-                    <span className="font-label-sm text-on-surface-variant text-sm">
-                      {selected.userName}
-                    </span>
-                    <span className="text-outline">·</span>
-                    <span className="font-label-sm text-on-surface-variant text-sm">
-                      {formatDate(selected.createdAt)}
-                    </span>
-                    <span
-                      className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${STATUS_CFG[selected.status]}`}
-                    >
-                      {t(`status${selected.status.charAt(0) + selected.status.slice(1).toLowerCase()}`)}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-sm">
-                  {selected.status !== "CLOSED" && (
-                    <button
-                      onClick={closeTicket}
-                      className="px-md py-sm rounded-lg bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-label-sm flex items-center gap-xs hover:opacity-90 transition-opacity"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">
-                        check_circle
-                      </span>
-                      {t("resolve")}
-                    </button>
-                  )}
-                </div>
-              </header>
-
-              <div className="flex-1 space-y-md overflow-y-auto bg-[radial-gradient(circle_at_80%_15%,rgba(190,157,78,.06),transparent_25%)] p-md no-scrollbar">
-                {loadingMessages ? (
-                  <div className="text-center text-on-surface-variant">
-                    {t("loadingMessages")}
-                  </div>
-                ) : messages.length === 0 ? (
-                  <div className="text-center text-on-surface-variant">
-                    <p>{t("noMessagesYet")}</p>
-                  </div>
-                ) : (
-                  <ChatMessageList messages={messages} currentUserId={currentUserId} />
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {selected.status !== "CLOSED" && (
-                <footer className="p-md border-t border-outline-variant bg-surface-container-low">
-                  <div className="flex items-start gap-md">
-                    <textarea
-                      rows={3}
-                      value={reply}
-                      onChange={(e) => setReply(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                          sendReply();
-                        }
-                      }}
-                      placeholder={t("replyPlaceholder")}
-                      className="flex-1 px-4 py-2.5 bg-surface border border-outline-variant rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none resize-none font-body-md text-sm"
-                    />
-                    <button
-                      onClick={sendReply}
-                      disabled={!reply.trim() || sending}
-                      className="bg-secondary text-on-secondary rounded-xl px-md py-sm font-label-md text-label-md flex items-center gap-xs hover:bg-secondary-fixed-dim transition-colors glow-accent self-end disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
+            <SupportChatPanel
+              theme="dark"
+              className="!rounded-none !border-0"
+              header={
+                <header className="flex items-start justify-between border-b border-white/10 bg-[#0e0d0b] p-md">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">{selected.subject}</h3>
+                    <div className="mt-xs flex items-center gap-sm">
+                      <span className="text-sm text-[#9d948a]">{selected.userName}</span>
+                      <span className="text-[#756d64]">·</span>
+                      <span className="text-sm text-[#9d948a]">{formatDate(selected.createdAt)}</span>
                       <span
-                        className="material-symbols-outlined text-[18px]"
-                        style={{ fontVariationSettings: "'FILL' 1" }}
+                        className={`rounded px-2 py-0.5 text-[9px] font-bold uppercase ${STATUS_CFG[selected.status]}`}
                       >
-                        send
+                        {t(`status${selected.status.charAt(0) + selected.status.slice(1).toLowerCase()}`)}
                       </span>
-                      {sending ? t("sending") : t("reply")}
-                    </button>
+                    </div>
                   </div>
-                </footer>
-              )}
-            </>
+                  <div className="flex items-center gap-sm">
+                    {selected.status !== "CLOSED" && (
+                      <button
+                        onClick={closeTicket}
+                        className="flex items-center gap-xs rounded-lg bg-[#3f9d78] px-md py-sm text-sm font-semibold text-white hover:opacity-90"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                        {t("resolve")}
+                      </button>
+                    )}
+                  </div>
+                </header>
+              }
+              messages={messages}
+              currentUserId={currentUserId}
+              loading={loadingMessages}
+              loadingLabel={t("loadingMessages")}
+              emptyLabel={t("noMessagesYet")}
+              inputValue={reply}
+              onInputChange={setReply}
+              onSend={sendReply}
+              inputPlaceholder={t("replyPlaceholder")}
+              multiline
+              sendDisabled={sending}
+              sending={sending}
+              footer={selected.status === "CLOSED" ? null : undefined}
+            />
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-on-surface-variant p-md gap-md">
-              <span className="material-symbols-outlined text-5xl">forum</span>
+            <div className="flex flex-1 flex-col items-center justify-center gap-md bg-[#080807] p-md text-[#9d948a]">
+              <span className="material-symbols-outlined text-5xl text-[#d4aa61]">forum</span>
               <p>{t("selectConversation")}</p>
             </div>
           )}
         </section>
       </div>
-    </StaffShell>
+    </PortalShell>
   );
 }

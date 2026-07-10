@@ -12,6 +12,9 @@ export type UserProfile = {
   identityVerified?: boolean;
   profileStatus?: string;
   identityVerifiedAt?: string;
+  active?: boolean;
+  paymentStrikeCount?: number;
+  lockedByPaymentStrikes?: boolean;
 };
 
 export async function getMyProfile(): Promise<UserProfile> {

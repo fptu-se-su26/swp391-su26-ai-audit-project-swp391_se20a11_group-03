@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import TopNav from "@/components/layout/TopNav";
 import WatchlistButton from "@/components/features/WatchlistButton";
-import CountdownTimer from "@/components/features/CountdownTimer";
+import AuctionCountdownPanel from "@/components/features/AuctionCountdownPanel";
 import BidPanel from "@/components/features/BidPanel";
 import BidHistory from "@/components/features/BidHistory";
+import LiveBidActivity from "@/components/features/LiveBidActivity";
+import AuctionRoomChat from "@/components/features/AuctionRoomChat";
 import AuctionResultBanner from "@/components/features/AuctionResultBanner";
 import { getStoredToken } from "@/lib/apiClient";
 import { useTranslations } from "@/i18n/I18nProvider";
@@ -34,6 +36,7 @@ export default function AuctionRoomPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const t = useTranslations("auctionRoom");
+  const tCountdown = useTranslations("countdown");
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [eligibility, setEligibility] = useState<AuctionEligibility | null>(null);
   const [liveState, setLiveState] = useState<AuctionState | null>(null);
@@ -100,29 +103,6 @@ export default function AuctionRoomPage() {
       .catch(() => setEligibility(null));
   }, [auctionId, isAuctionEnded]);
 
-  const images = useMemo(() => {
-    if (product?.imageUrls?.length) {
-      return product.imageUrls.map((url) => getProductImage(url));
-    }
-    return [getProductImage(product?.imageUrl)];
-  }, [product?.imageUrl, product?.imageUrls]);
-
-  const currentBid = product?.currentBid ?? product?.startingPrice ?? 0;
-  const startingPrice = product?.startingPrice ?? 0;
-  const bidStep = product?.stepPrice ?? calculateBidStep(startingPrice);
-
-  const countdownTarget =
-    effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
-      ? effectiveStartTime
-      : effectiveEndTime;
-  const displayCurrentBid = liveState?.currentHighestBid ?? currentBid;
-  const isTimedBlind =
-    product?.auctionMode === "TIMED" &&
-    !isAuctionEnded &&
-    Boolean(liveState?.priceHidden ?? true);
-  const sellerCanEnter = isSellerOfProduct;
-  const canEnterBidding = sellerCanEnter || eligibility?.alreadyDeposited;
-
   if (loading) {
     return (
       <main className="min-h-screen bg-surface-container-lowest text-on-surface">
@@ -156,25 +136,59 @@ export default function AuctionRoomPage() {
     );
   }
 
+  const images = product.imageUrls?.length
+    ? product.imageUrls.map((url) => getProductImage(url))
+    : [getProductImage(product.imageUrl)];
+
+  const currentBid = product.currentBid ?? product.startingPrice ?? 0;
+  const startingPrice = product.startingPrice ?? 0;
+  const bidStep = calculateBidStep(startingPrice);
+  const displayCurrentBid = liveState?.currentHighestBid ?? currentBid;
+  const auctionMode = product.auctionMode === "TIMED" ? "TIMED" : "LIVE";
+  const isTimedBlind =
+    auctionMode === "TIMED" &&
+    !isAuctionEnded &&
+    Boolean(liveState?.priceHidden ?? true);
+  const sellerCanEnter = isSellerOfProduct;
+  const canBid = sellerCanEnter || eligibility?.alreadyDeposited;
+  const countdownTarget =
+    effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
+      ? effectiveStartTime
+      : effectiveEndTime;
+
   if (auctionStatus === "UPCOMING") {
+    const upcomingStart = effectiveStartTime ?? product.auction?.startTime ?? null;
     return (
-      <main className="min-h-screen bg-surface-container-lowest text-on-surface">
+      <main className="min-h-screen luxe-page text-[#f5ead9]">
         <TopNav />
         <div className="mx-auto max-w-screen-2xl px-margin-mobile py-xl md:px-margin-desktop">
-          <div className="rounded-lg border border-secondary/40 bg-secondary-container/20 p-md">
-            <h2 className="font-headline-md text-headline-md text-primary">{t("roomNotOpenTitle")}</h2>
-            <p className="mt-sm text-on-surface-variant">
+          <div className="rounded-2xl border border-[#d4aa61]/40 bg-[#0e0d0b] p-md sm:p-lg">
+            <h2 className="text-2xl font-semibold text-[#f5ead9]">{t("roomNotOpenTitle")}</h2>
+            <p className="mt-sm text-[#b7aea3]">
               {t("roomNotOpenDesc", { productName: product.productName, startTime: formatDateTime(product.auction?.startTime) })}
             </p>
-            <p className="mt-sm text-on-surface-variant">
-              {t("roomNotOpenReturn")}
-            </p>
-            <Link
-              href="/upcoming"
-              className="mt-md inline-block rounded-md bg-primary px-md py-sm text-on-primary hover:opacity-90"
-            >
-              {t("btnUpcomingAuctions")}
-            </Link>
+            {upcomingStart && (
+              <AuctionCountdownPanel
+                endsAt={upcomingStart}
+                mode="upcoming"
+                auctionMode={product.auctionMode}
+              />
+            )}
+            <p className="mt-md text-sm text-[#9d948a]">{t("roomNotOpenReturn")}</p>
+            <div className="mt-md flex flex-wrap gap-3">
+              <Link
+                href={`/auctions/${productId}`}
+                className="inline-block rounded-md border border-[#d4aa61]/50 px-md py-sm text-[#efcf88] hover:bg-[#d4aa61]/10"
+              >
+                {t("btnViewProductDetail")}
+              </Link>
+              <Link
+                href="/upcoming"
+                className="inline-block rounded-md bg-[#c99a4b] px-md py-sm font-semibold text-[#100d08] hover:brightness-110"
+              >
+                {t("btnUpcomingAuctions")}
+              </Link>
+            </div>
           </div>
         </div>
       </main>
@@ -196,7 +210,7 @@ export default function AuctionRoomPage() {
               </span>
             )}
             <span className="font-label-md text-label-md uppercase tracking-widest">
-              {isAuctionEnded ? "Phiên đấu giá đã kết thúc" : t("liveBanner")}
+              {isAuctionEnded ? t("sessionEnded") : t("liveBanner")}
             </span>
           </div>
           <Link
@@ -257,19 +271,22 @@ export default function AuctionRoomPage() {
               {isTimedBlind && (
                 <p className="mt-1 text-xs text-on-surface-variant">{t("timedBlindPriceHint")}</p>
               )}
-              {!isAuctionEnded && (
-                <div className="mt-sm flex items-center gap-sm">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant">
-                    {effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
-                      ? "Bắt đầu sau"
-                      : t("timeRemaining")}
-                  </span>
-                  <CountdownTimer
-                    key={countdownTarget ?? "no-timer"}
-                    endsAt={countdownTarget}
-                    variant={product.auctionMode === "TIMED" ? "timed" : "live"}
-                  />
-                </div>
+              {!isAuctionEnded && countdownTarget && (
+                <AuctionCountdownPanel
+                  key={countdownTarget ?? "no-timer"}
+                  endsAt={countdownTarget}
+                  mode={
+                    effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
+                      ? "upcoming"
+                      : "live"
+                  }
+                  label={
+                    effectiveStartTime && new Date(effectiveStartTime).getTime() > Date.now()
+                      ? tCountdown("startsIn")
+                      : t("timeRemaining")
+                  }
+                  auctionMode={product.auctionMode}
+                />
               )}
             </div>
 
@@ -281,55 +298,65 @@ export default function AuctionRoomPage() {
                 winnerUsername={liveState?.winnerUsername}
                 winnerUserId={liveState?.currentWinnerUserId}
                 paymentStatus={liveState?.paymentStatus}
+                paymentDeadline={liveState?.paymentDeadline}
               />
-            ) : isSellerOfProduct ? (
-              <div className="rounded-lg border border-tertiary/30 bg-tertiary-container/20 p-md">
-                <p className="font-label-md text-label-md text-primary">{t("sellerBannerTitle")}</p>
-                <p className="mt-xs text-sm text-on-surface-variant">
-                  {t("sellerBannerDesc")}
-                </p>
-              </div>
-            ) : canEnterBidding ? (
-              <BidPanel
-                auctionId={auctionId!}
-                currentBid={displayCurrentBid}
-                startingPrice={startingPrice}
-                bidStep={bidStep}
-                auctionMode={product.auctionMode === "TIMED" ? "TIMED" : "LIVE"}
-                canBid={true}
-                onBidPlaced={() => {
-                  getProductDetail(params.id).then((p) => setProduct(p)).catch(() => {});
-                }}
-              />
-            ) : hasToken && eligibility?.kycVerified === false ? (
-              <div className="rounded-lg border border-secondary/40 bg-secondary-container/20 p-md space-y-sm">
-                <div className="flex items-center gap-xs">
-                  <span className="material-symbols-outlined text-secondary">verified_user</span>
-                  <p className="font-label-md text-label-md text-primary">{t("kycRequiredTitle")}</p>
-                </div>
-                <p className="text-sm text-on-surface-variant">
-                  {t("kycRequiredDesc")}
-                </p>
-                <Link
-                  href="/kyc"
-                  className="block rounded-md bg-secondary px-md py-sm text-center text-on-secondary hover:bg-secondary-fixed-dim"
-                >
-                  {t("btnGoToKyc")}
-                </Link>
-              </div>
             ) : (
-              <div className="rounded-lg border border-outline-variant bg-surface p-md space-y-sm">
-                <p className="font-label-md text-label-md text-primary">{t("depositRequiredTitle")}</p>
-                <p className="text-sm text-on-surface-variant">
-                  {t("depositRequiredDesc")}
-                </p>
-                <Link
-                  href={`/auctions/${productId}`}
-                  className="block rounded-md bg-primary px-md py-sm text-center text-on-primary hover:opacity-90"
-                >
-                  {t("btnGoToDeposit")}
-                </Link>
-              </div>
+              <>
+                {auctionId && !isTimedBlind && <LiveBidActivity auctionId={auctionId} />}
+
+                {isSellerOfProduct ? (
+                  <div className="rounded-lg border border-tertiary/30 bg-tertiary-container/20 p-md">
+                    <p className="font-label-md text-label-md text-primary">{t("sellerBannerTitle")}</p>
+                    <p className="mt-xs text-sm text-on-surface-variant">
+                      {t("sellerBannerDesc")}
+                    </p>
+                  </div>
+                ) : canBid ? (
+                  <BidPanel
+                    auctionId={auctionId!}
+                    currentBid={displayCurrentBid}
+                    startingPrice={startingPrice}
+                    bidStep={bidStep}
+                    auctionMode={product.auctionMode === "TIMED" ? "TIMED" : "LIVE"}
+                    canBid={true}
+                    onBidPlaced={() => {
+                      getProductDetail(params.id).then((p) => setProduct(p)).catch(() => {});
+                    }}
+                  />
+                ) : hasToken && eligibility?.kycVerified === false ? (
+                  <div className="rounded-lg border border-secondary/40 bg-secondary-container/20 p-md space-y-sm">
+                    <div className="flex items-center gap-xs">
+                      <span className="material-symbols-outlined text-secondary">verified_user</span>
+                      <p className="font-label-md text-label-md text-primary">{t("kycRequiredTitle")}</p>
+                    </div>
+                    <p className="text-sm text-on-surface-variant">
+                      {t("kycRequiredDesc")}
+                    </p>
+                    <Link
+                      href="/kyc"
+                      className="block rounded-md bg-secondary px-md py-sm text-center text-on-secondary hover:bg-secondary-fixed-dim"
+                    >
+                      {t("btnGoToKyc")}
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-outline-variant bg-surface p-md space-y-sm">
+                    <div className="flex items-center gap-xs">
+                      <span className="material-symbols-outlined text-error">visibility</span>
+                      <p className="font-label-md text-label-md text-primary">{t("spectatorTitle")}</p>
+                    </div>
+                    <p className="text-sm text-on-surface-variant">
+                      {t("spectatorDesc")}
+                    </p>
+                    <Link
+                      href={`/auctions/${productId}`}
+                      className="block rounded-md bg-primary px-md py-sm text-center text-on-primary hover:opacity-90"
+                    >
+                      {t("btnGoToDeposit")}
+                    </Link>
+                  </div>
+                )}
+              </>
             )}
 
             {auctionId && (
@@ -343,24 +370,9 @@ export default function AuctionRoomPage() {
 
           {/* Right: Live chat */}
           <div className="lg:sticky lg:top-md lg:self-start lg:max-h-[calc(100vh-2rem)]">
-            <div className="flex h-[600px] lg:h-[calc(100vh-2rem)] flex-col rounded-lg border border-outline-variant bg-surface overflow-hidden">
-              <div className="flex items-center justify-between border-b border-outline-variant px-md py-sm">
-                <div className="flex items-center gap-sm">
-                  <span className="material-symbols-outlined text-secondary">forum</span>
-                  <h3 className="font-headline-sm text-headline-sm text-primary">{t("chatRoomTitle")}</h3>
-                </div>
-                <span className="rounded-full bg-tertiary-container px-2 py-0.5 text-[10px] font-bold uppercase text-on-tertiary-container">
-                  {t("chatLive")}
-                </span>
-              </div>
-              <div className="flex-1 min-h-0 p-md overflow-y-auto">
-                <div className="text-center text-sm text-on-surface-variant py-xl">
-                  <span className="material-symbols-outlined text-4xl block mb-sm text-secondary">forum</span>
-                  <p className="font-label-md text-label-md text-primary">{t("chatLiveRoom")}</p>
-                  <p className="mt-xs">{t("chatComingSoon")}</p>
-                </div>
-              </div>
-            </div>
+            {auctionId ? (
+              <AuctionRoomChat auctionId={auctionId} endTime={effectiveEndTime} />
+            ) : null}
           </div>
         </div>
       </div>

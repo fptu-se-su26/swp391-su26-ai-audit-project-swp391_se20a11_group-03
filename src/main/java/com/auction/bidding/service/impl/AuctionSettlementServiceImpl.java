@@ -1,10 +1,12 @@
 package com.auction.bidding.service.impl;
 
 import com.auction.account.dao.UserRepository;
+import com.auction.account.service.UserPaymentStrikeService;
 import com.auction.bidding.entity.Auction;
 import com.auction.bidding.entity.AuctionDeposit;
 import com.auction.bidding.repository.AuctionDepositRepository;
 import com.auction.bidding.repository.AuctionRepository;
+import com.auction.bidding.repository.BidRepository;
 import com.auction.bidding.service.AuctionSettlementService;
 import com.auction.notification.entity.Notification;
 import com.auction.notification.service.NotificationService;
@@ -33,14 +35,21 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
     /** How long the winner has to pay after the auction ends (3 days). */
     public static final long PAYMENT_WINDOW_HOURS = 72L;
 
+    private enum RescheduleReason {
+        NO_BIDS,
+        WINNER_NO_PAY
+    }
+
     private final AuctionRepository auctionRepository;
     private final AuctionDepositRepository auctionDepositRepository;
+    private final BidRepository bidRepository;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final NotificationService notificationService;
     private final ContractService contractService;
+    private final UserPaymentStrikeService userPaymentStrikeService;
 
     @Override
     @Transactional
@@ -62,14 +71,16 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
             if (auction.getEndTime() == null || auction.getEndTime().isAfter(now)) {
                 continue;
             }
-            if (auction.getCurrentWinnerUser() == null) {
-                // Nobody bid — just mark ended with no winner
+            long bidCount = bidRepository.findByAuctionIdOrderByBidAmountDesc(auction.getAuctionId()).size();
+            boolean noWinner = bidCount == 0 || auction.getCurrentWinnerUser() == null;
+            if (noWinner) {
                 auction.setStatus("ENDED");
                 auction.setPaymentStatus("NO_WINNER");
                 auction.setSettledAt(now);
                 auctionRepository.save(auction);
-                // Refund everyone who deposited
                 refundAllDeposits(auction, now);
+                notifyDepositorsRefunded(auction, true);
+                queueProductForReschedule(auction, RescheduleReason.NO_BIDS);
                 count++;
                 continue;
             }
@@ -130,7 +141,11 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
             auction.setSettledAt(now);
             auctionRepository.save(auction);
 
-            queueProductForRelist(auction);
+            notifyWinnerForfeited(auction);
+            userPaymentStrikeService.recordForfeit(
+                    auction.getCurrentWinnerUser(),
+                    auction.getAuctionId());
+            queueProductForReschedule(auction, RescheduleReason.WINNER_NO_PAY);
             count++;
         }
         return count;
@@ -196,11 +211,29 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
         );
     }
 
+    private void notifyWinnerForfeited(Auction auction) {
+        if (auction.getCurrentWinnerUser() == null) {
+            return;
+        }
+        Product product = auction.getProduct();
+        String productName = product != null ? product.getProductName() : "sản phẩm";
+        notificationService.createNotification(
+                (long) auction.getCurrentWinnerUser().getId(),
+                "Quá hạn thanh toán",
+                String.format(
+                        "Sản phẩm \"%s\" đã quá hạn thanh toán. Tiền cọc của bạn sẽ không được hoàn.",
+                        productName),
+                Notification.NotificationType.PAYMENT_REQUIRED,
+                auction.getAuctionId(),
+                "AUCTION_FORFEITED"
+        );
+    }
+
     /**
-     * Winner did not pay in time — put the product back on the admin approval queue.
-     * Starting price is unchanged; admin can schedule a new auction session on approve.
+     * No winner or winner did not pay — put the product back on the admin/staff approval queue.
+     * Starting price is unchanged; staff can schedule a new auction session on approve.
      */
-    private void queueProductForRelist(Auction auction) {
+    private void queueProductForReschedule(Auction auction, RescheduleReason reason) {
         Product product = auction.getProduct();
         if (product == null) {
             return;
@@ -208,37 +241,59 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
         product.setStatus("PENDING");
         product.setScheduledStartTime(null);
         product.setScheduledDurationSeconds(null);
-        product.setRejectionReason(
-                "Người thắng không thanh toán trong 3 ngày. Chờ admin duyệt đấu giá lại (giá khởi điểm giữ nguyên).");
+        if (reason == RescheduleReason.NO_BIDS) {
+            product.setRejectionReason(
+                    "Phiên đấu giá kết thúc không có lượt đặt giá (hoặc chỉ có người đặt cọc). "
+                            + "Chờ admin/staff lên lịch đấu giá lại — giá khởi điểm giữ nguyên.");
+        } else {
+            product.setRejectionReason(
+                    "Người thắng không thanh toán trong 3 ngày. Chờ admin duyệt đấu giá lại (giá khởi điểm giữ nguyên).");
+        }
         productRepository.save(product);
 
-        contractService.deletePurchaseContract(auction.getAuctionId());
+        if (reason == RescheduleReason.WINNER_NO_PAY) {
+            contractService.deletePurchaseContract(auction.getAuctionId());
+        }
 
         long startingPrice = product.getStartingPrice() != null ? product.getStartingPrice() : 0L;
-        String title = "Sản phẩm chờ đấu giá lại";
-        String message = String.format(
-                "Phiên đấu giá #%d — \"%s\": người thắng không thanh toán đúng hạn. "
-                        + "Sản phẩm đã vào hàng chờ duyệt với giá khởi điểm %,d VND.",
-                auction.getAuctionId(),
-                product.getProductName(),
-                startingPrice);
+        String title = reason == RescheduleReason.NO_BIDS
+                ? "Sản phẩm chờ lên sàn lại (không có giá)"
+                : "Sản phẩm chờ đấu giá lại";
+        String staffMessage = reason == RescheduleReason.NO_BIDS
+                ? String.format(
+                        "Phiên #%d — \"%s\": kết thúc không có lượt đặt giá. "
+                                + "Tiền cọc đã hoàn cho người tham gia. Vui lòng lên lịch đấu giá lại (giá khởi điểm %,d VND).",
+                        auction.getAuctionId(),
+                        product.getProductName(),
+                        startingPrice)
+                : String.format(
+                        "Phiên đấu giá #%d — \"%s\": người thắng không thanh toán đúng hạn. "
+                                + "Sản phẩm đã vào hàng chờ duyệt với giá khởi điểm %,d VND.",
+                        auction.getAuctionId(),
+                        product.getProductName(),
+                        startingPrice);
 
-        notifyRoleUsers("Admin", title, message, product.getProductId());
-        notifyRoleUsers("Staff", title, message, product.getProductId());
+        notifyRoleUsers("Admin", title, staffMessage, product.getProductId());
+        notifyRoleUsers("Staff", title, staffMessage, product.getProductId());
 
         if (product.getSellerId() != null) {
+            String sellerMessage = reason == RescheduleReason.NO_BIDS
+                    ? "Sản phẩm \"" + product.getProductName()
+                    + "\" đã kết thúc phiên mà không có lượt đặt giá. "
+                    + "Sản phẩm đang chờ admin/staff lên lịch đấu giá lại (giá khởi điểm giữ nguyên)."
+                    : "Sản phẩm \"" + product.getProductName()
+                    + "\" đã vào hàng chờ duyệt đấu giá lại (giá khởi điểm giữ nguyên).";
             notificationService.createNotification(
                     product.getSellerId().longValue(),
                     title,
-                    "Sản phẩm \"" + product.getProductName()
-                            + "\" đã vào hàng chờ duyệt đấu giá lại (giá khởi điểm giữ nguyên).",
+                    sellerMessage,
                     Notification.NotificationType.GENERAL,
                     product.getProductId(),
                     "PRODUCT_RELIST"
             );
         }
 
-        if (auction.getCurrentWinnerUser() != null) {
+        if (reason == RescheduleReason.WINNER_NO_PAY && auction.getCurrentWinnerUser() != null) {
             notificationService.createNotification(
                     (long) auction.getCurrentWinnerUser().getId(),
                     "Đã hết hạn thanh toán",
@@ -247,6 +302,33 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
                     Notification.NotificationType.GENERAL,
                     auction.getAuctionId(),
                     "AUCTION_FORFEIT"
+            );
+        }
+    }
+
+    private void notifyDepositorsRefunded(Auction auction, boolean noWinnerSession) {
+        Product product = auction.getProduct();
+        String productName = product != null ? product.getProductName() : "sản phẩm";
+        List<AuctionDeposit> deposits = auctionDepositRepository.findByAuction_AuctionId(auction.getAuctionId());
+        for (AuctionDeposit deposit : deposits) {
+            if (deposit.getUser() == null) {
+                continue;
+            }
+            if (!"REFUNDED".equalsIgnoreCase(deposit.getSettlementType())) {
+                continue;
+            }
+            String message = noWinnerSession
+                    ? "Phiên đấu giá \"" + productName
+                    + "\" đã kết thúc không có người thắng. Tiền cọc của bạn đã được hoàn về ví."
+                    : "Phiên đấu giá \"" + productName
+                    + "\" đã kết thúc. Tiền cọc của bạn đã được hoàn về ví.";
+            notificationService.createNotification(
+                    (long) deposit.getUser().getId(),
+                    "Hoàn tiền cọc",
+                    message,
+                    Notification.NotificationType.GENERAL,
+                    auction.getAuctionId(),
+                    "DEPOSIT_REFUND"
             );
         }
     }

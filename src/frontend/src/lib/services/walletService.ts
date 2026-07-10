@@ -5,6 +5,7 @@ export type Wallet = {
   userId: number;
   balance: number;
   holdBalance: number;
+  availableBalance?: number;
   status: string;
 };
 
@@ -58,6 +59,31 @@ export function createWithdrawal(payload: WithdrawPayload) {
 
 export function getMyWithdrawals() {
   return apiClient<Withdrawal[]>("/wallet/withdrawals");
+}
+
+export type WalletTransaction = {
+  transactionId: number;
+  walletId: number | null;
+  userId: number | null;
+  userName: string;
+  transactionType: string;
+  transactionTypeLabel: string;
+  amount: number;
+  signedAmount: number;
+  direction: "CREDIT" | "DEBIT";
+  status: string;
+  referenceCode: string | null;
+  description: string | null;
+  createdAt: string | null;
+};
+
+export function getMyTransactions(params?: { from?: string; to?: string; type?: string }) {
+  const search = new URLSearchParams();
+  if (params?.from) search.set("from", params.from);
+  if (params?.to) search.set("to", params.to);
+  if (params?.type) search.set("type", params.type);
+  const query = search.toString();
+  return apiClient<WalletTransaction[]>(`/wallet/transactions${query ? `?${query}` : ""}`);
 }
 
 export function getWithdrawals(status = "PENDING") {

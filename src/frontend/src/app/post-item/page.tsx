@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/post-item/DashboardLayout";
 import SellerAccessRequired from "@/components/post-item/SellerAccessRequired";
+import { GoldButton, OutlineButton } from "@/components/luxe/primitives";
 import { StoredUser, getStoredUser, subscribeStoredUser } from "@/lib/userSession";
 import {
   getCategories,
@@ -14,6 +15,7 @@ import {
   type CategorySummary,
   type CategoryAttribute,
 } from "@/lib/services/productService";
+import { parseVndAmount } from "@/lib/money";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { useKycStatus } from "@/lib/hooks/useKycStatus";
 
@@ -204,6 +206,7 @@ export default function PostItemPage() {
       formData.categoryId !== "" &&
       formData.itemDescription.trim() !== "" &&
       formData.estimatedValue !== "" &&
+      parseVndAmount(formData.estimatedValue) > 0 &&
       imageFiles.length > 0 &&
       !submitting &&
       !startTimeError &&
@@ -223,7 +226,7 @@ export default function PostItemPage() {
           body: JSON.stringify({
             productName: formData.productName,
             description: formData.itemDescription,
-            startingPrice: Number(formData.estimatedValue) || 0,
+            startingPrice: parseVndAmount(formData.estimatedValue) || 0,
           }),
         }
       );
@@ -275,7 +278,7 @@ export default function PostItemPage() {
         productName: formData.productName.trim(),
         categoryId: Number(formData.categoryId),
         description: formData.itemDescription.trim(),
-        startingPrice: Number(formData.estimatedValue),
+        startingPrice: parseVndAmount(formData.estimatedValue),
         images: urls.map((u, i) => ({ imageUrl: u, isPrimary: i === 0 })),
         attributes: Object.entries(attributeValues)
           .filter(([, v]) => v.trim() !== "")
@@ -377,26 +380,19 @@ export default function PostItemPage() {
     <DashboardLayout>
       {kyc.status === "unverified" && !isAdmin && (
         <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto">
-          <div className="rounded-xl border border-secondary/30 bg-secondary-container/40 p-lg">
-            <h2 className="font-headline-md text-headline-md text-on-secondary-container">
-              {t("kycRequiredTitle")}
-            </h2>
-            <p className="mt-sm font-body-md text-body-md text-on-secondary-container">
-              {t("kycRequiredDesc")}
-            </p>
-            <div className="mt-md flex flex-wrap gap-sm">
-              <Link
-                href="/kyc"
-                className="inline-flex items-center gap-xs rounded-lg bg-secondary px-md py-sm font-label-md text-label-md text-on-secondary hover:bg-secondary-fixed-dim"
-              >
-                {t("kycRequiredCta")}
-              </Link>
-              <Link
-                href="/profile"
-                className="inline-flex items-center gap-xs rounded-lg border border-secondary/40 bg-surface px-md py-sm font-label-md text-label-md text-secondary hover:bg-secondary-container/40"
-              >
-                {t("kycRequiredProfile")}
-              </Link>
+          <div className="rounded-2xl border border-[#d4aa61]/30 bg-[#0e0d0b] p-6 shadow-[0_18px_50px_rgba(0,0,0,.35)]">
+            <div className="flex items-start gap-4">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[#d4aa61]/25 bg-[#d4aa61]/10 text-[#f0d98b]">
+                <span className="material-symbols-outlined text-[22px]">verified_user</span>
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg font-semibold text-[#f5ead9]">{t("kycRequiredTitle")}</h2>
+                <p className="mt-2 text-sm leading-6 text-[#b7aea3]">{t("kycRequiredDesc")}</p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <GoldButton href="/kyc">{t("kycRequiredCta")}</GoldButton>
+                  <OutlineButton href="/profile">{t("kycRequiredProfile")}</OutlineButton>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -518,10 +514,10 @@ export default function PostItemPage() {
                     {t("startingBidPrice")}
                   </label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     required
-                    min={0}
-                    placeholder={t("enterAmount")}
+                    placeholder="2.000.000"
                     value={formData.estimatedValue}
                     onChange={(e) => setFormData({ ...formData, estimatedValue: e.target.value })}
                     className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none"

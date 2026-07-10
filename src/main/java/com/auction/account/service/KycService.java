@@ -1,11 +1,17 @@
 package com.auction.account.service;
 
+import com.auction.account.dao.RoleRepository;
 import com.auction.account.dao.UserRepository;
 import com.auction.account.dto.CccdDuplicateInfo;
 import com.auction.account.dto.KycSubmissionResponse;
 import com.auction.account.entity.KycProfile;
+import com.auction.account.entity.Role;
 import com.auction.account.entity.User;
 import com.auction.common.service.ImageForensicsService;
+import com.auction.notification.entity.Notification;
+import com.auction.notification.service.NotificationService;
+import com.auction.product.entity.Contract;
+import com.auction.product.service.ContractService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -35,9 +41,12 @@ public class KycService {
 
     private final JdbcTemplate jdbcTemplate;
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final ResourceLoader resourceLoader;
     private final ImageForensicsService imageForensicsService;
     private final CccdOcrService cccdOcrService;
+    private final ContractService contractService;
+    private final NotificationService notificationService;
 
     @Value("${app.kyc.upload-dir:#{systemProperties['user.dir']}/src/main/resources/static/uploads/kyc}")
     private String uploadDir;
@@ -45,13 +54,17 @@ public class KycService {
     @Value("${app.kyc.public-prefix:/uploads/kyc}")
     private String publicPrefix;
 
-    public KycService(JdbcTemplate jdbcTemplate, UserRepository userRepository, ResourceLoader resourceLoader,
-                      ImageForensicsService imageForensicsService, CccdOcrService cccdOcrService) {
+    public KycService(JdbcTemplate jdbcTemplate, UserRepository userRepository, RoleRepository roleRepository,
+                      ResourceLoader resourceLoader, ImageForensicsService imageForensicsService, CccdOcrService cccdOcrService,
+                      ContractService contractService, NotificationService notificationService) {
         this.jdbcTemplate = jdbcTemplate;
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.resourceLoader = resourceLoader;
         this.imageForensicsService = imageForensicsService;
         this.cccdOcrService = cccdOcrService;
+        this.contractService = contractService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -66,7 +79,8 @@ public class KycService {
             String issuePlace,
             MultipartFile frontImage,
             MultipartFile backImage,
-            MultipartFile selfieImage
+            MultipartFile selfieImage,
+            boolean signSellerAgreement
     ) throws IOException {
         if (userId == null) {
             throw new IllegalArgumentException("Missing user id");
@@ -83,6 +97,13 @@ public class KycService {
 
         User user = userRepository.findById(Math.toIntExact(userId))
                 .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
+
+        boolean isSeller = user.getRole() != null
+                && "Seller".equalsIgnoreCase(user.getRole().getRoleName());
+        if (isSeller && !signSellerAgreement && !contractService.hasSellerContract(userId)) {
+            throw new IllegalArgumentException(
+                    "Người bán cần đồng ý hợp đồng nền tảng trước khi gửi hồ sơ KYC.");
+        }
 
         String frontUrl = saveImage(frontImage, "front");
         String backUrl = saveImage(backImage, "back");
@@ -106,11 +127,33 @@ public class KycService {
                 "PENDING_IDENTITY_VERIFY", userId
         );
 
+        if (signSellerAgreement && !contractService.hasSellerContract(userId)) {
+            if (!isSeller) {
+                Role sellerRole = roleRepository.findByRoleName("Seller")
+                        .orElseThrow(() -> new IllegalArgumentException("Seller role not found"));
+                user.setRole(sellerRole);
+                userRepository.save(user);
+                isSeller = true;
+            }
+            Contract contract = contractService.signSellerContract(userId);
+            List<User> staff = userRepository.findAllByRole_RoleName("Staff");
+            for (User s : staff) {
+                notificationService.createNotification(
+                        s.getUserId(),
+                        "Hợp đồng seller mới chờ duyệt",
+                        "Seller " + user.getFullName() + " (" + user.getEmail()
+                                + ") đã gửi KYC và hợp đồng nền tảng đang chờ duyệt.",
+                        Notification.NotificationType.GENERAL,
+                        contract.getContractId(),
+                        "SELLER_CONTRACT");
+            }
+        }
+
         Long kycId = jdbcTemplate.queryForObject(
                 "SELECT TOP 1 KycId FROM KycProfiles WHERE UserId = ? ORDER BY SubmittedAt DESC",
                 Long.class, userId
         );
-        return loadById(kycId);
+        return loadByIdForUser(kycId);
     }
 
     public Optional<KycSubmissionResponse> getMyLatest(Long userId) {
@@ -127,7 +170,7 @@ public class KycService {
                 (rs, rowNum) -> mapRow(rs),
                 userId
         );
-        return list.isEmpty() ? Optional.empty() : Optional.of(enrich(list.get(0)));
+        return list.isEmpty() ? Optional.empty() : Optional.of(enrichForUser(list.get(0)));
     }
 
     public List<KycSubmissionResponse> listByStatus(String status) {
@@ -141,8 +184,8 @@ public class KycService {
                 + (status != null && !status.isBlank() ? "WHERE k.Status = ? " : "")
                 + "ORDER BY k.SubmittedAt DESC";
         return status != null && !status.isBlank()
-                ? jdbcTemplate.query(sql, (rs, rowNum) -> enrich(mapRow(rs)), status)
-                : jdbcTemplate.query(sql, (rs, rowNum) -> enrich(mapRow(rs)));
+                ? jdbcTemplate.query(sql, (rs, rowNum) -> enrichForStaff(mapRow(rs)), status)
+                : jdbcTemplate.query(sql, (rs, rowNum) -> enrichForStaff(mapRow(rs)));
     }
 
     @Transactional
@@ -188,6 +231,11 @@ public class KycService {
             String verifiedPhone = (String) kyc.get("Phone");
             String verifiedCccd = (String) kyc.get("CccdNumber");
 
+            if (!cccdOcrService.findDuplicateAccounts(verifiedCccd, userId.longValue()).isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Không thể duyệt: số CCCD này đã được đăng ký trên tài khoản khác.");
+            }
+
             // Mirror the approval onto Users so the rest of the app can read
             // identityVerified off the user row without joining KycProfiles.
             jdbcTemplate.update(
@@ -215,6 +263,14 @@ public class KycService {
     }
 
     private KycSubmissionResponse loadById(Long kycId) {
+        return loadById(kycId, true);
+    }
+
+    private KycSubmissionResponse loadByIdForUser(Long kycId) {
+        return loadById(kycId, false);
+    }
+
+    private KycSubmissionResponse loadById(Long kycId, boolean forStaff) {
         List<KycSubmissionResponse> list = jdbcTemplate.query(
                 "SELECT k.KycId, k.UserId, k.FullName, k.Phone, k.CccdNumber, k.Dob, k.Gender, "
                         + "k.IssueDate, k.IssuePlace, k.FrontImageUrl, k.BackImageUrl, k.SelfieImageUrl, "
@@ -230,10 +286,14 @@ public class KycService {
         if (list.isEmpty()) {
             throw new IllegalArgumentException("KYC submission not found");
         }
-        return enrich(list.get(0));
+        return forStaff ? enrichForStaff(list.get(0)) : enrichForUser(list.get(0));
     }
 
-    private KycSubmissionResponse enrich(KycSubmissionResponse response) {
+    private KycSubmissionResponse enrichForUser(KycSubmissionResponse response) {
+        return response;
+    }
+
+    private KycSubmissionResponse enrichForStaff(KycSubmissionResponse response) {
         if (response == null || response.getCccdNumber() == null || response.getCccdNumber().isBlank()) {
             return response;
         }

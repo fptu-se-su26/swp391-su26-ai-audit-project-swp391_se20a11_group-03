@@ -3,46 +3,49 @@ import { ADMIN_HOME } from "@/lib/roleRouting";
 export type AdminNavItem = {
   href: string;
   icon: string;
-  label: string;
+  labelKey: string;
 };
 
 export type AdminNavGroup = {
-  title: string;
+  titleKey: string;
   items: AdminNavItem[];
 };
 
 export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   {
-    title: "Vận hành",
+    titleKey: "groupOperations",
     items: [
-      { href: "/staff/approvals", icon: "task_alt", label: "Duyệt sản phẩm" },
-      { href: "/staff/kyc-review", icon: "badge", label: "Duyệt KYC" },
-      { href: "/staff/withdrawals", icon: "payments", label: "Duyệt rút tiền" },
+      { href: "/staff/approvals", icon: "task_alt", labelKey: "approveProducts" },
+      { href: "/staff/kyc-review", icon: "badge", labelKey: "approveKyc" },
+      { href: "/staff/withdrawals", icon: "payments", labelKey: "approveWithdrawals" },
+      { href: "/staff/support", icon: "support_agent", labelKey: "supportInbox" },
     ],
   },
   {
-    title: "Đấu giá",
+    titleKey: "groupAuctions",
     items: [
-      { href: "/admin/auction-history", icon: "live_tv", label: "Tất cả phiên" },
-      { href: "/admin/auction-history?payment=PAID", icon: "check_circle", label: "Đã thanh toán" },
-      { href: "/admin/auction-history?payment=UNPAID", icon: "schedule", label: "Chưa thanh toán" },
-      { href: "/admin/sales-history", icon: "receipt_long", label: "Lịch sử mua bán" },
+      { href: "/admin/auction-history", icon: "live_tv", labelKey: "allSessions" },
+      { href: "/admin/auction-history?payment=PAID", icon: "check_circle", labelKey: "paidSessions" },
+      { href: "/admin/auction-history?payment=UNPAID", icon: "schedule", labelKey: "unpaidSessions" },
+      { href: "/admin/sales-history", icon: "receipt_long", labelKey: "salesHistory" },
+      { href: "/admin/featured-products", icon: "star", labelKey: "featuredProducts" },
     ],
   },
   {
-    title: "Tài chính & pháp lý",
+    titleKey: "groupFinance",
     items: [
-      { href: "/admin/revenue", icon: "trending_up", label: "Thống kê doanh thu" },
-      { href: "/admin/contracts", icon: "contract", label: "Hợp đồng điện tử" },
+      { href: "/admin/revenue", icon: "trending_up", labelKey: "revenueStats" },
+      { href: "/admin/wallet-ledger", icon: "account_balance_wallet", labelKey: "walletLedger" },
+      { href: "/admin/contracts", icon: "contract", labelKey: "contracts" },
     ],
   },
   {
-    title: "Quản trị hệ thống",
+    titleKey: "groupSystem",
     items: [
-      { href: "/admin/users", icon: "manage_accounts", label: "Người dùng & vai trò" },
-      { href: "/admin/categories", icon: "category", label: "Danh mục" },
-      { href: "/admin/bidding-rules", icon: "gavel", label: "Luật đấu giá" },
-      { href: "/admin/audit-logs", icon: "fact_check", label: "Nhật ký hệ thống" },
+      { href: "/admin/users", icon: "manage_accounts", labelKey: "usersRoles" },
+      { href: "/admin/categories", icon: "category", labelKey: "categories" },
+      { href: "/admin/bidding-rules", icon: "gavel", labelKey: "biddingRules" },
+      { href: "/admin/audit-logs", icon: "fact_check", labelKey: "auditLogs" },
     ],
   },
 ];

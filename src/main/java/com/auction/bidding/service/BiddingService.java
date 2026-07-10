@@ -294,6 +294,9 @@ public class BiddingService {
         map.put("userHighestBid", timedBlind ? null : userHighestBid);
         map.put("startingPrice", startingPrice);
         map.put("paymentStatus", auction.getPaymentStatus());
+        if (auction.getPaymentDeadline() != null) {
+            map.put("paymentDeadline", auction.getPaymentDeadline().toString());
+        }
 
         boolean ended = isAuctionEnded(auction);
         if (auction.getEndTime() != null) {
@@ -343,7 +346,18 @@ public class BiddingService {
             map.put("wonDate", auction.getEndTime() != null ? auction.getEndTime().toString() : LocalDateTime.now().toString());
             String paymentStatus = auction.getPaymentStatus();
             map.put("paymentStatus", paymentStatus);
-            map.put("status", "PAID".equalsIgnoreCase(paymentStatus) ? "paid" : "pending_payment");
+            if (auction.getPaymentDeadline() != null) {
+                map.put("paymentDeadline", auction.getPaymentDeadline().toString());
+            }
+            boolean overdue = auction.getPaymentDeadline() != null
+                    && auction.getPaymentDeadline().isBefore(LocalDateTime.now());
+            if ("PAID".equalsIgnoreCase(paymentStatus)) {
+                map.put("status", "paid");
+            } else if ("FORFEITED".equalsIgnoreCase(paymentStatus) || overdue) {
+                map.put("status", "forfeited");
+            } else {
+                map.put("status", "pending_payment");
+            }
             return map;
         }).collect(Collectors.toList());
     }

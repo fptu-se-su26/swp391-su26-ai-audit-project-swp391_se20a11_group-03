@@ -12,12 +12,15 @@ export type AdminUser = {
   email: string;
   phone: string;
   identityNumber: string | null;
+  latestKycCccd?: string | null;
   roleName: string;
   status: string;
   profileStatus: string;
   active: boolean;
   emailVerified: boolean;
   identityVerified: boolean;
+  paymentStrikeCount: number;
+  lockedByPaymentStrikes: boolean;
 };
 
 export type AdminUserStats = Record<string, number>;
@@ -29,8 +32,9 @@ export type AdminCategory = {
   isActive?: boolean;
 };
 
-export async function getAdminUsers() {
-  const response = await apiClient<ApiResponse<AdminUser[]>>("/admin/users");
+export async function getAdminUsers(q?: string) {
+  const query = q?.trim() ? `?q=${encodeURIComponent(q.trim())}` : "";
+  const response = await apiClient<ApiResponse<AdminUser[]>>(`/admin/users${query}`);
   return response.data;
 }
 

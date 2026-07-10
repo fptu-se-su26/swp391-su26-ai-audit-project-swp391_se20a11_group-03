@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import StaffShell from "@/components/layout/StaffShell";
+import PortalShell from "@/components/layout/PortalShell";
 import {
   KycStatus,
   KycSubmission,
@@ -12,8 +12,7 @@ import {
 } from "@/lib/services/kycService";
 import { useTranslations } from "@/i18n/I18nProvider";
 import ProtectedKycImage from "@/components/features/ProtectedKycImage";
-import { SellerContract, getSellerContractByUser } from "@/lib/services/sellerContractService";
-import { resolveApiUrl } from "@/lib/apiClient";
+import { SellerContract, getSellerContractByUser, openSellerContractPdf } from "@/lib/services/sellerContractService";
 
 const STATUS_CFG: Record<KycStatus, { labelKey: string; class: string }> = {
   PENDING: { labelKey: "statusPending", class: "bg-secondary-container text-on-secondary-container" },
@@ -120,7 +119,7 @@ export default function KYCReviewPage() {
   };
 
   return (
-    <StaffShell>
+    <PortalShell>
       <div className="flex h-full">
         <aside className="flex h-full w-80 shrink-0 flex-col border-r border-outline-variant bg-surface-container-low">
           <div className="border-b border-outline-variant p-md">
@@ -257,16 +256,15 @@ export default function KYCReviewPage() {
                     {sellerContract.signedAt ? ` lúc ${dateFormatter.format(new Date(sellerContract.signedAt))}` : ""}.
                     Duyệt KYC đồng nghĩa với chấp thuận hợp đồng này.
                   </p>
-                  {sellerContract.fileUrl && (
-                    <a
-                      href={resolveApiUrl(sellerContract.fileUrl)}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                  {sellerContract?.signed && active?.userId && (
+                    <button
+                      type="button"
+                      onClick={() => openSellerContractPdf(active.userId).catch(() => undefined)}
                       className="mt-sm inline-flex items-center gap-xs rounded-lg border border-secondary/50 bg-surface px-3 py-1.5 font-label-md text-label-md text-secondary hover:bg-secondary-container/30"
                     >
                       <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                       Xem hợp đồng (PDF)
-                    </a>
+                    </button>
                   )}
                 </div>
               )}
@@ -342,7 +340,7 @@ export default function KYCReviewPage() {
           )}
         </section>
       </div>
-    </StaffShell>
+    </PortalShell>
   );
 }
 

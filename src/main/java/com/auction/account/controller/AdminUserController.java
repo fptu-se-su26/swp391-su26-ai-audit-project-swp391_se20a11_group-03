@@ -5,15 +5,19 @@ import com.auction.account.dao.UserRepository;
 import com.auction.account.dto.AdminUserDTO;
 import com.auction.account.entity.Role;
 import com.auction.account.entity.User;
+import com.auction.account.service.UserPaymentStrikeService;
 import com.auction.common.dto.ApiResponse;
 import com.auction.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -28,11 +32,16 @@ public class AdminUserController {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final JdbcTemplate jdbcTemplate;
+    private final UserPaymentStrikeService userPaymentStrikeService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminUserDTO>>> getUsers() {
+    public ResponseEntity<ApiResponse<List<AdminUserDTO>>> getUsers(
+            @RequestParam(name = "q", required = false) String q) {
+        Map<Long, String> latestKycCccd = loadLatestKycCccdByUser();
         List<AdminUserDTO> users = userRepository.findAll().stream()
-                .map(AdminUserDTO::from)
+                .map(user -> AdminUserDTO.from(user, latestKycCccd.get(user.getUserId())))
+                .filter(dto -> matchesSearch(dto, q))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.success(users));
     }
@@ -60,8 +69,14 @@ public class AdminUserController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
         boolean active = Boolean.TRUE.equals(body.get("active"));
+        if (active) {
+            userPaymentStrikeService.applyAdminUnlock(user);
+        }
         user.setActive(active);
         user.setStatus(active ? "ACTIVE" : "LOCKED");
+        if (!active) {
+            user.setLockedByPaymentStrikes(false);
+        }
         userRepository.save(user);
         return ResponseEntity.ok(ApiResponse.success("User status updated", AdminUserDTO.from(user)));
     }
@@ -83,5 +98,60 @@ public class AdminUserController {
         user.setRole(role);
         userRepository.save(user);
         return ResponseEntity.ok(ApiResponse.success("User role updated", AdminUserDTO.from(user)));
+    }
+
+    private Map<Long, String> loadLatestKycCccdByUser() {
+        Map<Long, String> map = new HashMap<>();
+        if (!hasKycProfilesTable()) {
+            return map;
+        }
+        jdbcTemplate.query(
+                "SELECT k.UserId, k.CccdNumber FROM KycProfiles k "
+                        + "INNER JOIN (SELECT UserId, MAX(SubmittedAt) AS MaxSubmitted FROM KycProfiles GROUP BY UserId) latest "
+                        + "ON latest.UserId = k.UserId AND latest.MaxSubmitted = k.SubmittedAt",
+                rs -> {
+                    map.put(rs.getLong("UserId"), rs.getString("CccdNumber"));
+                });
+        return map;
+    }
+
+    private boolean hasKycProfilesTable() {
+        try {
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'KycProfiles'",
+                    Integer.class);
+            return count != null && count > 0;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    private boolean matchesSearch(AdminUserDTO dto, String q) {
+        if (q == null || q.isBlank()) {
+            return true;
+        }
+        String needle = normalizeSearchToken(q);
+        if (needle.isEmpty()) {
+            return true;
+        }
+        return containsNormalized(dto.getFullName(), needle)
+                || containsNormalized(dto.getEmail(), needle)
+                || containsNormalized(dto.getPhone(), needle)
+                || containsNormalized(dto.getIdentityNumber(), needle)
+                || containsNormalized(dto.getLatestKycCccd(), needle);
+    }
+
+    private static String normalizeSearchToken(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.toLowerCase(Locale.ROOT).replaceAll("\\s+", "");
+    }
+
+    private static boolean containsNormalized(String haystack, String needle) {
+        if (haystack == null || haystack.isBlank()) {
+            return false;
+        }
+        return normalizeSearchToken(haystack).contains(needle);
     }
 }

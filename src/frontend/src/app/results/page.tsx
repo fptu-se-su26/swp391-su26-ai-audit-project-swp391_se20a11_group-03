@@ -16,6 +16,7 @@ import {
   searchProducts,
 } from "@/lib/services/productService";
 import { StoredUser, getStoredUser, subscribeStoredUser } from "@/lib/userSession";
+import { displayFont } from "@/components/luxe/theme";
 
 const numberFormatter = new Intl.NumberFormat("vi-VN");
 const dateFormatter = new Intl.DateTimeFormat("vi-VN", {
@@ -29,7 +30,7 @@ export default function ResultsPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-[#eef3f8] text-slate-950">
+        <main className="min-h-screen luxe-page text-[#f5ead9]">
           <TopNav />
         </main>
       }
@@ -127,10 +128,10 @@ function ResultsPageContent() {
     : "TBD";
 
   return (
-    <main className="min-h-screen overflow-x-clip bg-[#eef3f8] text-slate-950">
+    <main className="min-h-screen overflow-x-clip luxe-page text-[#f5ead9]">
       <TopNav />
 
-      <section className="relative isolate overflow-hidden bg-[#071626] text-white">
+      <section className="relative isolate overflow-hidden bg-[#070706] text-white">
         <div className="absolute inset-0 -z-10">
           <Image
             src={heroImage}
@@ -141,27 +142,27 @@ function ResultsPageContent() {
             className="object-cover opacity-20"
             unoptimized
           />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(184,134,11,.28),transparent_30%),radial-gradient(circle_at_12%_84%,rgba(6,78,59,.22),transparent_34%),linear-gradient(135deg,rgba(1,5,15,.95),rgba(8,18,36,.92)_56%,rgba(17,24,39,.94))]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(212,170,97,.28),transparent_32%),radial-gradient(circle_at_12%_84%,rgba(201,154,75,.2),transparent_34%),linear-gradient(135deg,rgba(7,7,6,.95),rgba(16,13,8,.92)_56%,rgba(23,19,13,.94))]" />
           <div className="absolute inset-0 opacity-[.055] [background-image:linear-gradient(rgba(255,255,255,.28)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.28)_1px,transparent_1px)] [background-size:72px_72px]" />
         </div>
 
         <div className="relative mx-auto grid min-h-[500px] max-w-[1440px] items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[.95fr_1.05fr] lg:px-10 lg:py-20">
           <div className="max-w-3xl">
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#d6a84f]/30 bg-white/[.06] px-3 py-2 text-[10px] font-black uppercase tracking-[.22em] text-[#f2d786] backdrop-blur">
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#d4aa61]/30 bg-white/[.06] px-3 py-2 text-[10px] font-black uppercase tracking-[.22em] text-[#efcf88] backdrop-blur">
               <span className="material-symbols-outlined text-[16px]">workspace_premium</span>
               {t("heroLabel")}
             </p>
-            <h1 className="font-display-lg text-[42px] font-black leading-[1.04] tracking-[-.055em] text-transparent bg-clip-text bg-gradient-to-r from-[#fff8df] via-[#d9b55b] to-[#a87918] sm:text-[58px] lg:text-[72px]">
+            <h1 className={`${displayFont} text-[42px] font-semibold leading-[1.08] tracking-[-.02em] text-transparent bg-clip-text bg-gradient-to-r from-[#fff8df] via-[#e7c57c] to-[#9f722d] sm:text-[58px] lg:text-[72px]`}>
               {t("heroTitle")}
             </h1>
-            <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+            <p className="mt-6 max-w-2xl text-base leading-7 text-[#b7aea3] sm:text-lg">
               {t("heroDesc")}
             </p>
             {featuredProduct && (
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href={`/auctions/${featuredProduct.productId}`}
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#b8860b] via-[#d7b55c] to-[#f0d98b] px-6 py-3.5 text-sm font-black text-[#06111f] shadow-[0_18px_40px_rgba(199,160,62,.24)] transition hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] px-6 py-3.5 text-sm font-black text-[#100d08] shadow-[0_18px_40px_rgba(201,154,75,.24)] transition hover:-translate-y-0.5 hover:brightness-110"
                 >
                   {t("viewResultDetails")}
                   <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
@@ -177,8 +178,8 @@ function ResultsPageContent() {
           </div>
 
           {featuredProduct && (
-            <div className="hidden rounded-[30px] border border-white/15 bg-white/[.08] p-3 shadow-[0_30px_80px_rgba(0,0,0,.36)] backdrop-blur-xl md:block">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-[22px] bg-slate-900">
+            <div className="hidden rounded-[30px] border border-white/15 bg-white/[.05] p-3 shadow-[0_30px_80px_rgba(0,0,0,.5)] backdrop-blur-xl md:block">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[22px] bg-[#11100d]">
                 <Image
                   src={heroImage}
                   alt={featuredProduct.productName}
@@ -194,12 +195,12 @@ function ResultsPageContent() {
               </div>
               <div className="mt-5 flex items-center justify-between gap-4 px-2 pb-2 text-white">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#d8bd75]">Market result</p>
-                  <h2 className="mt-1 max-w-[420px] font-display-lg text-2xl font-black tracking-[-.04em]">{featuredProduct.productName}</h2>
+                  <p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#d4aa61]">Market result</p>
+                  <h2 className={`${displayFont} mt-1 max-w-[420px] text-2xl font-medium`}>{featuredProduct.productName}</h2>
                 </div>
                 <div className="shrink-0 text-right">
                   <p className="text-[10px] uppercase tracking-[.14em] text-white/50">{t("finalPrice")}</p>
-                  <p className="mt-1 text-xl font-black text-[#f0d98b]">{numberFormatter.format(heroPrice)} VND</p>
+                  <p className="mt-1 text-xl font-black text-[#efcf88]">{numberFormatter.format(heroPrice)} VND</p>
                   <p className="mt-3 text-[10px] uppercase tracking-[.14em] text-white/50">Closed</p>
                   <p className="mt-1 text-sm font-black text-cyan-100">{heroEnd}</p>
                 </div>
@@ -212,27 +213,27 @@ function ResultsPageContent() {
       <section id="catalogue" className="relative mx-auto max-w-[1440px] px-4 py-12 sm:px-6 lg:px-10 lg:py-16">
         <div className="mb-7 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[.24em] text-[#9a6b13]">{t("searchCatalogue")}</p>
-            <h2 className="mt-2 font-display-lg text-4xl font-black tracking-[-.05em] text-[#071626]">{t("completedAuctions")}</h2>
+            <p className="text-[10px] font-black uppercase tracking-[.24em] text-[#d4aa61]">{t("searchCatalogue")}</p>
+            <h2 className={`${displayFont} mt-2 text-4xl font-medium leading-tight text-white`}>{t("completedAuctions")}</h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href="/upcoming" className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm transition hover:border-[#d2ad55] hover:text-[#9a6b13]">
+            <Link href="/upcoming" className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-bold text-[#cfc6ba] transition hover:border-[#d4aa61]/60 hover:text-[#d4aa61]">
               {t("viewUpcoming")}
             </Link>
-            <Link href="/storefront" className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm transition hover:border-[#d2ad55] hover:text-[#9a6b13]">
+            <Link href="/storefront" className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-bold text-[#cfc6ba] transition hover:border-[#d4aa61]/60 hover:text-[#d4aa61]">
               {t("viewFullCatalogue")}
             </Link>
           </div>
         </div>
 
-        <div className="mb-8 grid gap-4 rounded-[28px] border border-white/70 bg-white/82 p-4 shadow-[0_18px_55px_rgba(15,23,42,.08)] backdrop-blur lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto]">
+        <div className="mb-8 grid gap-4 rounded-[28px] border border-white/10 bg-white/[0.03] p-4 backdrop-blur lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto]">
           <FilterInput label={t("search")} value={keyword} onChange={setKeyword} placeholder={t("searchPlaceholder")} />
           <label className="block">
-            <span className="mb-2 block text-[11px] font-black uppercase tracking-[.12em] text-slate-500">{t("category")}</span>
+            <span className="mb-2 block text-[11px] font-black uppercase tracking-[.12em] text-[#9d948a]">{t("category")}</span>
             <select
               value={categoryId}
               onChange={(event) => setCategoryId(event.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm outline-none transition focus:border-[#d2ad55] focus:bg-white focus:shadow-[0_0_0_4px_rgba(210,173,85,.16)]"
+              className="w-full rounded-2xl border border-white/10 bg-[#0c0b0a] px-4 py-3 text-sm text-[#f5ead9] outline-none transition focus:border-[#d4aa61]/70 focus:shadow-[0_0_0_4px_rgba(212,170,97,.14)] [&>option]:bg-[#11100d] [&>option]:text-[#f5ead9]"
             >
               <option value="">{t("allCategories")}</option>
               {categories.map((category) => (
@@ -247,36 +248,36 @@ function ResultsPageContent() {
           <button
             type="button"
             onClick={clearFilters}
-            className="self-end rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 transition hover:border-[#d2ad55] hover:text-[#9a6b13]"
+            className="self-end rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-black text-[#cfc6ba] transition hover:border-[#d4aa61]/60 hover:text-[#d4aa61]"
           >
             {t("clear")}
           </button>
         </div>
 
         <div className="mb-6 flex items-center justify-between">
-          <p className="rounded-full border border-slate-200 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm">
+          <p className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-bold text-[#cfc6ba]">
             {isLoading ? t("loadingResults") : t("completedAuctionsCount", { count: numberFormatter.format(totalProducts) })}
           </p>
         </div>
 
         {errorMessage && (
-          <div className="mb-6 rounded-[20px] border border-red-200 bg-red-50 px-5 py-4 text-sm font-semibold text-red-700">
+          <div className="mb-6 rounded-[20px] border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm font-semibold text-red-300">
             {errorMessage}
           </div>
         )}
 
         {!isLoading && !errorMessage && sortedProducts.length === 0 && (
-          <div className="rounded-[28px] border border-dashed border-[#d2ad55]/50 bg-white/80 p-12 text-center shadow-sm">
-            <span className="material-symbols-outlined rounded-full bg-[#f4ead1] p-4 text-4xl text-[#9a6b13]">emoji_events</span>
-            <h3 className="mt-5 text-2xl font-black text-[#071626]">{t("noCompletedAuctions")}</h3>
-            <p className="mt-2 text-slate-600">{t("tryBroader")}</p>
+          <div className="rounded-[28px] border border-dashed border-[#d4aa61]/40 bg-white/[0.03] p-12 text-center">
+            <span className="material-symbols-outlined rounded-full bg-[#0e0d0b] p-4 text-4xl text-[#d4aa61]">emoji_events</span>
+            <h3 className={`${displayFont} mt-5 text-2xl font-medium text-white`}>{t("noCompletedAuctions")}</h3>
+            <p className="mt-2 text-[#b7aea3]">{t("tryBroader")}</p>
           </div>
         )}
 
         {isLoading ? (
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, index) => (
-              <div key={index} className="h-[430px] animate-pulse rounded-[24px] border border-slate-200/80 bg-white shadow-[0_14px_45px_rgba(15,23,42,.08)]" />
+              <div key={index} className="skeleton-shimmer h-[430px] rounded-[24px]" />
             ))}
           </div>
         ) : (
@@ -306,14 +307,14 @@ function FilterInput({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-[11px] font-black uppercase tracking-[.12em] text-slate-500">{label}</span>
+      <span className="mb-2 block text-[11px] font-black uppercase tracking-[.12em] text-[#9d948a]">{label}</span>
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
         type={type}
         min={type === "number" ? "0" : undefined}
         placeholder={placeholder}
-        className="w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm outline-none transition focus:border-[#d2ad55] focus:bg-white focus:shadow-[0_0_0_4px_rgba(210,173,85,.16)]"
+        className="w-full rounded-2xl border border-white/10 bg-[#0c0b0a] px-4 py-3 text-sm text-[#f5ead9] outline-none transition placeholder:text-[#6f675e] focus:border-[#d4aa61]/70 focus:shadow-[0_0_0_4px_rgba(212,170,97,.14)]"
       />
     </label>
   );

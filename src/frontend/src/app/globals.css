@@ -89,6 +89,88 @@
     box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08);
   }
 
+  /* ── Luxe (Luxora) dark design system — page-scoped, additive ── */
+  .luxe-page {
+    background:
+      radial-gradient(circle at 82% 8%, rgba(212, 170, 97, 0.12), transparent 32%),
+      radial-gradient(circle at 6% 4%, rgba(212, 170, 97, 0.08), transparent 26%),
+      #070706;
+    color: #f5ead9;
+  }
+
+  .luxe-page .text-primary {
+    color: #f5ead9;
+  }
+
+  .luxe-page .text-on-surface-variant {
+    color: #b7aea3;
+  }
+
+  .luxe-panel {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(17, 16, 13, 0.82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .luxe-card {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #0e0d0b;
+    transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .luxe-card:hover {
+    border-color: rgba(212, 170, 97, 0.45);
+    transform: translateY(-4px);
+    box-shadow: 0 26px 70px rgba(0, 0, 0, 0.5);
+  }
+
+  .luxe-gold-text {
+    background: linear-gradient(95deg, #f6e7b0 0%, #e7c57c 40%, #c99a4b 74%, #9f722d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .luxe-input {
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(12, 11, 10, 0.9);
+    padding: 0.8rem 1rem;
+    color: #f5ead9;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .luxe-input::placeholder {
+    color: #6f675e;
+  }
+
+  .luxe-input:focus {
+    border-color: rgba(212, 170, 97, 0.7);
+    box-shadow: 0 0 0 4px rgba(212, 170, 97, 0.14);
+  }
+
+  /* Language switcher on dark auth header */
+  .auth-lang-dark button {
+    border-color: rgba(215, 170, 99, 0.4);
+    background: rgba(0, 0, 0, 0.4);
+    color: rgba(255, 255, 255, 0.85);
+    box-shadow: none;
+  }
+  .auth-lang-dark button:hover {
+    border-color: rgba(240, 201, 130, 0.6);
+    background: rgba(212, 170, 97, 0.08);
+  }
+  .auth-lang-dark .material-symbols-outlined {
+    color: #f0c982;
+  }
+  .auth-lang-dark > div > div {
+    border-color: rgba(215, 170, 99, 0.35);
+    background: #0e0d0b;
+  }
+
   .brand-gradient-text {
     background: linear-gradient(95deg, #f6e7b0 0%, #d8b15f 35%, #a87519 72%, #74500f 100%);
     -webkit-background-clip: text;
@@ -331,6 +413,82 @@
     filter: none !important;
   }
 }
+
+/* ──────────────────────────────────────────────────────────────
+   Luxe app scope — remaps the Material token utilities to the dark
+   "Luxora" palette for whole app shells (collector / seller / admin
+   / staff). Applied via the `.luxe-app` wrapper on the layout roots
+   so page logic stays untouched. Higher specificity + later source
+   order guarantees these win over the base token utilities.
+   ────────────────────────────────────────────────────────────── */
+.luxe-app {
+  background:
+    radial-gradient(circle at 82% 6%, rgba(212, 170, 97, 0.1), transparent 30%),
+    radial-gradient(circle at 6% 6%, rgba(212, 170, 97, 0.07), transparent 26%),
+    #070706;
+  color: #f5ead9;
+}
+
+/* Surfaces → dark shades */
+.luxe-app .bg-background,
+.luxe-app .bg-surface,
+.luxe-app .bg-surface-bright,
+.luxe-app .bg-surface-dim { background-color: #0b0b0a; }
+.luxe-app .bg-surface-container-lowest { background-color: #050504; }
+.luxe-app .bg-surface-container-low { background-color: #0e0d0b; }
+.luxe-app .bg-surface-container { background-color: #121110; }
+.luxe-app .bg-surface-container-high { background-color: #17150f; }
+.luxe-app .bg-surface-container-highest { background-color: #1c1a14; }
+.luxe-app .bg-surface-variant { background-color: #16140f; }
+.luxe-app .bg-white { background-color: #0e0d0b; }
+
+/* Text → ivory / muted / gold */
+.luxe-app .text-on-surface,
+.luxe-app .text-on-background { color: #f5ead9; }
+.luxe-app .text-on-surface-variant { color: #b7aea3; }
+.luxe-app .text-primary { color: #f5ead9; }
+.luxe-app .text-secondary { color: #e7c57c; }
+.luxe-app .text-tertiary { color: #8bd6b6; }
+.luxe-app .text-outline { color: #9d948a; }
+.luxe-app .text-slate-950,
+.luxe-app .text-slate-900,
+.luxe-app .text-slate-800 { color: #f5ead9; }
+.luxe-app .text-slate-600,
+.luxe-app .text-slate-500 { color: #b7aea3; }
+
+/* Borders → hairline white */
+.luxe-app .border-outline-variant,
+.luxe-app .border-surface-variant,
+.luxe-app .border-surface-container-high,
+.luxe-app .border-slate-200 { border-color: rgba(255, 255, 255, 0.1); }
+.luxe-app .border-outline { border-color: rgba(255, 255, 255, 0.18); }
+.luxe-app .divide-surface-variant > * + * { border-color: rgba(255, 255, 255, 0.1); }
+
+/* Accent fills (were near-black / dark) → gold + mint */
+.luxe-app .bg-primary { background-color: #c99a4b; }
+.luxe-app .text-on-primary { color: #100d08; }
+.luxe-app .bg-secondary { background-color: #c99a4b; }
+.luxe-app .text-on-secondary { color: #100d08; }
+.luxe-app .bg-tertiary { background-color: #3f9d78; }
+.luxe-app .bg-primary-container { background-color: #1a1610; }
+.luxe-app .text-on-primary-container { color: #e7c57c; }
+
+/* Hover states */
+.luxe-app .hover\:bg-surface-variant:hover { background-color: #1c1a14; }
+.luxe-app .hover\:bg-surface-container-high:hover { background-color: #201d16; }
+.luxe-app .hover\:bg-surface-container-lowest:hover { background-color: #121110; }
+.luxe-app .hover\:text-primary:hover { color: #ffffff; }
+.luxe-app .hover\:text-secondary:hover { color: #efcf88; }
+.luxe-app .hover\:border-secondary:hover { border-color: rgba(212, 170, 97, 0.6); }
+
+/* Inputs inside luxe app scope */
+.luxe-app input,
+.luxe-app textarea,
+.luxe-app select {
+  color: #f5ead9;
+}
+.luxe-app input::placeholder,
+.luxe-app textarea::placeholder { color: #6f675e; }
 
 @media (max-width: 900px) {
   .meteor:nth-child(n + 19) {

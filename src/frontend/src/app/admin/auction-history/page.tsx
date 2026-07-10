@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import AdminShell from "@/components/layout/AdminShell";
 import { AuctionSessionRow, getAuctionSessions } from "@/lib/services/dashboardService";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("vi-VN", {
@@ -27,14 +28,16 @@ function formatDateTime(value: string | null): string {
 type PaymentTab = "ALL" | "PAID" | "UNPAID";
 
 export default function AuctionHistoryPage() {
+  const t = useTranslations("adminAuctionHistory");
   return (
-    <Suspense fallback={<AdminShell><div className="p-margin-desktop">Đang tải lịch sử đấu giá...</div></AdminShell>}>
+    <Suspense fallback={<AdminShell><div className="p-margin-desktop">{t("loading")}</div></AdminShell>}>
       <AuctionHistoryContent />
     </Suspense>
   );
 }
 
 function AuctionHistoryContent() {
+  const t = useTranslations("adminAuctionHistory");
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get("payment")?.toUpperCase() as PaymentTab) || "ALL";
   const [rows, setRows] = useState<AuctionSessionRow[]>([]);
@@ -58,11 +61,11 @@ function AuctionHistoryContent() {
       );
       setRows(data);
     } catch {
-      setError("Không thể tải lịch sử phiên đấu giá.");
+      setError(t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, [paymentTab, fromDate, toDate]);
+  }, [paymentTab, fromDate, toDate, t]);
 
   useEffect(() => {
     void fetchSessions();
@@ -96,20 +99,18 @@ function AuctionHistoryContent() {
         <div>
           <Link href="/admin/dashboard" className="mb-2 inline-flex items-center gap-1 text-sm text-[#9a7429] hover:underline">
             <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-            Về tổng quan
+            {t("backToOverview")}
           </Link>
-          <h1 className="font-display-lg-mobile text-primary md:font-display-lg">Lịch sử phiên đấu giá</h1>
-          <p className="mt-xs font-body-lg text-on-surface-variant">
-            Theo dõi các phiên đã kết thúc, phân loại theo trạng thái thanh toán.
-          </p>
+          <h1 className="font-display-lg-mobile text-primary md:font-display-lg">{t("pageTitle")}</h1>
+          <p className="mt-xs font-body-lg text-on-surface-variant">{t("pageSubtitle")}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-md md:grid-cols-4">
           {[
-            { label: "Tổng phiên", value: String(stats.total), icon: "gavel" },
-            { label: "Đã thanh toán", value: String(stats.paid), icon: "check_circle" },
-            { label: "Chưa thanh toán", value: String(stats.unpaid), icon: "schedule" },
-            { label: "Tổng giá trị", value: formatCurrency(stats.volume), icon: "payments" },
+            { label: t("statTotal"), value: String(stats.total), icon: "gavel" },
+            { label: t("statPaid"), value: String(stats.paid), icon: "check_circle" },
+            { label: t("statUnpaid"), value: String(stats.unpaid), icon: "schedule" },
+            { label: t("statVolume"), value: formatCurrency(stats.volume), icon: "payments" },
           ].map((item) => (
             <div key={item.label} className="rounded-xl border border-surface-variant bg-surface p-md text-center soft-shadow">
               <span className="material-symbols-outlined text-secondary">{item.icon}</span>
@@ -122,9 +123,9 @@ function AuctionHistoryContent() {
         <div className="flex flex-wrap items-end gap-sm">
           <div className="flex rounded-lg bg-surface-container-low p-1">
             {([
-              { key: "ALL", label: "Tất cả" },
-              { key: "PAID", label: "Đã thanh toán" },
-              { key: "UNPAID", label: "Chưa thanh toán" },
+              { key: "ALL", label: t("tabAll") },
+              { key: "PAID", label: t("tabPaid") },
+              { key: "UNPAID", label: t("tabUnpaid") },
             ] as const).map((tab) => (
               <button
                 key={tab.key}
@@ -145,7 +146,7 @@ function AuctionHistoryContent() {
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
             className="rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm outline-none focus:border-secondary"
-            title="Từ ngày"
+            title={t("fromDate")}
           />
           <input
             type="date"
@@ -153,7 +154,7 @@ function AuctionHistoryContent() {
             min={fromDate || undefined}
             onChange={(e) => setToDate(e.target.value)}
             className="rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm outline-none focus:border-secondary"
-            title="Đến ngày"
+            title={t("toDate")}
           />
           <button
             type="button"
@@ -163,7 +164,7 @@ function AuctionHistoryContent() {
             }}
             className="rounded-lg border border-outline-variant px-3 py-2 text-sm text-on-surface-variant hover:text-primary"
           >
-            Xóa lọc ngày
+            {t("clearDateFilter")}
           </button>
           <div className="relative min-w-[220px] flex-1">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-outline">
@@ -171,7 +172,7 @@ function AuctionHistoryContent() {
             </span>
             <input
               type="text"
-              placeholder="Tìm sản phẩm, người bán, người mua..."
+              placeholder={t("searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded-lg border border-outline-variant bg-surface py-2 pl-10 pr-4 text-sm outline-none focus:border-secondary"
@@ -189,7 +190,7 @@ function AuctionHistoryContent() {
           ) : filteredRows.length === 0 ? (
             <div className="p-xl text-center text-on-surface-variant">
               <span className="material-symbols-outlined mb-sm block text-4xl">history</span>
-              Không có phiên đấu giá phù hợp.
+              {t("noSessions")}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -197,14 +198,14 @@ function AuctionHistoryContent() {
                 <thead>
                   <tr className="border-b border-surface-variant bg-surface-container-low">
                     {[
-                      "Phiên",
-                      "Sản phẩm",
-                      "Người bán",
-                      "Người thắng",
-                      "Giá cuối",
-                      "Thanh toán",
-                      "Kết thúc",
-                      "Hạn thanh toán",
+                      t("tableSession"),
+                      t("tableProduct"),
+                      t("tableSeller"),
+                      t("tableWinner"),
+                      t("tableFinalPrice"),
+                      t("tablePayment"),
+                      t("tableEnded"),
+                      t("tablePaymentDeadline"),
                       "",
                     ].map((h) => (
                       <th key={h} className="whitespace-nowrap p-md font-label-sm text-label-sm text-on-surface-variant">
@@ -228,16 +229,16 @@ function AuctionHistoryContent() {
                         {row.paymentCategory === "PAID" ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-tertiary-fixed px-2 py-1 text-[10px] font-bold uppercase text-on-tertiary-fixed-variant">
                             <span className="material-symbols-outlined text-[12px]">check_circle</span>
-                            Đã thanh toán
+                            {t("statusPaid")}
                           </span>
                         ) : row.paymentCategory === "UNPAID" ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-secondary-container px-2 py-1 text-[10px] font-bold uppercase text-on-secondary-container">
                             <span className="material-symbols-outlined text-[12px]">schedule</span>
-                            Chưa thanh toán
+                            {t("statusUnpaid")}
                           </span>
                         ) : (
                           <span className="rounded-full bg-surface-variant px-2 py-1 text-[10px] font-bold uppercase text-on-surface-variant">
-                            Không có người thắng
+                            {t("statusNoWinner")}
                           </span>
                         )}
                       </td>
@@ -251,7 +252,7 @@ function AuctionHistoryContent() {
                             href={`/auctions/${row.productId}`}
                             className="font-label-sm text-secondary hover:underline"
                           >
-                            Xem
+                            {t("view")}
                           </Link>
                         )}
                       </td>

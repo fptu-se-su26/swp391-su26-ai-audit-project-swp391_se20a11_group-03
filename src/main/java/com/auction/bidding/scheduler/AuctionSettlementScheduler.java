@@ -15,8 +15,8 @@ public class AuctionSettlementScheduler {
 
     private final AuctionSettlementService auctionSettlementService;
 
-    /** Every 60 seconds, transition ACTIVE/UPCOMING auctions whose endTime has passed to AWAITING_PAYMENT. */
-    @Scheduled(fixedRate = 60_000L, initialDelay = 30_000L)
+    /** Every 30 seconds, settle auctions whose endTime has passed. */
+    @Scheduled(fixedRate = 30_000L, initialDelay = 15_000L)
     public void settleEnded() {
         try {
             int n = auctionSettlementService.settleEndedAuctions();

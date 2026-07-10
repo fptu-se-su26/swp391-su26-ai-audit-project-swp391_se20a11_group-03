@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import LiveChat from "@/components/features/LiveChat";
 import { clearStoredAuth } from "@/lib/apiClient";
 import { getWatchlistIds, refreshWatchlistIds, subscribeWatchlist } from "@/lib/watchlist";
 import {
@@ -225,7 +224,6 @@ export default function CollectorSidebar() {
         </Link>
       </header>
 
-      <LiveChat />
     </>
   );
 }

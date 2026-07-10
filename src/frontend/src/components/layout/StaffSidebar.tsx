@@ -20,7 +20,7 @@ export default function StaffSidebar() {
     <aside className="h-screen w-72 fixed left-0 top-0 flex flex-col bg-surface-container-low border-r border-outline-variant shadow-sm z-40">
       <div className="flex flex-col h-full py-lg px-md">
         <div className="mb-xl px-sm">
-          <BrandLogo />
+          <BrandLogo inverted />
           <p className="font-label-md text-label-md text-on-surface-variant">{t("role")}</p>
         </div>
 

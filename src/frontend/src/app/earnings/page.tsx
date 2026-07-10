@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import CollectorShell from "@/components/layout/CollectorShell";
 import { useTranslations } from "@/i18n/I18nProvider";
-import { getMyWallet, getMyWithdrawals, Withdrawal } from "@/lib/services/walletService";
+import { getMyWallet, getMyWithdrawals, getMyTransactions, Withdrawal } from "@/lib/services/walletService";
+import WalletBalanceLedger from "@/components/features/WalletBalanceLedger";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("vi-VN", {
@@ -46,6 +47,12 @@ export default function EarningsPage() {
     PENDING: t("pending"),
     REJECTED: t("rejected"),
   };
+
+  const fetchLedger = useCallback(
+    (params: { from: string; to: string; type?: string }) =>
+      getMyTransactions({ from: params.from, to: params.to, type: params.type }),
+    [],
+  );
 
   const fetchData = useCallback(async () => {
     try {
@@ -140,6 +147,13 @@ export default function EarningsPage() {
             </button>
           </div>
         </div>
+
+        <WalletBalanceLedger
+          mode="user"
+          fetchTransactions={fetchLedger}
+          title="Lịch sử biến động số dư"
+          subtitle="Theo dõi doanh thu bán hàng, phí, cọc và các giao dịch khác trên ví người bán."
+        />
 
         {/* Payout History */}
         <section className="space-y-md">

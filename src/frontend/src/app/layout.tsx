@@ -3,6 +3,7 @@ import { Be_Vietnam_Pro } from "next/font/google";
 import { NavigationProvider } from "@/lib/NavigationContext";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import AdminRouteGuard from "@/components/layout/AdminRouteGuard";
+import PortalSwitcherGate from "@/components/layout/PortalSwitcherGate";
 import "./globals.css";
 
 const beVietnam = Be_Vietnam_Pro({
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <AdminRouteGuard>{children}</AdminRouteGuard>
           </NavigationProvider>
         </I18nProvider>
+        <PortalSwitcherGate />
       </body>
     </html>
   );

@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.xhtmlrenderer.pdf.ITextRenderer;
 
-import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,15 +53,8 @@ public class SellerContractPdfService {
             String fileName = "seller_agreement_user_" + userId + ".pdf";
             Path target = contractsDir.resolve(fileName);
 
-            String html = buildHtml(userId, fullName, email, signedAt);
-
-            ITextRenderer renderer = new ITextRenderer();
-            registerUnicodeFont(renderer);
-            renderer.setDocumentFromString(html);
-            renderer.layout();
-            try (OutputStream os = Files.newOutputStream(target)) {
-                renderer.createPDF(os);
-            }
+            byte[] pdf = generatePdfBytes(userId, fullName, email, signedAt, false);
+            Files.write(target, pdf);
 
             log.info("Generated seller contract PDF for user {} at {}", userId, target);
             return "/uploads/contracts/" + fileName;
@@ -70,6 +63,43 @@ public class SellerContractPdfService {
             log.error("Failed to generate seller contract PDF for user {}", userId, ex);
             return "/uploads/contracts/seller_agreement_user_" + userId + ".pdf";
         }
+    }
+
+    /** Preview PDF (draft watermark) for the registration flow — not persisted. */
+    public byte[] generatePreviewPdf(Long userId, String fullName, String email) {
+        try {
+            return generatePdfBytes(userId, fullName, email, LocalDateTime.now(), true);
+        } catch (Exception ex) {
+            log.error("Failed to generate seller contract preview for user {}", userId, ex);
+            return new byte[0];
+        }
+    }
+
+    /** Renders signed seller agreement bytes (no disk write). */
+    public byte[] renderSignedPdf(Long userId, String fullName, String email, LocalDateTime signedAt) {
+        try {
+            return generatePdfBytes(userId, fullName, email, signedAt, false);
+        } catch (Exception ex) {
+            log.error("Failed to render seller contract PDF for user {}", userId, ex);
+            return new byte[0];
+        }
+    }
+
+    private byte[] generatePdfBytes(
+            Long userId,
+            String fullName,
+            String email,
+            LocalDateTime signedAt,
+            boolean preview
+    ) throws Exception {
+        String html = buildHtml(userId, fullName, email, signedAt, preview);
+        ITextRenderer renderer = new ITextRenderer();
+        registerUnicodeFont(renderer);
+        renderer.setDocumentFromString(html);
+        renderer.layout();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        renderer.createPDF(bos);
+        return bos.toByteArray();
     }
 
     private void registerUnicodeFont(ITextRenderer renderer) {
@@ -87,11 +117,15 @@ public class SellerContractPdfService {
         log.warn("No Unicode TTF font found; Vietnamese diacritics in the contract PDF may not render.");
     }
 
-    private String buildHtml(Long userId, String fullName, String email, LocalDateTime signedAt) {
+    private String buildHtml(Long userId, String fullName, String email, LocalDateTime signedAt, boolean preview) {
         String signedText = signedAt == null ? "—" : DATE_TIME.format(signedAt);
         String safeName = escape(fullName == null ? "—" : fullName);
         String safeEmail = escape(email == null ? "—" : email);
-
+        String previewBanner = preview
+                ? "<p style=\"text-align:center;color:#b45309;font-weight:bold;margin-bottom:12px;"
+                + "border:1px dashed #b45309;padding:8px;border-radius:6px;\">"
+                + "BẢN XEM TRƯỚC — Chưa ký điện tử. Nội dung chính thức sau khi bạn bấm ký.</p>"
+                : "";
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                 + "<html><head><style>"
                 + "@page { size: A4; margin: 2.2cm; }"
@@ -105,6 +139,7 @@ public class SellerContractPdfService {
                 + ".muted { color: #666666; font-size: 11px; }"
                 + ".badge { color: #2e7d32; font-weight: bold; }"
                 + "</style></head><body>"
+                + previewBanner
                 + "<h1>HỢP ĐỒNG NỀN TẢNG DÀNH CHO NGƯỜI BÁN</h1>"
                 + "<div class=\"sub\">LuxeAuction · Mã tham chiếu người dùng #" + userId + " · Ngày ký: " + signedText + "</div>"
                 + "<p class=\"party\"><b>BÊN A (Nền tảng):</b> CÔNG TY LUXEAUCTION.</p>"
@@ -119,8 +154,10 @@ public class SellerContractPdfService {
                 + "<p>Người bán đã đọc, hiểu và đồng ý với toàn bộ điều khoản nêu trên.</p>"
                 + "<p>Ký điện tử bởi: <b>" + safeName + "</b> (" + safeEmail + ")</p>"
                 + "<p>Thời điểm ký: <b>" + signedText + "</b></p>"
-                + "<p class=\"badge\">✔ Đã ký điện tử (Electronically signed)</p>"
-                + "<p class=\"muted\">Tài liệu này được tạo và ký điện tử trên nền tảng LuxeAuction. Hợp đồng chính thức có hiệu lực sau khi KYC của người bán được duyệt.</p>"
+                + (preview
+                ? "<p class=\"muted\">Đây là bản xem trước. Hợp đồng chính thức được tạo khi bạn ký điện tử trên LuxeAuction.</p>"
+                : "<p class=\"badge\">✔ Đã ký điện tử (Electronically signed)</p>"
+                + "<p class=\"muted\">Tài liệu này được tạo và ký điện tử trên nền tảng LuxeAuction. Hợp đồng chính thức có hiệu lực sau khi KYC của người bán được duyệt.</p>")
                 + "</div>"
                 + "</body></html>";
     }

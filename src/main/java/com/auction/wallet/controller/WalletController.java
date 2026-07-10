@@ -8,9 +8,12 @@ import com.auction.wallet.dto.WalletResponse;
 import com.auction.wallet.dto.WithdrawRequest;
 import com.auction.wallet.dto.WithdrawalResponse;
 import com.auction.wallet.dto.WithdrawalStatusRequest;
+import com.auction.wallet.dto.WalletTransactionDTO;
+import com.auction.wallet.service.TransactionLedgerService;
 import com.auction.wallet.service.WalletService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +34,7 @@ import java.util.Map;
 public class WalletController {
 
     private final WalletService walletService;
+    private final TransactionLedgerService transactionLedgerService;
 
     @GetMapping("/api/wallet")
     public ResponseEntity<WalletResponse> getMyWallet(@AuthenticationPrincipal UserDetailsImpl user) {
@@ -65,6 +70,15 @@ public class WalletController {
     @GetMapping("/api/wallet/withdrawals")
     public ResponseEntity<List<WithdrawalResponse>> getMyWithdrawals(@AuthenticationPrincipal UserDetailsImpl user) {
         return ResponseEntity.ok(walletService.getWithdrawalsByUserId(user.getId()));
+    }
+
+    @GetMapping("/api/wallet/transactions")
+    public ResponseEntity<List<WalletTransactionDTO>> getMyTransactions(
+            @AuthenticationPrincipal UserDetailsImpl user,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) String type) {
+        return ResponseEntity.ok(transactionLedgerService.getUserTransactions(user.getId(), from, to, type));
     }
 
     @GetMapping("/api/staff/withdrawals")

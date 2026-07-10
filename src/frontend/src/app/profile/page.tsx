@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import CollectorShell from "@/components/layout/CollectorShell";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import LoadingSkeleton from "@/components/dashboard/LoadingSkeleton";
 import EmptyState from "@/components/dashboard/EmptyState";
+import { GoldButton, OutlineButton } from "@/components/luxe/primitives";
+import { displayFont } from "@/components/luxe/theme";
 import {
   StoredUser,
   getRoleLabelKey,
@@ -24,19 +25,16 @@ import {
   updateMyProfile,
   type UserProfile,
 } from "@/lib/services/userProfileService";
-import { selectRole } from "@/lib/services/authService";
 import { ApiError, clearStoredAuth, getStoredToken } from "@/lib/apiClient";
 
 export default function ProfilePage() {
   const t = useTranslations("profile");
   const tRoles = useTranslations("roles");
-  const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [currentUser, setCurrentUser] = useState<StoredUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [upgradingSeller, setUpgradingSeller] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [loadErrorCode, setLoadErrorCode] = useState<"unauthorized" | "network" | null>(null);
 
@@ -105,40 +103,6 @@ export default function ProfilePage() {
   const canUpgradeToSeller =
     Boolean(currentUser) && !isSeller(currentUser) && !isAdmin(currentUser);
 
-  async function handleUpgradeSeller() {
-    if (!currentUser?.userId) {
-      return;
-    }
-    setUpgradingSeller(true);
-    setFeedback(null);
-    try {
-      const response = await selectRole({
-        userId: currentUser.userId,
-        role: "Seller",
-      });
-      if (!response.success) {
-        throw new Error(response.message || t("sellerUpgradeError"));
-      }
-      const updatedUser: StoredUser = {
-        ...currentUser,
-        roleName: response.roleName ?? "Seller",
-      };
-      saveStoredUser(updatedUser);
-      setCurrentUser(updatedUser);
-      setFeedback({ type: "ok", text: t("sellerUpgradeSuccess") });
-      const nextPath =
-        profile?.identityVerified || updatedUser.identityVerified ? "/post-item" : "/kyc";
-      window.setTimeout(() => router.push(nextPath), 600);
-    } catch (err) {
-      setFeedback({
-        type: "err",
-        text: err instanceof Error ? err.message : t("sellerUpgradeError"),
-      });
-    } finally {
-      setUpgradingSeller(false);
-    }
-  }
-
   async function handleSave() {
     setSaving(true);
     setFeedback(null);
@@ -175,7 +139,7 @@ export default function ProfilePage() {
           {!loading && profile && (
             <button
               onClick={() => (editing ? setEditing(false) : handleStartEdit())}
-              className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-700"
+              className="flex items-center gap-2 rounded-full border border-white/15 bg-white/[.04] px-5 py-2.5 text-xs font-bold text-[#e7c57c] transition hover:border-[#d4aa61]/50 hover:bg-[#d4aa61]/10"
             >
               <span className="material-symbols-outlined text-[18px]">{editing ? "close" : "edit"}</span>
               {editing ? t("cancel") : t("editProfile")}
@@ -183,42 +147,33 @@ export default function ProfilePage() {
           )}
         </div>
 
-        <div className="relative flex items-center gap-6 overflow-hidden rounded-[28px] border border-slate-200 bg-slate-950 p-7 text-white shadow-[0_22px_70px_rgba(15,23,42,.16)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_15%,rgba(37,99,235,.35),transparent_26%)]" />
+        <div className="relative flex items-center gap-6 overflow-hidden rounded-[28px] border border-white/10 bg-[#0c0b09] p-7 text-white shadow-[0_22px_70px_rgba(0,0,0,.45)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_15%,rgba(212,170,97,.22),transparent_28%)]" />
           <div className="relative">
-            <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-white/15 bg-white/10 text-[28px] font-bold uppercase text-white shadow-lg backdrop-blur">
+            <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-[#d4aa61]/30 bg-[#d4aa61]/10 text-[28px] font-bold uppercase text-[#f0d98b] shadow-lg">
               {initials}
             </div>
           </div>
           <div className="relative">
-            <h2 className="font-display-lg text-2xl font-semibold">{displayName}</h2>
-            <p className="mt-1 text-xs font-semibold text-cyan-200">{roleLabel}</p>
-            {profile?.email && <p className="mt-2 text-sm text-slate-300">{profile.email}</p>}
-            <div className="mt-sm flex items-center gap-xs">
+            <h2 className={`${displayFont} text-2xl font-semibold text-white`}>{displayName}</h2>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#d4aa61]">{roleLabel}</p>
+            {profile?.email && <p className="mt-2 text-sm text-[#b7aea3]">{profile.email}</p>}
+            <div className="mt-sm flex flex-wrap items-center gap-xs">
               {profile?.identityVerified ? (
                 <>
                   <span
-                    className="material-symbols-outlined text-[16px] text-on-tertiary-container"
+                    className="material-symbols-outlined text-[16px] text-emerald-400"
                     style={{ fontVariationSettings: "'FILL' 1" }}
                   >
                     verified
                   </span>
-                  <span className="font-label-sm text-label-sm text-on-tertiary-container">
-                    {t("identityVerified")}
-                  </span>
+                  <span className="text-sm text-emerald-300">{t("identityVerified")}</span>
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[16px] text-on-surface-variant">
-                    verified_user
-                  </span>
-                  <span className="font-label-sm text-label-sm text-on-surface-variant">
-                    {t("identityNotVerified")}
-                  </span>
-                  <Link
-                    href="/kyc"
-                    className="ml-xs font-label-sm text-label-sm text-secondary hover:underline"
-                  >
+                  <span className="material-symbols-outlined text-[16px] text-[#9d948a]">verified_user</span>
+                  <span className="text-sm text-[#b7aea3]">{t("identityNotVerified")}</span>
+                  <Link href="/kyc" className="ml-1 text-sm font-semibold text-[#f0d98b] hover:underline">
                     {t("verifyNow")}
                   </Link>
                 </>
@@ -226,6 +181,66 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {!loading && profile && (
+          <div className="rounded-[28px] border border-white/10 bg-[#0e0d0b] p-6 shadow-[0_18px_50px_rgba(0,0,0,.35)]">
+            <h3 className="mb-4 border-b border-white/10 pb-3 text-lg font-semibold text-[#f5ead9]">
+              {t("accountStatusTitle")}
+            </h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9d948a]">{t("accountStatus")}</p>
+                <p className="mt-1">
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide ${
+                      profile.active !== false && profile.status !== "LOCKED"
+                        ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                        : "border border-red-500/30 bg-red-500/10 text-red-300"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[14px]">
+                      {profile.active !== false && profile.status !== "LOCKED" ? "check_circle" : "lock"}
+                    </span>
+                    {profile.active !== false && profile.status !== "LOCKED" ? t("accountActive") : t("accountLocked")}
+                  </span>
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9d948a]">{t("paymentStrikes")}</p>
+                <p className="mt-1 text-lg font-semibold text-[#f0d98b]">
+                  {t("paymentStrikesCount").replace("{count}", String(profile.paymentStrikeCount ?? 0))}
+                </p>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      (profile.paymentStrikeCount ?? 0) >= 3
+                        ? "bg-red-500"
+                        : (profile.paymentStrikeCount ?? 0) >= 1
+                          ? "bg-amber-500"
+                          : "bg-emerald-500"
+                    }`}
+                    style={{ width: `${Math.min(100, ((profile.paymentStrikeCount ?? 0) / 3) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+            {profile.lockedByPaymentStrikes && (
+              <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {t("accountLockedByStrikes")}
+              </div>
+            )}
+            {!profile.lockedByPaymentStrikes && (profile.paymentStrikeCount ?? 0) > 0 && (
+              <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                <p>{t("strikesWarning").replace("{count}", String(profile.paymentStrikeCount ?? 0))}</p>
+                <p className="mt-1 text-amber-200/80">{t("strikesClearedOnPayment")}</p>
+                <Link href="/won-items" className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-[#f0d98b] hover:underline">
+                  {t("viewWonItems")}
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
 
         {loading ? (
           <LoadingSkeleton cards={2} />
@@ -238,8 +253,8 @@ export default function ProfilePage() {
             )}
           </div>
         ) : (
-          <div className="premium-card rounded-[28px] p-6">
-            <h3 className="mb-lg border-b border-slate-200 pb-sm font-headline-sm text-headline-sm text-slate-950">
+          <div className="rounded-[28px] border border-white/10 bg-[#0e0d0b] p-6 shadow-[0_18px_50px_rgba(0,0,0,.35)]">
+            <h3 className="mb-lg border-b border-white/10 pb-sm text-lg font-semibold text-[#f5ead9]">
               {t("accountDetails")}
             </h3>
 
@@ -247,8 +262,8 @@ export default function ProfilePage() {
               <div
                 className={`mb-md rounded-lg border px-md py-sm text-sm ${
                   feedback.type === "ok"
-                    ? "border-tertiary/40 bg-tertiary-container text-on-tertiary-container"
-                    : "border-error/40 bg-error-container text-on-error-container"
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
+                    : "border-red-500/30 bg-red-500/10 text-red-200"
                 }`}
               >
                 {feedback.text}
@@ -303,33 +318,19 @@ export default function ProfilePage() {
 
             {editing && (
               <div className="mt-lg flex justify-end gap-sm">
-                <button
-                  onClick={() => setEditing(false)}
-                  className="rounded-lg border border-outline-variant px-lg py-sm font-label-md text-label-md transition-colors hover:bg-surface-container-low"
-                >
-                  {t("cancel")}
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="rounded-lg bg-secondary px-lg py-sm font-label-md text-label-md text-on-secondary transition-colors hover:bg-secondary-fixed-dim disabled:opacity-60"
-                >
+                <OutlineButton onClick={() => setEditing(false)}>{t("cancel")}</OutlineButton>
+                <GoldButton onClick={handleSave} disabled={saving}>
                   {saving ? t("saving") : t("saveChanges")}
-                </button>
+                </GoldButton>
               </div>
             )}
 
             {!profile.identityVerified && !editing && (
-              <div className="mt-lg rounded-lg border border-secondary/30 bg-secondary-container p-md">
-                <p className="font-label-md text-label-md text-on-secondary-container">
-                  {t("kycHint")}
-                </p>
-                <Link
-                  href="/kyc"
-                  className="mt-sm inline-flex items-center gap-xs rounded-lg bg-secondary px-md py-sm font-label-md text-label-md text-on-secondary hover:bg-secondary-fixed-dim"
-                >
+              <div className="mt-lg rounded-xl border border-[#d4aa61]/25 bg-[#14120f] p-5">
+                <p className="text-sm leading-6 text-[#e8dcc8]">{t("kycHint")}</p>
+                <GoldButton href="/kyc" className="mt-4 inline-flex">
                   {t("verifyNow")}
-                </Link>
+                </GoldButton>
               </div>
             )}
           </div>
@@ -338,39 +339,36 @@ export default function ProfilePage() {
         {!loading && profile && canUpgradeToSeller && (
           <div
             id="seller-upgrade"
-            className="scroll-mt-24 rounded-[28px] border border-slate-200 bg-slate-950 p-6 text-white shadow-[0_22px_70px_rgba(15,23,42,.16)] sm:p-8"
+            className="scroll-mt-24 rounded-[28px] border border-[#d4aa61]/20 bg-[#0c0b09] p-6 text-white shadow-[0_22px_70px_rgba(0,0,0,.45)] sm:p-8"
           >
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="max-w-2xl">
-                <p className="text-[10px] font-bold uppercase tracking-[.2em] text-cyan-200">
+                <p className="text-[10px] font-bold uppercase tracking-[.2em] text-[#d4aa61]">
                   {t("sellerUpgradeEyebrow")}
                 </p>
-                <h3 className="mt-2 font-display-lg text-2xl font-semibold">{t("sellerUpgradeTitle")}</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-300">{t("sellerUpgradeDesc")}</p>
-                <ul className="mt-4 space-y-2 text-sm text-slate-200">
+                <h3 className={`mt-2 ${displayFont} text-2xl font-semibold text-[#f5ead9]`}>
+                  {t("sellerUpgradeTitle")}
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-[#b7aea3]">{t("sellerUpgradeDesc")}</p>
+                <ul className="mt-4 space-y-2 text-sm text-[#e8dcc8]">
                   <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-cyan-200">check_circle</span>
+                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#d4aa61]">check_circle</span>
                     {t("sellerUpgradeBenefit1")}
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-cyan-200">check_circle</span>
+                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#d4aa61]">check_circle</span>
                     {t("sellerUpgradeBenefit2")}
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-cyan-200">check_circle</span>
+                    <span className="material-symbols-outlined mt-0.5 text-[18px] text-[#d4aa61]">check_circle</span>
                     {t("sellerUpgradeBenefit3")}
                   </li>
                 </ul>
               </div>
-              <button
-                type="button"
-                onClick={handleUpgradeSeller}
-                disabled={upgradingSeller}
-                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-blue-600 px-6 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-blue-500 disabled:opacity-60"
-              >
+              <GoldButton href="/become-seller" className="inline-flex shrink-0 items-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">storefront</span>
-                {upgradingSeller ? t("sellerUpgrading") : t("sellerUpgradeCta")}
-              </button>
+                {t("sellerUpgradeCta")}
+              </GoldButton>
             </div>
           </div>
         )}
@@ -398,21 +396,21 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-xs block font-label-md text-label-md text-slate-600">{label}</label>
+      <label className="mb-xs block text-xs font-semibold uppercase tracking-[0.12em] text-[#9d948a]">{label}</label>
       {editing && !readOnly ? (
         <input
           type={type}
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
-          className="premium-input"
+          className="luxe-input w-full"
         />
       ) : (
-        <p className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-body-md text-body-md text-slate-950">
+        <p className="rounded-xl border border-white/10 bg-[#14120f] px-4 py-3 text-sm text-[#f5ead9]">
           {value}
         </p>
       )}
       {hint && !editing && (
-        <p className="mt-xs text-xs text-slate-500">{hint}</p>
+        <p className="mt-xs text-xs text-[#9d948a]">{hint}</p>
       )}
     </div>
   );

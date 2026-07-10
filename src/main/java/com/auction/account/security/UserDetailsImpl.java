@@ -14,6 +14,7 @@ public class UserDetailsImpl implements UserDetails {
 
     private final Long id;
     private final String username;
+    private final String email;
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
     private final boolean enabled;
@@ -22,6 +23,7 @@ public class UserDetailsImpl implements UserDetails {
     public UserDetailsImpl(User user) {
         this.id = user.getUserId();
         this.username = user.getUsername();
+        this.email = user.getEmail();
         this.password = "";
         this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + (user.getRole() != null ? user.getRole().getRoleName() : "User")));
         this.enabled = user.isActive();

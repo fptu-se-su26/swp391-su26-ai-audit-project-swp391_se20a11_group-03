@@ -18,6 +18,7 @@ public class ContractRowDTO {
     private String typeLabel;      // human-readable label
     private Long referenceId;      // userId (seller agreement) or productId (listing)
     private String referenceName;  // seller name/email or product name
+    private String identityNumber; // CCCD/CMND when resolvable
     private String fileUrl;
     private String createdAt;      // ISO
 }

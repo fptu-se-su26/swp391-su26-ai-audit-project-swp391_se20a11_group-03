@@ -125,6 +125,18 @@ export async function apiClient<T>(path: string, options: ApiRequestOptions = {}
       status: response.status,
       body: payload,
     });
+
+    if (
+      typeof window !== "undefined" &&
+      token &&
+      (response.status === 401 || response.status === 403)
+    ) {
+      const pathName = window.location.pathname;
+      if (pathName.startsWith("/staff") || pathName.startsWith("/admin")) {
+        clearStoredAuth();
+        window.location.replace("/auth?reason=session_expired");
+      }
+    }
   }
 
   return parseResponse<T>(response);

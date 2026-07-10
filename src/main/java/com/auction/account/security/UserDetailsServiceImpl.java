@@ -15,10 +15,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-        return new UserDetailsImpl(user);
+    public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
+        if (login == null || login.isBlank()) {
+            throw new UsernameNotFoundException("Login identifier is blank");
+        }
+        if (login.contains("@")) {
+            return userRepository.findByEmail(login)
+                    .map(UserDetailsImpl::new)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found: " + login));
+        }
+        return userRepository.findFirstByUsernameIgnoreCase(login)
+                .or(() -> userRepository.findByUsernameOrEmail(login, login))
+                .map(UserDetailsImpl::new)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + login));
     }
 }
 

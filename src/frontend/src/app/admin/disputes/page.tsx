@@ -1,31 +1,35 @@
+"use client";
+
 import AdminUseCasePage from "@/components/admin/AdminUseCasePage";
+import { useTranslations } from "@/i18n/I18nProvider";
 
 export default function DisputesPage() {
+  const t = useTranslations("adminDisputes");
   return (
     <AdminUseCasePage
-      title="Xử lý tranh chấp"
-      subtitle="Trung tâm xử lý khiếu nại giữa người mua, người bán và nền tảng."
+      title={t("pageTitle")}
+      subtitle={t("pageSubtitle")}
       sections={[
         {
           icon: "support_agent",
-          title: "Khiếu nại đang mở",
-          description: "Tiếp nhận và phân loại tranh chấp từ người dùng.",
-          status: "Queue",
+          title: t("section1Title"),
+          description: t("section1Desc"),
+          status: t("section1Status"),
         },
         {
           icon: "image_search",
-          title: "Bằng chứng giao dịch",
-          description: "Kiểm tra ảnh, tin nhắn, lịch sử bid và trạng thái thanh toán.",
+          title: t("section2Title"),
+          description: t("section2Desc"),
         },
         {
           icon: "balance",
-          title: "Quyết định xử lý",
-          description: "Đưa ra kết luận hoàn tiền, giữ cọc, hủy phiên hoặc cảnh báo tài khoản.",
+          title: t("section3Title"),
+          description: t("section3Desc"),
         },
         {
           icon: "history",
-          title: "Lịch sử tranh chấp",
-          description: "Tra cứu toàn bộ quyết định đã được xử lý trước đó.",
+          title: t("section4Title"),
+          description: t("section4Desc"),
         },
       ]}
     />

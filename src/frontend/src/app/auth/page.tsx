@@ -7,6 +7,26 @@ import { saveStoredUser, StoredUser, getStoredUser, isAdmin } from "@/lib/userSe
 import { ADMIN_HOME } from "@/lib/roleRouting";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { DEMO_MODE } from "@/lib/demoMode";
+import BrandLogo from "@/components/ui/BrandLogo";
+import LanguageSwitcher from "@/components/features/LanguageSwitcher";
+import { GoldButton, OutlineButton } from "@/components/luxe/primitives";
+import { displayFont } from "@/components/luxe/theme";
+
+const WATCH_HERO =
+  "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?q=80&w=1600&auto=format&fit=crop";
+
+const TRUST_ITEMS = [
+  { icon: "verified_user", title: "HÀNG THẬT 100%", description: "Cam kết chính hãng, kiểm định chặt chẽ." },
+  { icon: "lock", title: "THANH TOÁN AN TOÀN", description: "Bảo mật tuyệt đối mọi giao dịch." },
+  { icon: "support_agent", title: "HỖ TRỢ 24/7", description: "Đội ngũ chuyên nghiệp luôn sẵn sàng." },
+] as const;
+
+const AUTH_STATS = [
+  { icon: "workspace_premium", title: "SẢN PHẨM CAO CẤP", description: "Tuyển chọn kỹ lưỡng từ các thương hiệu hàng đầu." },
+  { icon: "verified_user", title: "ĐẤU GIÁ MINH BẠCH", description: "Quy trình công khai, công bằng, rõ ràng." },
+  { icon: "diamond", title: "THÀNH VIÊN TOÀN CẦU", description: "Cộng đồng đam mê luxury trên toàn thế giới." },
+  { icon: "headset_mic", title: "HỖ TRỢ CHUYÊN NGHIỆP", description: "Đội ngũ tư vấn tận tâm, hỗ trợ mọi lúc." },
+] as const;
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
 
@@ -46,6 +66,7 @@ export default function AuthPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingGoogleUser, setPendingGoogleUser] = useState<StoredUser | null>(null);
+  const [selectedDemo, setSelectedDemo] = useState<"collector" | "seller" | "staff" | null>(null);
   const googleButtonRef = useRef<HTMLDivElement>(null);
 
   const isLogin = mode === "login";
@@ -56,6 +77,9 @@ export default function AuthPage() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("mode") === "signup") {
       setMode("signup");
+    }
+    if (params.get("reason") === "session_expired") {
+      setErrorMessage("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
     }
   }, []);
 
@@ -128,7 +152,7 @@ export default function AuthPage() {
       googleButtonRef.current.innerHTML = "";
       window.google.accounts.id.renderButton(googleButtonRef.current, {
         type: "standard",
-        theme: "outline",
+        theme: "filled_black",
         size: "large",
         text: isLogin ? "signin_with" : "signup_with",
         shape: "rectangular",
@@ -174,9 +198,9 @@ export default function AuthPage() {
       return "/staff/approvals";
     }
 
-    // Both buyer and seller land on the home page; they can navigate
-    // to dashboard / post-item via the nav menus.
-    return "/";
+    // Buyers and sellers land on their own dashboard after signing in
+    // (the root "/" now shows the guest landing page).
+    return "/dashboard";
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -312,193 +336,216 @@ export default function AuthPage() {
   }
 
   return (
-    <main className="grid min-h-screen overflow-hidden bg-slate-50 lg:grid-cols-[0.92fr_1.08fr]">
-      {/* Left: Hero */}
-      <section className="relative hidden overflow-hidden p-8 lg:flex lg:flex-col lg:justify-end">
-        <div className="absolute inset-0 bg-slate-950">
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0_QH_jlR5knRFMIzliDGgOx7IevRtXO86U-bV1eC5yp0vN_mU8rMMBu6rp0xfOvOMnLLTNAmmeyZ-Hgn2KzXRgr32O4Mk6STYqCaN8-GXPmB2YFM1FqTInWHyrJ3IbzP7bPcNb18zk62zl8Mv-CILX_75WIJQRWBTrpVi2nm84LoTk-1sVdi5O6kudZF1oj9AJ83P3zGe8HD97zTlepjT9XoyscVPA6dprYAId1yy95lPDzU_uee4r7_8tW4Umvw-fL7ZI15STdLl"
-            alt="Luxury Watch"
-            className="h-full w-full object-cover opacity-60 grayscale"
-          />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(59,130,246,.35),transparent_28%),linear-gradient(180deg,rgba(2,6,23,.18)_0%,rgba(2,6,23,.88)_100%)]" />
-        </div>
-        <div className="relative z-10 max-w-lg">
-          <div className="mb-sm">
-            <span className="font-headline-md text-headline-md font-bold uppercase tracking-widest text-cyan-200">{t("appName")}</span>
+    <main className="luxe-page min-h-screen overflow-x-hidden text-[#f5ead9]">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col px-4 py-4 sm:px-6 lg:px-8 lg:py-3">
+        <header className="flex shrink-0 items-center justify-between">
+          <BrandLogo href="/" inverted />
+          <div className="auth-lang-dark">
+            <LanguageSwitcher />
           </div>
-          <h2 className="mb-sm text-[34px] font-bold leading-tight text-white">
-            {t("tagline")}
-          </h2>
-          <div className="mb-md h-1 w-16 rounded-full bg-blue-400" />
-          <p className="font-body-md text-slate-300">
-            {t("heroTagline")}
-          </p>
-        </div>
-        <div className="absolute -bottom-24 -right-24 opacity-5">
-          <span className="material-symbols-outlined text-[300px]" style={{ fontVariationSettings: "'wght' 100" }}>gavel</span>
-        </div>
-      </section>
+        </header>
 
-      {/* Right: Auth form */}
-      <section className="flex h-screen w-full items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_80%_0%,rgba(37,99,235,.1),transparent_28%),linear-gradient(180deg,#ffffff,#f8fafc)] p-4 sm:p-6">
-        <div className="flex max-h-[calc(100vh-32px)] w-full max-w-[520px] flex-col overflow-hidden">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex justify-center mb-md flex-shrink-0">
-            <span className="text-primary font-headline-md text-headline-md font-extrabold tracking-tight">{t("appName")}</span>
-          </div>
-
-          {/* Role Selection Screen */}
-          {isSelectRole && (
-            <div className="premium-card animate-fade-up flex max-h-[calc(100vh-32px)] flex-col overflow-y-auto rounded-[28px] p-5 sm:p-6">
-              <div className="text-center mb-sm">
-                <div className="mx-auto mb-md flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50">
-                  <span className="material-symbols-outlined text-3xl text-blue-700">how_to_reg</span>
-                </div>
-                <h1 className="mb-xs text-[26px] font-bold text-slate-950">{t("chooseRole")}</h1>
-                <p className="text-sm text-slate-600">
-                  {t("chooseRoleDesc")}
-                </p>
+        <section className="grid flex-1 grid-cols-1 items-center gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_410px] lg:items-start lg:gap-10 lg:py-6">
+          {/* Left hero */}
+          <div className="relative hidden min-h-[500px] overflow-hidden rounded-2xl lg:block lg:sticky lg:top-6 lg:h-[min(640px,calc(100dvh-128px))]">
+            <img
+              src={WATCH_HERO}
+              alt="Luxury watch"
+              className="absolute inset-0 h-full w-full object-cover object-[60%_center]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-black/10" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
+            <div className="relative z-10 flex h-full flex-col justify-center p-8 lg:p-10">
+              <div className="max-w-[420px]">
+                <p className="text-xs font-bold uppercase tracking-[0.42em] text-[#f0c982]">Luxury Auction House</p>
+                <h1 className={`${displayFont} mt-6 text-4xl font-semibold leading-[1.08] text-white lg:text-[44px]`}>
+                  NƠI GIÁ TRỊ
+                  <br />
+                  <span className="text-[#f0c982]">ĐƯỢC TÔN VINH</span>
+                </h1>
+                <p className="mt-5 text-sm leading-relaxed text-white/72">{t("heroTagline")}</p>
               </div>
-
-              {successMessage && (
-                <div className="mb-md rounded-lg border border-secondary/30 bg-secondary/10 px-4 py-3 text-label-md text-secondary">
-                  {successMessage}
-                </div>
-              )}
-
-              <div className="space-y-3 mt-4">
-                {/* Buyer Option */}
-                <button
-                  onClick={() => handleSelectRole("BUYER")}
-                  disabled={isSubmitting}
-                  className="group w-full rounded-2xl border border-slate-200 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-950">
-                      <span className="material-symbols-outlined text-2xl text-white">shopping_bag</span>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-headline-sm text-headline-sm text-primary group-hover:text-secondary transition-colors">
-                        {t("buyerTitle")}
-                      </h3>
-                      <p className="text-sm text-on-surface-variant">{t("buyerDesc")}</p>
-                    </div>
-                    <span className="material-symbols-outlined text-secondary group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              <div className="mt-8 grid max-w-[420px] gap-4">
+                {TRUST_ITEMS.map((item) => (
+                  <div key={item.title} className="flex items-start gap-3">
+                    <span className="material-symbols-outlined mt-0.5 text-xl text-[#f0c982]">{item.icon}</span>
+                    <span>
+                      <span className="block text-xs font-bold tracking-wider text-white">{item.title}</span>
+                      <span className="mt-1 block text-xs leading-relaxed text-white/55">{item.description}</span>
+                    </span>
                   </div>
-                </button>
-
-                {/* Seller Option */}
-                <button
-                  onClick={() => handleSelectRole("SELLER")}
-                  disabled={isSubmitting}
-                  className="group w-full rounded-2xl border border-slate-200 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50">
-                      <span className="material-symbols-outlined text-2xl text-blue-700">sell</span>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-headline-sm text-headline-sm text-primary group-hover:text-secondary transition-colors">
-                        {t("sellerTitle")}
-                      </h3>
-                      <p className="text-sm text-on-surface-variant">{t("sellerDesc")}</p>
-                    </div>
-                    <span className="material-symbols-outlined text-secondary group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                  </div>
-                </button>
-              </div>
-
-              {errorMessage && (
-                <div className="mt-4 rounded-lg border border-error/30 bg-error-container/20 px-4 py-3 text-label-md text-error">
-                  {errorMessage}
-                </div>
-              )}
-
-              <button
-                onClick={() => {
-                  setMode("login");
-                  setErrorMessage("");
-                  setPendingGoogleUser(null);
-                  localStorage.removeItem("pending_email");
-                  localStorage.removeItem("pending_password");
-                }}
-                className="mt-4 text-center text-label-md text-on-surface-variant hover:text-secondary transition-colors"
-              >
-                {t("backToLogin")}
-              </button>
-            </div>
-          )}
-
-          {/* Login/Signup Form */}
-          {!isSelectRole && (
-            <div className="premium-card animate-fade-up flex max-h-[calc(100vh-32px)] flex-col overflow-y-auto rounded-[28px] p-5 sm:p-6">
-              {/* Toggle */}
-              <div className="mb-sm flex flex-shrink-0 rounded-2xl bg-slate-100 p-1">
-                {(["login", "signup"] as const).map((m) => (
-                  <button
-                    type="button"
-                    key={m}
-                    onClick={() => {
-                      setMode(m);
-                      setErrorMessage("");
-                      setSuccessMessage("");
-                    }}
-                    className={`flex-1 rounded-xl py-2.5 text-label-md font-label-md transition-all ${
-                      mode === m
-                        ? "bg-white text-slate-950 shadow-sm"
-                        : "text-slate-500 hover:text-slate-950"
-                    }`}
-                  >
-                    {m === "login" ? t("logIn") : t("createAccount")}
-                  </button>
                 ))}
               </div>
+            </div>
+          </div>
 
-              <div className="text-center mb-sm flex-shrink-0">
-                <h1 className="mb-xs text-[28px] font-bold tracking-[-.03em] text-slate-950">
-                  {isLogin ? t("welcomeBack") : t("joinCollection")}
-                </h1>
-                <p className="text-sm text-slate-600">
-                  {isLogin
-                    ? t("welcomeBackDesc")
-                    : t("joinCollectionDesc")}
-                </p>
-              </div>
-
-              {DEMO_MODE && isLogin && (
-                <div className="mb-3 rounded-xl border border-[#c6a75c]/35 bg-[#f5edd9] p-3 text-xs text-[#604914]">
-                  <div className="flex items-center gap-2 font-bold"><span className="material-symbols-outlined text-[17px]">science</span>Demo Mode — không cần backend/database</div>
-                  <p className="mt-1 text-[11px] text-[#7a6330]">Mật khẩu cho cả hai tài khoản: <strong>demo123</strong></p>
-                  <div className="mt-2 flex gap-2">
-                    <button type="button" onClick={() => { setEmail("demo@luxeauction.vn"); setPassword("demo123"); }} className="rounded-full bg-[#071626] px-3 py-1.5 text-[10px] font-bold text-[#e4c77b]">Collector demo</button>
-                    <button type="button" onClick={() => { setEmail("seller@luxeauction.vn"); setPassword("demo123"); }} className="rounded-full border border-[#9b7932] px-3 py-1.5 text-[10px] font-bold">Seller demo</button>
-                    <button type="button" onClick={() => { setEmail("staff@luxeauction.vn"); setPassword("demo123"); }} className="rounded-full border border-[#9b7932] px-3 py-1.5 text-[10px] font-bold">Staff demo</button>
+          {/* Right form */}
+          <div className="flex justify-center lg:justify-end">
+            {isSelectRole ? (
+              <div className="w-full max-w-[410px] rounded-2xl border border-[#d7aa63]/35 bg-black/80 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur sm:p-6">
+                <div className="text-center">
+                  <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-[#d4aa61]/30 bg-[#d4aa61]/10">
+                    <span className="material-symbols-outlined text-3xl text-[#f0c982]">how_to_reg</span>
                   </div>
+                  <h2 className={`${displayFont} text-2xl font-semibold text-white`}>{t("chooseRole")}</h2>
+                  <p className="mt-2 text-sm text-white/55">{t("chooseRoleDesc")}</p>
                 </div>
-              )}
 
-              {/* Form */}
-              <form className="space-y-2.5" onSubmit={handleSubmit}>
-                {isSignup && (
-                  <div>
-                    <label className="block text-sm font-semibold text-on-surface-variant mb-1">{t("fullName")}</label>
-                    <input
-                      type="text"
-                      placeholder={t("fullNamePlaceholder")}
-                      value={fullName}
-                      onChange={(event) => setFullName(event.target.value)}
-                      autoComplete="name"
-                      required={isSignup}
-                      className="premium-input"
-                    />
+                {successMessage && (
+                  <div className="mt-4 rounded-lg border border-[#d4aa61]/30 bg-[#d4aa61]/10 px-4 py-3 text-sm text-[#f0d98b]">
+                    {successMessage}
                   </div>
                 )}
 
-                {isSignup && (
-                  <div className="grid gap-3 md:grid-cols-2">
+                <div className="mt-5 space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectRole("BUYER")}
+                    disabled={isSubmitting}
+                    className="group w-full rounded-xl border border-white/10 bg-white/[.03] p-4 text-left transition hover:border-[#d4aa61]/50 hover:bg-[#d4aa61]/[0.06] disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#f0ce88] to-[#c99a4b] text-[#100d08]">
+                        <span className="material-symbols-outlined text-2xl">shopping_bag</span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-white">{t("buyerTitle")}</h3>
+                        <p className="text-sm text-white/55">{t("buyerDesc")}</p>
+                      </div>
+                      <span className="material-symbols-outlined text-[#f0c982] transition group-hover:translate-x-1">arrow_forward</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectRole("SELLER")}
+                    disabled={isSubmitting}
+                    className="group w-full rounded-xl border border-white/10 bg-white/[.03] p-4 text-left transition hover:border-[#d4aa61]/50 hover:bg-[#d4aa61]/[0.06] disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#d4aa61]/40 bg-[#d4aa61]/10 text-[#f0c982]">
+                        <span className="material-symbols-outlined text-2xl">sell</span>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-white">{t("sellerTitle")}</h3>
+                        <p className="text-sm text-white/55">{t("sellerDesc")}</p>
+                      </div>
+                      <span className="material-symbols-outlined text-[#f0c982] transition group-hover:translate-x-1">arrow_forward</span>
+                    </div>
+                  </button>
+                </div>
+
+                {errorMessage && (
+                  <div className="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    {errorMessage}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("login");
+                    setErrorMessage("");
+                    setPendingGoogleUser(null);
+                    localStorage.removeItem("pending_email");
+                    localStorage.removeItem("pending_password");
+                  }}
+                  className="mt-5 w-full text-center text-sm text-white/55 transition hover:text-[#f0c982]"
+                >
+                  {t("backToLogin")}
+                </button>
+              </div>
+            ) : (
+              <div className="w-full max-w-[410px] rounded-2xl border border-[#d7aa63]/35 bg-black/80 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur sm:p-5">
+                <div className="rounded-full border border-white/10 bg-white/[0.03] p-1">
+                  {(["login", "signup"] as const).map((m) => (
+                    <button
+                      type="button"
+                      key={m}
+                      onClick={() => {
+                        setMode(m);
+                        setErrorMessage("");
+                        setSuccessMessage("");
+                      }}
+                      className={`h-9 w-1/2 rounded-full text-sm font-semibold transition-colors ${
+                        mode === m ? "bg-[#f0c982] text-[#100d08]" : "text-white/60 hover:text-white"
+                      }`}
+                    >
+                      {m === "login" ? t("logIn") : t("createAccount")}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-4 text-center">
+                  <h2 className={`${displayFont} text-xl font-semibold tracking-wide text-white sm:text-2xl`}>
+                    {isLogin ? t("logIn").toUpperCase() : t("createAccount").toUpperCase()}
+                  </h2>
+                  <p className="mt-1.5 text-xs text-white/50 sm:text-sm">
+                    {isLogin ? t("welcomeBackDesc") : t("joinCollectionDesc")}
+                  </p>
+                </div>
+
+                {DEMO_MODE && isLogin && (
+                  <div className="mt-4 rounded-xl border border-[#d7aa63]/25 bg-[#f0c982]/[0.04] p-2.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#f0c982]">
+                        Demo Mode
+                      </p>
+                      <p className="text-[11px] text-white/45">Mật khẩu: <strong>demo123</strong></p>
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {(
+                        [
+                          { key: "collector" as const, label: "Collector demo", email: "demo@luxeauction.vn", icon: "person_search" },
+                          { key: "seller" as const, label: "Seller demo", email: "seller@luxeauction.vn", icon: "storefront" },
+                          { key: "staff" as const, label: "Staff demo", email: "staff@luxeauction.vn", icon: "badge" },
+                        ] as const
+                      ).map((demo) => (
+                        <button
+                          key={demo.key}
+                          type="button"
+                          onClick={() => {
+                            setEmail(demo.email);
+                            setPassword("demo123");
+                            setSelectedDemo(demo.key);
+                          }}
+                          className={`flex min-h-9 items-center gap-2 rounded-lg border px-3 text-left text-xs font-semibold transition-colors ${
+                            selectedDemo === demo.key
+                              ? "border-[#f0c982] bg-[#f0c982] text-[#100d08]"
+                              : "border-white/12 bg-black/40 text-white/65 hover:border-[#f0c982]/60 hover:text-white"
+                          } ${demo.key === "staff" ? "col-span-2" : ""}`}
+                        >
+                          <span className="material-symbols-outlined text-base">{demo.icon}</span>
+                          {demo.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
+                  {isSignup && (
                     <div>
-                      <label className="block text-sm font-semibold text-on-surface-variant mb-1">{t("phone")}</label>
+                      <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.16em] text-[#d4aa61]">
+                        {t("fullName")}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder={t("fullNamePlaceholder")}
+                        value={fullName}
+                        onChange={(event) => setFullName(event.target.value)}
+                        autoComplete="name"
+                        required={isSignup}
+                        className="luxe-input"
+                      />
+                    </div>
+                  )}
+
+                  {isSignup && (
+                    <div>
+                      <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.16em] text-[#d4aa61]">
+                        {t("phone")}
+                      </label>
                       <input
                         type="tel"
                         placeholder={t("phonePlaceholder")}
@@ -506,136 +553,172 @@ export default function AuthPage() {
                         onChange={(event) => setPhone(event.target.value)}
                         autoComplete="tel"
                         required={isSignup}
-                        className="premium-input"
+                        className="luxe-input"
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.16em] text-[#d4aa61]">
+                      {t("email")}
+                    </label>
+                    <div className="relative">
+                      <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#9d948a]">
+                        mail
+                      </span>
+                      <input
+                        type="email"
+                        placeholder={t("emailPlaceholder")}
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        autoComplete="email"
+                        required
+                        className="luxe-input pl-10"
                       />
                     </div>
                   </div>
-                )}
 
-                <div>
-                  <label className="block text-sm font-semibold text-on-surface-variant mb-1">{t("email")}</label>
-                  <input
-                    type="email"
-                    placeholder={t("emailPlaceholder")}
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    autoComplete="email"
-                    required
-                    className="premium-input"
-                  />
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="block text-sm font-semibold text-on-surface-variant">{t("password")}</label>
-                    {isLogin && (
-                      <a href="#" className="text-label-sm font-label-sm text-secondary hover:underline">{t("forgotPassword")}</a>
-                    )}
-                  </div>
-                  <div className="relative">
-                    <input
-                      type={showPass ? "text" : "password"}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      autoComplete={isLogin ? "current-password" : "new-password"}
-                      required
-                      placeholder="••••••••"
-                      className="premium-input pr-12"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPass((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-on-surface-variant"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">{showPass ? "visibility_off" : "visibility"}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {isSignup && (
                   <div>
-                    <label className="block text-sm font-semibold text-on-surface-variant mb-1">{t("confirmPassword")}</label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(event) => setConfirmPassword(event.target.value)}
-                      autoComplete="new-password"
-                      required={isSignup}
-                      placeholder="••••••••"
-                      className="premium-input"
-                    />
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <label className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d4aa61]">
+                        {t("password")}
+                      </label>
+                      {isLogin && (
+                        <a href="#" className="text-[11px] text-[#f0c982]/80 hover:text-[#f0c982] hover:underline">
+                          {t("forgotPassword")}
+                        </a>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#9d948a]">
+                        lock
+                      </span>
+                      <input
+                        type={showPass ? "text" : "password"}
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                        autoComplete={isLogin ? "current-password" : "new-password"}
+                        required
+                        placeholder="••••••••"
+                        className="luxe-input pl-10 pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPass((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9d948a] hover:text-[#f0c982]"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">
+                          {showPass ? "visibility_off" : "visibility"}
+                        </span>
+                      </button>
+                    </div>
                   </div>
-                )}
 
-                {successMessage && !isSignup && (
-                  <div className="rounded-lg border border-secondary/30 bg-secondary/10 px-4 py-3 text-label-md text-secondary">
-                    {successMessage}
-                  </div>
-                )}
+                  {isSignup && (
+                    <div>
+                      <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.16em] text-[#d4aa61]">
+                        {t("confirmPassword")}
+                      </label>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(event) => setConfirmPassword(event.target.value)}
+                        autoComplete="new-password"
+                        required={isSignup}
+                        placeholder="••••••••"
+                        className="luxe-input"
+                      />
+                    </div>
+                  )}
 
-                {errorMessage && (
-                  <div className="rounded-lg border border-error/30 bg-error-container/20 px-4 py-3 text-label-md text-error">
-                    {errorMessage}
-                  </div>
-                )}
+                  {successMessage && !isSignup && (
+                    <div className="rounded-lg border border-[#d4aa61]/30 bg-[#d4aa61]/10 px-4 py-3 text-sm text-[#f0d98b]">
+                      {successMessage}
+                    </div>
+                  )}
 
-                <div className="pt-2">
-                  <button
+                  {errorMessage && (
+                    <div className="rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                      {errorMessage}
+                    </div>
+                  )}
+
+                  <GoldButton
                     type="submit"
                     disabled={isSubmitting}
-                    className="group flex w-full items-center justify-center gap-sm rounded-full bg-slate-950 py-3.5 font-label-md text-label-md text-white shadow-[0_14px_35px_rgba(15,23,42,.18)] transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-[0_18px_42px_rgba(37,99,235,.2)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+                    className="w-full disabled:cursor-not-allowed disabled:opacity-70"
                   >
-                    <span>{isSubmitting ? (isLogin ? t("loggingIn") : t("creatingAccount")) : isLogin ? t("loginSubmit") : t("signupSubmit")}</span>
-                    <span className="material-symbols-outlined text-[18px] text-secondary-fixed-dim group-hover:translate-x-1 transition-transform">
-                      arrow_forward
-                    </span>
-                  </button>
-                </div>
-              </form>
+                    {isSubmitting
+                      ? isLogin
+                        ? t("loggingIn")
+                        : t("creatingAccount")
+                      : isLogin
+                        ? t("loginSubmit")
+                        : t("signupSubmit")}
+                  </GoldButton>
+                </form>
 
-              {/* Social logins */}
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-outline-variant/50" />
+                <div className="relative my-5">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-white/10" />
+                  </div>
+                  <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-[0.14em]">
+                    <span className="bg-black/80 px-3 text-white/45">{t("orContinueWith")}</span>
+                  </div>
                 </div>
-                <div className="relative flex justify-center text-label-sm font-label-sm">
-                  <span className="bg-surface px-4 text-on-surface-variant">{t("orContinueWith")}</span>
+
+                <div className="flex flex-col items-center gap-2">
+                  {GOOGLE_CLIENT_ID ? (
+                    <div ref={googleButtonRef} className="flex w-full justify-center min-h-[44px]" />
+                  ) : (
+                    <OutlineButton
+                      type="button"
+                      onClick={handleDemoGoogle}
+                      disabled={isSubmitting}
+                      className="w-full gap-2"
+                    >
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                      </svg>
+                      {t("continueWithGoogle")}
+                    </OutlineButton>
+                  )}
+                  {!GOOGLE_CLIENT_ID && !DEMO_MODE && (
+                    <p className="text-center text-[11px] text-white/40">{t("googleNotConfigured")}</p>
+                  )}
                 </div>
+
+                <p className="mt-5 text-center text-[11px] leading-relaxed text-white/40">
+                  {t("termsPrefix")}{" "}
+                  <a className="text-[#f0c982]/80 underline hover:text-[#f0c982]" href="#">
+                    {t("terms")}
+                  </a>{" "}
+                  {t("and")}{" "}
+                  <a className="text-[#f0c982]/80 underline hover:text-[#f0c982]" href="#">
+                    {t("auctionRules")}
+                  </a>
+                  .
+                </p>
               </div>
+            )}
+          </div>
+        </section>
 
-              <div className="flex flex-col items-center gap-2">
-                {GOOGLE_CLIENT_ID ? (
-                  <div ref={googleButtonRef} className="flex justify-center w-full min-h-[44px]" />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleDemoGoogle}
-                    disabled={isSubmitting}
-                    className="flex w-full items-center justify-center gap-xs rounded-full border border-slate-200 bg-white px-4 py-3 font-label-md text-label-md transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70"
-                  >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24">
-                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                    </svg>
-                    {t("continueWithGoogle")}
-                  </button>
-                )}
-                {!GOOGLE_CLIENT_ID && !DEMO_MODE && (
-                  <p className="text-[11px] text-on-surface-variant/60 text-center">{t("googleNotConfigured")}</p>
-                )}
+        <footer className="hidden shrink-0 border-t border-white/10 py-5 lg:grid lg:grid-cols-4 lg:gap-6">
+          {AUTH_STATS.map((item) => (
+            <div key={item.title} className="flex items-start gap-3">
+              <span className="material-symbols-outlined text-xl text-[#f0c982]">{item.icon}</span>
+              <div>
+                <p className="text-[10px] font-bold tracking-wider text-white">{item.title}</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-white/45">{item.description}</p>
               </div>
-
-              <p className="mt-4 text-center text-[11px] text-on-surface-variant/60 leading-relaxed">
-                {t("termsPrefix")}{" "}
-                <a className="underline hover:text-secondary" href="#">{t("terms")}</a> {t("and")}{" "}
-                <a className="underline hover:text-secondary" href="#">{t("auctionRules")}</a>.
-              </p>
             </div>
-          )}
-        </div>
-      </section>
+          ))}
+        </footer>
+      </div>
     </main>
   );
 }

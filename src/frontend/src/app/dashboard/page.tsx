@@ -13,6 +13,7 @@ import { subscribeAuction } from "@/lib/services/auctionPolling";
 import CountdownTimer from "@/components/features/CountdownTimer";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { calculateBidStep, computeMinNextBid } from "@/lib/bidStep";
+import { canPayForWonAuction, isForfeitedPayment } from "@/lib/auctionPayment";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import StatCard from "@/components/dashboard/StatCard";
 import EmptyState from "@/components/dashboard/EmptyState";
@@ -87,7 +88,14 @@ export default function DashboardPage() {
   const totalSpent = wonItems
     .filter((w) => w.status === "paid")
     .reduce((sum, w) => sum + w.finalPrice, 0);
-  const pendingPayment = wonItems.filter((w) => w.status === "pending_payment");
+  const pendingPayment = wonItems.filter(
+    (w) =>
+      w.status === "pending_payment" &&
+      canPayForWonAuction(w.paymentStatus, w.paymentDeadline),
+  );
+  const forfeitedWins = wonItems.filter(
+    (w) => w.status === "forfeited" || isForfeitedPayment(w.paymentStatus, w.paymentDeadline),
+  );
 
   const stats = [
     ...BASE_STATS.slice(0, 1).map((s) => ({ ...s, label: t("activeBids"), value: String(bids.length) })),
@@ -104,7 +112,7 @@ export default function DashboardPage() {
     <CollectorShell>
       <div className="mx-auto max-w-[1320px] space-y-8 px-4 py-8 sm:px-7 lg:px-10 lg:py-12">
         <section>
-          <DashboardHeader title={t("pageTitle")} subtitle={t("welcomeBack", { name: displayName })} actionLabel="Khám phá phiên đấu giá" actionHref="/live" />
+          <DashboardHeader title={t("pageTitle")} subtitle={t("welcomeBack", { name: displayName })} actionLabel={t("exploreAuctions")} actionHref="/live" />
 
           <div className="mt-8 grid grid-cols-2 gap-4 xl:grid-cols-4">
             {stats.map((stat, index) => <StatCard key={stat.label} icon={stat.icon} label={stat.label} value={stat.value} tone={index === 0 ? "gold" : index === 1 ? "green" : "navy"} detail={index === 0 && leadingCount > 0 ? `${leadingCount} leading` : undefined} />)}
@@ -113,11 +121,39 @@ export default function DashboardPage() {
 
         <WonItemsBanner wonItems={wonItems} onRefresh={fetchBids} />
 
+        {forfeitedWins.length > 0 && (
+          <section className="space-y-sm">
+            <h3 className="border-b border-error/30 pb-xs font-headline-sm text-headline-sm text-error">
+              {t("forfeitedWins")}
+            </h3>
+            <div className="grid gap-md md:grid-cols-2">
+              {forfeitedWins.map((w) => (
+                <div
+                  key={w.id}
+                  className="rounded-xl border border-error/40 bg-error-container/20 p-md soft-shadow"
+                >
+                  <p className="font-label-md text-label-md text-error">{w.productName}</p>
+                  <p className="mt-1 text-xs text-on-surface-variant">
+                    {t("wonAt", { price: `₫${w.finalPrice.toLocaleString("vi-VN")}`, lot: w.lotNumber })}
+                  </p>
+                  <p className="mt-sm text-sm text-error">{t("paymentOverdueMsg")}</p>
+                  <Link
+                    href={`/auctions/${w.productId}`}
+                    className="mt-sm inline-block text-xs text-on-surface-variant hover:underline"
+                  >
+                    {t("viewLot")}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
           <section className="space-y-5 xl:col-span-1">
             <div>
-              <p className="text-[9px] font-black uppercase tracking-[.2em] text-[#9a7429]">Live bidding activity</p>
-              <h3 className="mt-2 font-display-lg text-2xl font-black tracking-[-.04em] text-[#071626]">{t("myActiveBids")}</h3>
+              <p className="text-[9px] font-black uppercase tracking-[.2em] text-[#d4aa61]">Live bidding activity</p>
+              <h3 className="mt-2 font-display-lg text-2xl font-black tracking-[-.04em] text-white">{t("myActiveBids")}</h3>
             </div>
             <div>
               {isLoadingBids ? (
@@ -126,13 +162,13 @@ export default function DashboardPage() {
                 <EmptyState
                   icon="gavel"
                   title={t("noActiveBids")}
-                  description="Các phiên bạn tham gia sẽ xuất hiện tại đây cùng trạng thái bid theo thời gian thực."
+                  description={t("emptyActiveBidsDesc")}
                   actionLabel={t("browseAuctions")}
                   actionHref="/live"
                 />
               ) : activeBids.length === 0 ? (
-                <div className="rounded-2xl border border-[#e1d6c2] bg-white/80 p-5 text-sm text-[#667386] shadow-[0_12px_34px_rgba(15,23,42,.06)] backdrop-blur">
-                  Không có phiên đang diễn ra. Xem lịch sử tham gia bên dưới.
+                <div className="rounded-2xl border border-white/10 bg-[#0e0d0b] p-5 text-sm text-[#b7aea3] shadow-[0_12px_34px_rgba(0,0,0,.35)]">
+                  {t("noLiveSessionsHint")}
                 </div>
               ) : (
                 <DataTable
@@ -150,11 +186,11 @@ export default function DashboardPage() {
             {endedBids.length > 0 && (
               <div className="mt-8 space-y-5">
                 <div>
-                  <p className="text-[9px] font-black uppercase tracking-[.2em] text-[#9a7429]">Lịch sử tham gia</p>
-                  <h3 className="mt-2 font-display-lg text-2xl font-black tracking-[-.04em] text-[#071626]">Phiên đã kết thúc</h3>
+                  <p className="text-[9px] font-black uppercase tracking-[.2em] text-[#d4aa61]">{t("participationHistory")}</p>
+                  <h3 className="mt-2 font-display-lg text-2xl font-black tracking-[-.04em] text-white">{t("endedSessionsTitle")}</h3>
                 </div>
                 <DataTable
-                  headers={["tableLotItem", "tableCurrentBid", "Giá của bạn", "tableStatus", "Thanh toán", "tableActions"].map(
+                  headers={["tableLotItem", "tableCurrentBid", "tableYourBid", "tableStatus", "tablePayment", "tableActions"].map(
                     (key) => (key.startsWith("table") ? t(key) : key),
                   )}
                 >
@@ -167,19 +203,19 @@ export default function DashboardPage() {
           </section>
 
           <section className="space-y-5">
-            <div className="relative overflow-hidden rounded-[24px] border border-[#e1d7c5] bg-white/82 p-6 shadow-[0_18px_50px_rgba(15,23,42,.08)] backdrop-blur">
+            <div className="relative overflow-hidden rounded-[24px] border border-white/10 bg-[#0e0d0b] p-6 shadow-[0_18px_50px_rgba(0,0,0,.4)]">
               <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-[#d2ad55]/16 blur-2xl" />
               <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-[#b8860b] via-[#d7b55c] to-transparent" />
               <div className="relative flex items-start gap-4">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#fff4d7] text-[#a86f04] shadow-inner shadow-white/70">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#2a2211] text-[#f0d98b] shadow-inner shadow-black/40">
                   <span className="material-symbols-outlined text-[22px]">timer</span>
                 </span>
                 <div>
-                  <h4 className="font-display-lg text-lg font-black tracking-[-.03em] text-[#071626]">{t("quickTips")}</h4>
-                  <p className="mt-2 text-sm leading-6 text-[#687586]">
+                  <h4 className="font-display-lg text-lg font-black tracking-[-.03em] text-white">{t("quickTips")}</h4>
+                  <p className="mt-2 text-sm leading-6 text-[#b7aea3]">
                     {t("depositTip")}
                   </p>
-                  <Link href="/wallet" className="mt-3 inline-flex items-center gap-1 text-xs font-black text-[#9a6b13] hover:underline">
+                  <Link href="/wallet" className="mt-3 inline-flex items-center gap-1 text-xs font-black text-[#e7c57c] hover:underline">
                     {t("depositFunds")}
                     <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                   </Link>
@@ -187,8 +223,8 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="relative overflow-hidden rounded-[28px] bg-[#071626] p-6 text-white shadow-[0_24px_70px_rgba(7,22,38,.24)]">
-              <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[#1d4ed8]/22 blur-3xl" />
+            <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#0c0b09] p-6 text-white shadow-[0_24px_70px_rgba(0,0,0,.5)]">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-[#d4aa61]/18 blur-3xl" />
               <div className="pointer-events-none absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-[#d2ad55]/70 to-transparent" />
               <h3 className="relative mb-2 font-display-lg text-2xl font-black tracking-[-.05em] text-white">{t("quickAccess")}</h3>
               <p className="relative mb-5 text-sm leading-6 text-[#b8c5d3]">{t("quickAccessDesc")}</p>
@@ -219,15 +255,24 @@ export default function DashboardPage() {
 
 function EndedBidRow({ bid }: { bid: BidInfo }) {
   const t = useTranslations("dashboard");
+  const forfeited =
+    bid.status === "won" &&
+    isForfeitedPayment(bid.paymentStatus, bid.paymentDeadline ?? null);
   const paymentLabel =
     bid.status === "won"
       ? bid.paymentStatus === "PAID"
-        ? "Đã thanh toán"
-        : "Chờ thanh toán"
+        ? t("statusPaid")
+        : forfeited
+          ? t("statusPaymentOverdue")
+          : t("awaitingPayment")
       : "—";
 
   return (
-    <tr className="border-b border-surface-variant transition-colors hover:bg-surface-container-lowest">
+    <tr
+      className={`border-b border-surface-variant transition-colors hover:bg-surface-container-lowest ${
+        forfeited ? "bg-error-container/15" : ""
+      }`}
+    >
       <td className="p-md">
         <div className="flex items-center gap-sm">
           <div className="h-12 w-12 shrink-0 overflow-hidden rounded bg-surface-variant">
@@ -255,10 +300,10 @@ function EndedBidRow({ bid }: { bid: BidInfo }) {
           </span>
         )}
       </td>
-      <td className="p-md text-sm">{paymentLabel}</td>
+      <td className={`p-md text-sm ${forfeited ? "font-medium text-error" : ""}`}>{paymentLabel}</td>
       <td className="p-md text-right">
         <Link href={`/auctions/${bid.productId}`} className="font-label-sm text-label-sm text-secondary hover:underline">
-          {bid.status === "won" && bid.paymentStatus !== "PAID" ? t("payNow") : t("viewLot")}
+          {bid.status === "won" && canPayForWonAuction(bid.paymentStatus, bid.paymentDeadline) ? t("payNow") : t("viewLot")}
         </Link>
       </td>
     </tr>
@@ -573,7 +618,9 @@ function WonItemsBanner({
   }, [wonItems]);
 
   const awaitingPayment = items.filter(
-    (i) => i.status === "pending_payment" || i.paymentStatus === "AWAITING_PAYMENT",
+    (i) =>
+      (i.status === "pending_payment" || i.paymentStatus === "AWAITING_PAYMENT") &&
+      canPayForWonAuction(i.paymentStatus, i.paymentDeadline),
   );
   if (awaitingPayment.length === 0) return null;
 

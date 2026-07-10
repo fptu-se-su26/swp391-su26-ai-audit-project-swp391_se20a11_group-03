@@ -135,7 +135,7 @@ export default function TopNav() {
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmed = searchTerm.trim();
-    router.push(trimmed ? `/?keyword=${encodeURIComponent(trimmed)}` : "/");
+    router.push(trimmed ? `/browse?keyword=${encodeURIComponent(trimmed)}` : "/browse");
   };
 
   const handleLogout = () => {
@@ -208,19 +208,19 @@ export default function TopNav() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-outline-variant/20 bg-surface/90 backdrop-blur-xl shadow-sm">
+    <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#060606]/88 backdrop-blur-xl shadow-[0_10px_35px_rgba(0,0,0,.4)]">
       <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between px-margin-mobile md:px-margin-desktop">
         <div className="flex items-center gap-8">
-          <BrandLogo />
+          <BrandLogo inverted />
           <div className="hidden items-center gap-6 md:flex">
             {navItems.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className={`font-label-md text-label-md transition-all ${
+                className={`font-label-md text-label-md uppercase tracking-[0.08em] transition-all ${
                   item.active
-                    ? "border-b-2 border-secondary pb-1 font-bold text-secondary"
-                    : "text-on-surface-variant hover:text-primary"
+                    ? "border-b-2 border-[#d4aa61] pb-1 font-bold text-[#d4aa61]"
+                    : "text-[#e6ded2] hover:text-[#d4aa61]"
                 }`}
               >
                 {item.label}
@@ -232,15 +232,15 @@ export default function TopNav() {
         <div className="flex items-center gap-4">
           <form
             onSubmit={handleSearch}
-            className="hidden items-center rounded-full border border-outline-variant/30 bg-surface-container px-4 py-2 transition-colors focus-within:border-primary md:flex"
+            className="hidden items-center rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 transition-colors focus-within:border-[#d4aa61]/70 md:flex"
           >
-            <span className="material-symbols-outlined mr-2 text-on-surface-variant">search</span>
+            <span className="material-symbols-outlined mr-2 text-[#9d948a]">search</span>
             <input
               type="text"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder={tNav("searchPlaceholder")}
-              className="w-48 bg-transparent p-0 font-body-md text-body-md text-on-surface outline-none placeholder:text-on-surface-variant/50 focus:ring-0"
+              className="w-48 bg-transparent p-0 font-body-md text-body-md text-[#f5ead9] outline-none placeholder:text-[#6f675e] focus:ring-0"
             />
           </form>
 
@@ -251,12 +251,12 @@ export default function TopNav() {
               <div className="relative" ref={notifRef}>
                 <button
                   onClick={openNotifications}
-                  className="relative rounded-full p-2 text-on-surface-variant transition-all hover:bg-surface-variant/50"
+                  className="relative rounded-full p-2 text-[#e6ded2] transition-all hover:bg-white/[0.06] hover:text-[#d4aa61]"
                   title={tNav("notifications")}
                 >
                   <span className="material-symbols-outlined">notifications</span>
                   {notifCount > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-on-error">
+                    <span className="absolute -right-0.5 -top-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#c62828] px-1 text-[10px] font-bold text-white">
                       {notifCount > 99 ? "99+" : notifCount}
                     </span>
                   )}
@@ -264,13 +264,13 @@ export default function TopNav() {
 
                 {/* Notification Dropdown */}
                 {notifOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-96 max-w-[calc(100vw-2rem)] rounded-2xl border border-surface-variant bg-surface shadow-2xl z-50 overflow-hidden">
-                    <div className="flex items-center justify-between p-md border-b border-surface-variant">
-                      <h3 className="font-label-lg text-label-lg text-on-surface font-bold">{tNav("notifications")}</h3>
+                  <div className="absolute right-0 top-full mt-2 w-96 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/10 bg-[#11100d] shadow-2xl z-50 overflow-hidden">
+                    <div className="flex items-center justify-between p-md border-b border-white/10">
+                      <h3 className="font-label-lg text-label-lg text-[#f5ead9] font-bold">{tNav("notifications")}</h3>
                       {notifCount > 0 && (
                         <button
                           onClick={handleMarkAllRead}
-                          className="text-xs text-primary hover:underline"
+                          className="text-xs text-[#d4aa61] hover:underline"
                         >
                           {tNav("markAllRead")}
                         </button>
@@ -279,37 +279,37 @@ export default function TopNav() {
                     <div className="max-h-96 overflow-y-auto">
                       {notifLoading ? (
                         <div className="flex items-center justify-center p-lg">
-                          <span className="material-symbols-outlined animate-spin text-2xl text-primary">progress_activity</span>
+                          <span className="material-symbols-outlined animate-spin text-2xl text-[#d4aa61]">progress_activity</span>
                         </div>
                       ) : notifList.length === 0 ? (
                         <div className="flex flex-col items-center p-lg text-center">
-                          <span className="material-symbols-outlined text-4xl text-on-surface-variant mb-sm">notifications_none</span>
-                          <p className="text-sm text-on-surface-variant">{tNav("noNotifications")}</p>
+                          <span className="material-symbols-outlined text-4xl text-[#9d948a] mb-sm">notifications_none</span>
+                          <p className="text-sm text-[#9d948a]">{tNav("noNotifications")}</p>
                         </div>
                       ) : (
                         notifList.map((notif) => (
                           <button
                             key={notif.notificationId}
                             onClick={() => handleNotifClick(notif)}
-                            className={`w-full flex gap-sm p-md border-b border-surface-variant/50 hover:bg-surface-variant/30 transition-colors text-left ${
-                              !notif.isRead ? "bg-primary-container/20" : ""
+                            className={`w-full flex gap-sm p-md border-b border-white/5 hover:bg-white/[0.04] transition-colors text-left ${
+                              !notif.isRead ? "bg-[#d4aa61]/10" : ""
                             }`}
                           >
-                            <span className={`mt-0.5 flex-shrink-0 material-symbols-outlined text-xl ${notifColor(notif.type)}`}>
+                            <span className={`mt-0.5 flex-shrink-0 material-symbols-outlined text-xl ${notif.isRead ? "text-[#9d948a]" : "text-[#d4aa61]"}`}>
                               {notifIcon(notif.type)}
                             </span>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-sm">
-                                <p className={`font-label-sm text-label-sm font-bold line-clamp-1 ${!notif.isRead ? "text-on-surface" : "text-on-surface-variant"}`}>
+                                <p className={`font-label-sm text-label-sm font-bold line-clamp-1 ${!notif.isRead ? "text-[#f5ead9]" : "text-[#b7aea3]"}`}>
                                   {notif.title}
                                 </p>
-                                <span className="text-[10px] text-on-surface-variant whitespace-nowrap mt-0.5">
+                                <span className="text-[10px] text-[#9d948a] whitespace-nowrap mt-0.5">
                                   {formatNotifTime(notif.createdAt)}
                                 </span>
                               </div>
-                              <p className="text-xs text-on-surface-variant mt-xs line-clamp-2">{notif.message}</p>
+                              <p className="text-xs text-[#9d948a] mt-xs line-clamp-2">{notif.message}</p>
                               {!notif.isRead && (
-                                <span className="mt-1 inline-block h-2 w-2 rounded-full bg-primary" />
+                                <span className="mt-1 inline-block h-2 w-2 rounded-full bg-[#d4aa61]" />
                               )}
                             </div>
                           </button>
@@ -320,10 +320,10 @@ export default function TopNav() {
                 )}
               </div>
 
-              <Link href="/watchlist" className="relative rounded-full p-2 text-on-surface-variant transition-all hover:bg-surface-variant/50">
+              <Link href="/watchlist" className="relative rounded-full p-2 text-[#e6ded2] transition-all hover:bg-white/[0.06] hover:text-[#d4aa61]">
                 <span className="material-symbols-outlined">favorite</span>
                 {watchlistCount > 0 && (
-                  <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1 text-[11px] font-bold text-on-secondary">
+                  <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#d4aa61] px-1 text-[11px] font-bold text-[#100d08]">
                     {watchlistCount}
                   </span>
                 )}
@@ -336,19 +336,19 @@ export default function TopNav() {
                       ? "/staff/withdrawals"
                       : "/dashboard"
                 }
-                className="ml-2 flex items-center gap-xs rounded-full border border-outline-variant/30 bg-surface-container-low px-2 py-1 transition-colors hover:bg-surface-container"
+                className="ml-2 flex items-center gap-xs rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 transition-colors hover:bg-white/[0.08]"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-container text-sm font-bold uppercase text-on-primary-container">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] text-sm font-bold uppercase text-[#100d08]">
                   {initials}
                 </div>
-                <span className="hidden max-w-32 truncate font-label-sm text-label-sm text-on-surface md:block">
+                <span className="hidden max-w-32 truncate font-label-sm text-label-sm text-[#f5ead9] md:block">
                   {displayName}
                 </span>
               </Link>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="hidden rounded-lg px-3 py-2 font-label-sm text-label-sm text-on-surface-variant transition-colors hover:bg-error-container/30 hover:text-error md:inline-flex"
+                className="hidden rounded-lg px-3 py-2 font-label-sm text-label-sm text-[#9d948a] transition-colors hover:bg-[#c62828]/20 hover:text-[#f5b0b0] md:inline-flex"
               >
                 {tCommon("logout")}
               </button>
@@ -358,13 +358,13 @@ export default function TopNav() {
               <LanguageSwitcher />
               <Link
                 href="/auth"
-                className="rounded-lg px-4 py-2 font-label-md text-label-md text-primary transition-colors hover:bg-primary-container/10"
+                className="rounded-lg px-4 py-2 font-label-md text-label-md text-[#f0ce88] transition-colors hover:bg-[#d4aa61]/10"
               >
                 {tCommon("login")}
               </Link>
               <Link
                 href="/auth?mode=signup"
-                className="rounded-lg bg-primary px-4 py-2 font-label-md text-label-md text-on-primary shadow-sm transition-opacity hover:opacity-90"
+                className="rounded-lg bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] px-4 py-2 font-label-md text-label-md text-[#100d08] shadow-sm transition-opacity hover:brightness-110"
               >
                 {tCommon("register")}
               </Link>

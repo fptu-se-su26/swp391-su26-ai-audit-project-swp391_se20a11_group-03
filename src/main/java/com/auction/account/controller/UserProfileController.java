@@ -62,6 +62,9 @@ public class UserProfileController {
                 .identityVerified(u.isIdentityVerified())
                 .profileStatus(u.getProfileStatus())
                 .identityVerifiedAt(u.getIdentityVerifiedAt())
+                .active(u.isActive())
+                .paymentStrikeCount(u.getPaymentStrikeCount())
+                .lockedByPaymentStrikes(u.isLockedByPaymentStrikes())
                 .build();
     }
 }

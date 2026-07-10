@@ -10,5 +10,7 @@ public class WalletResponse {
     private Long userId;
     private Long balance;
     private Long holdBalance;
+    /** Spendable balance (balance minus holds for deposits and pending withdrawals). */
+    private Long availableBalance;
     private String status;
 }

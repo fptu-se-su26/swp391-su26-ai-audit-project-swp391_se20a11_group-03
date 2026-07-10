@@ -8,6 +8,7 @@ import { getProductImage } from "@/lib/productPresentation";
 import type { ProductSummary } from "@/lib/services/productService";
 import CountdownBadge from "./CountdownBadge";
 import StatusBadge from "./StatusBadge";
+import { displayFont } from "@/components/luxe/theme";
 
 const numberFormatter = new Intl.NumberFormat("vi-VN");
 
@@ -48,11 +49,11 @@ function ProductAuctionCard({
 
   return (
     <article
-      className="animate-fade-up group relative flex min-h-full flex-col overflow-hidden rounded-[24px] border border-slate-200/80 bg-white shadow-[0_14px_45px_rgba(15,23,42,.08)] transition-all duration-500 hover:-translate-y-2 hover:border-blue-200 hover:shadow-[0_24px_70px_rgba(15,23,42,.14)]"
+      className="animate-fade-up group relative flex min-h-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#0e0d0b] transition-all duration-500 hover:-translate-y-2 hover:border-[#d4aa61]/45 hover:shadow-[0_24px_70px_rgba(0,0,0,.5)]"
       style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }}
     >
       <Link href={`/auctions/${product.productId}`} className="absolute inset-0 z-10" aria-label={`View ${product.productName}`} />
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-[#11100d]">
         <Image
           src={getProductImage(product.imageUrl)}
           alt={product.productName}
@@ -64,33 +65,33 @@ function ProductAuctionCard({
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
           <StatusBadge status={product.auctionStatus} label={isLive ? t("lotCard.live") : product.auctionStatus || "Lot"} />
           <div className="relative z-20">
-            <WatchlistButton productId={product.productId} className="!static grid h-10 w-10 place-items-center rounded-full bg-white/95 text-slate-700 shadow-sm backdrop-blur transition hover:scale-105 hover:text-red-600" />
+            <WatchlistButton productId={product.productId} className="!static grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-black/45 text-[#d4aa61] backdrop-blur transition hover:scale-105 hover:bg-black/60" />
           </div>
         </div>
-        <div className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-[11px] font-bold text-slate-700 shadow-sm backdrop-blur">
+        <div className="absolute bottom-3 left-3 rounded-full border border-white/10 bg-black/55 px-3 py-1 text-[11px] font-bold text-[#efcf88] backdrop-blur">
           Lot #{product.productId}
         </div>
       </div>
 
       <div className="relative flex flex-1 flex-col p-5">
-        <p className="text-xs font-semibold uppercase tracking-[.14em] text-[#9a6b13]">
+        <p className="text-xs font-semibold uppercase tracking-[.14em] text-[#d4aa61]">
           {product.categoryName ?? t("lotCard.uncategorized")}
         </p>
-        <h3 className="mt-3 line-clamp-2 min-h-[56px] font-display-lg text-xl font-semibold leading-7 tracking-[-.025em] text-slate-950">
+        <h3 className={`${displayFont} mt-3 line-clamp-2 min-h-[56px] text-xl font-medium leading-7 text-white`}>
           {product.productName}
         </h3>
 
-        <div className="mt-5 grid gap-4 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 sm:grid-cols-2">
+        <div className="mt-5 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:grid-cols-2">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9d948a]">
               {isLive ? t("lotCard.currentBid") : t("lotCard.startingBid")}
             </p>
-            <p className="mt-1 text-lg font-extrabold text-slate-950">
+            <p className="mt-1 text-lg font-extrabold text-[#efcf88]">
               {numberFormatter.format(price)} VND
             </p>
           </div>
           <div className="sm:text-right">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9d948a]">
               {isLive ? t("lotCard.endsIn") : t("lotCard.starts")}
             </p>
             <div className="mt-1 flex sm:justify-end">
@@ -99,7 +100,7 @@ function ProductAuctionCard({
           </div>
         </div>
 
-        <div className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-4 py-3 text-sm font-bold text-white transition duration-300 group-hover:bg-[#9a6b13]">
+        <div className="mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] px-4 py-3 text-sm font-bold text-[#100d08] transition duration-300 hover:brightness-110">
           <span className="material-symbols-outlined text-[18px]">gavel</span>
           {isLive ? t("lotCard.bidNow") : t("lotCard.viewLot")}
         </div>

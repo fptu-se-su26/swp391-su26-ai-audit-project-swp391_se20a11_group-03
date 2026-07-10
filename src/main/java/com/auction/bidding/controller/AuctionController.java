@@ -26,8 +26,11 @@ import com.auction.bidding.util.AuctionPhaseUtil;
 import com.auction.product.entity.Contract;
 import com.auction.product.entity.Product;
 import com.auction.product.repository.ProductRepository;
+import com.auction.product.service.ContractPdfAccessService;
 import com.auction.product.service.ContractService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -59,6 +62,7 @@ public class AuctionController {
     private final UserRepository userRepository;
     private final AuctionPaymentService auctionPaymentService;
     private final ContractService contractService;
+    private final ContractPdfAccessService contractPdfAccessService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @GetMapping("/{auctionId}/eligibility")
@@ -228,7 +232,7 @@ public class AuctionController {
         }
     }
 
-    /** Returns the signed purchase contract for this auction (winner only). */
+    /** Returns purchase contract status and metadata (winner only). */
     @GetMapping("/{auctionId}/purchase-contract")
     public ResponseEntity<?> getPurchaseContract(
             @PathVariable("auctionId") Long auctionId,
@@ -237,21 +241,44 @@ public class AuctionController {
         if (user == null) {
             return ResponseEntity.status(401).body(Map.of("success", false, "message", "Authentication required"));
         }
-        Auction auction = auctionRepository.findById(auctionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Auction not found"));
-        if (auction.getCurrentWinnerUser() == null
-                || auction.getCurrentWinnerUser().getId() != user.getId().intValue()) {
-            return ResponseEntity.status(403).body(Map.of("success", false, "message", "Chỉ người thắng mới xem được hợp đồng."));
+        try {
+            return ResponseEntity.ok(contractService.getPurchaseContractPreview(auctionId, user.getId()));
+        } catch (com.auction.common.exception.BusinessException ex) {
+            return ResponseEntity.status(403).body(Map.of("success", false, "message", ex.getMessage()));
+        }
+    }
+
+    /** Alias kept for compatibility; prefer GET /purchase-contract. */
+    @GetMapping("/{auctionId}/purchase-contract/preview")
+    public ResponseEntity<?> getPurchaseContractPreview(
+            @PathVariable("auctionId") Long auctionId,
+            @AuthenticationPrincipal UserDetailsImpl user
+    ) {
+        return getPurchaseContract(auctionId, user);
+    }
+
+    @GetMapping(value = "/{auctionId}/purchase-contract/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> getPurchaseContractPdf(
+            @PathVariable("auctionId") Long auctionId,
+            @AuthenticationPrincipal UserDetailsImpl user
+    ) {
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        try {
+            contractService.getPurchaseContractPreview(auctionId, user.getId());
+        } catch (com.auction.common.exception.BusinessException ex) {
+            return ResponseEntity.status(403).build();
         }
         Contract contract = contractService.getPurchaseContract(auctionId);
-        Map<String, Object> body = new java.util.LinkedHashMap<>();
-        body.put("signed", contract != null);
-        body.put("contractId", contract != null ? contract.getContractId() : null);
-        body.put("fileUrl", contract != null ? contract.getFileUrl() : null);
-        body.put("signedAt", contract != null && contract.getCreatedAt() != null ? contract.getCreatedAt().toString() : null);
-        body.put("finalPrice", auction.getCurrentHighestBid());
-        body.put("productName", auction.getProduct() != null ? auction.getProduct().getProductName() : null);
-        return ResponseEntity.ok(body);
+        if (contract == null) {
+            return ResponseEntity.notFound().build();
+        }
+        byte[] pdf = contractPdfAccessService.resolvePdfBytes(contract.getContractId());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"purchase-agreement-" + auctionId + ".pdf\"")
+                .body(pdf);
     }
 
     /** Winner signs the purchase agreement (required before payment). */
@@ -264,14 +291,15 @@ public class AuctionController {
             return ResponseEntity.status(401).body(Map.of("success", false, "message", "Authentication required"));
         }
         try {
-            Contract contract = contractService.signPurchaseContract(auctionId, user.getId());
+            contractService.acknowledgePurchaseContract(auctionId, user.getId());
+            boolean persisted = contractService.hasPurchaseContract(auctionId);
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", "Đã ký hợp đồng mua bán. Bạn có thể tiếp tục thanh toán.",
-                    "signed", true,
-                    "contractId", contract.getContractId(),
-                    "fileUrl", contract.getFileUrl(),
-                    "signedAt", contract.getCreatedAt() != null ? contract.getCreatedAt().toString() : null
+                    "message", persisted
+                            ? "Đã ký hợp đồng mua bán. Bạn có thể tiếp tục thanh toán."
+                            : "Đã xác nhận hợp đồng. Hợp đồng sẽ được lưu khi thanh toán thành công.",
+                    "signed", persisted,
+                    "acknowledged", true
             ));
         } catch (com.auction.common.exception.BusinessException ex) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", ex.getMessage()));

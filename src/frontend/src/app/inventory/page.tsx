@@ -16,6 +16,7 @@ import {
   getMyProducts,
 } from "@/lib/services/productService";
 import { computeEffectiveAuctionStatus } from "@/lib/productPresentation";
+import { parseVndAmount } from "@/lib/money";
 import { useTranslations } from "@/i18n/I18nProvider";
 
 type Tab = "pending" | "active" | "upcoming" | "ended";
@@ -83,7 +84,7 @@ function EditProductModal({ product, onClose, onSaved, t }: EditProductModalProp
   const [form, setForm] = useState({
     productName: product.productName,
     description: product.description || "",
-    startingPrice: product.startingPrice,
+    startingPrice: String(product.startingPrice ?? ""),
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +92,7 @@ function EditProductModal({ product, onClose, onSaved, t }: EditProductModalProp
   const canSave =
     form.productName.trim() !== "" &&
     form.description.trim() !== "" &&
-    form.startingPrice > 0 &&
+    parseVndAmount(form.startingPrice) > 0 &&
     !saving;
 
   const handleSave = async () => {
@@ -101,7 +102,7 @@ function EditProductModal({ product, onClose, onSaved, t }: EditProductModalProp
       await updateProduct(product.productId, {
         productName: form.productName.trim(),
         description: form.description.trim(),
-        startingPrice: form.startingPrice,
+        startingPrice: parseVndAmount(form.startingPrice),
       });
       onSaved();
     } catch (e) {
@@ -154,10 +155,10 @@ function EditProductModal({ product, onClose, onSaved, t }: EditProductModalProp
           <div className="space-y-xs">
             <label className="font-label-md text-label-md text-on-surface-variant">{t("editModal.startingPriceVnd")}</label>
             <input
-              type="number"
-              min={0}
+              type="text"
+              inputMode="numeric"
               value={form.startingPrice}
-              onChange={(e) => setForm({ ...form, startingPrice: Number(e.target.value) })}
+              onChange={(e) => setForm({ ...form, startingPrice: e.target.value })}
               className="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none"
             />
           </div>
@@ -311,15 +312,15 @@ export default function InventoryPage() {
         <DashboardHeader eyebrow="Seller portfolio" title={t("pageTitle")} subtitle={t("pageSubtitle")} actionLabel={t("postNewItem")} actionHref="/post-item" />
 
         {/* Tabs */}
-        <div className="flex gap-1 overflow-x-auto border-y border-[#ddd6c9] py-4">
+        <div className="flex gap-1 overflow-x-auto border-y border-white/10 py-4">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
                 activeTab === tab.key
-                  ? "bg-[#071626] text-white"
-                  : "text-[#65717b] hover:bg-white hover:text-[#071626]"
+                  ? "bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] text-[#100d08]"
+                  : "text-[#9d948a] hover:bg-white/[.06] hover:text-[#f0d98b]"
               }`}
             >
               <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
@@ -359,7 +360,7 @@ export default function InventoryPage() {
                 );
                 const auctionCfg = AUCTION_STATUS_CONFIG[auctionState];
                 return (
-                   <div key={item.productId} className="group overflow-hidden rounded-2xl border border-[#ded8cc] bg-white shadow-[0_8px_28px_rgba(18,31,44,.05)] transition hover:-translate-y-1 hover:border-[#c4a55a] hover:shadow-[0_18px_42px_rgba(18,31,44,.11)]">
+                   <div key={item.productId} className="group overflow-hidden rounded-2xl border border-white/10 bg-[#0e0d0b] shadow-[0_8px_28px_rgba(0,0,0,.4)] transition hover:-translate-y-1 hover:border-[#c4a55a] hover:shadow-[0_18px_42px_rgba(0,0,0,.55)]">
                     <div className="relative h-48 overflow-hidden bg-surface-variant">
                       {item.imageUrl ? (
                         <img src={item.imageUrl} alt={item.productName} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
@@ -394,6 +395,9 @@ export default function InventoryPage() {
                       <h3 className="font-headline-sm text-headline-sm text-primary mt-1 mb-sm line-clamp-2">
                         {item.productName}
                       </h3>
+                      {item.status === "PENDING" && item.rejectionReason && (
+                        <p className="text-xs text-amber-700 mb-sm line-clamp-3">{item.rejectionReason}</p>
+                      )}
                       {item.status === "APPROVED" && (auctionState === "ACTIVE" || auctionState === "UPCOMING") && (
                         <p className="text-xs text-on-surface-variant mb-sm">
                           {auctionState === "ACTIVE" ? t("fields.ends") : t("fields.starts")}: {formatDateTime(auctionState === "ACTIVE" ? item.auctionEndTime : item.auctionStartTime)}
@@ -409,7 +413,7 @@ export default function InventoryPage() {
                         <div className="text-right">
                           <p className="font-label-sm text-label-sm text-on-surface-variant">{t("fields.currentPrice")}</p>
                           <p className="font-label-md text-label-md text-on-surface">
-                            {item.currentBid > 0 ? formatCurrency(item.currentBid) : "-"}
+                            {item.currentBid != null && item.currentBid > 0 ? formatCurrency(item.currentBid) : "—"}
                           </p>
                         </div>
                       </div>

@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import CollectorShell from "@/components/layout/CollectorShell";
-import ChatMessageList from "@/components/features/ChatMessageList";
+import SupportChatPanel from "@/components/features/SupportChatPanel";
 import { useTranslations } from "@/i18n/I18nProvider";
 import { apiClient } from "@/lib/apiClient";
 import {
@@ -85,7 +85,6 @@ function MessagesPageInner() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [showNewModal, setShowNewModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<StoredUser | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const syncUser = () => setCurrentUser(getStoredUser());
@@ -192,10 +191,6 @@ function MessagesPageInner() {
     onConversationEvent: () => refreshConversations(activeId),
   });
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, activeId]);
-
   async function send() {
     if (!input.trim() || !activeId) return;
     const content = input.trim();
@@ -230,14 +225,14 @@ function MessagesPageInner() {
   return (
     <CollectorShell mainClass="overflow-hidden">
       <div className="flex h-screen flex-col gap-0 p-4 sm:p-6 lg:flex-row lg:p-8">
-      <aside className="flex h-full w-full flex-col overflow-hidden rounded-t-3xl border border-[#ddd6c9] bg-[#f8f5ee] lg:w-[330px] lg:rounded-l-3xl lg:rounded-tr-none">
-        <div className="flex items-center justify-between gap-sm border-b border-[#e2dbcf] p-5">
-          <div><p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#9a7429]">Private inbox</p><h2 className="mt-1 font-display-lg text-lg font-semibold text-[#071626]">{t("title")}</h2></div>
+      <aside className="flex h-full w-full flex-col overflow-hidden rounded-t-3xl border border-white/10 bg-[#080706] lg:w-[330px] lg:rounded-l-3xl lg:rounded-tr-none">
+        <div className="flex items-center justify-between gap-sm border-b border-white/10 p-5">
+          <div><p className="text-[9px] font-bold uppercase tracking-[.18em] text-[#d4aa61]">Private inbox</p><h2 className="mt-1 font-display-lg text-lg font-semibold text-white">{t("title")}</h2></div>
           {!isUserStaff && !isUserAdmin && (
             <button
               type="button"
               onClick={() => setShowNewModal(true)}
-               className="flex items-center gap-1 rounded-full bg-[#071626] px-3 py-2 text-[11px] font-bold text-[#e4c77b] transition hover:bg-[#102a42]"
+               className="flex items-center gap-1 rounded-full bg-[#d4aa61] px-3 py-2 text-[11px] font-bold text-[#100d08] transition hover:opacity-90"
             >
               <span className="material-symbols-outlined text-[16px]">add</span>
               {t("newChat")}
@@ -247,10 +242,10 @@ function MessagesPageInner() {
 
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="p-md text-center text-on-surface-variant">{t("loading")}</div>
+            <div className="p-md text-center text-[#9d948a]">{t("loading")}</div>
           ) : conversations.length === 0 ? (
-            <div className="p-8 text-center text-[#707a82]">
-              <span className="material-symbols-outlined text-3xl text-[#b39858]">forum</span><p className="mb-2 mt-3 font-display-lg font-semibold text-[#071626]">{t("emptyTitle")}</p>
+            <div className="p-8 text-center text-[#9d948a]">
+              <span className="material-symbols-outlined text-3xl text-[#d4aa61]">forum</span><p className="mb-2 mt-3 font-display-lg font-semibold text-white">{t("emptyTitle")}</p>
               <p className="text-xs leading-5">{t("emptyDesc")}</p>
             </div>
           ) : (
@@ -268,62 +263,42 @@ function MessagesPageInner() {
         </div>
       </aside>
 
-      <main className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-b-3xl border border-t-0 border-[#ddd6c9] bg-[#fffdf9] lg:rounded-r-3xl lg:rounded-bl-none lg:border-l-0 lg:border-t">
-        {activeConversation ? (
-          <>
+      {activeConversation ? (
+        <SupportChatPanel
+          theme="dark"
+          className="!rounded-none !border-0 lg:!rounded-r-3xl"
+          header={
             <ConversationHeader
               conversation={activeConversation}
               currentUserId={currentUserId}
             />
-
-            <div className="flex-1 space-y-md overflow-y-auto bg-[radial-gradient(circle_at_80%_15%,rgba(190,157,78,.06),transparent_25%)] p-md">
-              {loadingMessages ? (
-                <div className="text-center text-on-surface-variant">{t("loadingMessages")}</div>
-              ) : messages.length === 0 ? (
-                <div className="text-center text-on-surface-variant">
-                  <p>{t("noMessagesYet")}</p>
-                </div>
-              ) : (
-                <ChatMessageList messages={messages} currentUserId={currentUserId} />
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            <div className="flex gap-3 border-t border-[#e3ddd2] bg-white p-4">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && send()}
-                placeholder={t("typeMessage")}
-                className="flex-1 rounded-xl border border-[#d8d1c5] bg-[#faf7f1] px-4 py-3 text-sm outline-none focus:border-[#b9974f]"
-              />
-              <button
-                type="button"
-                onClick={send}
-                className="grid h-11 w-11 place-items-center rounded-full bg-[#071626] text-[#e3c67a] transition hover:bg-[#102a42]"
-              >
-                <span className="material-symbols-outlined">send</span>
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 p-md text-[#707a82]">
-            <span className="grid h-16 w-16 place-items-center rounded-2xl bg-[#f1ead9] material-symbols-outlined text-3xl text-[#977229]">chat</span>
-            <p className="font-display-lg font-semibold text-[#071626]">{t("selectConversation")}</p>
-            {!isUserStaff && !isUserAdmin && (
-              <button
-                type="button"
-                onClick={() => setShowNewModal(true)}
-                className="flex items-center gap-xs rounded-lg bg-secondary px-4 py-2 font-label-md text-on-secondary hover:bg-secondary-fixed-dim"
-              >
-                <span className="material-symbols-outlined text-[18px]">add</span>
-                {t("startNewChat")}
-              </button>
-            )}
-          </div>
-        )}
-      </main>
+          }
+          messages={messages}
+          currentUserId={currentUserId}
+          loading={loadingMessages}
+          loadingLabel={t("loadingMessages")}
+          emptyLabel={t("noMessagesYet")}
+          inputValue={input}
+          onInputChange={setInput}
+          onSend={send}
+          inputPlaceholder={t("typeMessage")}
+        />
+      ) : (
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-b-3xl border border-t-0 border-white/10 bg-[#0a0908] p-md text-[#9d948a] lg:rounded-r-3xl lg:rounded-bl-none lg:border-l-0 lg:border-t">
+          <span className="grid h-16 w-16 place-items-center rounded-2xl bg-white/5 material-symbols-outlined text-3xl text-[#d4aa61]">chat</span>
+          <p className="font-display-lg font-semibold text-white">{t("selectConversation")}</p>
+          {!isUserStaff && !isUserAdmin && (
+            <button
+              type="button"
+              onClick={() => setShowNewModal(true)}
+              className="flex items-center gap-xs rounded-lg bg-[#d4aa61] px-4 py-2 font-label-md text-[#100d08] hover:opacity-90"
+            >
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              {t("startNewChat")}
+            </button>
+          )}
+        </div>
+      )}
 
       {showNewModal && (
         <NewConversationModal
@@ -361,34 +336,34 @@ function ConversationListItem({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full flex items-center gap-md p-md border-b border-outline-variant/30 hover:bg-surface-container-high transition-colors text-left ${
-        active ? "bg-surface-container-high border-r-2 border-r-secondary" : ""
+      className={`w-full flex items-center gap-md p-md border-b border-white/10 hover:bg-white/5 transition-colors text-left ${
+        active ? "bg-white/5 border-r-2 border-r-[#d4aa61]" : ""
       }`}
     >
       <ConversationAvatar type={c.type} />
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-end mb-1">
-          <span className="font-label-md text-primary truncate">{counterpart}</span>
-          <span className="text-[10px] text-outline flex-shrink-0 ml-2">
+          <span className="font-label-md text-white/90 truncate">{counterpart}</span>
+          <span className="text-[10px] text-[#756d64] flex-shrink-0 ml-2">
             {new Date(c.updatedAt).toLocaleString("vi-VN")}
           </span>
         </div>
         <div className="flex items-center gap-xs">
-          <span className="text-[10px] uppercase font-label-sm text-secondary">
+          <span className="text-[10px] uppercase font-label-sm text-[#d4aa61]">
             {labelForType(c.type, t)}
           </span>
-          <p className="text-sm text-on-surface-variant truncate flex-1">
+          <p className="text-sm text-[#9d948a] truncate flex-1">
             {c.lastMessage || c.subject}
           </p>
         </div>
         {isUnassignedStaffCase && (
-          <span className="mt-1 inline-block rounded-full bg-tertiary-container px-2 py-0.5 text-[10px] font-label-sm text-on-tertiary-container">
+          <span className="mt-1 inline-block rounded-full bg-[#d4aa61]/20 px-2 py-0.5 text-[10px] font-label-sm text-[#efcf88]">
             {t("unassignedBadge")}
           </span>
         )}
       </div>
       {c.unreadCount > 0 && (
-        <span className="w-2 h-2 rounded-full bg-secondary flex-shrink-0" />
+        <span className="w-2 h-2 rounded-full bg-[#d4aa61] flex-shrink-0" />
       )}
     </button>
   );
@@ -404,11 +379,11 @@ function ConversationHeader({
   const t = useTranslations("messagesPage");
   const counterpart = resolveCounterpart(c, currentUserId);
   return (
-    <div className="p-md border-b border-outline-variant flex items-center gap-md">
+    <div className="border-b border-white/10 p-md flex items-center gap-md bg-[#0e0d0b]">
       <ConversationAvatar type={c.type} />
       <div>
-        <p className="font-label-md text-primary">{counterpart}</p>
-        <p className="text-xs text-on-surface-variant">
+        <p className="font-label-md text-white">{counterpart}</p>
+        <p className="text-xs text-[#9d948a]">
           {labelForType(c.type, t)} · {c.subject}
         </p>
       </div>
@@ -419,7 +394,7 @@ function ConversationHeader({
 function ConversationAvatar({ type }: { type: Conversation["type"] }) {
   const icon = type === "BUYER_SELLER" ? "handshake" : "support_agent";
   return (
-    <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-secondary shrink-0">
+    <div className="w-10 h-10 rounded-full bg-[#d4aa61]/15 flex items-center justify-center text-[#d4aa61] shrink-0">
       <span className="material-symbols-outlined">{icon}</span>
     </div>
   );
@@ -495,17 +470,17 @@ function NewConversationModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-md" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-md" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-xl bg-surface shadow-xl border border-outline-variant"
+        className="w-full max-w-md rounded-xl bg-[#0e0d0b] shadow-xl border border-white/10"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-md border-b border-outline-variant flex items-center justify-between">
-          <h3 className="font-headline-sm text-headline-sm text-primary">{t("newChat")}</h3>
+        <div className="p-md border-b border-white/10 flex items-center justify-between">
+          <h3 className="font-headline-sm text-headline-sm text-white">{t("newChat")}</h3>
           <button
             type="button"
             onClick={onClose}
-            className="text-on-surface-variant hover:text-primary"
+            className="text-[#9d948a] hover:text-white"
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -513,7 +488,7 @@ function NewConversationModal({
 
         <div className="p-md space-y-md">
           <div>
-            <label className="mb-xs block font-label-sm text-label-sm text-on-surface-variant">
+            <label className="mb-xs block font-label-sm text-label-sm text-[#9d948a]">
               {t("chooseRecipient")}
             </label>
             <div className="grid gap-xs">
@@ -522,13 +497,13 @@ function NewConversationModal({
                   type="button"
                   onClick={() => setType("BUYER_STAFF")}
                   className={`flex items-center gap-sm rounded-lg border px-3 py-2 text-left ${
-                    type === "BUYER_STAFF" ? "border-secondary bg-secondary-container" : "border-outline-variant"
+                    type === "BUYER_STAFF" ? "border-[#d4aa61] bg-[#d4aa61]/10" : "border-white/10"
                   }`}
                 >
-                  <span className="material-symbols-outlined text-secondary">support_agent</span>
+                  <span className="material-symbols-outlined text-[#d4aa61]">support_agent</span>
                   <div>
-                    <p className="font-label-md">{t("contactSupport")}</p>
-                    <p className="text-xs text-on-surface-variant">{t("contactSupportDesc")}</p>
+                    <p className="font-label-md text-white">{t("contactSupport")}</p>
+                    <p className="text-xs text-[#9d948a]">{t("contactSupportDesc")}</p>
                   </div>
                 </button>
               )}
@@ -537,13 +512,13 @@ function NewConversationModal({
                   type="button"
                   onClick={() => setType("SELLER_STAFF")}
                   className={`flex items-center gap-sm rounded-lg border px-3 py-2 text-left ${
-                    type === "SELLER_STAFF" ? "border-secondary bg-secondary-container" : "border-outline-variant"
+                    type === "SELLER_STAFF" ? "border-[#d4aa61] bg-[#d4aa61]/10" : "border-white/10"
                   }`}
                 >
-                  <span className="material-symbols-outlined text-secondary">support_agent</span>
+                  <span className="material-symbols-outlined text-[#d4aa61]">support_agent</span>
                   <div>
-                    <p className="font-label-md">{t("contactSupport")}</p>
-                    <p className="text-xs text-on-surface-variant">{t("sellerContactSupportDesc")}</p>
+                    <p className="font-label-md text-white">{t("contactSupport")}</p>
+                    <p className="text-xs text-[#9d948a]">{t("sellerContactSupportDesc")}</p>
                   </div>
                 </button>
               )}
@@ -551,13 +526,13 @@ function NewConversationModal({
                 type="button"
                 onClick={() => setType("BUYER_SELLER")}
                 className={`flex items-center gap-sm rounded-lg border px-3 py-2 text-left ${
-                  type === "BUYER_SELLER" ? "border-secondary bg-secondary-container" : "border-outline-variant"
+                  type === "BUYER_SELLER" ? "border-[#d4aa61] bg-[#d4aa61]/10" : "border-white/10"
                 }`}
               >
-                <span className="material-symbols-outlined text-secondary">handshake</span>
+                <span className="material-symbols-outlined text-[#d4aa61]">handshake</span>
                 <div>
-                  <p className="font-label-md">{t("contactSeller")}</p>
-                  <p className="text-xs text-on-surface-variant">{t("contactSellerDesc")}</p>
+                  <p className="font-label-md text-white">{t("contactSeller")}</p>
+                  <p className="text-xs text-[#9d948a]">{t("contactSellerDesc")}</p>
                 </div>
               </button>
             </div>
@@ -565,7 +540,7 @@ function NewConversationModal({
 
           {type === "BUYER_SELLER" && (
             <div>
-              <label className="mb-xs block font-label-sm text-label-sm text-on-surface-variant">
+              <label className="mb-xs block font-label-sm text-label-sm text-[#9d948a]">
                 {t("sellerEmailLabel")}
               </label>
               <input
@@ -573,13 +548,13 @@ function NewConversationModal({
                 value={sellerEmail}
                 onChange={(e) => setSellerEmail(e.target.value)}
                 placeholder={t("sellerEmailPlaceholder")}
-                className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 outline-none focus:border-secondary"
+                className="w-full rounded-lg border border-white/15 bg-[#080706] px-3 py-2 text-white outline-none focus:border-[#d4aa61]"
               />
             </div>
           )}
 
           <div>
-            <label className="mb-xs block font-label-sm text-label-sm text-on-surface-variant">
+            <label className="mb-xs block font-label-sm text-label-sm text-[#9d948a]">
               {t("subjectLabel")}
             </label>
             <input
@@ -587,12 +562,12 @@ function NewConversationModal({
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder={t("subjectPlaceholder")}
-              className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 outline-none focus:border-secondary"
+              className="w-full rounded-lg border border-white/15 bg-[#080706] px-3 py-2 text-white outline-none focus:border-[#d4aa61]"
             />
           </div>
 
           <div>
-            <label className="mb-xs block font-label-sm text-label-sm text-on-surface-variant">
+            <label className="mb-xs block font-label-sm text-label-sm text-[#9d948a]">
               {t("firstMessageLabel")}
             </label>
             <textarea
@@ -600,22 +575,22 @@ function NewConversationModal({
               onChange={(e) => setFirstMessage(e.target.value)}
               rows={4}
               placeholder={t("firstMessagePlaceholder")}
-              className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 outline-none focus:border-secondary resize-none"
+              className="w-full rounded-lg border border-white/15 bg-[#080706] px-3 py-2 text-white outline-none focus:border-[#d4aa61] resize-none"
             />
           </div>
 
           {productId && (
-            <p className="text-xs text-on-surface-variant">
+            <p className="text-xs text-[#9d948a]">
               {t("linkedProduct")}: #{productId}
             </p>
           )}
         </div>
 
-        <div className="p-md border-t border-outline-variant flex justify-end gap-sm">
+        <div className="p-md border-t border-white/10 flex justify-end gap-sm">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-outline-variant px-4 py-2 font-label-md text-on-surface hover:bg-surface-container-high"
+            className="rounded-lg border border-white/15 px-4 py-2 font-label-md text-[#9d948a] hover:bg-white/5"
           >
             {t("cancel")}
           </button>
@@ -623,7 +598,7 @@ function NewConversationModal({
             type="button"
             onClick={handleSubmit}
             disabled={!canSubmit || submitting}
-            className="rounded-lg bg-secondary px-4 py-2 font-label-md text-on-secondary hover:bg-secondary-fixed-dim disabled:opacity-50"
+            className="rounded-lg bg-[#d4aa61] px-4 py-2 font-label-md text-[#100d08] hover:opacity-90 disabled:opacity-50"
           >
             {submitting ? t("sending") : t("startChat")}
           </button>

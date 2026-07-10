@@ -1,6 +1,7 @@
 package com.auction.bidding.scheduler;
 
 import com.auction.bidding.repository.AuctionRepository;
+import com.auction.bidding.service.AuctionSettlementService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ public class AuctionStatusSyncScheduler {
     private static final Logger log = LoggerFactory.getLogger(AuctionStatusSyncScheduler.class);
 
     private final AuctionRepository auctionRepository;
+    private final AuctionSettlementService auctionSettlementService;
 
     @Scheduled(fixedRateString = "${auction.scheduler.fixed-rate-ms:60000}",
             initialDelayString = "${auction.scheduler.initial-delay-ms:5000}")
@@ -38,6 +40,10 @@ public class AuctionStatusSyncScheduler {
             int future = auctionRepository.markFutureAsUpcoming(now);
             if (expired + started + future > 0) {
                 log.info("Auction status sync: ended={} active={} upcoming={}", expired, started, future);
+            }
+            int settled = auctionSettlementService.settleEndedAuctions();
+            if (settled > 0) {
+                log.info("Auction settlement after status sync: settled={}", settled);
             }
         } catch (Exception ex) {
             log.warn("Auction status sync skipped due to error: {}", ex.getMessage());

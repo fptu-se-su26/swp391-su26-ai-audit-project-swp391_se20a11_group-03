@@ -24,8 +24,9 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
+        String subject = resolveTokenSubject(userDetails);
         return Jwts.builder()
-                .subject(userDetails.getUsername())
+                .subject(subject)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSigningKey())
@@ -43,11 +44,31 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
-            final String username = extractUsername(token);
-            return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+            final String subject = extractUsername(token);
+            return matchesSubject(subject, userDetails) && !isTokenExpired(token);
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private static String resolveTokenSubject(UserDetails userDetails) {
+        if (userDetails instanceof UserDetailsImpl impl
+                && impl.getEmail() != null
+                && !impl.getEmail().isBlank()) {
+            return impl.getEmail();
+        }
+        return userDetails.getUsername();
+    }
+
+    private static boolean matchesSubject(String subject, UserDetails userDetails) {
+        if (subject == null) {
+            return false;
+        }
+        if (userDetails instanceof UserDetailsImpl impl) {
+            return subject.equalsIgnoreCase(impl.getEmail())
+                    || subject.equalsIgnoreCase(impl.getUsername());
+        }
+        return subject.equalsIgnoreCase(userDetails.getUsername());
     }
 
     private boolean isTokenExpired(String token) {

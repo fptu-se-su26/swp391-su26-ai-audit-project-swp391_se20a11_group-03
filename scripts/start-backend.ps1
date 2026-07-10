@@ -9,7 +9,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $env:GOOGLE_CLIENT_ID = "875351769621-msohqgodeum8d07j56n9hiv76c161d3e.apps.googleusercontent.com"
-$env:FPT_AI_API_KEY = "de1NjtQZSRh3rJaDljxPCxKNUCZ3eLjj"
+# Gemini key: set in src/main/resources/application-local.properties (gitignored)
 
 Write-Host "==> Starting Spring Boot on port 8096..."
 Set-Location $Root

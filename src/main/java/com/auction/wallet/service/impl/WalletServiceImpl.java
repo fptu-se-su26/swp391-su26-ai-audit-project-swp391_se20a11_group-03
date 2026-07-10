@@ -16,6 +16,8 @@ import com.auction.wallet.repository.TransactionRepository;
 import com.auction.wallet.repository.WalletRepository;
 import com.auction.wallet.repository.WithdrawalRequestRepository;
 import com.auction.wallet.service.WalletService;
+import com.auction.notification.entity.Notification;
+import com.auction.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ public class WalletServiceImpl implements WalletService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final WithdrawalRequestRepository withdrawalRequestRepository;
+    private final NotificationService notificationService;
 
     @Value("${sepay.bank-id:MB}")
     private String sepayBankId;
@@ -60,6 +63,7 @@ public class WalletServiceImpl implements WalletService {
                 .userId(wallet.getUser().getUserId())
                 .balance(wallet.getBalance())
                 .holdBalance(wallet.getHoldBalance())
+                .availableBalance(availableBalance(wallet))
                 .status("ACTIVE")
                 .build();
     }
@@ -141,15 +145,16 @@ public class WalletServiceImpl implements WalletService {
     @Transactional
     public WithdrawalResponse createWithdrawal(Long userId, WithdrawRequest request) {
         Wallet wallet = getOrCreateWallet(userId);
+        normalizeLegacyPendingWithdrawals(wallet);
         Long amount = request.getAmount();
         if (amount == null || amount <= 0) {
             throw new IllegalStateException("Withdrawal amount must be greater than 0");
         }
-        if (wallet.getBalance() == null || wallet.getBalance() < amount) {
+        if (availableBalance(wallet) < amount) {
             throw new IllegalStateException("Insufficient wallet balance");
         }
 
-        wallet.setBalance(wallet.getBalance() - amount);
+        wallet.setHoldBalance((wallet.getHoldBalance() == null ? 0L : wallet.getHoldBalance()) + amount);
         wallet.setUpdatedAt(LocalDateTime.now());
         walletRepository.save(wallet);
 
@@ -215,11 +220,48 @@ public class WalletServiceImpl implements WalletService {
         withdrawal.setStaffNote(request.getStaffNote());
         withdrawal.setUpdatedAt(LocalDateTime.now());
 
-        if ("REJECTED".equals(nextStatus)) {
-            Wallet wallet = withdrawal.getWallet();
-            wallet.setBalance((wallet.getBalance() == null ? 0L : wallet.getBalance()) + withdrawal.getAmount());
+        Wallet wallet = withdrawal.getWallet();
+        normalizeLegacyPendingWithdrawals(wallet);
+        long hold = wallet.getHoldBalance() == null ? 0L : wallet.getHoldBalance();
+        long lockedForThis = Math.min(withdrawal.getAmount(), hold);
+
+        if ("COMPLETED".equals(nextStatus)) {
+            long balance = wallet.getBalance() == null ? 0L : wallet.getBalance();
+            if (balance < withdrawal.getAmount()) {
+                throw new IllegalStateException("Insufficient wallet balance to complete withdrawal");
+            }
+            wallet.setBalance(balance - withdrawal.getAmount());
+            wallet.setHoldBalance(Math.max(0L, hold - lockedForThis));
             wallet.setUpdatedAt(LocalDateTime.now());
             walletRepository.save(wallet);
+
+            String amountText = formatVnd(withdrawal.getAmount());
+            notificationService.createNotification(
+                    withdrawal.getUser().getUserId(),
+                    "Rút tiền thành công",
+                    "Yêu cầu rút " + amountText + " đã được chuyển khoản vào tài khoản "
+                            + withdrawal.getBankName() + " " + maskAccount(withdrawal.getAccountNumber()) + ".",
+                    Notification.NotificationType.WITHDRAWAL_APPROVED,
+                    withdrawal.getWithdrawalRequestId(),
+                    "WITHDRAWAL"
+            );
+        } else if ("REJECTED".equals(nextStatus)) {
+            wallet.setHoldBalance(Math.max(0L, hold - lockedForThis));
+            wallet.setUpdatedAt(LocalDateTime.now());
+            walletRepository.save(wallet);
+
+            String amountText = formatVnd(withdrawal.getAmount());
+            String note = request.getStaffNote() != null && !request.getStaffNote().isBlank()
+                    ? " Lý do: " + request.getStaffNote().trim()
+                    : "";
+            notificationService.createNotification(
+                    withdrawal.getUser().getUserId(),
+                    "Yêu cầu rút tiền bị từ chối",
+                    "Yêu cầu rút " + amountText + " không được duyệt." + note,
+                    Notification.NotificationType.WITHDRAWAL_REJECTED,
+                    withdrawal.getWithdrawalRequestId(),
+                    "WITHDRAWAL"
+            );
         }
 
         transactionRepository.findByReferenceCode("WD-" + withdrawal.getWithdrawalRequestId())
@@ -259,5 +301,47 @@ public class WalletServiceImpl implements WalletService {
                 .createdAt(withdrawal.getCreatedAt())
                 .updatedAt(withdrawal.getUpdatedAt())
                 .build();
+    }
+
+    private static long availableBalance(Wallet wallet) {
+        long balance = wallet.getBalance() == null ? 0L : wallet.getBalance();
+        long hold = wallet.getHoldBalance() == null ? 0L : wallet.getHoldBalance();
+        return Math.max(0L, balance - hold);
+    }
+
+    /**
+     * Older builds deducted balance immediately on withdrawal request. Re-lock those
+     * amounts in holdBalance so available balance stays correct under the new flow.
+     */
+    private void normalizeLegacyPendingWithdrawals(Wallet wallet) {
+        long pendingSum = withdrawalRequestRepository.findByUser_IdOrderByCreatedAtDesc(wallet.getUser().getUserId())
+                .stream()
+                .filter(w -> "PENDING".equalsIgnoreCase(w.getStatus()))
+                .mapToLong(WithdrawalRequest::getAmount)
+                .sum();
+        if (pendingSum <= 0) {
+            return;
+        }
+        long hold = wallet.getHoldBalance() == null ? 0L : wallet.getHoldBalance();
+        if (hold >= pendingSum) {
+            return;
+        }
+        long missingHold = pendingSum - hold;
+        long balance = wallet.getBalance() == null ? 0L : wallet.getBalance();
+        wallet.setBalance(balance + missingHold);
+        wallet.setHoldBalance(hold + missingHold);
+        wallet.setUpdatedAt(LocalDateTime.now());
+        walletRepository.save(wallet);
+    }
+
+    private static String formatVnd(long amount) {
+        return String.format("%,d VND", amount).replace(',', '.');
+    }
+
+    private static String maskAccount(String accountNumber) {
+        if (accountNumber == null || accountNumber.length() < 4) {
+            return "****";
+        }
+        return "****" + accountNumber.substring(accountNumber.length() - 4);
     }
 }

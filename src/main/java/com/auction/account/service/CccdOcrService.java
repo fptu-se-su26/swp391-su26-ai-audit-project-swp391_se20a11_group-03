@@ -2,7 +2,7 @@ package com.auction.account.service;
 
 import com.auction.account.dto.CccdDuplicateInfo;
 import com.auction.account.dto.CccdOcrResult;
-import com.auction.config.FptAiConfig;
+import com.auction.common.service.GeminiOcrService;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,7 +26,7 @@ public class CccdOcrService {
     private static final DateTimeFormatter DD_MM_YYYY = DateTimeFormatter.ofPattern("d/M/uuuu");
     private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_LOCAL_DATE;
 
-    private final FptAiService fptAiService;
+    private final GeminiOcrService geminiOcrService;
     private final JdbcTemplate jdbcTemplate;
 
     public CccdOcrResult extract(Long userId, MultipartFile frontImage, MultipartFile backImage) throws IOException {
@@ -34,66 +34,41 @@ public class CccdOcrService {
             throw new IllegalArgumentException("Vui lòng tải ảnh mặt trước và mặt sau CCCD");
         }
 
-        String apiKey = FptAiConfig.getApiKey();
-        if (apiKey == null || apiKey.isBlank()) {
+        JsonNode frontData;
+        JsonNode backData;
+        try {
+            frontData = geminiOcrService.parseIdCardJson(geminiOcrService.scanIdCard(frontImage));
+            backData = geminiOcrService.parseIdCardJson(geminiOcrService.scanIdCard(backImage));
+        } catch (IllegalStateException ex) {
             return CccdOcrResult.builder()
                     .success(false)
-                    .provider("none")
-                    .message("Chưa cấu hình FPT_AI_API_KEY. Bạn có thể điền thông tin thủ công bên dưới.")
+                    .provider("gemini")
+                    .message(ex.getMessage())
                     .build();
         }
 
-        FptAiService.IdCardScan front = fptAiService.recognizeVietnameseId(
-                frontImage.getBytes(), safeFilename(frontImage, "cccd-front.jpg"));
-        FptAiService.IdCardScan back = fptAiService.recognizeVietnameseId(
-                backImage.getBytes(), safeFilename(backImage, "cccd-back.jpg"));
-
-        if (!front.success() && !back.success()) {
-            return CccdOcrResult.builder()
-                    .success(false)
-                    .provider("fpt.ai")
-                    .message(combineMessages(front.message(), back.message()))
-                    .build();
-        }
-
-        JsonNode frontData = front.data();
-        JsonNode backData = back.data();
-
-        String cccdNumber = firstText(frontData, "id");
-        String fullName = firstText(frontData, "name");
-        String dob = parseDate(firstText(frontData, "dob"));
-        String gender = mapGender(firstText(frontData, "sex"));
-        String issueDate = parseDate(firstText(backData, "issue_date"));
-        String issuePlace = firstText(backData, "issue_loc");
-        String address = firstText(frontData, "address");
-        if (address == null || address.isBlank()) {
-            address = firstText(frontData, "home");
-        }
-
-        double confidence = averageConfidence(frontData, backData);
+        String cccdNumber = coalesceText(frontData, backData, "id_number");
+        String fullName = coalesceText(frontData, backData, "full_name");
+        String dob = parseDate(coalesceText(frontData, backData, "date_of_birth"));
+        String gender = mapGender(coalesceText(frontData, backData, "gender"));
+        String issueDate = parseDate(coalesceText(backData, frontData, "issue_date"));
+        String issuePlace = coalesceText(backData, frontData, "place_of_issue");
 
         CccdOcrResult.CccdOcrResultBuilder builder = CccdOcrResult.builder()
                 .success(hasMinimumFields(cccdNumber, fullName, dob))
-                .provider("fpt.ai")
-                .confidenceScore(confidence)
+                .provider("gemini")
+                .confidenceScore(0.85)
                 .fullName(fullName)
                 .cccdNumber(cccdNumber)
                 .dob(dob)
                 .gender(gender)
                 .issueDate(issueDate)
-                .issuePlace(issuePlace)
-                .address(address);
+                .issuePlace(issuePlace);
 
         if (!hasMinimumFields(cccdNumber, fullName, dob)) {
             builder.message("AI không đọc đủ thông tin. Vui lòng kiểm tra ảnh (rõ nét, đủ 4 góc) hoặc điền thủ công.");
         } else {
             builder.message("AI đã trích xuất thông tin. Vui lòng kiểm tra lại trước khi gửi.");
-        }
-
-        if (cccdNumber != null && !cccdNumber.isBlank() && userId != null) {
-            List<CccdDuplicateInfo> dupes = findDuplicateAccounts(cccdNumber, userId);
-            builder.cccdDuplicate(!dupes.isEmpty());
-            builder.cccdDuplicates(dupes);
         }
 
         return builder.build();
@@ -148,18 +123,12 @@ public class CccdOcrService {
                 && dob != null && !dob.isBlank();
     }
 
-    private static String safeFilename(MultipartFile file, String fallback) {
-        String original = file.getOriginalFilename();
-        if (original == null || original.isBlank()) {
-            return fallback;
+    private static String coalesceText(JsonNode primary, JsonNode secondary, String field) {
+        String value = firstText(primary, field);
+        if (value != null && !value.isBlank()) {
+            return value;
         }
-        return original.replaceAll("[^a-zA-Z0-9._-]", "_");
-    }
-
-    private static String combineMessages(String a, String b) {
-        if (a == null || a.isBlank()) return b;
-        if (b == null || b.isBlank()) return a;
-        return a + " " + b;
+        return firstText(secondary, field);
     }
 
     private static String firstText(JsonNode node, String field) {
@@ -171,7 +140,7 @@ public class CccdOcrService {
             return null;
         }
         String text = value.asText("").trim();
-        return text.isEmpty() ? null : text;
+        return text.isEmpty() || "null".equalsIgnoreCase(text) ? null : text;
     }
 
     private static String parseDate(String raw) {
@@ -183,7 +152,7 @@ public class CccdOcrService {
             LocalDate date = LocalDate.parse(normalized, DD_MM_YYYY);
             return date.format(ISO);
         } catch (DateTimeParseException ignored) {
-            // already ISO?
+            // try ISO
         }
         try {
             return LocalDate.parse(raw.trim()).format(ISO);
@@ -204,36 +173,5 @@ public class CccdOcrService {
             return "FEMALE";
         }
         return "OTHER";
-    }
-
-    private static double averageConfidence(JsonNode front, JsonNode back) {
-        List<Double> scores = new ArrayList<>();
-        addProb(scores, front, "id_prob");
-        addProb(scores, front, "name_prob");
-        addProb(scores, front, "dob_prob");
-        addProb(scores, back, "issue_date_prob");
-        if (scores.isEmpty() && front != null) {
-            String overall = firstText(front, "overall_score");
-            if (overall != null) {
-                try {
-                    scores.add(Double.parseDouble(overall));
-                } catch (NumberFormatException ignored) {
-                    // ignore
-                }
-            }
-        }
-        return scores.stream().mapToDouble(Double::doubleValue).average().orElse(0d);
-    }
-
-    private static void addProb(List<Double> scores, JsonNode node, String field) {
-        String raw = firstText(node, field);
-        if (raw == null) {
-            return;
-        }
-        try {
-            scores.add(Double.parseDouble(raw));
-        } catch (NumberFormatException ignored) {
-            // ignore
-        }
     }
 }

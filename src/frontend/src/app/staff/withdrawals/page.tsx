@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import StaffShell from "@/components/layout/StaffShell";
+import PortalShell from "@/components/layout/PortalShell";
 import {
   getWithdrawals,
   updateWithdrawalStatus,
@@ -44,7 +44,7 @@ export default function StaffWithdrawalsPage() {
   };
 
   return (
-    <StaffShell>
+    <PortalShell>
       <div className="p-margin-mobile md:p-margin-desktop max-w-[1400px] mx-auto space-y-lg">
         <div>
           <h1 className="font-display-lg-mobile md:font-display-lg text-primary">{t("pageTitle")}</h1>
@@ -111,6 +111,6 @@ export default function StaffWithdrawalsPage() {
           </table>
         </div>
       </div>
-    </StaffShell>
+    </PortalShell>
   );
 }

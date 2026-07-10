@@ -16,8 +16,8 @@ export default function DashboardHeader({
   actionHref,
 }: Props) {
   return (
-    <header className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#071626] p-6 text-white shadow-[0_28px_80px_rgba(7,22,38,.22)] lg:p-8">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgba(60,114,255,.24),transparent_28%),radial-gradient(circle_at_90%_18%,rgba(210,173,85,.2),transparent_26%),linear-gradient(135deg,rgba(255,255,255,.08),transparent_36%)]" />
+    <header className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#0c0b09] p-6 text-white shadow-[0_28px_80px_rgba(0,0,0,.45)] lg:p-8">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgba(212,170,97,.2),transparent_28%),radial-gradient(circle_at_90%_18%,rgba(210,173,85,.2),transparent_26%),linear-gradient(135deg,rgba(255,255,255,.06),transparent_36%)]" />
       <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full border border-[#d2ad55]/20" />
       <div className="pointer-events-none absolute right-8 top-8 h-24 w-24 rounded-full bg-[#d2ad55]/10 blur-2xl" />
       <div className="pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-[#d2ad55]/60 to-transparent" />
