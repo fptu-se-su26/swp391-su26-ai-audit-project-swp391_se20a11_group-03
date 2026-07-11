@@ -471,7 +471,13 @@
 .luxe-app .text-on-secondary { color: #100d08; }
 .luxe-app .bg-tertiary { background-color: #3f9d78; }
 .luxe-app .bg-primary-container { background-color: #1a1610; }
-.luxe-app .text-on-primary-container { color: #e7c57c; }
+.luxe-app .text-on-primary-container { color: #f5ead9; }
+
+/* Secondary containers were light cream — remap for dark readability */
+.luxe-app .bg-secondary-container { background-color: rgba(212, 170, 97, 0.12); }
+.luxe-app .text-on-secondary-container { color: #f0dfa0; }
+.luxe-app .bg-secondary-container\/30 { background-color: rgba(212, 170, 97, 0.12); }
+.luxe-app .bg-secondary-container\/20 { background-color: rgba(212, 170, 97, 0.08); }
 
 /* Hover states */
 .luxe-app .hover\:bg-surface-variant:hover { background-color: #1c1a14; }
@@ -486,9 +492,19 @@
 .luxe-app textarea,
 .luxe-app select {
   color: #f5ead9;
+  background-color: #0e0d0b;
 }
 .luxe-app input::placeholder,
-.luxe-app textarea::placeholder { color: #6f675e; }
+.luxe-app textarea::placeholder { color: #9d948a; }
+.luxe-app input:focus,
+.luxe-app textarea:focus,
+.luxe-app select:focus {
+  border-color: rgba(212, 170, 97, 0.65);
+}
+.luxe-app label.font-label-md,
+.luxe-app .font-label-md.text-on-surface-variant {
+  color: #d4ccc2;
+}
 
 @media (max-width: 900px) {
   .meteor:nth-child(n + 19) {

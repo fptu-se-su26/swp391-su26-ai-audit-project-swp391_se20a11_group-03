@@ -1,3 +1,5 @@
+package com.auction.bidding.repository;
+
 import com.auction.bidding.entity.AuctionDeposit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

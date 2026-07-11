@@ -119,7 +119,11 @@ export default function Sidebar() {
         </Link>
         <Link
           href="/support"
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold text-[#9caec0] transition hover:bg-white/[.06] hover:text-white"
+          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition ${
+            pathname === "/support" || pathname.startsWith("/support/")
+              ? "bg-white/[.08] text-[#f3d88e]"
+              : "text-[#9caec0] hover:bg-white/[.06] hover:text-white"
+          }`}
         >
           <span className="material-symbols-outlined text-[18px]">help_center</span>
           {tCommon("helpCenter")}

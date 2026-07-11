@@ -33,6 +33,12 @@
     "noData": "Không có dữ liệu",
     "actions": "Thao tác"
   },
+  "announcement": {
+    "winBroadcast": "Chúc mừng {winner} đã thắng {product} với giá cuối {price}",
+    "winPersonal": "Chúc mừng! Bạn đã thắng {product} với giá cuối {price}",
+    "viewLot": "Xem phiên đấu giá",
+    "dismiss": "Đóng"
+  },
   "auctionResult": {
     "paymentOverdue": "Quá hạn thanh toán",
     "congratulations": "Chúc mừng! Bạn đã thắng phiên đấu giá",
@@ -743,6 +749,7 @@
       "submitNeedThreePhotos": "Vui lòng tải đủ 3 ảnh (mặt trước, mặt sau, selfie) trước khi gửi hồ sơ.",
       "ocrFailed": "Không thể nhận dạng CCCD. Vui lòng thử ảnh khác hoặc điền thủ công.",
       "ocrBusy": "Hệ thống OCR đang bận (giới hạn Gemini). Bạn có thể điền thông tin thủ công hoặc thử lại sau khoảng 1 phút.",
+      "ocrRetryIn": "Thử lại sau {seconds}s",
       "invalidImageType": "Chỉ chấp nhận ảnh JPEG hoặc PNG.",
       "imageTooLarge": "Mỗi ảnh KYC không được vượt quá 8 MB.",
       "contractConfirmedPending": "Đã xác nhận hợp đồng. Hợp đồng sẽ được lưu khi bạn gửi hồ sơ KYC.",
@@ -1093,9 +1100,23 @@
     "uploading": "Đang tải lên...",
     "termsAgree": "Bằng cách gửi, bạn đồng ý với Điều khoản Ký gửi của BidZone.",
     "aiValuation": "Trợ lý định giá AI",
-    "aiValuationDesc": "Tải lên hình ảnh và mô tả để nhận ước tính thị trường thời gian thực dựa trên kết quả đấu giá gần đây. AI của chúng tôi phân tích dữ liệu lịch sử từ hơn 5.000 nhà đấu giá trên toàn cầu.",
-    "getAiValuation": "Định giá AI",
+    "aiValuationDesc": "Nhập mô tả và tải ảnh, rồi hỏi chatbot hoặc bấm Định giá AI để nhận ước tính thị trường bằng VND.",
+    "getAiValuation": "Định giá từ form",
     "analyzing": "Đang phân tích...",
+    "aiChatWelcome": "Xin chào! Tôi có thể ước tính giá thị trường (VND) từ mô tả và ảnh. Dùng nút đính kèm ảnh bên dưới hoặc tải ở form, rồi bấm Định giá từ form hoặc hỏi trực tiếp.",
+    "aiChatPlaceholder": "Hỏi thêm về tình trạng, thương hiệu, khoảng giá…",
+    "aiChatSend": "Gửi",
+    "aiChatAttachImage": "Đính kèm ảnh",
+    "aiChatRemoveImage": "Xóa ảnh",
+    "aiChatPhotosAttached": "{count}/{max} ảnh đã chọn",
+    "aiChatHint": "Ảnh dùng chung với form đăng sản phẩm (tối đa 6, AI dùng tối đa 3). Mô tả rõ + ảnh cho kết quả tốt hơn.",
+    "aiChatNeedContent": "Hãy nhập mô tả, câu hỏi hoặc đính kèm ít nhất 1 ảnh trước khi định giá.",
+    "aiChatNeedDescription": "Hãy nhập mô tả sản phẩm trước khi định giá.",
+    "aiChatValueFromForm": "Hãy định giá sản phẩm theo thông tin và ảnh trên form.",
+    "aiChatValueFromPhotos": "Hãy định giá dựa trên ảnh đính kèm.",
+    "aiChatRateLimited": "Gemini đang giới hạn request. Thử lại sau {seconds} giây.",
+    "aiChatError": "Không thể lấy định giá AI lúc này.",
+    "aiChatErrorDetail": "Lỗi: {message}",
     "processingCredits": "Điểm xử lý",
     "creditsLeft": "{count} còn lại",
     "validation": {
@@ -1779,6 +1800,7 @@
     "footer": "Các mục trùng sidebar — chỉ hiển thị route admin được phép truy cập."
   },
   "supportPage": {
+    "eyebrow": "Hỗ trợ khách hàng",
     "title": "Trung tâm hỗ trợ",
     "subtitle": "Hướng dẫn đấu giá, thanh toán và bán hàng trên BidZone.",
     "buyingTitle": "Mua & đấu giá",
@@ -1802,7 +1824,8 @@
     "startChat": "Bắt đầu trò chuyện",
     "privateRequestTitle": "Gửi yêu cầu riêng",
     "privateRequestDesc": "Dành cho định giá, vận chuyển quốc tế hoặc giao dịch giá trị cao.",
-    "contactExpert": "Liên hệ chuyên gia"
+    "contactExpert": "Liên hệ chuyên gia",
+    "noResults": "Không tìm thấy chủ đề phù hợp. Thử từ khóa khác hoặc chat với chúng tôi."
   },
   "onboarding": {
     "appName": "BidZone",

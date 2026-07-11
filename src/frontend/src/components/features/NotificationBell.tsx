@@ -153,7 +153,15 @@ export default function NotificationBell({ className = "", menuAlign = "end" }: 
     setLoading(true);
     try {
       const items = await getNotifications();
-      setList(items.slice(0, 20));
+      const slice = items.slice(0, 20);
+      setList(slice);
+      try {
+        await markAllAsRead();
+        setList(slice.map((n) => ({ ...n, isRead: true })));
+        setCount(0);
+      } catch {
+        // keep list visible even if mark-read fails
+      }
     } catch {
       setList([]);
     } finally {

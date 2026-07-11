@@ -33,6 +33,12 @@
     "noData": "No data",
     "actions": "Actions"
   },
+  "announcement": {
+    "winBroadcast": "Congratulations to {winner} for winning {product} at a final price of {price}",
+    "winPersonal": "Congratulations! You won {product} at a final price of {price}",
+    "viewLot": "View auction lot",
+    "dismiss": "Dismiss"
+  },
   "auctionResult": {
     "paymentOverdue": "Payment overdue",
     "congratulations": "Congratulations! You won this auction",
@@ -743,6 +749,7 @@
       "submitNeedThreePhotos": "Please upload all three photos (front, back, selfie) before submitting.",
       "ocrFailed": "Could not read ID card. Try clearer photos or fill in manually.",
       "ocrBusy": "OCR is busy (Gemini rate limit). You can fill in manually or try again in about a minute.",
+      "ocrRetryIn": "Try again in {seconds}s",
       "invalidImageType": "Only JPEG or PNG images are accepted.",
       "imageTooLarge": "Each KYC photo must be 8 MB or smaller.",
       "contractConfirmedPending": "Agreement confirmed. It will be saved when you submit KYC.",
@@ -1091,9 +1098,23 @@
     "uploading": "Uploading...",
     "termsAgree": "By submitting, you agree to BidZone's Consignment Terms & Conditions.",
     "aiValuation": "AI Valuation Assistant",
-    "aiValuationDesc": "Upload images and description to get real-time market estimates based on recent auction results. Our AI analyzes historical data from over 5,000 global auction houses.",
-    "getAiValuation": "Get AI Valuation",
+    "aiValuationDesc": "Add a description and photos, then ask the chatbot or tap Value from form for a VND market estimate.",
+    "getAiValuation": "Value from form",
     "analyzing": "Analyzing...",
+    "aiChatWelcome": "Hi! I can estimate market value in VND from your description and photos. Use the attach button below or upload on the form, then tap Value from form or ask me directly.",
+    "aiChatPlaceholder": "Ask about condition, brand, price range…",
+    "aiChatSend": "Send",
+    "aiChatAttachImage": "Attach photos",
+    "aiChatRemoveImage": "Remove photo",
+    "aiChatPhotosAttached": "{count}/{max} photos selected",
+    "aiChatHint": "Photos are shared with the listing form (max 6; AI uses up to 3). A clear description plus photos works best.",
+    "aiChatNeedContent": "Please enter a description, a question, or attach at least one photo before valuing.",
+    "aiChatNeedDescription": "Please enter an item description before valuing.",
+    "aiChatValueFromForm": "Please value this item using the form details and photos.",
+    "aiChatValueFromPhotos": "Please value this item from the attached photos.",
+    "aiChatRateLimited": "Gemini is rate-limited. Try again in {seconds} seconds.",
+    "aiChatError": "Could not get an AI valuation right now.",
+    "aiChatErrorDetail": "Error: {message}",
     "processingCredits": "Processing Credits",
     "creditsLeft": "{count} Left",
     "validation": {
@@ -1777,6 +1798,7 @@
     "footer": "Shortcuts mirror the left sidebar — only routes available to admin."
   },
   "supportPage": {
+    "eyebrow": "Client care",
     "title": "Help Center",
     "subtitle": "Guides for bidding, payments and selling on BidZone.",
     "buyingTitle": "Buying & bidding",
@@ -1800,7 +1822,8 @@
     "startChat": "Start chat",
     "privateRequestTitle": "Send a private request",
     "privateRequestDesc": "For valuation, international shipping or high-value transactions.",
-    "contactExpert": "Contact specialist"
+    "contactExpert": "Contact specialist",
+    "noResults": "No matching topics. Try another keyword or start a chat with us."
   },
   "onboarding": {
     "appName": "BidZone",

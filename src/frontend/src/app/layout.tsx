@@ -4,6 +4,7 @@ import { NavigationProvider } from "@/lib/NavigationContext";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import AdminRouteGuard from "@/components/layout/AdminRouteGuard";
 import PortalSwitcherGate from "@/components/layout/PortalSwitcherGate";
+import GlobalWinAnnouncement from "@/components/features/GlobalWinAnnouncement";
 import "./globals.css";
 
 const beVietnam = Be_Vietnam_Pro({
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <I18nProvider>
           <NavigationProvider>
             <AdminRouteGuard>{children}</AdminRouteGuard>
+            <GlobalWinAnnouncement />
           </NavigationProvider>
         </I18nProvider>
         <PortalSwitcherGate />

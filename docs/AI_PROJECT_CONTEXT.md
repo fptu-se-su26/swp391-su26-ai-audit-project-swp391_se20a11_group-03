@@ -14,7 +14,8 @@
 | DB | SQL Server dev: `SWP_Nhom3_App` |
 | Realtime chat | STOMP/WebSocket `SockJS → /ws/chat` |
 | Realtime bid UI | **HTTP poll 1s** (`auctionPolling.ts`) — backend vẫn broadcast `/topic/bids` nhưng frontend chưa subscribe STOMP cho bid |
-| OCR KYC | FPT.AI Vision (`FPT_AI_API_KEY`) |
+| OCR KYC | Google Gemini `gemini.ocr.api.keys` (round-robin + 429 failover via `GeminiKeyPool`; 1 request front+back) |
+| AI valuation | Google Gemini `gemini.valuation.api.keys` (same pool pattern) |
 | Thanh toán | Ví nội bộ + SePay webhook |
 
 **Ports:** Backend `8096` · Frontend `3000`
@@ -109,7 +110,7 @@ Utils: `AuctionPhaseUtil.isTimedBlindBiddingOpen()`
 
 ### KYC (`/kyc`)
 - Upload CCCD 3 ảnh (front/back/selfie)
-- **FPT OCR** auto-fill (`POST /api/kyc/ocr`)
+- **Gemini OCR** auto-fill (`POST /api/kyc/ocr`)
 - Cảnh báo CCCD trùng tài khoản khác
 - Staff duyệt tại `/staff/kyc-review`
 - Trường user: `identityVerified`, `profileStatus`, `identityVerifiedAt`

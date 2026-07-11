@@ -37,8 +37,10 @@ public class CccdOcrService {
         JsonNode frontData;
         JsonNode backData;
         try {
-            frontData = geminiOcrService.parseIdCardJson(geminiOcrService.scanIdCard(frontImage));
-            backData = geminiOcrService.parseIdCardJson(geminiOcrService.scanIdCard(backImage));
+            JsonNode dual = geminiOcrService.parseDualIdCardJson(
+                    geminiOcrService.scanIdCardPair(frontImage, backImage));
+            frontData = dual.path("front");
+            backData = dual.path("back");
         } catch (IllegalStateException ex) {
             return CccdOcrResult.builder()
                     .success(false)

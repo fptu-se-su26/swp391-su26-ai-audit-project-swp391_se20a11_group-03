@@ -2,6 +2,8 @@ package com.auction.bidding.service.impl;
 
 import com.auction.account.dao.UserRepository;
 import com.auction.account.service.UserPaymentStrikeService;
+import com.auction.bidding.config.WebSocketConfig;
+import com.auction.bidding.dto.AuctionWinAnnouncementDto;
 import com.auction.bidding.entity.Auction;
 import com.auction.bidding.entity.AuctionDeposit;
 import com.auction.bidding.repository.AuctionDepositRepository;
@@ -20,6 +22,7 @@ import com.auction.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +53,7 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
     private final NotificationService notificationService;
     private final ContractService contractService;
     private final UserPaymentStrikeService userPaymentStrikeService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     @Transactional
@@ -209,6 +213,28 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
                 auction.getAuctionId(),
                 "AUCTION_WON"
         );
+        broadcastAuctionWin(auction, product, productName, finalPrice);
+    }
+
+    private void broadcastAuctionWin(Auction auction, Product product, String productName, long finalPrice) {
+        if (auction.getCurrentWinnerUser() == null) {
+            return;
+        }
+        try {
+            Long productId = product != null ? product.getProductId() : null;
+            String winnerUsername = auction.getCurrentWinnerUser().getUsername();
+            AuctionWinAnnouncementDto payload = AuctionWinAnnouncementDto.of(
+                    auction.getAuctionId(),
+                    productId,
+                    (long) auction.getCurrentWinnerUser().getId(),
+                    winnerUsername != null ? winnerUsername : "Người thắng",
+                    productName,
+                    finalPrice,
+                    auction.getSettledAt());
+            messagingTemplate.convertAndSend(WebSocketConfig.AUCTION_STATUS_TOPIC, payload);
+        } catch (Exception ex) {
+            log.warn("Failed to broadcast auction win for auction {}: {}", auction.getAuctionId(), ex.getMessage());
+        }
     }
 
     private void notifyWinnerForfeited(Auction auction) {

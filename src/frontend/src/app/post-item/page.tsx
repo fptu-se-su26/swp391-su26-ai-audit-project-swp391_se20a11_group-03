@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/post-item/DashboardLayout";
 import SellerAccessRequired from "@/components/post-item/SellerAccessRequired";
+import AiValuationChat from "@/components/features/AiValuationChat";
 import { GoldButton, OutlineButton } from "@/components/luxe/primitives";
 import { StoredUser, getStoredUser, subscribeStoredUser } from "@/lib/userSession";
 import {
@@ -69,8 +70,6 @@ export default function PostItemPage() {
   const [attributeValues, setAttributeValues] = useState<Record<number, string>>({});
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiResult, setAiResult] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -213,43 +212,6 @@ export default function PostItemPage() {
       categoryAttributes.filter((a) => a.isRequired).every((a) => attributeValues[a.attributeId]?.trim() !== ""),
     [formData, imageFiles, submitting, startTimeError, categoryAttributes, attributeValues]
   );
-
-  const handleAiValuation = async () => {
-    setAiLoading(true);
-    setAiResult(null);
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8096/api"}/ai/valuation`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            productName: formData.productName,
-            description: formData.itemDescription,
-            startingPrice: parseVndAmount(formData.estimatedValue) || 0,
-          }),
-        }
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setAiResult(
-          data?.data?.summary ??
-            data?.message ??
-            "Estimated Market Value: $175,000 – $220,000 based on 42 comparable sales in the last 12 months."
-        );
-      } else {
-        setAiResult(
-          "Estimated Market Value: $175,000 – $220,000 based on 42 comparable sales in the last 12 months."
-        );
-      }
-    } catch {
-      setAiResult(
-        "Estimated Market Value: $175,000 – $220,000 based on 42 comparable sales in the last 12 months."
-      );
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -526,8 +488,8 @@ export default function PostItemPage() {
               </div>
 
               {!isAdminPoster && (
-                <div className="rounded-lg border border-secondary/30 bg-secondary-container/30 p-md text-sm text-on-secondary-container">
-                  <span className="material-symbols-outlined mr-1 align-middle text-[18px]">schedule</span>
+                <div className="rounded-lg border border-[#d4aa61]/40 bg-[#d4aa61]/10 p-md text-sm text-[#f5ead9]">
+                  <span className="material-symbols-outlined mr-1 align-middle text-[18px] text-[#e7c57c]">schedule</span>
                   {t("scheduleByAdminNote")}
                 </div>
               )}
@@ -541,7 +503,7 @@ export default function PostItemPage() {
                       onClick={() => setFormData({ ...formData, auctionMode: "LIVE" })}
                       className={`rounded-lg border px-md py-sm text-left transition-colors ${
                         formData.auctionMode === "LIVE"
-                          ? "border-secondary bg-secondary-container text-on-secondary-container"
+                          ? "border-[#d4aa61] bg-[#d4aa61]/15 text-[#f5ead9]"
                           : "border-outline-variant bg-surface-container-low hover:border-secondary"
                       }`}
                     >
@@ -553,7 +515,7 @@ export default function PostItemPage() {
                       onClick={() => setFormData({ ...formData, auctionMode: "TIMED" })}
                       className={`rounded-lg border px-md py-sm text-left transition-colors ${
                         formData.auctionMode === "TIMED"
-                          ? "border-secondary bg-secondary-container text-on-secondary-container"
+                          ? "border-[#d4aa61] bg-[#d4aa61]/15 text-[#f5ead9]"
                           : "border-outline-variant bg-surface-container-low hover:border-secondary"
                       }`}
                     >
@@ -752,47 +714,19 @@ export default function PostItemPage() {
             </p>
           </div>
 
-          {/* AI Assistant */}
+          {/* AI Assistant chatbot */}
           <div className="space-y-md">
-            <div className="bg-primary-container text-on-primary-container rounded-xl p-lg soft-shadow border border-secondary/20 sticky top-base">
-              <div className="flex items-center gap-sm mb-md">
-                <h2 className="font-headline-md text-headline-md text-primary">{t("aiValuation")}</h2>
-              </div>
-              <p className="font-body-md opacity-90 mb-lg">
-                {t("aiValuationDesc")}
-              </p>
-
-              {aiResult && (
-                <div className="mb-md p-md bg-secondary/10 border border-secondary/30 rounded-lg">
-                  <p className="font-body-md text-sm text-on-primary-container">{aiResult}</p>
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={handleAiValuation}
-                disabled={aiLoading}
-                className="border border-secondary text-secondary hover:bg-secondary/10 w-full py-sm rounded-lg transition-colors font-label-md flex items-center justify-center gap-xs disabled:opacity-60"
-              >
-                {aiLoading ? (
-                  <>
-                    <span className="material-symbols-outlined animate-spin text-[20px]">sync</span>{" "}
-                    {t("analyzing")}
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-[20px]">analytics</span> {t("getAiValuation")}
-                  </>
-                )}
-              </button>
-
-              <div className="mt-lg pt-md border-t border-outline-variant/20">
-                <div className="flex justify-between items-center opacity-70">
-                  <span className="text-xs">{t("processingCredits")}</span>
-                  <span className="text-xs font-bold">{t("creditsLeft", { count: 12 })}</span>
-                </div>
-              </div>
-            </div>
+            <AiValuationChat
+              productName={formData.productName}
+              description={formData.itemDescription}
+              startingPrice={parseVndAmount(formData.estimatedValue) || 0}
+              imageFiles={imageFiles}
+              imagePreviews={imagePreviews}
+              imageCount={imageFiles.length}
+              maxImages={MAX_PRODUCT_IMAGES}
+              onAddImages={addImages}
+              onRemoveImage={removeImage}
+            />
           </div>
         </form>
         </div>

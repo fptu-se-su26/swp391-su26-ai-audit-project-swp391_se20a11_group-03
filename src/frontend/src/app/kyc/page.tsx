@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import CollectorShell from "@/components/layout/CollectorShell";
 import { KycSubmission, getMyKyc, scanCccdOcr, submitKyc } from "@/lib/services/kycService";
@@ -18,8 +18,21 @@ import {
 } from "@/lib/services/sellerContractService";
 
 const dateFormatter = new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" });
+const OCR_COOLDOWN_MS = 60_000;
 
 type UploadedDoc = { file: File; preview: string };
+
+function isOcrRateLimitMessage(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes("429") ||
+    lower.includes("quota") ||
+    lower.includes("resource_exhausted") ||
+    lower.includes("giới hạn") ||
+    lower.includes("đang bận") ||
+    lower.includes("rate limit")
+  );
+}
 
 export default function KYCPage() {
   const t = useTranslations("kyc");
@@ -51,6 +64,9 @@ export default function KYCPage() {
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrMessage, setOcrMessage] = useState<string | null>(null);
   const [ocrReady, setOcrReady] = useState(false);
+  const [ocrCooldownUntil, setOcrCooldownUntil] = useState(0);
+  const [ocrCooldownSeconds, setOcrCooldownSeconds] = useState(0);
+  const ocrInFlightRef = useRef(false);
 
   const isSeller = (currentUser?.roleName ?? "").trim().toLowerCase().includes("seller");
   const contractReady = contractSigned || (isSeller && (agreeContract || contractAcknowledged));
@@ -152,6 +168,23 @@ export default function KYCPage() {
     };
   }, [currentUser?.userId, currentUser?.identityVerified]);
 
+  useEffect(() => {
+    if (ocrCooldownUntil <= Date.now()) {
+      setOcrCooldownSeconds(0);
+      return;
+    }
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((ocrCooldownUntil - Date.now()) / 1000));
+      setOcrCooldownSeconds(remaining);
+    };
+    tick();
+    const interval = window.setInterval(tick, 1000);
+    return () => window.clearInterval(interval);
+  }, [ocrCooldownUntil]);
+
+  const ocrCoolingDown = ocrCooldownUntil > Date.now();
+  const ocrActionsDisabled = ocrLoading || ocrCoolingDown;
+
   function friendlyOcrError(message: string) {
     const lower = message.toLowerCase();
     if (lower.includes("429") || lower.includes("quota") || lower.includes("resource_exhausted")) {
@@ -169,13 +202,25 @@ export default function KYCPage() {
       setOcrReady(false);
       return;
     }
+    if (ocrInFlightRef.current || ocrCoolingDown) {
+      return;
+    }
 
+    ocrInFlightRef.current = true;
     setOcrLoading(true);
     setOcrMessage(null);
     setOcrReady(false);
     try {
       const result = await scanCccdOcr(frontDoc.file, backDoc.file);
-      setOcrMessage(result.message);
+      const displayMessage = result.message
+        ? isOcrRateLimitMessage(result.message)
+          ? t("errors.ocrBusy")
+          : result.message
+        : null;
+      if (displayMessage && isOcrRateLimitMessage(result.message ?? "")) {
+        setOcrCooldownUntil(Date.now() + OCR_COOLDOWN_MS);
+      }
+      setOcrMessage(displayMessage);
       setOcrReady(result.success);
       if (result.fullName) setFullName(result.fullName);
       if (result.cccdNumber) setCccdNumber(result.cccdNumber);
@@ -184,11 +229,15 @@ export default function KYCPage() {
       if (result.issueDate) setIssueDate(result.issueDate);
       if (result.issuePlace) setIssuePlace(result.issuePlace);
     } catch (error) {
-      setOcrMessage(
-        friendlyOcrError(error instanceof Error ? error.message : t("errors.ocrFailed")),
-      );
+      const raw = error instanceof Error ? error.message : t("errors.ocrFailed");
+      const friendly = friendlyOcrError(raw);
+      if (isOcrRateLimitMessage(raw)) {
+        setOcrCooldownUntil(Date.now() + OCR_COOLDOWN_MS);
+      }
+      setOcrMessage(friendly);
       setOcrReady(false);
     } finally {
+      ocrInFlightRef.current = false;
       setOcrLoading(false);
     }
   }
@@ -455,13 +504,17 @@ export default function KYCPage() {
               <button
                 type="button"
                 onClick={() => void handleRunOcr()}
-                disabled={ocrLoading || !frontDoc?.file || !backDoc?.file}
+                disabled={ocrActionsDisabled || !frontDoc?.file || !backDoc?.file}
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-secondary/50 bg-surface px-md py-sm font-label-md text-label-md text-secondary transition hover:bg-secondary-container/30 disabled:opacity-50"
               >
                 <span className={`material-symbols-outlined text-[18px] ${ocrLoading ? "animate-spin" : ""}`}>
                   {ocrLoading ? "progress_activity" : "document_scanner"}
                 </span>
-                {ocrLoading ? t("ocrScanning") : t("errors.scanCccdAi")}
+                {ocrLoading
+                  ? t("ocrScanning")
+                  : ocrCoolingDown
+                    ? t("errors.ocrRetryIn", { seconds: ocrCooldownSeconds })
+                    : t("errors.scanCccdAi")}
               </button>
               <p className="text-sm text-on-surface-variant">
                 OCR không bắt buộc — bạn có thể điền thủ công và gửi hồ sơ.

@@ -158,7 +158,15 @@ export default function TopNav() {
     try {
       const { getNotifications } = await import("@/lib/services/notificationService");
       const list = await getNotifications();
-      setNotifList(list.slice(0, 20)); // max 20 items
+      const slice = list.slice(0, 20);
+      setNotifList(slice);
+      try {
+        await markAllAsRead();
+        setNotifList(slice.map((n) => ({ ...n, isRead: true })));
+        setNotifCount(0);
+      } catch {
+        // keep list visible even if mark-read fails
+      }
     } catch {
       setNotifList([]);
     } finally {

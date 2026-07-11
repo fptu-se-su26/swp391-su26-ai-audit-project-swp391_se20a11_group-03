@@ -60,15 +60,6 @@
         <url-pattern>/verify-identity</url-pattern>
     </servlet-mapping>
 
-    <servlet>
-        <servlet-name>FptAiHealthServlet</servlet-name>
-        <servlet-class>com.vnec.servlet.FptAiHealthServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>FptAiHealthServlet</servlet-name>
-        <url-pattern>/fpt-ai/health</url-pattern>
-    </servlet-mapping>
-
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
