@@ -3,364 +3,239 @@
 ## 1. Thông tin chung
 
 | Thông tin | Nội dung |
-|---|---|
-| Môn học |  |
-| Mã môn học |  |
-| Lớp |  |
-| Học kỳ |  |
-| Tên bài tập / Project |  |
-| Tên sinh viên / Nhóm |  |
-| MSSV / Danh sách MSSV |  |
-| Giảng viên hướng dẫn |  |
-| Ngày bắt đầu |  |
-| Ngày hoàn thành |  |
-
----
+| --- | --- |
+| Môn học | Software Project |
+| Mã môn học | SWP391 |
+| Lớp / Học kỳ | SE20A11 / SU26 |
+| Project | BidZone - Real-time Bidding System |
+| Nhóm | Nhóm 03 |
+| Sinh viên | Trần Văn Đức |
+| MSSV | DE191098 |
+| Vai trò | Thành viên - frontend và tích hợp hệ thống |
+| Giảng viên hướng dẫn | Chưa được cung cấp trong repository |
+| Thời gian ghi nhận | 08/06/2026 - 15/07/2026 |
 
 ## 2. Công cụ AI đã sử dụng
 
-Đánh dấu các công cụ AI đã sử dụng trong quá trình thực hiện bài tập/project.
-
+- [x] Claude / Claude Code
+- [x] OpenAI Codex
 - [ ] ChatGPT
 - [ ] Gemini
-- [ ] Claude
 - [ ] GitHub Copilot
 - [ ] Cursor
 - [ ] Antigravity
-- [ ] Perplexity
-- [ ] Microsoft Copilot
-- [ ] Công cụ khác: ....................................
-
----
 
 ## 3. Mục tiêu sử dụng AI
 
-Mô tả ngắn gọn sinh viên/nhóm đã sử dụng AI để hỗ trợ những công việc nào.
+AI được sử dụng để hỗ trợ chuyển giao diện Stitch sang Next.js, thiết kế module chat
+real-time, phân tích lỗi phân quyền theo vai trò, review source/Git và kiểm tra chất lượng
+trước khi commit. Kết quả AI chỉ được áp dụng sau khi đối chiếu với source code, tài liệu
+framework và kết quả build/test.
 
-Ví dụ:
+## 4. Nhật ký sử dụng AI
 
-- Phân tích yêu cầu bài toán
-- Gợi ý ý tưởng giải pháp
-- Thiết kế database
-- Thiết kế giao diện
-- Viết code mẫu
-- Debug lỗi
-- Tối ưu code
-- Viết test case
-- Kiểm tra bảo mật
-- Viết báo cáo
-- Chuẩn bị slide thuyết trình
-- Tìm hiểu công nghệ mới
-
-### Mô tả mục tiêu sử dụng AI
-
-```text
-Viết tại đây...
-
-## 4. Nhật ký sử dụng AI chi tiết
-
-> Mỗi lần sử dụng AI cho một phần quan trọng của bài tập/project, sinh viên cần ghi lại theo mẫu bên dưới.  
-> Sinh viên/nhóm có thể nhân bản mẫu “Lần sử dụng AI” nhiều lần tùy theo số lần sử dụng AI thực tế.
-
----
-
-### Lần sử dụng AI số 1
+### Lần 1 - Khởi tạo frontend Next.js
 
 | Nội dung | Thông tin |
-|---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích sử dụng |  |
-| Phần việc liên quan | Requirement / Design / Database / Frontend / Backend / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Hỗ trợ một phần / Hỗ trợ nhiều / Sinh chính nội dung |
+| --- | --- |
+| Ngày | 08/06/2026 |
+| Công cụ | Claude / Claude Code |
+| Mục đích | Chuyển UI Stitch (HTML + Tailwind CDN) thành frontend Next.js |
+| Mức độ sử dụng | AI sinh khung chính; sinh viên kiểm tra và hoàn thiện |
 
-#### 4.1. Prompt đã sử dụng
-
-```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
-```
-
-#### 4.2. Kết quả AI gợi ý
-
-Tóm tắt nội dung AI đã trả lời hoặc gợi ý.
+#### Prompt
 
 ```text
-Viết tại đây...
+Hãy đóng vai Senior Frontend Engineer chuyên React và Next.js. Tôi có một bộ UI
+export từ Stitch; mỗi màn hình gồm code.html và screen.png. Hãy chuyển toàn bộ UI
+thành project Next.js App Router dùng TypeScript và Tailwind CSS cài trong project.
+
+Yêu cầu: giữ đúng layout/màu/font/spacing; tách component dùng lại; mapping các màn
+Admin, Collector và Staff thành route; dùng nested layout; chuyển HTML sang JSX hợp lệ;
+dùng "use client" cho phần tương tác; tạo mock data khi chưa có backend; project phải
+chạy được bằng npm install && npm run dev. Trước khi code, liệt kê file đã đọc và kế
+hoạch component.
 ```
 
-#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+#### Kết quả AI và phần đã áp dụng
 
-Mô tả rõ phần nào được sử dụng lại từ gợi ý của AI.
+- Đề xuất App Router, shell/sidebar theo vai trò và component dùng chung.
+- Khởi tạo `src/frontend/app`, `components`, `lib` và các route chính.
+- Chuyển màn hình Stitch sang TSX và tạo dữ liệu mẫu cho giai đoạn đầu.
 
-```text
-Viết tại đây...
-```
+#### Phần sinh viên tự chỉnh sửa và kiểm chứng
 
-#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+- Bổ sung các màn Staff, auth, profile, security, messages và won-items.
+- Sửa JSX/className, responsive và style theo ảnh tham chiếu.
+- Thay mock data bằng API theo tiến độ backend.
+- Chạy `npm install`, `npm run dev` và kiểm tra từng route.
 
-Mô tả sinh viên/nhóm đã thay đổi, kiểm tra, sửa lỗi hoặc cải tiến gì so với gợi ý ban đầu của AI.
+#### Minh chứng
 
-```text
-Viết tại đây...
-```
+| Loại | Nội dung |
+| --- | --- |
+| Commit | [`96994d8`](https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03/commit/96994d85d5770eb9afd6d0934211a4c3e8cfb013) - `feat: initialize frontend project` |
+| File | `src/frontend/` |
+| Kết quả | Frontend chạy được và tạo nền tảng cho các bước tích hợp tiếp theo |
 
-#### 4.5. Minh chứng
+#### Bài học
 
-| Loại minh chứng | Nội dung |
-|---|---|
-| Link commit |  |
-| File liên quan |  |
-| Screenshot |  |
-| Kết quả chạy/test |  |
-| Link video demo |  |
-| Ghi chú khác |  |
+Prompt có stack, phạm vi, ràng buộc và đầu ra rõ ràng giúp AI tạo cấu trúc sát nhu cầu.
+Tuy nhiên, AI không biết đầy đủ role/API của repository nên kết quả vẫn cần review.
 
-#### 4.6. Nhận xét cá nhân/nhóm
-
-Sinh viên/nhóm học được gì sau lần sử dụng AI này?
-
-```text
-Viết tại đây...
-```
-
----
-
-### Lần sử dụng AI số 2
+### Lần 2 - Xây dựng chat real-time
 
 | Nội dung | Thông tin |
-|---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích sử dụng |  |
-| Phần việc liên quan | Requirement / Design / Database / Frontend / Backend / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Hỗ trợ một phần / Hỗ trợ nhiều / Sinh chính nội dung |
+| --- | --- |
+| Ngày | 09/06/2026 |
+| Công cụ | Claude |
+| Mục đích | Thiết kế chat real-time giữa User/Seller và Staff |
+| Mức độ sử dụng | AI hỗ trợ nhiều; sinh viên tích hợp và sửa theo source thật |
 
-#### 4.1. Prompt đã sử dụng
-
-```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
-```
-
-#### 4.2. Kết quả AI gợi ý
+#### Prompt
 
 ```text
-Viết tại đây...
+Bạn là Senior Backend Engineer chuyên Spring Boot 3.x. Dự án là hệ thống đấu giá
+SWP_Nhom3 sử dụng SQL Server, Spring Security, JWT và Spring Data JPA.
+
+Implement tính năng nhắn tin real-time giữa User/Seller và Staff:
+1. Thêm bảng Conversations và Messages.
+2. Tạo Entity, DTO, Repository, Service, WebSocket Config, JWT Interceptor,
+   REST Controller và Exception Handler.
+3. User/Seller tạo conversation, Staff nhận và reply, Admin xem theo quyền.
+4. Dùng WebSocket STOMP over SockJS.
+5. Không tạo lại UserRepository, JwtService và UserDetailsImpl đã có.
+6. Chạy mvn clean install và báo kết quả.
 ```
 
-#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+#### Kết quả AI và phần đã áp dụng
 
-```text
-Viết tại đây...
-```
+- Đề xuất schema `Conversations`, `Messages`, entity, DTO và repository.
+- Tạo cấu trúc service/controller và luồng WebSocket STOMP có JWT.
+- Áp dụng module `com.auction.chat` và giao diện inbox frontend.
 
-#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+#### Phần sinh viên tự chỉnh sửa và kiểm chứng
 
-```text
-Viết tại đây...
-```
+- Sửa package, kiểu ID và method cho khớp `User`/`UserDetailsImpl` thực tế.
+- Điều chỉnh query cho SQL Server và endpoint theo controller hiện có.
+- Bổ sung kiểm tra buyer, seller và staff được phân công.
+- Build backend và kiểm tra luồng API theo người dùng đăng nhập.
 
-#### 4.5. Minh chứng
+#### Minh chứng
 
-| Loại minh chứng | Nội dung |
-|---|---|
-| Link commit |  |
-| File liên quan |  |
-| Screenshot |  |
-| Kết quả chạy/test |  |
-| Link video demo |  |
-| Ghi chú khác |  |
+| Loại | Nội dung |
+| --- | --- |
+| Commit | [`1475faf`](https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03/commit/1475faffb02e2f883fbcfbf64be6182054fef205) - `feat: add backend Spring Boot chat system and frontend Next.js UI` |
+| File | `src/backend/src/main/java/com/auction/chat/`, `src/frontend/app/messages/` |
+| Kết quả | Module chat được tích hợp vào cấu trúc backend/frontend hiện tại |
 
-#### 4.6. Nhận xét cá nhân/nhóm
+#### Bài học
 
-```text
-Viết tại đây...
-```
+AI giúp giảm thời gian viết boilerplate và giải thích WebSocket flow. Các chi tiết entity,
+query, endpoint và quyền truy cập vẫn phải được kiểm tra trực tiếp trong repository.
 
----
-
-### Lần sử dụng AI số 3
+### Lần 3 - Sửa quyền truy cập Seller
 
 | Nội dung | Thông tin |
-|---|---|
-| Ngày sử dụng |  |
-| Công cụ AI | ChatGPT / Gemini / Claude / GitHub Copilot / Cursor / Antigravity / Khác |
-| Mục đích sử dụng |  |
-| Phần việc liên quan | Requirement / Design / Database / Frontend / Backend / Testing / Debug / Report / Presentation / Other |
-| Mức độ sử dụng | Hỗ trợ ý tưởng / Hỗ trợ một phần / Hỗ trợ nhiều / Sinh chính nội dung |
+| --- | --- |
+| Ngày | 15/07/2026 |
+| Công cụ | OpenAI Codex |
+| Mục đích | Cho Seller dùng chức năng chung giống User/Collector |
+| Mức độ sử dụng | AI phân tích và sửa một phần; sinh viên xác nhận nghiệp vụ |
 
-#### 4.1. Prompt đã sử dụng
-
-```text
-Dán nguyên văn prompt đã hỏi AI tại đây.
-```
-
-#### 4.2. Kết quả AI gợi ý
+#### Prompt
 
 ```text
-Viết tại đây...
+các mục này seller vẫn k vào dc seller vẫn dùng dc các tính năng giống user bth
 ```
 
-#### 4.3. Phần sinh viên/nhóm đã sử dụng từ AI
+#### Kết quả AI
 
-```text
-Viết tại đây...
-```
+AI kiểm tra sidebar, cookie role, Next.js Proxy và quyền API backend. Nguyên nhân nằm ở
+`src/frontend/proxy.ts`: code cũ chỉ trả về một role bắt buộc cho mỗi path. Các route
+chung được nhận là `collector`, vì vậy Seller bị redirect về `/inventory` dù menu vẫn
+hiển thị.
 
-#### 4.4. Phần sinh viên/nhóm tự chỉnh sửa hoặc cải tiến
+#### Phần đã áp dụng
 
-```text
-Viết tại đây...
-```
+- Tạo danh sách route chung cho Collector và Seller.
+- Thay `getRequiredRole()` bằng `getAllowedRoles()` để một route cho phép nhiều role.
+- Giữ `/inventory`, `/post-item`, `/earnings` là chức năng bổ sung của Seller.
+- Không mở quyền các route `/staff` và `/admin`.
 
-#### 4.5. Minh chứng
+#### Phần sinh viên tự chỉnh sửa và kiểm chứng
 
-| Loại minh chứng | Nội dung |
-|---|---|
-| Link commit |  |
-| File liên quan |  |
-| Screenshot |  |
-| Kết quả chạy/test |  |
-| Link video demo |  |
-| Ghi chú khác |  |
+- Đọc tài liệu Proxy/authorization của Next.js 16.2.10 trước khi sửa.
+- Rà `SecurityConfig` để xác nhận API dùng chung không khóa riêng User.
+- Chạy ESLint, TypeScript và production build; chỉ stage file Proxy.
+- Phát hiện bản sửa bị ghi đè sau thao tác đồng bộ branch, áp dụng lại và push `dev`.
 
-#### 4.6. Nhận xét cá nhân/nhóm
+#### Minh chứng
 
-```text
-Viết tại đây...
-```
+| Loại | Nội dung |
+| --- | --- |
+| Commit | [`1a90853`](https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03/commit/1a90853c4094d4d1eee5015833efab98b309fc68) - `fix(frontend): allow sellers to access collector routes` |
+| File | `src/frontend/proxy.ts`, `CollectorSidebar.tsx` |
+| Kết quả | `npm run lint` và `npm run build` thành công; 44 route được build |
 
----
+#### Bài học
 
-## 5. Bảng tổng hợp mức độ sử dụng AI
+Menu hiển thị không đồng nghĩa với được phép truy cập route. Authorization cần được kiểm
+tra ở giao diện, Proxy và backend. Build thành công cũng không thay thế role test.
 
-Đánh dấu mức độ AI hỗ trợ ở từng hạng mục.
+## 5. Tổng hợp mức độ sử dụng AI
 
-| Hạng mục | Không dùng AI | AI hỗ trợ ít | AI hỗ trợ nhiều | AI sinh chính | Ghi chú |
-|---|:---:|:---:|:---:|:---:|---|
-| Phân tích yêu cầu |  |  |  |  |  |
-| Viết user story/use case |  |  |  |  |  |
-| Thiết kế database |  |  |  |  |  |
-| Thiết kế kiến trúc hệ thống |  |  |  |  |  |
-| Thiết kế giao diện |  |  |  |  |  |
-| Code frontend |  |  |  |  |  |
-| Code backend |  |  |  |  |  |
-| Debug lỗi |  |  |  |  |  |
-| Viết test case |  |  |  |  |  |
-| Kiểm thử sản phẩm |  |  |  |  |  |
-| Tối ưu code |  |  |  |  |  |
-| Viết báo cáo |  |  |  |  |  |
-| Làm slide thuyết trình |  |  |  |  |  |
+| Hạng mục | Mức độ | Ghi chú |
+| --- | --- | --- |
+| Phân tích yêu cầu | AI hỗ trợ nhiều | Phân rã role, route và luồng chat |
+| Thiết kế database | AI hỗ trợ nhiều | Schema chat được kiểm tra với SQL Server |
+| Thiết kế kiến trúc | AI hỗ trợ nhiều | App Router và layered backend |
+| Code frontend | AI sinh khung chính | Sinh viên tích hợp API và sửa quyền |
+| Code backend | AI hỗ trợ nhiều | Sinh viên chỉnh entity, query và security |
+| Debug | AI hỗ trợ nhiều | Tìm lỗi Proxy một-role-một-route |
+| Kiểm chứng | Sinh viên thực hiện chính | Build, lint, role test và Git diff |
+| Viết tài liệu | AI hỗ trợ một phần | Nội dung đối chiếu commit thực tế |
 
----
+## 6. Lỗi hoặc hạn chế đã ghi nhận
 
-## 6. Các lỗi hoặc hạn chế từ AI
+| STT | Lỗi/hạn chế | Cách phát hiện | Cách xử lý |
+| ---: | --- | --- | --- |
+| 1 | UI ban đầu thiếu một số route Staff/tài khoản | So sánh yêu cầu và màn hình | Bổ sung route/shell còn thiếu |
+| 2 | Code chat dùng method/ID chưa khớp entity | Compiler và review source | Sửa package, method, ID, query |
+| 3 | Proxy giả định mỗi route chỉ thuộc một role | Đăng nhập Seller và bấm menu | Cho phép danh sách nhiều role |
+| 4 | Build không phát hiện sai logic role runtime | Build đạt nhưng vẫn redirect | Kiểm thử theo ma trận role-route |
 
-Ghi lại các trường hợp AI trả lời sai, thiếu, chưa phù hợp hoặc sinh code không chạy.
+## 7. Phương pháp kiểm chứng
 
-| STT | Lỗi/hạn chế từ AI | Cách phát hiện | Cách xử lý/cải tiến |
-|---:|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
+- Đọc source code và Git diff trước khi áp dụng kết quả AI.
+- Đối chiếu tài liệu Next.js 16 có sẵn trong project.
+- Chạy `npm run lint` và `npm run build` cho frontend.
+- Build backend và kiểm tra endpoint bằng role phù hợp.
+- Dùng `git diff --check` và chỉ stage file thuộc phạm vi thay đổi.
+- Liên kết nội dung audit với commit GitHub cụ thể.
 
----
+## 8. Đóng góp cá nhân
 
-## 7. Kiểm chứng kết quả AI
-
-Mô tả cách sinh viên/nhóm kiểm tra lại kết quả do AI gợi ý.
-
-Có thể bao gồm:
-
-- Chạy thử chương trình
-- Viết test case
-- So sánh với yêu cầu đề bài
-- Kiểm tra output
-- Đối chiếu tài liệu môn học
-- Hỏi lại giảng viên
-- Review cùng thành viên nhóm
-- Kiểm tra lỗi bảo mật
-- Kiểm tra bằng dữ liệu mẫu
-- So sánh trước và sau khi dùng AI
-
-### Nội dung kiểm chứng
-
-```text
-Viết tại đây...
-```
-
----
-
-## 8. Đóng góp cá nhân hoặc đóng góp nhóm
-
-### 8.1. Đối với bài cá nhân
-
-Mô tả phần sinh viên tự làm, phần AI hỗ trợ và phần đã tự cải tiến.
-
-```text
-Viết tại đây...
-```
-
-### 8.2. Đối với bài nhóm
-
-| Thành viên | MSSV | Nhiệm vụ chính | Có sử dụng AI không? | Minh chứng đóng góp |
-|---|---|---|---|---|
-|  |  |  | Có / Không |  |
-|  |  |  | Có / Không |  |
-|  |  |  | Có / Không |  |
-|  |  |  | Có / Không |  |
-
----
+Trần Văn Đức chịu trách nhiệm xác nhận yêu cầu, lựa chọn gợi ý phù hợp, tích hợp frontend,
+sửa lỗi route/role, kiểm tra build và quản lý commit liên quan. AI hỗ trợ phân tích và
+sinh mã; quyết định cuối cùng, việc kiểm chứng và trách nhiệm source thuộc về sinh viên.
 
 ## 9. Reflection cuối bài
 
-### 9.1. AI đã hỗ trợ em/nhóm ở điểm nào?
+AI giúp rút ngắn thời gian dựng cấu trúc frontend/backend và khoanh vùng lỗi trên
+repository lớn. Giá trị quan trọng nhất là khả năng dùng AI để phân tích vấn đề rồi kiểm
+chứng bằng tài liệu, compiler, test và Git diff. Gợi ý không khớp kiến trúc hoặc quyền
+nghiệp vụ đều phải được điều chỉnh.
 
-```text
-Viết tại đây...
-```
-
-### 9.2. Phần nào em/nhóm không sử dụng theo gợi ý của AI? Vì sao?
-
-```text
-Viết tại đây...
-```
-
-### 9.3. Em/nhóm đã kiểm tra tính đúng đắn của kết quả AI như thế nào?
-
-```text
-Viết tại đây...
-```
-
-### 9.4. Nếu không có AI, phần nào sẽ khó khăn nhất?
-
-```text
-Viết tại đây...
-```
-
-### 9.5. Sau bài tập/project này, em/nhóm học được gì về môn học?
-
-```text
-Viết tại đây...
-```
-
-### 9.6. Sau bài tập/project này, em/nhóm học được gì về cách sử dụng AI có trách nhiệm?
-
-```text
-Viết tại đây...
-```
-
----
+Nếu không có AI, phần WebSocket và rà nhiều tầng phân quyền sẽ mất nhiều thời gian hơn.
+Sau quá trình này, sinh viên có thể giải thích App Router, Proxy, layered architecture,
+JWT/WebSocket và lý do của các thay đổi đã commit.
 
 ## 10. Cam kết học thuật
 
-Sinh viên/nhóm cam kết rằng:
+Tôi cam kết nội dung trên phản ánh trung thực việc sử dụng AI. Mọi kết quả AI đều được
+kiểm tra trước khi đưa vào project; tôi hiểu và chịu trách nhiệm với source code đã nộp.
 
-- Nội dung AI hỗ trợ đã được ghi nhận trung thực.
-- Không nộp nguyên văn kết quả AI mà không kiểm tra.
-- Có khả năng giải thích các phần đã nộp.
-- Chịu trách nhiệm về tính đúng đắn của sản phẩm cuối cùng.
-- Hiểu rằng việc sử dụng AI không khai báo có thể ảnh hưởng đến kết quả đánh giá.
-
-| Đại diện sinh viên/nhóm | Ngày xác nhận |
-|---|---|
-|  |  |
+| Sinh viên | MSSV | Ngày xác nhận |
+| --- | --- | --- |
+| Trần Văn Đức | DE191098 | 15/07/2026 |
