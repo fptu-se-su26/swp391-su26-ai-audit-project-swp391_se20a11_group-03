@@ -12,27 +12,25 @@ const ROLE_HOME: Record<UserRole, string> = {
   admin: "/admin/dashboard",
 };
 
+const COLLECTOR_PATHS = [
+  "/auctions",
+  "/dashboard",
+  "/kyc",
+  "/messages",
+  "/profile",
+  "/security",
+  "/wallet",
+  "/watchlist",
+  "/won-items",
+];
+
 const ROLE_PATHS: Record<UserRole, string[]> = {
-  collector: [
-    "/auctions",
-    "/dashboard",
-    "/kyc",
-    "/messages",
-    "/profile",
-    "/security",
-    "/wallet",
-    "/watchlist",
-    "/won-items",
-  ],
+  collector: COLLECTOR_PATHS,
   seller: [
+    ...COLLECTOR_PATHS,
     "/earnings",
     "/inventory",
-    "/kyc",
-    "/messages",
     "/post-item",
-    "/profile",
-    "/security",
-    "/wallet",
   ],
   staff: ["/staff"],
   admin: ["/admin"],
@@ -42,17 +40,12 @@ function pathStartsWith(pathname: string, protectedPath: string) {
   return pathname === protectedPath || pathname.startsWith(`${protectedPath}/`);
 }
 
-function getRequiredRole(pathname: string): UserRole | null {
-  for (const [role, paths] of Object.entries(ROLE_PATHS) as [
-    UserRole,
-    string[],
-  ][]) {
-    if (paths.some((path) => pathStartsWith(pathname, path))) {
-      return role;
-    }
-  }
-
-  return null;
+function getAllowedRoles(pathname: string): UserRole[] {
+  return (Object.entries(ROLE_PATHS) as [UserRole, string[]][])
+    .filter(([, paths]) =>
+      paths.some((path) => pathStartsWith(pathname, path)),
+    )
+    .map(([role]) => role);
 }
 
 function getValidRole(value: string | undefined): UserRole | null {
@@ -70,9 +63,9 @@ function getValidRole(value: string | undefined): UserRole | null {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const requiredRole = getRequiredRole(pathname);
+  const allowedRoles = getAllowedRoles(pathname);
 
-  if (!requiredRole) {
+  if (allowedRoles.length === 0) {
     return NextResponse.next();
   }
 
@@ -84,7 +77,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (currentRole !== requiredRole) {
+  if (!allowedRoles.includes(currentRole)) {
     return NextResponse.redirect(new URL(ROLE_HOME[currentRole], request.url));
   }
 
