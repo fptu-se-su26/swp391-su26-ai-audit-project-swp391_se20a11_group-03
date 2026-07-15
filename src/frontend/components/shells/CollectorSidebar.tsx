@@ -4,10 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
-import { authApi, fetchAccountSummary, toFrontendRole, type AccountSummary } from "@/lib/api";
+import { authApi, fetchAccountSummary, toFrontendRole, userApi, type AccountSummary } from "@/lib/api";
 import { useApiData } from "@/lib/use-api-data";
 
 const STORAGE_KEY = "bidzone-sidebar-collapsed";
+
+/** Sự kiện toàn cục để trang Tin nhắn báo sidebar cập nhật lại số tin chưa đọc. */
+export const UNREAD_REFRESH_EVENT = "bidzone:unread-refresh";
 
 type NavItem = { label: string; href: string; icon: string; badge?: string };
 type NavGroup = { title: string; items: NavItem[]; sellerOnly?: boolean };
@@ -59,12 +62,40 @@ export default function CollectorSidebar() {
     .join("")
     .toUpperCase();
 
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       setCollapsed(localStorage.getItem(STORAGE_KEY) === "true");
     }, 0);
     return () => clearTimeout(timeout);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshUnread() {
+      try {
+        const conversations = await userApi.myConversations();
+        if (!cancelled) {
+          setUnreadMessages(
+            conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0),
+          );
+        }
+      } catch {
+        /* chưa đăng nhập hoặc backend chưa chạy — bỏ qua */
+      }
+    }
+
+    void refreshUnread();
+    const interval = setInterval(() => void refreshUnread(), 30_000);
+    window.addEventListener(UNREAD_REFRESH_EVENT, refreshUnread);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      window.removeEventListener(UNREAD_REFRESH_EVENT, refreshUnread);
+    };
+  }, [pathname]);
 
   function toggleCollapsed() {
     setCollapsed((prev) => {
@@ -153,6 +184,12 @@ export default function CollectorSidebar() {
             <div className="flex flex-col gap-0.5">
               {group.items.map((item) => {
                 const active = isItemActive(item.href);
+                const badge =
+                  item.href === "/messages" && unreadMessages > 0
+                    ? unreadMessages > 99
+                      ? "99+"
+                      : String(unreadMessages)
+                    : item.badge;
                 return (
                   <Link
                     key={item.href}
@@ -163,15 +200,20 @@ export default function CollectorSidebar() {
                         : "text-white/60 hover:bg-white/5 hover:text-white"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-xl">
+                    <span className="relative material-symbols-outlined text-xl">
                       {item.icon}
+                      {collapsed && badge && (
+                        <span className="absolute -right-1.5 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--luxora-gold)] px-1 text-[9px] font-bold text-black">
+                          {badge}
+                        </span>
+                      )}
                     </span>
                     {!collapsed && (
                       <span className="flex-1 truncate">{item.label}</span>
                     )}
-                    {!collapsed && item.badge && (
+                    {!collapsed && badge && (
                       <span className="rounded-full bg-[var(--luxora-gold)] px-1.5 py-0.5 text-[10px] font-semibold text-black">
-                        {item.badge}
+                        {badge}
                       </span>
                     )}
                   </Link>

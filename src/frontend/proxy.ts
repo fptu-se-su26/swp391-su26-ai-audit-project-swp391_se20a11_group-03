@@ -12,28 +12,25 @@ const ROLE_HOME: Record<UserRole, string> = {
   admin: "/admin/dashboard",
 };
 
+const COLLECTOR_PATHS = [
+  "/auctions",
+  "/dashboard",
+  "/kyc",
+  "/messages",
+  "/profile",
+  "/security",
+  "/wallet",
+  "/watchlist",
+  "/won-items",
+];
+
 const ROLE_PATHS: Record<UserRole, string[]> = {
-  collector: [
-    "/auctions",
-    "/dashboard",
-    "/kyc",
-    "/messages",
-    "/profile",
-    "/security",
-    "/wallet",
-    "/watchlist",
-    "/won-items",
-  ],
+  collector: COLLECTOR_PATHS,
   seller: [
-    "/auctions",
+    ...COLLECTOR_PATHS,
     "/earnings",
     "/inventory",
-    "/kyc",
-    "/messages",
     "/post-item",
-    "/profile",
-    "/security",
-    "/wallet",
   ],
   staff: ["/staff"],
   admin: ["/admin"],
@@ -44,17 +41,11 @@ function pathStartsWith(pathname: string, protectedPath: string) {
 }
 
 function getAllowedRoles(pathname: string): UserRole[] {
-  const allowed: UserRole[] = [];
-  for (const [role, paths] of Object.entries(ROLE_PATHS) as [
-    UserRole,
-    string[],
-  ][]) {
-    if (paths.some((path) => pathStartsWith(pathname, path))) {
-      allowed.push(role);
-    }
-  }
-
-  return allowed;
+  return (Object.entries(ROLE_PATHS) as [UserRole, string[]][])
+    .filter(([, paths]) =>
+      paths.some((path) => pathStartsWith(pathname, path)),
+    )
+    .map(([role]) => role);
 }
 
 function getValidRole(value: string | undefined): UserRole | null {

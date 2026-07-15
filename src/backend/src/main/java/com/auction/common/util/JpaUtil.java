@@ -2,22 +2,21 @@ package com.auction.common.util;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
+import org.springframework.stereotype.Component;
 
+@Component
 public final class JpaUtil {
-    private static final EntityManagerFactory ENTITY_MANAGER_FACTORY =
-            Persistence.createEntityManagerFactory("auctionPU");
+    private static volatile EntityManagerFactory entityManagerFactory;
 
-    private JpaUtil() {
+    public JpaUtil(EntityManagerFactory entityManagerFactory) {
+        JpaUtil.entityManagerFactory = entityManagerFactory;
     }
 
     public static EntityManager createEntityManager() {
-        return ENTITY_MANAGER_FACTORY.createEntityManager();
-    }
-
-    public static void shutdown() {
-        if (ENTITY_MANAGER_FACTORY.isOpen()) {
-            ENTITY_MANAGER_FACTORY.close();
+        EntityManagerFactory factory = entityManagerFactory;
+        if (factory == null) {
+            throw new IllegalStateException("Spring EntityManagerFactory has not been initialized");
         }
+        return factory.createEntityManager();
     }
 }

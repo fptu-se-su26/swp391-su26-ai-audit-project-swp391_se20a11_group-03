@@ -147,16 +147,19 @@ export default function DashboardPage() {
               <p className="mt-2 text-2xl font-bold text-[var(--luxora-gold-light)]">
                 {data.account.wallet.availableBalance.toLocaleString("vi-VN")} ₫
               </p>
-              <div className="mt-4 grid grid-cols-3 gap-2">
-                {[10000, 50000, 100000].map((amount) => (
-                  <button
-                    key={amount}
-                    type="button"
-                    className="rounded-xl border border-white/10 py-2 text-[11px] font-semibold hover:border-[var(--luxora-gold)]"
-                  >
-                    +${amount / 1000}k
-                  </button>
-                ))}
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <Link
+                  href="/wallet"
+                  className="rounded-xl border border-white/10 py-2 text-center text-[11px] font-semibold hover:border-[var(--luxora-gold)]"
+                >
+                  Nạp tiền
+                </Link>
+                <Link
+                  href="/wallet"
+                  className="rounded-xl border border-white/10 py-2 text-center text-[11px] font-semibold hover:border-[var(--luxora-gold)]"
+                >
+                  Lịch sử giao dịch
+                </Link>
               </div>
             </div>
 

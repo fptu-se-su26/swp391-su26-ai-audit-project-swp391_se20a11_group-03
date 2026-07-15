@@ -3,387 +3,238 @@
 ## 1. Thông tin chung
 
 | Thông tin | Nội dung |
-|---|---|
-| Môn học |  |
-| Mã môn học |  |
-| Lớp |  |
-| Học kỳ |  |
-| Tên bài tập / Project |  |
-| Tên sinh viên / Nhóm |  |
-| MSSV / Danh sách MSSV |  |
-| Giảng viên hướng dẫn |  |
-| Ngày hoàn thành reflection |  |
+| --- | --- |
+| Môn học | Software Project - SWP391 |
+| Lớp / Học kỳ | SE20A11 / SU26 |
+| Project | BidZone - Real-time Bidding System |
+| Nhóm | Nhóm 03 |
+| Sinh viên | Trần Văn Đức - DE191098 |
+| Ngày hoàn thành reflection | 15/07/2026 |
 
----
+## 2. Tóm tắt quá trình sử dụng AI
 
-## 2. Mục đích Reflection
+Trong project BidZone, em sử dụng AI ở ba giai đoạn chính. Đầu tiên, AI hỗ trợ chuyển
+bộ giao diện Stitch sang cấu trúc Next.js App Router và đề xuất cách tách component.
+Tiếp theo, AI hỗ trợ thiết kế module chat real-time bằng Spring Boot, SQL Server, JWT và
+WebSocket. Cuối cùng, AI được dùng để review source, tìm lỗi phân quyền Seller và kiểm
+tra thay đổi Git trước khi commit.
 
-File này dùng để sinh viên/nhóm tự đánh giá quá trình sử dụng AI trong học tập và thực hiện bài tập, lab, assignment hoặc project.
+AI giúp tăng tốc việc đọc repository lớn, tạo boilerplate và khoanh vùng lỗi. Tuy nhiên,
+em không dùng nguyên trạng mọi kết quả. Các gợi ý đều được đối chiếu với source code,
+tài liệu framework và kết quả build/test. Những phần không khớp entity, role hoặc API
+thực tế được chỉnh sửa trước khi đưa vào project.
 
-Reflection cần thể hiện:
+## 3. Công cụ AI đã sử dụng
 
-- AI đã hỗ trợ gì trong quá trình học.
-- Sinh viên/nhóm đã kiểm chứng kết quả AI như thế nào.
-- Sinh viên/nhóm đã tự chỉnh sửa, cải tiến ra sao.
-- Sinh viên/nhóm học được gì về môn học.
-- Sinh viên/nhóm học được gì về cách sử dụng AI minh bạch và có trách nhiệm.
-
----
-
-## 3. Tóm tắt quá trình sử dụng AI
-
-Mô tả ngắn gọn quá trình sử dụng AI trong bài tập/project này.
-
-```text
-Viết tại đây...
-```
-
-Gợi ý:
-
-- Em/nhóm đã dùng AI ở giai đoạn nào?
-- Dùng AI để hỗ trợ việc gì?
-- Công cụ AI nào được sử dụng nhiều nhất?
-- AI có giúp cải thiện chất lượng bài làm không?
-- Có phần nào AI gợi ý nhưng em/nhóm không sử dụng không?
-
----
-
-## 4. Công cụ AI đã sử dụng
-
-Đánh dấu các công cụ AI đã sử dụng.
-
+- [x] Claude / Claude Code
+- [x] OpenAI Codex
 - [ ] ChatGPT
 - [ ] Gemini
-- [ ] Claude
 - [ ] GitHub Copilot
 - [ ] Cursor
-- [ ] Antigravity
-- [ ] Microsoft Copilot
-- [ ] Perplexity
-- [ ] Công cụ khác: ....................................
 
 ### Công cụ được sử dụng nhiều nhất
 
-```text
-Viết tại đây...
-```
+Claude/Claude Code được sử dụng nhiều trong giai đoạn khởi tạo frontend và module chat.
+OpenAI Codex được sử dụng cho các tác vụ review repository, sửa lỗi phân quyền, kiểm tra
+build và thao tác Git có kiểm soát.
 
-### Lý do sử dụng công cụ đó
+### Lý do lựa chọn
 
-```text
-Viết tại đây...
-```
+Các công cụ này có khả năng đọc nhiều file, liên hệ lỗi giữa frontend và backend, đề xuất
+thay đổi trực tiếp trên source và chạy lệnh kiểm chứng. Điều này phù hợp với project có
+nhiều module và cần theo dõi diff/commit rõ ràng.
 
----
+## 4. AI đã hỗ trợ ở điểm nào?
 
-## 5. AI đã hỗ trợ em/nhóm ở điểm nào?
+- [x] Hiểu và phân tích yêu cầu
+- [x] Tìm ý tưởng giải pháp
+- [x] Thiết kế database
+- [x] Thiết kế giao diện
+- [x] Thiết kế kiến trúc hệ thống
+- [x] Viết code khung/boilerplate
+- [x] Debug lỗi
+- [x] Review và tối ưu code
+- [x] Kiểm thử/build sản phẩm
+- [x] Viết tài liệu audit
+- [x] Tìm hiểu công nghệ mới
 
-Đánh dấu các nội dung phù hợp.
+AI hỗ trợ hiệu quả nhất ở việc phân rã một yêu cầu lớn thành các phần nhỏ. Ví dụ, với
+tính năng chat, AI tách bài toán thành schema, entity, repository, service, controller,
+WebSocket và security. Với lỗi Seller, AI rà từ sidebar, cookie role, Proxy đến quyền API
+backend thay vì chỉ sửa phần giao diện nhìn thấy.
 
-- [ ] Hiểu yêu cầu đề bài
-- [ ] Phân tích bài toán
-- [ ] Tìm ý tưởng giải pháp
-- [ ] Thiết kế database
-- [ ] Thiết kế giao diện
-- [ ] Thiết kế kiến trúc hệ thống
-- [ ] Viết code mẫu
-- [ ] Debug lỗi
-- [ ] Viết test case
-- [ ] Review code
-- [ ] Tối ưu code
-- [ ] Kiểm tra bảo mật
-- [ ] Viết báo cáo
-- [ ] Chuẩn bị thuyết trình
-- [ ] Tìm hiểu công nghệ mới
-- [ ] Khác: ....................................
+## 5. AI có giúp học tốt hơn không?
 
-### Mô tả chi tiết
+### Những điểm giúp học tốt hơn
 
-```text
-Viết tại đây...
-```
+- Em hiểu rõ hơn cách tổ chức Next.js App Router, client component và shell dùng chung.
+- Em biết cách phân biệt hiển thị menu với authorization thực tế ở Proxy/backend.
+- Em hiểu luồng STOMP WebSocket, JWT interceptor và quyền truy cập hội thoại.
+- Em hình thành thói quen đọc diff, chạy lint/build và chỉ stage file đúng phạm vi.
+- Em biết viết prompt có bối cảnh, ràng buộc và tiêu chí kiểm chứng cụ thể.
 
----
+### Những điểm AI chưa làm tốt
 
-## 6. AI có giúp em/nhóm học tốt hơn không?
+- AI không tự biết đầy đủ entity, method và convention của repository nếu prompt không
+  cung cấp đủ ngữ cảnh.
+- Code sinh ra có thể compile nhưng vẫn sai logic nghiệp vụ, đặc biệt với role và quyền.
+- Giải pháp đầu tiên đôi khi rộng hoặc phức tạp hơn mức cần thiết.
+- AI có thể mô tả một bước test là thành công nếu người dùng không yêu cầu bằng chứng
+  đầu ra rõ ràng.
+- Khi thao tác Git, yêu cầu mơ hồ có thể dẫn đến cách hiểu khác nhau về branch cần giữ.
 
-### 6.1. Những điểm AI giúp em/nhóm học tốt hơn
-
-```text
-Viết tại đây...
-```
-
-Gợi ý:
-
-- Hiểu bài nhanh hơn.
-- Có thêm ví dụ minh họa.
-- Biết cách debug lỗi.
-- Biết thêm cách tổ chức code.
-- Biết thêm cách thiết kế giải pháp.
-- Biết cách viết test case.
-- Biết cách cải thiện báo cáo hoặc slide.
-
-### 6.2. Những điểm AI chưa giúp tốt hoặc gây khó khăn
-
-```text
-Viết tại đây...
-```
-
-Gợi ý:
-
-- AI trả lời sai.
-- AI sinh code không chạy.
-- AI hiểu sai yêu cầu đề bài.
-- AI đưa giải pháp quá phức tạp.
-- AI thiếu ngữ cảnh môn học.
-- AI trả lời chung chung.
-- AI khiến em/nhóm dễ phụ thuộc.
-
-### 6.3. Em/nhóm có bị phụ thuộc vào AI không?
+### Mức độ phụ thuộc
 
 - [ ] Không phụ thuộc
-- [ ] Phụ thuộc ít
+- [x] Phụ thuộc ít
 - [ ] Phụ thuộc trung bình
 - [ ] Phụ thuộc nhiều
 
-Giải thích:
+Em sử dụng AI để tăng tốc phân tích và viết phần khung, nhưng vẫn tự xác nhận yêu cầu,
+đọc code, quyết định thay đổi và kiểm tra kết quả. Khi AI đưa tên method hoặc rule không
+khớp, em có thể tìm trong repository và điều chỉnh thay vì tiếp tục copy kết quả.
 
-```text
-Viết tại đây...
-```
+## 6. Quá trình kiểm chứng kết quả AI
 
----
+- [x] Chạy thử chương trình
+- [x] Kiểm tra output và log build
+- [x] So sánh với yêu cầu nghiệp vụ
+- [x] Review source code và Git diff
+- [x] Tra cứu tài liệu framework đi kèm project
+- [x] Kiểm tra bằng tài khoản/role khác nhau
+- [x] Đối chiếu frontend API với backend controller
+- [x] Chỉ commit khi lint/build đạt
 
-## 7. Em/nhóm đã kiểm tra kết quả AI như thế nào?
+Quy trình kiểm chứng thường gồm: xác định file liên quan bằng tìm kiếm source, đọc quy
+tắc của repository, kiểm tra tài liệu chính thức, tạo thay đổi nhỏ, xem `git diff`, chạy
+lint/build/test và xác nhận commit chỉ chứa file thuộc yêu cầu. Với thay đổi có liên quan
+Git remote, em kiểm tra SHA local/remote sau khi push.
 
-Đánh dấu các cách đã sử dụng.
-
-- [ ] Chạy thử chương trình
-- [ ] Kiểm tra output
-- [ ] Viết test case
-- [ ] So sánh với yêu cầu đề bài
-- [ ] Đối chiếu với tài liệu môn học
-- [ ] Review code
-- [ ] Hỏi lại giảng viên
-- [ ] Tra cứu tài liệu chính thống
-- [ ] Thảo luận với thành viên nhóm
-- [ ] Kiểm tra bằng dữ liệu mẫu
-- [ ] So sánh trước và sau khi dùng AI
-- [ ] Khác: ....................................
-
-### Mô tả quá trình kiểm chứng
-
-```text
-Viết tại đây...
-```
-
-### Ví dụ cụ thể về một lần kiểm chứng
+### Ví dụ cụ thể
 
 | Nội dung | Mô tả |
-|---|---|
-| AI đã gợi ý gì? |  |
-| Em/nhóm đã kiểm tra bằng cách nào? |  |
-| Kết quả kiểm tra | Đúng / Sai / Cần chỉnh sửa |
-| Em/nhóm đã xử lý tiếp như thế nào? |  |
+| --- | --- |
+| AI gợi ý | Cho Seller dùng các route của Collector bằng cách sửa Next.js Proxy |
+| Cách kiểm tra | Đọc `CollectorSidebar.tsx`, `proxy.ts`, `SecurityConfig.java`; chạy ESLint và production build |
+| Kết quả | Nguyên nhân đúng nhưng cần đổi mô hình từ một role sang nhiều role được phép |
+| Xử lý | Tạo danh sách route chung, giữ route riêng Seller/Admin/Staff và commit `1a90853` |
 
----
-
-## 8. Ví dụ AI gợi ý sai hoặc chưa phù hợp
-
-Ghi lại ít nhất một ví dụ nếu có.
+## 7. Ví dụ AI gợi ý sai hoặc chưa phù hợp
 
 | Nội dung | Mô tả |
-|---|---|
-| AI đã gợi ý gì? |  |
-| Vì sao gợi ý đó sai/chưa phù hợp? |  |
-| Em/nhóm phát hiện bằng cách nào? |  |
-| Em/nhóm đã sửa như thế nào? |  |
-| Bài học rút ra |  |
+| --- | --- |
+| Gợi ý chưa phù hợp | Code chat ban đầu giả định một số tên method/kiểu ID không đúng với `UserDetailsImpl` và entity hiện có |
+| Vì sao chưa phù hợp | AI chỉ có mô tả yêu cầu, chưa đọc đầy đủ implementation thực tế khi sinh phần khung |
+| Cách phát hiện | Compiler, tìm kiếm method trong repository và review controller/service |
+| Cách sửa | Dùng đúng package, method, kiểu ID; điều chỉnh query và quyền người gửi |
+| Bài học | Luôn cung cấp context thật và build sau khi tích hợp code AI |
 
-Nếu không có trường hợp AI gợi ý sai, hãy ghi rõ:
+Một ví dụ khác là Proxy cũ vẫn build thành công dù Seller bị redirect sai. Điều này cho
+thấy kiểm tra cú pháp/TypeScript không thay thế được kiểm thử nghiệp vụ theo role.
 
-```text
-Trong quá trình thực hiện, em/nhóm chưa ghi nhận trường hợp AI gợi ý sai nghiêm trọng. Tuy nhiên, em/nhóm vẫn kiểm tra lại kết quả AI trước khi sử dụng.
-```
+## 8. Đóng góp thật sự của sinh viên
 
----
+- Xác nhận và làm rõ yêu cầu nghiệp vụ với các vai trò User, Seller, Staff và Admin.
+- Chọn cấu trúc phù hợp từ đề xuất AI thay vì áp dụng toàn bộ một cách máy móc.
+- Tích hợp code vào entity, API và cấu trúc package đang tồn tại.
+- Điều chỉnh UI, route, component, query và security theo source thật.
+- Chạy chương trình, đọc lỗi, kiểm tra role và sửa các vấn đề phát sinh.
+- Quản lý diff, commit và branch; bảo vệ file local/secret không đưa nhầm lên Git.
+- Giải thích được lý do kỹ thuật của các thay đổi đã commit.
 
-## 9. Phần đóng góp thật sự của sinh viên/nhóm
+## 9. So sánh trước và sau khi dùng AI
 
-Mô tả rõ phần nào là đóng góp chính của sinh viên/nhóm, không phải chỉ copy từ AI.
+| Nội dung | Trước khi dùng AI | Sau khi dùng AI | Cải thiện |
+| --- | --- | --- | --- |
+| Hiểu yêu cầu | Dễ tập trung vào màn hình đơn lẻ | Phân tích theo luồng và vai trò | Giảm bỏ sót route/quyền |
+| Thiết kế frontend | HTML rời từ Stitch | App Router và component dùng chung | Dễ bảo trì hơn |
+| Thiết kế backend | Chưa rõ đầy đủ luồng chat | Layered architecture và WebSocket flow | Có cấu trúc triển khai rõ |
+| Debug | Tìm lỗi theo biểu hiện | Rà UI, Proxy, API và dữ liệu | Khoanh vùng nhanh hơn |
+| Kiểm thử | Chủ yếu chạy thủ công | Kết hợp lint, build, diff và role test | Kết quả có bằng chứng hơn |
+| Git | Dễ nhầm phạm vi branch/file | Kiểm tra SHA, stage theo path | Giảm nguy cơ push nhầm |
+| Tài liệu | Ghi chép rời rạc | Liên kết prompt, quyết định và commit | Minh bạch hơn |
 
-```text
-Viết tại đây...
-```
+## 10. Bài học về môn học
 
-Gợi ý:
+Project giúp em hiểu rằng xây dựng phần mềm không chỉ là viết từng màn hình hay endpoint.
+Một chức năng hoàn chỉnh cần sự thống nhất giữa database, entity, service, controller,
+authentication, frontend state và authorization. Các lỗi khó thường xuất hiện tại ranh
+giới giữa các tầng, ví dụ menu hiển thị đúng nhưng Proxy chặn sai hoặc API đúng nhưng
+frontend gọi sai endpoint.
 
-- Tự phân tích yêu cầu.
-- Tự chọn giải pháp.
-- Tự chỉnh sửa code.
-- Tự kiểm tra output.
-- Tự thiết kế logic.
-- Tự sửa lỗi.
-- Tự viết báo cáo theo hiểu biết của mình.
-- Tự đánh giá ưu/nhược điểm của sản phẩm.
-- Tự thuyết trình và giải thích sản phẩm.
+Em cũng cải thiện kỹ năng đọc code của người khác, tìm kiếm trong repository, chia thay
+đổi thành commit nhỏ, kiểm tra build và bảo vệ cấu hình nhạy cảm. Đây là các kỹ năng quan
+trọng khi làm việc nhóm trên một repository chung.
 
----
+## 11. Bài học về sử dụng AI có trách nhiệm
 
-## 10. So sánh trước và sau khi dùng AI
+- Không nộp code AI nếu chưa đọc và hiểu.
+- Không coi AI là nguồn sự thật duy nhất; phải đối chiếu tài liệu và source thực tế.
+- Ghi lại prompt quan trọng, phần đã áp dụng và phần tự chỉnh sửa.
+- Không tuyên bố test thành công nếu chưa chạy và lưu kết quả kiểm chứng.
+- Không để AI tự ý đưa secret, file local hoặc thay đổi ngoài phạm vi vào commit.
+- Con người chịu trách nhiệm cuối cùng với nghiệp vụ, bảo mật và sản phẩm đã nộp.
 
-| Nội dung | Trước khi dùng AI | Sau khi dùng AI | Cải thiện đạt được |
-|---|---|---|---|
-| Hiểu yêu cầu |  |  |  |
-| Phân tích bài toán |  |  |  |
-| Thiết kế giải pháp |  |  |  |
-| Code/Implementation |  |  |  |
-| Debug/Testing |  |  |  |
-| Báo cáo/Thuyết trình |  |  |  |
-| Làm việc nhóm |  |  |  |
+## 12. Điều sẽ không làm khi sử dụng AI
 
----
+- [x] Không dùng AI làm toàn bộ bài mà không hiểu nội dung.
+- [x] Không nộp nguyên kết quả AI nếu chưa kiểm tra.
+- [x] Không che giấu việc dùng AI trong phần quan trọng.
+- [x] Không dùng AI để tạo dữ liệu hoặc minh chứng sai lệch.
+- [x] Không bỏ qua rubric và yêu cầu của giảng viên.
+- [x] Không commit secret, cấu hình local hoặc file build do AI phát hiện.
+- [x] Không force-push/reset branch nếu yêu cầu và phạm vi chưa rõ.
 
-## 11. Bài học về môn học
+## 13. Kế hoạch cải thiện lần sau
 
-Sau bài tập/project này, em/nhóm học được gì về kiến thức môn học?
+- Ghi Prompt Log ngay khi sử dụng thay vì tổng hợp vào cuối giai đoạn.
+- Cung cấp version framework, file liên quan và expected behavior ngay trong prompt.
+- Xây dựng ma trận role-route và test tự động cho authorization.
+- Bổ sung unit/integration test cho service và Proxy thay vì chỉ dựa vào build.
+- Chia commit theo một mục tiêu, thêm link commit/screenshot vào audit log sớm.
+- Yêu cầu AI phân biệt rõ dữ kiện đã xác minh và suy luận.
+- Thảo luận thay đổi branch với nhóm trước các thao tác có thể viết lại lịch sử.
 
-```text
-Viết tại đây...
-```
+## 14. Tự đánh giá mức độ hoàn thành
 
-Gợi ý:
+| Tiêu chí | Điểm (1-5) | Ghi chú |
+| --- | :---: | --- |
+| Ghi nhận việc dùng AI trung thực | 5 | Có prompt, công cụ và commit minh chứng |
+| Prompt có mục tiêu rõ ràng | 4 | Một số prompt ban đầu còn ngắn |
+| Kiểm chứng kết quả AI | 4 | Có lint/build/review; cần thêm test tự động |
+| Tự chỉnh sửa và cải tiến | 5 | Điều chỉnh theo source và nghiệp vụ thật |
+| Hiểu nội dung đã nộp | 4 | Có thể giải thích các thay đổi chính |
+| Reflection có chiều sâu | 4 | Nêu cả lợi ích, hạn chế và ví dụ cụ thể |
+| Sử dụng AI có trách nhiệm | 5 | Không đưa secret/file ngoài phạm vi vào commit |
 
-- Kiến thức kỹ thuật đã hiểu rõ hơn.
-- Kỹ năng lập trình đã cải thiện.
-- Cách thiết kế hệ thống.
-- Cách kiểm thử.
-- Cách phân tích yêu cầu.
-- Cách làm việc nhóm.
-- Cách giải quyết lỗi.
-- Cách trình bày sản phẩm.
-- Cách đọc và hiểu tài liệu kỹ thuật.
+## 15. Câu hỏi tự vấn cuối bài
 
----
+### Nếu giảng viên hỏi về phần AI hỗ trợ, em có giải thích lại được không?
 
-## 12. Bài học về sử dụng AI có trách nhiệm
+Có. Em có thể chỉ ra prompt, file, diff và commit tương ứng; đồng thời giải thích vì sao
+chọn hoặc sửa từng gợi ý của AI.
 
-Sau bài tập/project này, em/nhóm học được gì về việc sử dụng AI một cách minh bạch, có trách nhiệm?
+### Nếu không có AI, em có thể tự làm lại phần quan trọng nhất không?
 
-```text
-Viết tại đây...
-```
+Có, nhưng sẽ mất nhiều thời gian hơn để tra tài liệu và viết boilerplate. Em có thể tự
+thiết kế component, API và sửa Proxy bằng cách đọc documentation, debug và kiểm thử.
 
-Gợi ý:
+### Phần nào thể hiện rõ nhất năng lực thật sự?
 
-- Không nên copy nguyên kết quả AI.
-- Cần kiểm tra lại mọi kết quả AI.
-- Cần hiểu nội dung trước khi nộp.
-- Cần ghi nhận việc sử dụng AI.
-- Cần biết AI có thể sai.
-- Cần tự chịu trách nhiệm với sản phẩm cuối cùng.
-- Cần dùng AI như công cụ hỗ trợ học tập, không thay thế hoàn toàn việc học.
+Khả năng tích hợp nhiều tầng và kiểm chứng kết quả: điều chỉnh code theo repository thật,
+xử lý role/authorization, chạy build, quản lý diff và giữ commit đúng phạm vi.
 
----
+### Kỹ năng muốn cải thiện sau project?
 
-## 13. Điều em/nhóm sẽ không làm khi sử dụng AI
+Em muốn cải thiện automated testing cho authorization/WebSocket, thiết kế database ở
+quy mô lớn, quan sát hệ thống production và quy trình Git nhiều nhánh trong nhóm.
 
-Đánh dấu các cam kết phù hợp.
+## 16. Cam kết Reflection
 
-- [ ] Không dùng AI để làm toàn bộ bài mà không hiểu nội dung.
-- [ ] Không nộp nguyên văn kết quả AI nếu chưa kiểm tra.
-- [ ] Không che giấu việc sử dụng AI trong các phần quan trọng.
-- [ ] Không dùng AI để tạo nội dung sai lệch hoặc gian lận.
-- [ ] Không dùng AI thay thế hoàn toàn quá trình học.
-- [ ] Không bỏ qua yêu cầu, rubric hoặc hướng dẫn của giảng viên.
+Em cam kết nội dung reflection phản ánh trung thực quá trình sử dụng AI. AI là công cụ hỗ
+trợ; em chịu trách nhiệm về việc kiểm tra, chỉnh sửa và giải thích sản phẩm cuối cùng.
 
-### Giải thích thêm nếu có
-
-```text
-Viết tại đây...
-```
-
----
-
-## 14. Kế hoạch cải thiện lần sau
-
-Lần sau em/nhóm sẽ sử dụng AI tốt hơn bằng cách nào?
-
-```text
-Viết tại đây...
-```
-
-Gợi ý:
-
-- Viết prompt rõ hơn.
-- Cung cấp nhiều ngữ cảnh hơn cho AI.
-- Không hỏi AI làm toàn bộ bài.
-- Tập trung hỏi AI giải thích, gợi ý, review.
-- Tự kiểm tra kỹ hơn.
-- Ghi log thường xuyên hơn.
-- Liên kết log với commit/screenshot rõ hơn.
-- Thảo luận với nhóm trước khi áp dụng kết quả AI.
-- Đối chiếu kết quả AI với tài liệu môn học.
-
----
-
-## 15. Tự đánh giá mức độ hoàn thành
-
-Sinh viên/nhóm tự đánh giá theo thang 1-5.
-
-| Tiêu chí | Điểm tự đánh giá 1-5 | Ghi chú |
-|---|:---:|---|
-| Ghi nhận việc dùng AI trung thực |  |  |
-| Prompt có mục tiêu rõ ràng |  |  |
-| Kiểm chứng kết quả AI |  |  |
-| Tự chỉnh sửa/cải tiến |  |  |
-| Hiểu nội dung đã nộp |  |  |
-| Reflection có chiều sâu |  |  |
-| Sử dụng AI có trách nhiệm |  |  |
-
----
-
-## 16. Câu hỏi tự vấn cuối bài
-
-Trả lời ngắn gọn các câu hỏi sau.
-
-### 16.1. Nếu giảng viên hỏi về phần AI đã hỗ trợ, em/nhóm có giải thích lại được không?
-
-```text
-Viết tại đây...
-```
-
-### 16.2. Nếu không có AI, em/nhóm có thể tự làm lại phần quan trọng nhất không?
-
-```text
-Viết tại đây...
-```
-
-### 16.3. Phần nào trong bài thể hiện rõ nhất năng lực thật sự của em/nhóm?
-
-```text
-Viết tại đây...
-```
-
-### 16.4. Em/nhóm muốn cải thiện kỹ năng nào sau bài này?
-
-```text
-Viết tại đây...
-```
-
----
-
-## 17. Cam kết Reflection
-
-Em/nhóm cam kết rằng nội dung reflection này phản ánh trung thực quá trình sử dụng AI và quá trình học tập trong bài tập/project.
-
-Sinh viên/nhóm hiểu rằng:
-
-- AI là công cụ hỗ trợ học tập, không thay thế hoàn toàn năng lực cá nhân.
-- Mọi kết quả AI gợi ý cần được kiểm tra trước khi sử dụng.
-- Sinh viên/nhóm chịu trách nhiệm với sản phẩm cuối cùng.
-- Sinh viên/nhóm cần giải thích được các phần đã nộp.
-
-| Đại diện sinh viên/nhóm | Ngày xác nhận |
-|---|---|
-|  |  |
+| Sinh viên | MSSV | Ngày xác nhận |
+| --- | --- | --- |
+| Trần Văn Đức | DE191098 | 15/07/2026 |

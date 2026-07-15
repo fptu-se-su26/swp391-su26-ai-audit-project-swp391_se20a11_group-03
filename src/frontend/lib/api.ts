@@ -55,7 +55,9 @@ async function apiFetch<T>(
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
     headers: {
-      ...(rest.body ? { "Content-Type": "application/json" } : {}),
+      ...(rest.body && !(rest.body instanceof FormData)
+        ? { "Content-Type": "application/json" }
+        : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
@@ -856,6 +858,27 @@ export const walletApi = {
 // ---------------------------------------------------------------------------
 // USER — profile, notifications, watchlist, KYC
 // ---------------------------------------------------------------------------
+export type KycSubmission = {
+  kycId: number;
+  userId: number;
+  fullName: string;
+  email: string | null;
+  phone: string;
+  cccdNumber: string;
+  dob: string;
+  gender: string;
+  issueDate: string;
+  issuePlace: string;
+  frontImageUrl: string | null;
+  backImageUrl: string | null;
+  selfieImageUrl: string | null;
+  status: string;
+  submittedAt: string;
+  processedAt: string | null;
+  processedByName: string | null;
+  rejectionReason: string | null;
+};
+
 export const userApi = {
   profile() {
     return apiFetch<ApiEnvelope<UserProfile>>("/users/me/profile");
@@ -864,6 +887,16 @@ export const userApi = {
     return apiFetch<ApiEnvelope<UserProfile>>("/users/me/profile", {
       method: "PUT",
       body: JSON.stringify({ fullName, phone }),
+    });
+  },
+  changePassword(data: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) {
+    return apiFetch<ApiEnvelope<null>>("/users/me/change-password", {
+      method: "POST",
+      body: JSON.stringify(data),
     });
   },
   notifications() {
@@ -882,15 +915,40 @@ export const userApi = {
     return apiFetch(`/watchlist/${productId}`, { method: "DELETE" });
   },
   myKyc() {
-    return apiFetch<Record<string, unknown>>("/kyc/me");
+    return apiFetch<{ success: boolean; data: KycSubmission | null }>(
+      "/kyc/me",
+    );
+  },
+  submitKyc(formData: FormData) {
+    return apiFetch<{ success: boolean; message: string; data: KycSubmission }>(
+      "/kyc",
+      { method: "POST", body: formData },
+    );
   },
   myConversations() {
     return apiFetch<Conversation[]>("/v1/conversations/my");
+  },
+  createConversation(data: {
+    type: "BUYER_STAFF" | "SELLER_STAFF" | "BUYER_SELLER";
+    subject: string;
+    firstMessage: string;
+    sellerEmail?: string;
+    productId?: number;
+  }) {
+    return apiFetch<Conversation>("/v1/conversations", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   },
   conversationMessages(conversationId: number) {
     return apiFetch<ConversationMessage[]>(
       `/v1/messages/conversation/${conversationId}`,
     );
+  },
+  markConversationRead(conversationId: number) {
+    return apiFetch<void>(`/v1/messages/conversation/${conversationId}/read`, {
+      method: "PATCH",
+    });
   },
   sendMessage(conversationId: number, content: string) {
     return apiFetch<ConversationMessage>("/v1/messages", {
