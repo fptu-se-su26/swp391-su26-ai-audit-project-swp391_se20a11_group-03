@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { FcGoogle } from "react-icons/fc";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
 import { ApiError, authApi, toFrontendRole } from "@/lib/api";
 
@@ -100,12 +101,6 @@ const AUTH_STATS = [
   },
 ];
 
-const SOCIAL_PROVIDERS = [
-  { label: "Tiếp tục với Apple", icon: "A" },
-  { label: "Tiếp tục với Google", icon: "G" },
-  { label: "Tiếp tục với Facebook", icon: "f" },
-];
-
 export default function AuthPage() {
   const router = useRouter();
   const [mode, setMode] = useState<AuthMode>("login");
@@ -139,6 +134,17 @@ export default function AuthPage() {
       if (isSignup) {
         if (password !== confirmPassword) {
           setLoginError("Mật khẩu xác nhận không khớp.");
+          return;
+        }
+        if (
+          password.length < 8 ||
+          !/[A-Z]/.test(password) ||
+          !/[a-z]/.test(password) ||
+          !/\d/.test(password)
+        ) {
+          setLoginError(
+            "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường và số.",
+          );
           return;
         }
         await authApi.register({
@@ -516,25 +522,16 @@ export default function AuthPage() {
                 <span className="h-px flex-1 bg-white/10" />
               </div>
 
-              <div className="space-y-2">
-                {SOCIAL_PROVIDERS.map((provider) => (
-                  <button
-                    key={provider.label}
-                    type="button"
-                    className="grid h-9 w-full grid-cols-[28px_1fr_28px] items-center rounded-lg border border-white/12 bg-white/[0.02] px-4 text-sm text-white/75 transition-colors hover:border-white/25 hover:bg-white/[0.05]"
-                  >
-                    <span className="text-center text-base font-bold text-[#f0c982]">
-                      {provider.icon}
-                    </span>
-                    <span className="text-center">
-                      {isSignup
-                        ? provider.label.replace("Tiếp tục", "Đăng ký")
-                        : provider.label}
-                    </span>
-                    <span aria-hidden="true" />
-                  </button>
-                ))}
-              </div>
+              <button
+                type="button"
+                className="grid h-9 w-full grid-cols-[28px_1fr_28px] items-center rounded-lg border border-white/12 bg-white/[0.02] px-4 text-sm text-white/75 transition-colors hover:border-white/25 hover:bg-white/[0.05]"
+              >
+                <FcGoogle className="mx-auto text-lg" aria-hidden="true" />
+                <span className="text-center">
+                  {isSignup ? "Đăng ký với Google" : "Tiếp tục với Google"}
+                </span>
+                <span aria-hidden="true" />
+              </button>
 
             </form>
           </div>
