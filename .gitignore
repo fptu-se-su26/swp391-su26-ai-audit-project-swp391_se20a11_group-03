@@ -24,10 +24,30 @@ frontend/tmp/
 
 # Local uploads generated during development
 uploads/
-src/main/resources/static/uploads/
+backend/src/main/resources/static/uploads/
 
 # Local environment files
 .env
 .env.*
 !.env.example
-src/main/resources/application-local.properties
+backend/src/main/resources/application-local.properties
+
+# Runtime junk
+*.pid
+*.status.txt
+
+# Local-only files (repo keeps only backend/ and frontend/ source)
+/.autopilot.json
+/.run/
+.vscode/
+/.claude/
+/.cursor/
+/.github/
+/package.json
+/README.md
+/start-dev.bat
+/docs/
+/scripts/
+/sql/
+/database_scripts/
+*.py
