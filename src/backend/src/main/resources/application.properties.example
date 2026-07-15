@@ -44,6 +44,14 @@ app.kyc.public-prefix=/uploads/kyc
 spring.servlet.multipart.max-file-size=20MB
 spring.servlet.multipart.max-request-size=100MB
 
+# Cloudinary (image storage)
+# Get these from: Cloudinary Console > Settings > API Keys
+cloudinary.cloud-name=${CLOUDINARY_CLOUD_NAME:}
+cloudinary.api-key=${CLOUDINARY_API_KEY:}
+cloudinary.api-secret=${CLOUDINARY_API_SECRET:}
+cloudinary.folder.products=${CLOUDINARY_FOLDER_PRODUCTS:auction/products}
+cloudinary.folder.kyc=${CLOUDINARY_FOLDER_KYC:auction/kyc}
+
 # Google Gemini
 gemini.api.key=${GEMINI_API_KEY:}
 gemini.ocr.api.key=${GEMINI_OCR_API_KEY:${gemini.api.key:}}

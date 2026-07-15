@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * DTO for seller to update a product (only PENDING or REJECTED status).
@@ -20,6 +21,9 @@ public class UpdateProductRequestDTO {
     private String description;
 
     private Long startingPrice;
+
+    /** Existing and newly uploaded images that should remain on the product. */
+    private List<CreateProductImageDTO> images;
 
     /** Auction mode: "LIVE" or "TIMED" */
     private String auctionMode;

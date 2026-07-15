@@ -13,10 +13,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className="h-full antialiased">
+    <html lang="vi" className="h-full antialiased" suppressHydrationWarning>
       <head>
       </head>
-      <body className="min-h-full flex flex-col bg-black text-white">
+      <body
+        className="min-h-full flex flex-col bg-black text-white"
+        suppressHydrationWarning
+      >
         {children}
         <MaterialSymbolsLoader />
       </body>

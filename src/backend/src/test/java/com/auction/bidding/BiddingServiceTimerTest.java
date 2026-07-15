@@ -18,30 +18,33 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BiddingServiceTimerTest {
 
     @Test
-    void liveExtension_addsTenSecondsPerBid() {
-        LocalDateTime start = LocalDateTime.of(2026, 6, 17, 10, 0);
-        LocalDateTime end = start.plusSeconds(170);
+    void liveExtension_bidInFinalStretchGuaranteesMinimumRemaining() {
+        // A bid placed with only 5s left pulls the end time out so that
+        // ANTI_SNIPER_EXTENSION_SECONDS remain — snipers always reopen the window.
+        LocalDateTime now = LocalDateTime.of(2026, 6, 17, 10, 0);
+        LocalDateTime end = now.plusSeconds(5);
 
-        // Each successful LIVE bid pushes endTime out by ANTI_SNIPER_EXTENSION_SECONDS (no cap).
-        LocalDateTime result = end.plusSeconds(BiddingService.ANTI_SNIPER_EXTENSION_SECONDS);
-        assertEquals(start.plusSeconds(180), result);
+        LocalDateTime minEnd = now.plusSeconds(BiddingService.ANTI_SNIPER_EXTENSION_SECONDS);
+        LocalDateTime result = end.isBefore(minEnd) ? minEnd : end;
+        assertEquals(now.plusSeconds(BiddingService.ANTI_SNIPER_EXTENSION_SECONDS), result);
     }
 
     @Test
-    void liveExtension_hasNoHardCap() {
-        LocalDateTime start = LocalDateTime.of(2026, 6, 17, 10, 0);
-        // Even past the initial 3-minute window, a late bid keeps extending the room.
-        LocalDateTime end = start.plusSeconds(179);
+    void liveExtension_earlyBidDoesNotExtend() {
+        // A bid placed with plenty of time left must NOT extend the auction.
+        LocalDateTime now = LocalDateTime.of(2026, 6, 17, 10, 0);
+        LocalDateTime end = now.plusSeconds(120);
 
-        LocalDateTime result = end.plusSeconds(BiddingService.ANTI_SNIPER_EXTENSION_SECONDS);
-        assertEquals(start.plusSeconds(189), result);
-        assertTrue(result.isAfter(start.plusSeconds(BiddingService.INITIAL_AUCTION_DURATION_SECONDS)));
+        LocalDateTime minEnd = now.plusSeconds(BiddingService.ANTI_SNIPER_EXTENSION_SECONDS);
+        LocalDateTime result = end.isBefore(minEnd) ? minEnd : end;
+        assertEquals(end, result);
+        assertTrue(result.isAfter(minEnd));
     }
 
     @Test
     void liveExtension_constantsMatchDemoConfig() {
-        // Anti-sniper extension is 10s and the initial LIVE window is 3 minutes.
-        assertEquals(10L, BiddingService.ANTI_SNIPER_EXTENSION_SECONDS);
+        // Anti-sniper guarantee is 15s and the initial LIVE window is 3 minutes.
+        assertEquals(15L, BiddingService.ANTI_SNIPER_EXTENSION_SECONDS);
         assertEquals(180L, BiddingService.INITIAL_AUCTION_DURATION_SECONDS);
         assertEquals(3L, BiddingService.DEPOSIT_DEADLINE_BEFORE_START_MINUTES);
     }

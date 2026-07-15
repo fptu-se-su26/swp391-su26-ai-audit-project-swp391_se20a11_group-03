@@ -59,7 +59,7 @@ public class AuctionCreationServiceImpl implements AuctionCreationService {
         if (existingOpt.isPresent()) {
             Auction existing = existingOpt.get();
             if (isReschedulable(existing)) {
-                return resetForfeitedAuction(existing, product, mode, startTime, scheduledDurationSeconds, durationSeconds, endTime);
+                return resetReschedulableAuction(existing, product, mode, startTime, scheduledDurationSeconds, durationSeconds, endTime);
             }
             throw new BusinessException("Auction already exists for product " + productId);
         }
@@ -85,11 +85,15 @@ public class AuctionCreationServiceImpl implements AuctionCreationService {
         if ("FORFEITED".equalsIgnoreCase(auction.getStatus())) {
             return true;
         }
+        if ("CANCELED".equalsIgnoreCase(auction.getStatus())
+                && "KYC_REVOKED".equalsIgnoreCase(auction.getPaymentStatus())) {
+            return true;
+        }
         return "ENDED".equalsIgnoreCase(auction.getStatus())
                 && "NO_WINNER".equalsIgnoreCase(auction.getPaymentStatus());
     }
 
-    private Auction resetForfeitedAuction(
+    private Auction resetReschedulableAuction(
             Auction auction,
             Product product,
             AuctionMode mode,

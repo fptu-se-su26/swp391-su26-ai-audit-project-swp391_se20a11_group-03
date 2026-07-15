@@ -76,6 +76,42 @@ async function apiFetch<T>(
   return (await res.json()) as T;
 }
 
+/**
+ * POST multipart/form-data (file uploads). Unlike {@link apiFetch} we must NOT
+ * set Content-Type — the browser adds the multipart boundary itself.
+ */
+async function postMultipart<T>(path: string, form: FormData): Promise<T> {
+  const token = getToken();
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: form,
+  });
+  if (!res.ok) {
+    let message = `HTTP ${res.status}`;
+    try {
+      const body = await res.json();
+      message = body.message ?? body.error ?? message;
+    } catch {
+      /* body không phải JSON */
+    }
+    throw new ApiError(res.status, message);
+  }
+  if (res.status === 204) return undefined as T;
+  return (await res.json()) as T;
+}
+
+/**
+ * Upload one or more images to Cloudinary (via backend /api/uploads) and return
+ * the delivered secure URLs.
+ */
+export async function uploadImages(files: File[]): Promise<string[]> {
+  const form = new FormData();
+  for (const file of files) form.append("files", file);
+  const body = await postMultipart<ApiEnvelope<string[]>>("/uploads", form);
+  return body.data ?? [];
+}
+
 // ---------------------------------------------------------------------------
 // Types (khớp DTO backend)
 // ---------------------------------------------------------------------------
@@ -114,6 +150,15 @@ export type Category = {
   categoryName: string;
   description: string | null;
   isActive: boolean;
+};
+
+export type CategoryAttribute = {
+  attributeId: number;
+  categoryId: number;
+  attributeName: string;
+  dataType: string;
+  isRequired: boolean;
+  displayOrder: number;
 };
 
 export type LoginResponse = {
@@ -194,6 +239,17 @@ export type AuctionEligibility = {
   message: string | null;
   kycVerified: boolean;
   profileStatus: string | null;
+};
+
+export type AuctionDepositResult = {
+  depositId: number;
+  auctionId: number;
+  userId: number;
+  depositAmount: number;
+  walletBalance: number;
+  walletHoldBalance: number;
+  status: string;
+  message: string;
 };
 
 export type UserProfile = {
@@ -307,6 +363,24 @@ export type SellerProduct = ProductSummary & {
   rejectionReason: string | null;
 };
 
+export type SellerProductImage = {
+  imageId: number;
+  imageUrl: string;
+  isPrimary: boolean;
+};
+
+export type SellerEditableProduct = {
+  productId: number;
+  categoryId: number | null;
+  categoryName: string | null;
+  productName: string;
+  description: string | null;
+  startingPrice: number;
+  status: string;
+  rejectionReason: string | null;
+  images: SellerProductImage[];
+};
+
 export type Conversation = {
   conversationId: number;
   userId: number;
@@ -391,11 +465,58 @@ export type ReviewProduct = {
   productName: string;
   description: string | null;
   startingPrice: number;
+  stepPrice: number | null;
+  taxPercent: number | null;
   status: string;
   submittedAt: string | null;
   createdAt: string;
   rejectionReason: string | null;
+  auctionMode: "LIVE" | "TIMED" | null;
+  scheduledStartTime: string | null;
+  scheduledDurationSeconds: number | null;
   images: Array<{ imageId: number; imageUrl: string; isPrimary: boolean }>;
+  attributes: Array<{
+    valueId: number;
+    attributeId: number;
+    attributeValue: string;
+  }>;
+};
+
+export type ProductApprovalPayload = {
+  auctionMode: "LIVE" | "TIMED";
+  scheduledStartTime: string;
+  scheduledDurationSeconds: number | null;
+};
+
+export type KycImageAnalysis = {
+  riskScore: number;
+  severity: string;
+  signals: Array<{ severity: string; message: string }>;
+};
+
+export type KycReview = {
+  kycId: number;
+  userId: number;
+  fullName: string | null;
+  email: string | null;
+  phone: string | null;
+  cccdNumber: string | null;
+  dob: string | null;
+  gender: string | null;
+  issueDate: string | null;
+  issuePlace: string | null;
+  frontImageUrl: string | null;
+  backImageUrl: string | null;
+  selfieImageUrl: string | null;
+  status: string;
+  submittedAt: string | null;
+  processedAt: string | null;
+  processedByName: string | null;
+  rejectionReason: string | null;
+  frontImageAnalysis?: KycImageAnalysis | null;
+  backImageAnalysis?: KycImageAnalysis | null;
+  selfieImageAnalysis?: KycImageAnalysis | null;
+  cccdDuplicate?: boolean;
 };
 
 export type AccountSummary = {
@@ -494,11 +615,156 @@ export const productApi = {
   categories() {
     return apiFetch<ApiEnvelope<Category[]>>("/categories", { auth: false });
   },
+  categoryAttributes(categoryId: number) {
+    return apiFetch<ApiEnvelope<CategoryAttribute[]>>(
+      `/categories/${categoryId}/attributes`,
+      { auth: false },
+    );
+  },
   featured() {
     return apiFetch<unknown>("/featured-products", { auth: false });
   },
   mine() {
     return apiFetch<ApiEnvelope<SellerProduct[]>>("/seller/products/mine");
+  },
+  sellerDetail(productId: number) {
+    return apiFetch<ApiEnvelope<SellerEditableProduct>>(`/seller/products/${productId}`);
+  },
+  create(payload: CreateProductPayload) {
+    return apiFetch<ApiEnvelope<{ productId: number }>>("/seller/products", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+  update(productId: number, payload: UpdateProductPayload) {
+    return apiFetch<ApiEnvelope<SellerEditableProduct>>(`/seller/products/${productId}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+};
+
+export type CreateProductImage = { imageUrl: string; isPrimary?: boolean };
+
+export type CreateProductPayload = {
+  categoryId: number;
+  productName: string;
+  description?: string;
+  startingPrice: number;
+  stepPrice?: number;
+  images?: CreateProductImage[];
+};
+
+export type UpdateProductPayload = {
+  productName: string;
+  description?: string;
+  startingPrice: number;
+  images: CreateProductImage[];
+};
+
+// ---------------------------------------------------------------------------
+// AI VALUATION — /api/ai/valuation
+// ---------------------------------------------------------------------------
+export type AiValuationResult = {
+  reply: string | null;
+  summary: string | null;
+  lowEstimate: number | null;
+  highEstimate: number | null;
+  currency: string | null;
+};
+
+export type AiValuationPayload = {
+  productName: string;
+  description?: string;
+  startingPrice?: number;
+  images?: { mimeType: string; base64: string }[];
+};
+
+export const aiApi = {
+  valuation(payload: AiValuationPayload) {
+    return apiFetch<ApiEnvelope<AiValuationResult>>("/ai/valuation", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+};
+
+// ---------------------------------------------------------------------------
+// KYC — /api/kyc/*
+// ---------------------------------------------------------------------------
+export type CccdOcrResult = {
+  success: boolean;
+  fullName?: string | null;
+  cccdNumber?: string | null;
+  dob?: string | null;
+  gender?: string | null;
+  issueDate?: string | null;
+  issuePlace?: string | null;
+  message?: string | null;
+};
+
+export type KycSubmitPayload = {
+  fullName: string;
+  phone: string;
+  cccdNumber: string;
+  dob: string; // yyyy-MM-dd
+  gender: string;
+  issueDate: string; // yyyy-MM-dd
+  issuePlace: string;
+  frontImage: File;
+  backImage: File;
+  selfieImage: File;
+  signSellerAgreement?: boolean;
+};
+
+export const kycApi = {
+  ocr(frontImage: File, backImage: File) {
+    const form = new FormData();
+    form.append("frontImage", frontImage);
+    form.append("backImage", backImage);
+    return postMultipart<ApiEnvelope<CccdOcrResult>>("/kyc/ocr", form);
+  },
+  submit(payload: KycSubmitPayload) {
+    const form = new FormData();
+    form.append("fullName", payload.fullName);
+    form.append("phone", payload.phone);
+    form.append("cccdNumber", payload.cccdNumber);
+    form.append("dob", payload.dob);
+    form.append("gender", payload.gender);
+    form.append("issueDate", payload.issueDate);
+    form.append("issuePlace", payload.issuePlace);
+    form.append("frontImage", payload.frontImage);
+    form.append("backImage", payload.backImage);
+    form.append("selfieImage", payload.selfieImage);
+    form.append("signSellerAgreement", String(payload.signSellerAgreement ?? false));
+    return postMultipart<ApiEnvelope<unknown>>("/kyc", form);
+  },
+  mine() {
+    return apiFetch<ApiEnvelope<KycReview | null>>("/kyc/me");
+  },
+  /** Fetch a private KYC image (owner or staff only) as a blob for rendering. */
+  async imageBlob(kycId: number, which: "front" | "back" | "selfie"): Promise<Blob> {
+    const token = getToken();
+    const res = await fetch(`${API_BASE_URL}/kyc/${kycId}/image/${which}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
+    return res.blob();
+  },
+};
+
+// ---------------------------------------------------------------------------
+// SELLER CONTRACT — /api/seller-contract/*
+// ---------------------------------------------------------------------------
+export const sellerContractApi = {
+  /** Fetch the seller agreement preview PDF as a blob (needs JWT header). */
+  async previewPdf(): Promise<Blob> {
+    const token = getToken();
+    const res = await fetch(`${API_BASE_URL}/seller-contract/preview-pdf`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
+    return res.blob();
   },
 };
 
@@ -519,6 +785,12 @@ export const auctionApi = {
   eligibility(auctionId: number) {
     return apiFetch<AuctionEligibility>(`/auctions/${auctionId}/eligibility`);
   },
+  /** Bid cao nhất của CHÍNH người gọi — luôn xem được, kể cả phiên giá kín. */
+  myBid(auctionId: number) {
+    return apiFetch<{ hasBid: boolean; bidAmount: number | null; bidTime: string | null }>(
+      `/auctions/${auctionId}/my-bid`,
+    );
+  },
   placeBid(auctionId: number, bidAmount: number) {
     return apiFetch<BidResult>(`/auctions/${auctionId}/bid`, {
       method: "POST",
@@ -531,9 +803,8 @@ export const auctionApi = {
     });
   },
   deposit(auctionId: number) {
-    return apiFetch<Record<string, unknown>>("/deposits", {
+    return apiFetch<AuctionDepositResult>(`/deposits?auctionId=${auctionId}`, {
       method: "POST",
-      body: JSON.stringify({ auctionId }),
     });
   },
   rooms() {
@@ -746,10 +1017,10 @@ export const adminApi = {
   pendingProducts() {
     return apiFetch<ApiEnvelope<ReviewProduct[]>>("/admin/products/pending");
   },
-  approveProduct(productId: number) {
+  approveProduct(productId: number, payload: ProductApprovalPayload) {
     return apiFetch<ApiEnvelope<ReviewProduct>>(`/admin/products/${productId}/approve`, {
       method: "POST",
-      body: JSON.stringify({}),
+      body: JSON.stringify(payload),
     });
   },
   rejectProduct(productId: number, reason = "") {
@@ -757,6 +1028,26 @@ export const adminApi = {
       method: "POST",
       body: JSON.stringify({ reason }),
     });
+  },
+  // KYC review — backend returns a raw List (not an ApiEnvelope) for /kyc/list.
+  kycList(status = "PENDING") {
+    return apiFetch<KycReview[]>(`/kyc/list?status=${encodeURIComponent(status)}`);
+  },
+  approveKyc(kycId: number) {
+    return apiFetch<ApiEnvelope<KycReview>>(`/kyc/${kycId}/approve`, { method: "POST" });
+  },
+  // reason is a @RequestParam on the backend, so it goes in the query string.
+  rejectKyc(kycId: number, reason: string) {
+    return apiFetch<ApiEnvelope<KycReview>>(
+      `/kyc/${kycId}/reject?reason=${encodeURIComponent(reason)}`,
+      { method: "POST" },
+    );
+  },
+  requestInfoKyc(kycId: number, reason: string) {
+    return apiFetch<ApiEnvelope<KycReview>>(
+      `/kyc/${kycId}/request-info?reason=${encodeURIComponent(reason)}`,
+      { method: "POST" },
+    );
   },
 };
 
@@ -827,6 +1118,8 @@ export type StorefrontLot = {
   categoryLabel: string;
   currentBid: number;
   timeLeft: string;
+  /** Auction end time (epoch ms) so the card can run a live countdown. */
+  endsAt: number | null;
   isLive: boolean;
   image: string;
 };
@@ -884,6 +1177,7 @@ function toStorefrontLot(p: ProductSummary): StorefrontLot {
     currentBid:
       p.currentBid && p.currentBid > 0 ? p.currentBid : p.startingPrice,
     timeLeft: formatTimeLeft(p.auctionEndTime),
+    endsAt: p.auctionEndTime ? new Date(p.auctionEndTime).getTime() : null,
     isLive: p.auctionStatus === "ACTIVE",
     image: toImageSrc(p.imageUrl),
   };

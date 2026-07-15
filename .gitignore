@@ -1,8 +1,34 @@
-# Backend secrets — chỉ commit application.properties.example
-src/backend/src/main/resources/application.properties
+# ---- Secrets (never commit) ----
+**/application.properties
+**/application-local.properties
+**/*.local.properties
+.env
+.env.local
+*.pem
+*.key
+run-backend.ps1
 
-# Build output
+# ---- Backend (Maven) ----
 src/backend/target/
+target/
+*.class
 
-# Uploads (dữ liệu người dùng local)
+# ---- Uploads / generated files ----
+uploads/
 src/backend/uploads/
+
+# ---- Frontend (Next.js / Node) ----
+node_modules/
+.next/
+out/
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---- IDE / OS ----
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

@@ -11,16 +11,15 @@ public final class AuctionPhaseUtil {
     private AuctionPhaseUtil() {
     }
 
-    /** TIMED auction still accepting bids — prices and bidders stay hidden from the public API. */
+    /**
+     * TIMED auctions are now OPEN (English auction): the highest bid and bid
+     * history are public so buyers can react, and the 5%-of-current-price step
+     * can be computed client-side. Sealed (blind) bidding has been retired —
+     * this always returns {@code false} and is kept only so existing call
+     * sites keep compiling and can be cleaned up incrementally.
+     */
     public static boolean isTimedBlindBiddingOpen(AuctionSession auction) {
-        if (auction == null || auction.getAuctionMode() != AuctionMode.TIMED) {
-            return false;
-        }
-        LocalDateTime now = LocalDateTime.now();
-        if (auction.getStartTime() == null || auction.getEndTime() == null) {
-            return false;
-        }
-        return !now.isBefore(auction.getStartTime()) && now.isBefore(auction.getEndTime());
+        return false;
     }
 
     public static boolean isAuctionEndedForReveal(AuctionSession auction) {
