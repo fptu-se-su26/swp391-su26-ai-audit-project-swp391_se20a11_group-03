@@ -15,6 +15,8 @@ import com.auction.product.service.ContractService;
 import com.auction.product.service.ProductService;
 import com.auction.notification.service.NotificationService;
 import com.auction.notification.entity.Notification;
+import com.auction.account.entity.User;
+import com.auction.account.service.KycEligibilityService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +51,7 @@ public class ProductServiceImpl implements ProductService {
     private final AuctionRepository auctionRepository;
     private final AuctionCreationService auctionCreationService;
     private final NotificationService notificationService;
+    private final KycEligibilityService kycEligibilityService;
 
     @Override
     public List<ProductResponseDTO> getPendingProducts() {
@@ -76,6 +79,23 @@ public class ProductServiceImpl implements ProductService {
 
         if (!userRepository.existsById(Math.toIntExact(reviewerId))) {
             throw new ResourceNotFoundException("Reviewer not found with id: " + reviewerId);
+        }
+
+        Long productSellerId = product.getSellerId();
+        User seller = userRepository.findById(Math.toIntExact(productSellerId))
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Seller not found with id: " + productSellerId));
+        boolean sellerIsAdmin = seller.getRole() != null
+                && "Admin".equalsIgnoreCase(seller.getRole().getRoleName());
+        if (!sellerIsAdmin) {
+            kycEligibilityService.requireApproved(
+                    seller,
+                    "Không thể duyệt sản phẩm: người bán chưa có KYC được phê duyệt hoặc KYC không còn hiệu lực."
+            );
+            if (!contractService.hasSellerContract(productSellerId)) {
+                throw new BusinessException(
+                        "Không thể duyệt sản phẩm: người bán chưa ký hợp đồng nền tảng.");
+            }
         }
 
         product.setStatus("APPROVED");
@@ -171,14 +191,14 @@ public class ProductServiceImpl implements ProductService {
             }
 
             // Verify seller exists AND has completed KYC (Admin bypasses KYC + seller contract).
-            com.auction.account.entity.User seller = userRepository.findById(Math.toIntExact(sellerId))
+            User seller = userRepository.findById(Math.toIntExact(sellerId))
                     .orElseThrow(() -> new ResourceNotFoundException("Seller not found with id: " + sellerId));
             boolean isAdmin = seller.getRole() != null && "Admin".equalsIgnoreCase(seller.getRole().getRoleName());
             if (!isAdmin) {
-                if (!seller.isIdentityVerified()) {
-                    throw new com.auction.common.exception.KycRequiredException(
-                            "Bạn cần hoàn tất xác thực danh tính (KYC) trước khi đăng bán sản phẩm.");
-                }
+                kycEligibilityService.requireApproved(
+                        seller,
+                        "Bạn cần có hồ sơ KYC được phê duyệt trước khi đăng bán sản phẩm."
+                );
                 if (!contractService.hasSellerContract(seller.getUserId())) {
                     throw new BusinessException(
                             "Bạn cần ký hợp đồng nền tảng (ở bước KYC) trước khi đăng bán sản phẩm.");
@@ -425,9 +445,25 @@ public class ProductServiceImpl implements ProductService {
             throw new BusinessException("You do not have permission to update this product");
         }
 
-        // Only allow update of PENDING or REJECTED products
-        if ("APPROVED".equals(product.getStatus())) {
-            throw new BusinessException("Cannot update an approved product");
+        User seller = userRepository.findById(Math.toIntExact(sellerId))
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Seller not found with id: " + sellerId));
+        boolean isAdmin = seller.getRole() != null
+                && "Admin".equalsIgnoreCase(seller.getRole().getRoleName());
+        if (!isAdmin) {
+            kycEligibilityService.requireApproved(
+                    seller,
+                    "Bạn cần có hồ sơ KYC được phê duyệt trước khi cập nhật hoặc gửi lại sản phẩm."
+            );
+            if (!contractService.hasSellerContract(sellerId)) {
+                throw new BusinessException(
+                        "Bạn cần ký hợp đồng nền tảng trước khi cập nhật hoặc gửi lại sản phẩm.");
+            }
+        }
+
+        // Sellers may only edit products that are still being reviewed or were rejected.
+        if (!"PENDING".equals(product.getStatus()) && !"REJECTED".equals(product.getStatus())) {
+            throw new BusinessException("Only pending or rejected products can be updated");
         }
 
         // Reset status to PENDING if it was REJECTED (so staff can re-review)
@@ -435,6 +471,7 @@ public class ProductServiceImpl implements ProductService {
             product.setStatus("PENDING");
             product.setRejectionReason(null);
         }
+        product.setSubmittedAt(LocalDateTime.now());
 
         // Update fields only if provided
         if (request.getProductName() != null && !request.getProductName().isBlank()) {
@@ -446,6 +483,32 @@ public class ProductServiceImpl implements ProductService {
         if (request.getStartingPrice() != null && request.getStartingPrice() > 0) {
             product.setStartingPrice(normalizeStartingPrice(request.getStartingPrice()));
             product.setStepPrice(StepCalculator.calculate(product.getStartingPrice()));
+        }
+
+        if (request.getImages() != null) {
+            if (request.getImages().isEmpty()) {
+                throw new BusinessException("Product must have at least one image");
+            }
+
+            for (CreateProductImageDTO image : request.getImages()) {
+                if (image.getImageUrl() == null || image.getImageUrl().isBlank()) {
+                    throw new BusinessException("Product image URL must not be blank");
+                }
+            }
+
+            boolean hasPrimary = request.getImages().stream()
+                    .anyMatch(image -> Boolean.TRUE.equals(image.getIsPrimary()));
+            productImageRepository.deleteByProductId(productId);
+            for (int index = 0; index < request.getImages().size(); index++) {
+                CreateProductImageDTO imageRequest = request.getImages().get(index);
+                ProductImage image = new ProductImage();
+                image.setProductId(productId);
+                image.setImageUrl(imageRequest.getImageUrl().trim());
+                image.setIsPrimary(hasPrimary
+                        ? Boolean.TRUE.equals(imageRequest.getIsPrimary())
+                        : index == 0);
+                productImageRepository.save(image);
+            }
         }
 
         product = productRepository.save(product);

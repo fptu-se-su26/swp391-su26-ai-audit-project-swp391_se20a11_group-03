@@ -1,6 +1,8 @@
 package com.auction.bidding.service.impl;
 
 import com.auction.account.dao.UserRepository;
+import com.auction.account.entity.User;
+import com.auction.account.service.KycEligibilityService;
 import com.auction.account.service.UserPaymentStrikeService;
 import com.auction.bidding.config.WebSocketConfig;
 import com.auction.bidding.dto.AuctionWinAnnouncementDto;
@@ -54,6 +56,7 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
     private final ContractService contractService;
     private final UserPaymentStrikeService userPaymentStrikeService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final KycEligibilityService kycEligibilityService;
 
     @Override
     @Transactional
@@ -153,6 +156,111 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
             count++;
         }
         return count;
+    }
+
+    @Override
+    @Transactional
+    public int cancelSellerListingsForKycRevocation(Long sellerId, String reason) {
+        if (sellerId == null) {
+            return 0;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        int affectedProducts = 0;
+        String rejectionReason = reason == null || reason.isBlank()
+                ? "Hồ sơ KYC của người bán không còn hiệu lực."
+                : reason;
+
+        for (Product product : productRepository.findBySellerId(sellerId)) {
+            boolean pending = "PENDING".equalsIgnoreCase(product.getStatus());
+            boolean approved = "APPROVED".equalsIgnoreCase(product.getStatus());
+            if (!pending && !approved) {
+                continue;
+            }
+
+            Auction auction = auctionRepository.findByProduct_ProductId(product.getProductId())
+                    .orElse(null);
+            if (approved && auction != null && !isCancelableForKyc(auction)) {
+                // Preserve completed/payment history; KYC revocation is not retroactive.
+                continue;
+            }
+
+            if (auction != null && isCancelableForKyc(auction)) {
+                auction.setStatus("CANCELED");
+                auction.setPaymentStatus("KYC_REVOKED");
+                auction.setSettledAt(now);
+                auctionRepository.save(auction);
+                refundAllDeposits(auction, now);
+                notifyKycCancellationRefunds(auction);
+            }
+
+            product.setStatus("REJECTED");
+            product.setRejectionReason(rejectionReason);
+            product.setScheduledStartTime(null);
+            product.setScheduledDurationSeconds(null);
+            productRepository.save(product);
+            affectedProducts++;
+
+            notificationService.createNotification(
+                    sellerId,
+                    "Sản phẩm đã được gỡ khỏi đấu giá",
+                    "Sản phẩm \"" + product.getProductName()
+                            + "\" đã được gỡ vì hồ sơ KYC không còn hiệu lực. "
+                            + "Bạn cần hoàn tất KYC và gửi sản phẩm lại để được xét duyệt.",
+                    Notification.NotificationType.PRODUCT_REJECTED,
+                    product.getProductId(),
+                    "PRODUCT"
+            );
+        }
+
+        return affectedProducts;
+    }
+
+    @Override
+    @Transactional
+    public int reconcileKycIneligibleSellerListings() {
+        int affectedProducts = 0;
+        for (User seller : userRepository.findAll()) {
+            boolean isAdmin = seller.getRole() != null
+                    && "Admin".equalsIgnoreCase(seller.getRole().getRoleName());
+            if (isAdmin || kycEligibilityService.isApproved(seller)) {
+                continue;
+            }
+            affectedProducts += cancelSellerListingsForKycRevocation(
+                    seller.getUserId(),
+                    "Sản phẩm bị gỡ vì người bán chưa có hồ sơ KYC hợp lệ."
+            );
+        }
+        return affectedProducts;
+    }
+
+    private boolean isCancelableForKyc(Auction auction) {
+        return "UPCOMING".equalsIgnoreCase(auction.getStatus())
+                || "ACTIVE".equalsIgnoreCase(auction.getStatus())
+                || "CANCELED".equalsIgnoreCase(auction.getStatus());
+    }
+
+    private void notifyKycCancellationRefunds(Auction auction) {
+        String productName = auction.getProduct() != null
+                ? auction.getProduct().getProductName()
+                : "sản phẩm";
+        for (AuctionDeposit deposit :
+                auctionDepositRepository.findByAuction_AuctionId(auction.getAuctionId())) {
+            if (deposit.getUser() == null
+                    || !"REFUNDED".equalsIgnoreCase(deposit.getSettlementType())) {
+                continue;
+            }
+            notificationService.createNotification(
+                    (long) deposit.getUser().getId(),
+                    "Phiên đấu giá đã bị hủy",
+                    "Phiên đấu giá \"" + productName
+                            + "\" đã bị hủy do người bán không còn đủ điều kiện KYC. "
+                            + "Tiền cọc đã được hoàn về ví của bạn.",
+                    Notification.NotificationType.GENERAL,
+                    auction.getAuctionId(),
+                    "AUCTION_CANCELED"
+            );
+        }
     }
 
     private void forfeitWinnerDeposit(Auction auction, AuctionDeposit deposit, LocalDateTime now) {

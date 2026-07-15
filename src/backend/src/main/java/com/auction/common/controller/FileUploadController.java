@@ -1,6 +1,7 @@
 package com.auction.common.controller;
 
 import com.auction.common.dto.ApiResponse;
+import com.auction.common.service.CloudinaryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,19 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
- * Generic file upload endpoint. Files are stored under
- * <code>${app.upload.dir}</code> (default: <code>uploads/</code> in the
- * project working dir) and served back via the static resource handler
- * registered in {@link com.auction.config.WebMvcConfig}.
+ * Generic image upload endpoint. Files are stored on Cloudinary and the
+ * returned secure URLs are what callers persist in the database.
  */
 @RestController
 @RequestMapping("/api/uploads")
@@ -33,50 +27,38 @@ public class FileUploadController {
 
     private static final Logger log = LoggerFactory.getLogger(FileUploadController.class);
 
-    private final Path rootLocation;
+    private final CloudinaryService cloudinaryService;
+    private final String folder;
 
     public FileUploadController(
-            @Value("${app.upload.dir:${user.dir}/uploads}") String uploadDir) {
-        this.rootLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
-        try {
-            Files.createDirectories(this.rootLocation);
-        } catch (IOException e) {
-            throw new IllegalStateException("Could not create upload directory: " + this.rootLocation, e);
-        }
+            CloudinaryService cloudinaryService,
+            @Value("${cloudinary.folder.products:auction/products}") String folder) {
+        this.cloudinaryService = cloudinaryService;
+        this.folder = folder;
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<List<String>>> upload(@RequestParam("files") MultipartFile[] files)
-            throws IOException {
+    public ResponseEntity<ApiResponse<List<String>>> upload(@RequestParam("files") MultipartFile[] files) {
         if (files == null || files.length == 0) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error("No files provided"));
         }
 
         log.info("Upload request: {} file(s), sizes={}",
-                files.length, java.util.Arrays.stream(files).map(f -> f.getSize()).toList());
+                files.length, java.util.Arrays.stream(files).map(MultipartFile::getSize).toList());
 
         List<String> urls = new ArrayList<>();
         for (MultipartFile file : files) {
             if (file.isEmpty()) {
                 continue;
             }
-            String original = file.getOriginalFilename() == null ? "file" : file.getOriginalFilename();
-            String ext = "";
-            int dot = original.lastIndexOf('.');
-            if (dot > 0) {
-                ext = original.substring(dot);
-            }
-            String stored = UUID.randomUUID().toString().replace("-", "") + ext.toLowerCase();
-            Path target = rootLocation.resolve(stored);
             try {
-                Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+                urls.add(cloudinaryService.upload(file, folder));
             } catch (IOException e) {
-                log.error("Failed to write file {} to {}", stored, target, e);
+                log.error("Failed to upload file to Cloudinary", e);
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(ApiResponse.error("Failed to write file: " + e.getMessage()));
+                        .body(ApiResponse.error("Failed to upload file: " + e.getMessage()));
             }
-            urls.add("/uploads/" + stored);
         }
 
         if (urls.isEmpty()) {

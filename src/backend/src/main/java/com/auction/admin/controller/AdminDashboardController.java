@@ -352,6 +352,7 @@ public class AdminDashboardController {
 
             String identityNumber = resolveIdentityNumber(identityUserId);
             if (cccdFilter != null && !cccdFilter.isBlank()) {
+                // Filter on the raw value, but only ever display the masked form.
                 if (identityNumber == null || !identityNumber.replaceAll("\\s+", "").contains(cccdFilter)) {
                     continue;
                 }
@@ -363,7 +364,7 @@ public class AdminDashboardController {
                     .typeLabel(typeLabel)
                     .referenceId(c.getReferenceId())
                     .referenceName(referenceName)
-                    .identityNumber(identityNumber)
+                    .identityNumber(com.auction.common.util.SensitiveDataMasker.maskCccd(identityNumber))
                     .fileUrl(c.getFileUrl())
                     .createdAt(c.getCreatedAt() == null ? null : c.getCreatedAt().toString())
                     .build());

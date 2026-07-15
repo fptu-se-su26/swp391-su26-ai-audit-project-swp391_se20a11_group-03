@@ -35,6 +35,10 @@ public class AuctionServiceImpl implements AuctionService {
         boolean alreadyDeposited = userId != null && auctionDepositRepository
                 .findByAuction_AuctionIdAndUser_Id(auctionId, Math.toIntExact(userId))
                 .isPresent();
+        boolean ownsProduct = userId != null
+                && auction.getProduct() != null
+                && auction.getProduct().getSellerId() != null
+                && auction.getProduct().getSellerId().equals(userId);
 
         // KYC state for the current viewer (null if anonymous)
         boolean kycVerified = false;
@@ -48,7 +52,10 @@ public class AuctionServiceImpl implements AuctionService {
         }
 
         String message;
-        if (alreadyDeposited) {
+        if (ownsProduct) {
+            allowed = false;
+            message = "Người bán chỉ có thể theo dõi, không thể đặt cọc cho phiên của chính mình.";
+        } else if (alreadyDeposited) {
             allowed = false;
             message = "User already deposited for this auction.";
         } else if (!allowed) {

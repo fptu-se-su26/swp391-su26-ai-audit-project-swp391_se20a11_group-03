@@ -56,7 +56,7 @@ public class UserProfileController {
                 .fullName(u.getFullName())
                 .email(u.getEmail())
                 .phone(u.getPhone())
-                .identityNumber(u.getIdentityNumber())
+                .identityNumber(com.auction.common.util.SensitiveDataMasker.maskCccd(u.getIdentityNumber()))
                 .roleName(u.getRole() != null ? u.getRole().getRoleName() : "User")
                 .status(u.getStatus())
                 .identityVerified(u.isIdentityVerified())

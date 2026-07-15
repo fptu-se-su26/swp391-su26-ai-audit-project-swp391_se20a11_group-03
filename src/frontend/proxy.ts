@@ -25,6 +25,7 @@ const ROLE_PATHS: Record<UserRole, string[]> = {
     "/won-items",
   ],
   seller: [
+    "/auctions",
     "/earnings",
     "/inventory",
     "/kyc",
@@ -42,17 +43,18 @@ function pathStartsWith(pathname: string, protectedPath: string) {
   return pathname === protectedPath || pathname.startsWith(`${protectedPath}/`);
 }
 
-function getRequiredRole(pathname: string): UserRole | null {
+function getAllowedRoles(pathname: string): UserRole[] {
+  const allowed: UserRole[] = [];
   for (const [role, paths] of Object.entries(ROLE_PATHS) as [
     UserRole,
     string[],
   ][]) {
     if (paths.some((path) => pathStartsWith(pathname, path))) {
-      return role;
+      allowed.push(role);
     }
   }
 
-  return null;
+  return allowed;
 }
 
 function getValidRole(value: string | undefined): UserRole | null {
@@ -70,9 +72,9 @@ function getValidRole(value: string | undefined): UserRole | null {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const requiredRole = getRequiredRole(pathname);
+  const allowedRoles = getAllowedRoles(pathname);
 
-  if (!requiredRole) {
+  if (allowedRoles.length === 0) {
     return NextResponse.next();
   }
 
@@ -84,7 +86,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (currentRole !== requiredRole) {
+  if (!allowedRoles.includes(currentRole)) {
     return NextResponse.redirect(new URL(ROLE_HOME[currentRole], request.url));
   }
 

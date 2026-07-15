@@ -95,10 +95,11 @@ public class AuctionController {
         long minNextBid = StepCalculator.computeMinNextBid(startingPrice, currentHighestBid, bidStep);
 
         boolean timedBlind = AuctionPhaseUtil.isTimedBlindBiddingOpen(auction);
-        if (timedBlind) {
-            currentHighestBid = startingPrice;
-            bidStep = 0L;
-            minNextBid = startingPrice;
+        // TIMED auctions are open (public price) with a dynamic 5% step.
+        if (auction.getAuctionMode() == com.auction.bidding.entity.AuctionMode.TIMED) {
+            boolean hasBids = auction.getCurrentWinnerUserId() != null;
+            minNextBid = StepCalculator.computeTimedMinNextBid(startingPrice, currentHighestBid, hasBids);
+            bidStep = StepCalculator.timedStep(Math.max(currentHighestBid, startingPrice));
         }
 
         String effectiveStatus = resolveEffectiveStatus(auction);
@@ -179,6 +180,30 @@ public class AuctionController {
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Authenticated: the caller's own highest bid on this auction. Unlike the
+     * public bid history, this stays visible during the timed blind phase —
+     * users may always see their own sealed bid, just never anyone else's.
+     */
+    @GetMapping("/{auctionId}/my-bid")
+    public ResponseEntity<?> myBid(
+            @PathVariable("auctionId") Long auctionId,
+            @AuthenticationPrincipal UserDetailsImpl user
+    ) {
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of("hasBid", false));
+        }
+        Bid mine = bidRepository.findByAuctionIdOrderByBidAmountDesc(auctionId).stream()
+                .filter(b -> user.getId().equals(b.getUserId()))
+                .findFirst()
+                .orElse(null);
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("hasBid", mine != null);
+        body.put("bidAmount", mine != null ? mine.getBidAmount() : null);
+        body.put("bidTime", mine != null ? mine.getBidTime() : null);
+        return ResponseEntity.ok(body);
     }
 
     /** Place a bid. Authenticated + KYC-verified user only. */
