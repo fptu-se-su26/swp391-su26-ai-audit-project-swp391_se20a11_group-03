@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: "Courier New", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.material-symbols-outlined {
+  display: inline-block;
+  width: 1em;
+  overflow: hidden;
+  line-height: 1;
+  white-space: nowrap;
+  visibility: hidden;
+}
+
+.material-symbols-ready .material-symbols-outlined {
+  visibility: visible;
+}
+
+.home-hero-bg {
+  background-image: url("/images/luxury-watch-hero-mobile.webp");
+  background-position: 62% center;
+  background-size: cover;
+}
+
+@media (min-width: 640px) {
+  .home-hero-bg {
+    background-position: center;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-hero-bg {
+    background-image: url("/images/luxury-watch-hero-lcp.webp");
+  }
+}
+
+.auth-input:-webkit-autofill,
+.auth-input:-webkit-autofill:hover,
+.auth-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff;
+  caret-color: #ffffff;
+  box-shadow: 0 0 0 1000px #050505 inset;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* ===== BidZone theme (gold accent, dark) — scoped to .luxora-app ===== */
+.luxora-app {
+  --luxora-bg: #050607;
+  --luxora-bg-elevated: #090a0b;
+  --luxora-bg-soft: #0e0d0b;
+  --luxora-bg-deep: #130d05;
+  --luxora-text: #fff7eb;
+  --luxora-text-muted: #f8f3e8;
+  --luxora-gold: #d9aa55;
+  --luxora-gold-light: #e6bd68;
+  --luxora-gold-lighter: #f2cf83;
+  --luxora-gold-soft: #e9c176;
+  --luxora-gold-dark: #c89136;
+  --luxora-gold-darker: #b98232;
+  --luxora-error: rgba(186, 26, 26, 0.9);
+
+  background: var(--luxora-bg);
+  color: var(--luxora-text);
+  min-height: 100%;
+}
+
+.luxora-app .glass-panel {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.luxora-app .glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.luxora-app .glass-card:hover {
+  border-color: var(--luxora-gold);
+  box-shadow: 0 12px 40px rgba(217, 170, 85, 0.18);
+  transform: translateY(-8px);
+}
+
+.luxora-app .glow-accent {
+  box-shadow: 0 0 40px rgba(217, 170, 85, 0.25);
+}
+
+.luxora-app .gradient-cta {
+  background: linear-gradient(135deg, #e2b760 0%, #f2d083 50%, #c89136 100%);
+}
+
+.luxora-app .pulse-live {
+  position: relative;
+}
+
+.luxora-app .pulse-live::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  border: 2px solid var(--luxora-error);
+  animation: luxora-pulse 1.6s ease-out infinite;
+}
+
+@keyframes luxora-pulse {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+.luxora-app .custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.luxora-app .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(217, 170, 85, 0.4);
+  border-radius: 9999px;
+}
+
+.luxora-app .no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.luxora-app .no-scrollbar {
+  scrollbar-width: none;
+}
+
+.luxora-app .font-display-lg {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.luxora-app .font-headline-md {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 600;
+}
