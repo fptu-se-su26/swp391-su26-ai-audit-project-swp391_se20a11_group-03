@@ -31,6 +31,7 @@ backend/src/main/resources/static/uploads/
 .env.*
 !.env.example
 backend/src/main/resources/application-local.properties
+<<<<<<< Updated upstream
 
 # Runtime junk
 *.pid
@@ -51,3 +52,5 @@ backend/src/main/resources/application-local.properties
 /sql/
 /database_scripts/
 *.py
+=======
+>>>>>>> Stashed changes

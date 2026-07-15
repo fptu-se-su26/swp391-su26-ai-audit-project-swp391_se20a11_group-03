@@ -1,0 +1,113 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import TopNav from "@/components/layout/TopNav";
+import ProductAuctionCard from "@/components/ui/ProductAuctionCard";
+import ScrollReveal from "@/components/ui/ScrollReveal";
+import SectionHeader from "@/components/ui/SectionHeader";
+import { getCategories, ProductSummary, searchProducts } from "@/lib/services/productService";
+import { useTranslations } from "@/i18n/I18nProvider";
+import { displayFont } from "@/components/luxe/theme";
+
+export default function StorefrontPage() {
+  const t = useTranslations("storefront");
+  const [categories, setCategories] = useState<string[]>(["All"]);
+  const [liveLots, setLiveLots] = useState<ProductSummary[]>([]);
+  const [upcomingLots, setUpcomingLots] = useState<ProductSummary[]>([]);
+
+  useEffect(() => {
+    getCategories()
+      .then((items) => setCategories(["All", ...items.map((item) => item.categoryName)]))
+      .catch(() => setCategories(["All"]));
+
+    searchProducts({ size: 12, status: "APPROVED", auctionStatus: "ACTIVE" })
+      .then((response) => setLiveLots(response.content))
+      .catch(() => setLiveLots([]));
+
+    searchProducts({ size: 8, status: "APPROVED", auctionStatus: "UPCOMING" })
+      .then((response) => setUpcomingLots(response.content))
+      .catch(() => setUpcomingLots([]));
+  }, []);
+
+  const featuredProduct = liveLots[0] ?? upcomingLots[0] ?? null;
+  const heroHref = featuredProduct ? `/auctions/${featuredProduct.productId}` : "/browse";
+
+  return (
+    <main className="min-h-screen luxe-page text-[#f5ead9]">
+      <TopNav />
+      <div className="mx-auto max-w-[1400px] space-y-10 p-margin-mobile md:p-margin-desktop">
+        <ScrollReveal as="section" className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#0e0d0b] p-6 shadow-[0_22px_70px_rgba(0,0,0,.5)] sm:p-10">
+          <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#d4aa61]/20 blur-3xl" />
+          <div className="pointer-events-none absolute -left-24 bottom-0 h-64 w-64 rounded-full bg-[#c99a4b]/15 blur-3xl" />
+          <div className="relative z-10 max-w-xl">
+            <p className="mb-sm font-label-md text-label-md uppercase tracking-widest text-[#d4aa61]">{t("heroBadge")}</p>
+            <h1 className={`${displayFont} mb-md text-4xl font-medium leading-tight text-white md:text-5xl`}>
+              {t("heroTitle1")}
+              <br />
+              {t("heroTitle2")}
+            </h1>
+            <p className="mb-lg font-body-lg text-[#b7aea3]">
+              {t("heroDesc")}
+            </p>
+            <div className="flex flex-wrap gap-sm">
+              <Link
+                href={heroHref}
+                className="flex items-center gap-sm rounded-full bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] px-lg py-md font-headline-sm text-[#100d08] transition-all hover:-translate-y-0.5 hover:brightness-110"
+              >
+                <span className="material-symbols-outlined">gavel</span>
+                {t("viewFeaturedLot")}
+              </Link>
+            </div>
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal className="no-scrollbar flex gap-sm overflow-x-auto pb-xs">
+          {categories.map((category, index) => (
+            <button
+              key={category}
+              className={`flex-shrink-0 whitespace-nowrap rounded-full px-md py-sm font-label-md text-label-md transition-colors ${
+              index === 0
+                  ? "bg-gradient-to-r from-[#f0ce88] to-[#c99a4b] text-[#100d08]"
+                  : "border border-white/10 bg-white/[0.04] text-[#cfc6ba] hover:border-[#d4aa61]/50 hover:text-[#d4aa61]"
+              }`}
+              type="button"
+            >
+              {category}
+            </button>
+          ))}
+        </ScrollReveal>
+
+        <ScrollReveal as="section">
+          <div className="mb-md">
+            <SectionHeader
+              title={t("liveAuctions")}
+              tone="dark"
+              action={<span className="flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-[10px] font-bold uppercase text-red-300">
+                <span className="pulse-live h-1.5 w-1.5 rounded-full bg-red-500" />
+                {t("liveCount", { count: liveLots.length })}
+              </span>}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {liveLots.map((product, index) => (
+              <ProductAuctionCard key={product.productId} product={product} t={t} index={index} />
+            ))}
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal as="section">
+          <div className="mb-md flex items-center justify-between">
+            <SectionHeader title={t("upcomingLots")} tone="dark" />
+          </div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {upcomingLots.map((product, index) => (
+              <ProductAuctionCard key={`upcoming-${product.productId}`} product={product} t={t} index={index} />
+            ))}
+          </div>
+        </ScrollReveal>
+      </div>
+    </main>
+  );
+}
