@@ -3,12 +3,37 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
 import { ApiError, authApi, toFrontendRole } from "@/lib/api";
 
 type AuthMode = "login" | "signup";
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
+
+const GSI_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
+
+type GoogleCredentialResponse = { credential?: string };
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string;
+            callback: (response: GoogleCredentialResponse) => void;
+          }) => void;
+          renderButton: (
+            parent: HTMLElement,
+            options: Record<string, unknown>,
+          ) => void;
+        };
+      };
+    };
+  }
+}
 type DemoRole = "collector" | "seller" | "staff" | "admin";
 
 const ROLE_HOME: Record<DemoRole, string> = {
@@ -118,6 +143,66 @@ export default function AuthPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState("");
+  const [googleReady, setGoogleReady] = useState(false);
+  const googleButtonRef = useRef<HTMLDivElement>(null);
+
+  const handleGoogleCredential = useCallback(
+    async (response: GoogleCredentialResponse) => {
+      if (!response.credential) {
+        setLoginError("Không nhận được thông tin đăng nhập từ Google.");
+        return;
+      }
+      setLoginError("");
+      setSubmitting(true);
+      try {
+        const res = await authApi.googleLogin(response.credential);
+        const role = toFrontendRole(res.roleName);
+        router.push(ROLE_HOME[role]);
+      } catch (err) {
+        setLoginError(
+          err instanceof ApiError
+            ? err.message
+            : "Không kết nối được máy chủ. Kiểm tra backend đang chạy ở port 8096.",
+        );
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [router],
+  );
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return;
+
+    function initGoogle() {
+      const google = window.google;
+      if (!google || !googleButtonRef.current) return;
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredential,
+      });
+      google.accounts.id.renderButton(googleButtonRef.current, {
+        theme: "filled_black",
+        size: "large",
+        shape: "rectangular",
+        text: "continue_with",
+        width: 360,
+      });
+      setGoogleReady(true);
+    }
+
+    if (window.google) {
+      initGoogle();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = GSI_SCRIPT_SRC;
+    script.async = true;
+    script.defer = true;
+    script.onload = initGoogle;
+    document.head.appendChild(script);
+  }, [handleGoogleCredential]);
 
   const isSignup = mode === "signup";
   const selectedDemo =
@@ -522,16 +607,23 @@ export default function AuthPage() {
                 <span className="h-px flex-1 bg-white/10" />
               </div>
 
-              <button
-                type="button"
-                className="grid h-9 w-full grid-cols-[28px_1fr_28px] items-center rounded-lg border border-white/12 bg-white/[0.02] px-4 text-sm text-white/75 transition-colors hover:border-white/25 hover:bg-white/[0.05]"
-              >
-                <FcGoogle className="mx-auto text-lg" aria-hidden="true" />
-                <span className="text-center">
-                  {isSignup ? "Đăng ký với Google" : "Tiếp tục với Google"}
-                </span>
-                <span aria-hidden="true" />
-              </button>
+              <div
+                ref={googleButtonRef}
+                className={googleReady ? "flex justify-center" : "hidden"}
+              />
+              {!googleReady ? (
+                <button
+                  type="button"
+                  disabled
+                  className="grid h-9 w-full cursor-wait grid-cols-[28px_1fr_28px] items-center rounded-lg border border-white/12 bg-white/[0.02] px-4 text-sm text-white/50"
+                >
+                  <FcGoogle className="mx-auto text-lg" aria-hidden="true" />
+                  <span className="text-center">
+                    {isSignup ? "Đăng ký với Google" : "Tiếp tục với Google"}
+                  </span>
+                  <span aria-hidden="true" />
+                </button>
+              ) : null}
 
             </form>
           </div>

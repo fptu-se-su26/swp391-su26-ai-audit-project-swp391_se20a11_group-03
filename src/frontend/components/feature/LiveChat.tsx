@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { chatbotApi } from "@/lib/api";
 
@@ -14,6 +15,7 @@ const INITIAL_MESSAGES: ChatMessage[] = [
 ];
 
 export default function LiveChat() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
@@ -23,6 +25,11 @@ export default function LiveChat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, sending]);
+
+  // Trang Tin nhắn đã có kênh chat riêng; nút nổi ở đây đè lên ô nhập tin.
+  if (pathname === "/messages" || pathname.startsWith("/messages/")) {
+    return null;
+  }
 
   async function sendMessage() {
     const text = input.trim();

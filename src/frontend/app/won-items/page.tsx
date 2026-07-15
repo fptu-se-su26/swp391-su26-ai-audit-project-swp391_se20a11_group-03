@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import CollectorShell from "@/components/shells/CollectorShell";
-import { auctionApi, type WonAuction } from "@/lib/api";
+import { ApiError, auctionApi, type WonAuction } from "@/lib/api";
 import { useApiData } from "@/lib/use-api-data";
 
 async function loadWonItems(): Promise<WonAuction[]> {
@@ -14,12 +15,50 @@ function formatDate(value: string) {
 }
 
 export default function WonItemsPage() {
-  const { data: wonItems, loading, error } = useApiData(loadWonItems, []);
+  const { data: wonItems, setData, loading, error } = useApiData(
+    loadWonItems,
+    [],
+  );
+  const [payingId, setPayingId] = useState<number | null>(null);
+  const [payError, setPayError] = useState("");
+  const [paySuccess, setPaySuccess] = useState("");
+
+  async function handlePay(item: WonAuction) {
+    setPayError("");
+    setPaySuccess("");
+    setPayingId(item.auctionId);
+    try {
+      await auctionApi.pay(item.auctionId);
+      setPaySuccess(
+        `Đã thanh toán "${item.productName}" thành công từ ví BidZone.`,
+      );
+      setData(await loadWonItems());
+    } catch (cause) {
+      setPayError(
+        cause instanceof ApiError
+          ? cause.message
+          : "Không thể thanh toán. Vui lòng thử lại.",
+      );
+    } finally {
+      setPayingId(null);
+    }
+  }
 
   return (
     <CollectorShell>
       <div className="mx-auto max-w-7xl px-6 py-10">
         <h1 className="font-display-lg text-3xl">Vật phẩm đã thắng</h1>
+
+        {payError ? (
+          <p className="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+            {payError}
+          </p>
+        ) : null}
+        {paySuccess ? (
+          <p className="mt-4 rounded-lg border border-green-400/30 bg-green-500/10 px-3 py-2 text-xs text-green-200">
+            {paySuccess}
+          </p>
+        ) : null}
 
         <div className="mt-8 overflow-x-auto rounded-2xl border border-white/10">
           <table className="w-full min-w-[720px] text-left text-sm">
@@ -50,7 +89,9 @@ export default function WonItemsPage() {
                       className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
                         item.status === "paid"
                           ? "bg-green-500/10 text-green-300"
-                          : "bg-yellow-500/10 text-yellow-300"
+                          : item.status === "forfeited"
+                            ? "bg-red-500/10 text-red-300"
+                            : "bg-yellow-500/10 text-yellow-300"
                       }`}
                     >
                       {item.status === "paid"
@@ -62,9 +103,21 @@ export default function WonItemsPage() {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex gap-2">
+                      {item.status !== "paid" && item.status !== "forfeited" ? (
+                        <button
+                          type="button"
+                          onClick={() => void handlePay(item)}
+                          disabled={payingId !== null}
+                          className="gradient-cta rounded-full px-3 py-1.5 text-xs font-semibold text-black disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {payingId === item.auctionId
+                            ? "Đang thanh toán..."
+                            : "Thanh toán"}
+                        </button>
+                      ) : null}
                       <Link
                         href={`/auctions/${item.auctionId}`}
-                        className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium hover:border-[var(--luxora-gold)] disabled:cursor-not-allowed disabled:opacity-30"
+                        className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium hover:border-[var(--luxora-gold)]"
                       >
                         Xem phiên đấu giá
                       </Link>

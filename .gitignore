@@ -1,0 +1,8 @@
+# Backend secrets — chỉ commit application.properties.example
+src/backend/src/main/resources/application.properties
+
+# Build output
+src/backend/target/
+
+# Uploads (dữ liệu người dùng local)
+src/backend/uploads/
