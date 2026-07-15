@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>LuxeAuction Admin Control Center</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#b9c7e4",
+                        "on-primary-fixed": "#0d1c32",
+                        "tertiary-fixed": "#a6f2d1",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#e4e2e4",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#1b1b1d",
+                        "on-primary-container": "#76849f",
+                        "primary": "#000000",
+                        "tertiary": "#000000",
+                        "on-secondary-container": "#785a1a",
+                        "on-tertiary-fixed-variant": "#00513b",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#efedef",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#515f78",
+                        "primary-fixed": "#d6e3ff",
+                        "on-secondary-fixed": "#261900",
+                        "on-tertiary-fixed": "#002116",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#5d4201",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#303032",
+                        "surface-container-highest": "#e4e2e4",
+                        "on-surface-variant": "#44474d",
+                        "background": "#fbf9fb",
+                        "outline": "#75777e",
+                        "secondary-fixed-dim": "#e9c176",
+                        "on-primary-fixed-variant": "#39475f",
+                        "secondary": "#775a19",
+                        "inverse-on-surface": "#f2f0f2",
+                        "secondary-container": "#fed488",
+                        "outline-variant": "#c5c6cd",
+                        "secondary-fixed": "#ffdea5",
+                        "surface-bright": "#fbf9fb",
+                        "tertiary-container": "#002116",
+                        "surface-container-low": "#f5f3f5",
+                        "inverse-primary": "#b9c7e4",
+                        "surface": "#fbf9fb",
+                        "on-background": "#1b1b1d",
+                        "tertiary-fixed-dim": "#8bd6b6",
+                        "surface-container-high": "#eae7ea",
+                        "primary-container": "#0d1c32",
+                        "surface-dim": "#dbd9db",
+                        "on-tertiary-container": "#479175"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "xs": "4px",
+                        "margin-desktop": "64px",
+                        "lg": "48px",
+                        "xl": "80px",
+                        "md": "24px",
+                        "sm": "12px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Montserrat"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Montserrat"],
+                        "display-lg-mobile": ["Montserrat"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            background-color: #fbf9fb;
+            color: #1b1b1d;
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(228, 226, 228, 0.5);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c5c6cd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex overflow-hidden">
+<!-- Executive SideNavBar -->
+<aside class="h-screen w-80 fixed left-0 top-0 flex flex-col bg-surface-container-low border-r border-outline-variant shadow-sm z-40">
+    <div class="flex flex-col h-full py-lg px-md">
+        <!-- Header Identity -->
+        <div class="mb-xl px-sm">
+            <h1 class="font-headline-md text-headline-md font-bold tracking-tight text-primary">LuxeAuction</h1>
+            <p class="font-label-md text-label-md text-on-surface-variant">Admin Control Center</p>
+        </div>
+        <!-- Profile Section -->
+        <div class="flex items-center gap-sm px-sm mb-lg">
+            <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container overflow-hidden">
+                <span class="material-symbols-outlined">person</span>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-label-md text-label-md text-on-surface">System Administrator</span>
+                <span class="text-[10px] text-on-surface-variant uppercase tracking-widest">Active Status</span>
+            </div>
+        </div>
+        <!-- Main Navigation -->
+        <nav class="flex-1 flex flex-col gap-xs overflow-y-auto custom-scrollbar">
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">payments</span>
+                <span class="font-label-md text-label-md">Revenue & Analytics</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">history_edu</span>
+                <span class="font-label-md text-label-md">Auction History</span>
+            </a>
+            <a class="flex items-center gap-base transition-all duration-200 px-md py-sm rounded-lg bg-primary-container text-on-primary-container" href="#">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">category</span>
+                <span class="font-label-md text-label-md">Categories</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">campaign</span>
+                <span class="font-label-md text-label-md">Broadcasts</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">assessment</span>
+                <span class="font-label-md text-label-md">Reports</span>
+            </a>
+        </nav>
+        <!-- Footer Navigation -->
+        <div class="mt-lg pt-lg border-t border-outline-variant/30 flex flex-col gap-xs">
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="font-label-md text-label-md">System Settings</span>
+            </a>
+            <a class="flex items-center gap-base text-on-surface-variant hover:text-error hover:bg-error-container/20 transition-all duration-200 px-md py-sm rounded-lg" href="#">
+                <span class="material-symbols-outlined">logout</span>
+                <span class="font-label-md text-label-md">Logout</span>
+            </a>
+        </div>
+    </div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-80 flex-1 h-screen overflow-y-auto bg-background">
+    <!-- TopAppBar -->
+    <header class="sticky top-0 w-full z-30 bg-surface/70 backdrop-blur-xl border-b border-outline-variant/30 px-margin-desktop h-20 flex items-center justify-between">
+        <div class="flex items-center gap-lg">
+            <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Category & Attribute Configuration</h2>
+            <button onclick="openAddCategoryModal()" class="bg-primary text-white px-md py-sm rounded-lg font-label-md text-label-md flex items-center gap-xs hover:opacity-90 transition-opacity">
+                <span class="material-symbols-outlined text-sm">add</span>Add New Category
+            </button>
+        </div>
+        <div class="flex items-center gap-md">
+            <div class="flex items-center gap-base border-l border-outline-variant/30 pl-md">
+                <button class="p-sm rounded-full text-on-surface-variant hover:bg-surface-container-highest transition-colors relative">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <!-- Dashboard Content -->
+    <div class="px-margin-desktop py-lg max-w-[1600px] mx-auto space-y-lg">
+        <!-- Success/Error Toast -->
+        <div th:if="${message}" th:text="${message}" class="p-4 rounded-lg" th:classappend="${messageType == 'success'} ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-10 gap-gutter h-full">
+            <!-- Category Tree -->
+            <div class="lg:col-span-3 bg-surface-container-lowest rounded-xl border border-outline-variant/30 flex flex-col overflow-hidden">
+                <div class="p-md border-b border-outline-variant/30 bg-surface-container-low">
+                    <h4 class="font-label-md text-label-md font-bold text-on-surface">Category Tree</h4>
+                </div>
+                <div class="p-md border-b border-outline-variant/30">
+                    <div class="relative flex items-center">
+                        <span class="material-symbols-outlined absolute left-3 text-on-surface-variant">search</span>
+                        <input class="w-full pl-10 pr-4 py-2 bg-background border border-outline-variant rounded-lg text-label-md focus:ring-1 focus:ring-primary outline-none" placeholder="Search categories..." type="text"/>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto p-sm space-y-1">
+                    <div th:each="category : ${categories}" class="flex items-center justify-between p-sm rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer" th:classappend="${category?.isActive} ? 'bg-primary/5 text-primary border border-primary/20' : ''">
+                        <span class="font-label-md" th:text="${category?.categoryName}">Category</span>
+                        <div class="flex gap-2">
+                            <button th:attr="onclick='editCategory(' + ${category?.categoryId} + ')'" class="p-1 text-blue-600 hover:text-blue-800">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                            </button>
+                            <button th:attr="onclick='deleteCategory(' + ${category?.categoryId} + ')'" class="p-1 text-red-600 hover:text-red-800">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Category Details -->
+            <div class="lg:col-span-7 bg-surface-container-lowest rounded-xl border border-outline-variant/30 flex flex-col overflow-hidden">
+                <div class="p-md border-b border-outline-variant/30 bg-surface-container-low flex justify-between items-center">
+                    <h4 class="font-label-md text-label-md font-bold text-on-surface">Category Details</h4>
+                </div>
+                <div class="p-md">
+                    <div th:if="${selectedCategory != null}" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="font-label-sm text-on-surface-variant mb-2 block">Category Name</label>
+                                <p class="font-body-md text-on-surface" th:text="${selectedCategory?.categoryName}"></p>
+                            </div>
+                            <div>
+                                <label class="font-label-sm text-on-surface-variant mb-2 block">Status</label>
+                                <p class="font-body-md" th:text="${selectedCategory?.isActive} ? 'Active' : 'Inactive'" th:classappend="${selectedCategory?.isActive} ? 'text-green-600' : 'text-red-600'"></p>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="font-label-sm text-on-surface-variant mb-2 block">Description</label>
+                                <p class="font-body-md text-on-surface" th:text="${selectedCategory?.description} ?: 'No description'"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${selectedCategory == null}" class="text-center py-12 text-on-surface-variant">
+                        <span class="material-symbols-outlined text-6xl mb-4">category</span>
+                        <p class="font-label-md">Select a category from the tree</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Add Category Modal -->
+<div id="addCategoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-96 shadow-2xl">
+        <h3 class="font-headline-sm mb-4 text-on-surface">Add New Category</h3>
+        <form th:action="@{/admin/categories}" method="post">
+            <div class="mb-4">
+                <label class="font-label-sm text-on-surface-variant mb-2 block">Category Name</label>
+                <input type="text" name="categoryName" required class="w-full p-3 border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary outline-none" placeholder="Enter category name"/>
+            </div>
+            <div class="mb-4">
+                <label class="font-label-sm text-on-surface-variant mb-2 block">Description</label>
+                <textarea name="description" class="w-full p-3 border border-outline-variant rounded-lg focus:ring-1 focus:ring-primary outline-none" rows="2" placeholder="Enter description..."></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="isActive" checked class="rounded border-outline-variant text-primary focus:ring-primary"/>
+                    <span class="font-label-sm text-on-surface">Active</span>
+                </label>
+            </div>
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="closeAddCategoryModal()" class="px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors font-label-md">Cancel</button>
+                <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-label-md">Add Category</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteCategoryModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-96 shadow-2xl">
+        <h3 class="font-headline-sm mb-2 text-on-surface">Delete Category</h3>
+        <p class="font-body-md text-on-surface-variant mb-4">Are you sure you want to delete this category? This action cannot be undone.</p>
+        <form id="deleteCategoryForm" method="post">
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="closeDeleteCategoryModal()" class="px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors font-label-md">Cancel</button>
+                <button type="submit" class="bg-error text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity font-label-md">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openAddCategoryModal() {
+        document.getElementById('addCategoryModal').classList.remove('hidden');
+        document.getElementById('addCategoryModal').classList.add('flex');
+    }
+
+    function closeAddCategoryModal() {
+        document.getElementById('addCategoryModal').classList.add('hidden');
+        document.getElementById('addCategoryModal').classList.remove('flex');
+    }
+
+    function deleteCategory(categoryId) {
+        document.getElementById('deleteCategoryForm').action = '/admin/categories/' + categoryId + '/delete';
+        document.getElementById('deleteCategoryModal').classList.remove('hidden');
+        document.getElementById('deleteCategoryModal').classList.add('flex');
+    }
+
+    function closeDeleteCategoryModal() {
+        document.getElementById('deleteCategoryModal').classList.add('hidden');
+        document.getElementById('deleteCategoryModal').classList.remove('flex');
+    }
+
+    // Close modals when clicking outside
+    ['addCategoryModal', 'deleteCategoryModal'].forEach(id => {
+        document.getElementById(id).addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+                this.classList.remove('flex');
+            }
+        });
+    });
+</script>
+</body>
+</html>
