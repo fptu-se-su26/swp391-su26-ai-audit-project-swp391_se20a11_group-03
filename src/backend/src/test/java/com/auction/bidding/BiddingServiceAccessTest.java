@@ -31,12 +31,6 @@ class BiddingServiceAccessTest {
     private final ProductRepository productRepository = mock(ProductRepository.class);
     private final ProductImageRepository imageRepository = mock(ProductImageRepository.class);
     private final AuctionDepositRepository depositRepository = mock(AuctionDepositRepository.class);
-    private final com.auction.wallet.repository.WalletRepository walletRepository =
-            mock(com.auction.wallet.repository.WalletRepository.class);
-    private final com.auction.wallet.repository.TransactionRepository transactionRepository =
-            mock(com.auction.wallet.repository.TransactionRepository.class);
-    private final com.auction.account.dao.UserRepository userRepository =
-            mock(com.auction.account.dao.UserRepository.class);
 
     private BiddingService service;
 
@@ -48,10 +42,7 @@ class BiddingServiceAccessTest {
                 bidRepository,
                 productRepository,
                 imageRepository,
-                depositRepository,
-                walletRepository,
-                transactionRepository,
-                userRepository);
+                depositRepository);
     }
 
     @Test
@@ -69,10 +60,26 @@ class BiddingServiceAccessTest {
     }
 
     @Test
-    void bidderWithoutDepositCannotBid() {
-        // Deposits gate LIVE rooms only — TIMED is open (real-money) bidding.
+    void liveBidderWithoutDepositCannotBid() {
         AuctionSession session = session(7L, 70L);
         session.setAuctionMode(com.auction.bidding.entity.AuctionMode.LIVE);
+        Product product = product(70L, 42L);
+        when(sessionRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(session));
+        when(productRepository.findById(70L)).thenReturn(Optional.of(product));
+        when(depositRepository.findByAuction_AuctionIdAndUser_Id(7L, 99))
+                .thenReturn(Optional.empty());
+
+        BidResponse response = service.placeBid(request(7L, 99L, 10_500_000L));
+
+        assertFalse(response.isSuccess());
+        assertTrue(response.getMessage().contains("phải đặt cọc"));
+        verify(bidRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void timedBidderWithoutDepositCannotBid() {
+        AuctionSession session = session(7L, 70L);
+        session.setAuctionMode(com.auction.bidding.entity.AuctionMode.TIMED);
         Product product = product(70L, 42L);
         when(sessionRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(session));
         when(productRepository.findById(70L)).thenReturn(Optional.of(product));

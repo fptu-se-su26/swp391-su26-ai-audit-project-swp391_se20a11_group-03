@@ -71,28 +71,30 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
 
         long finalPrice = auction.getCurrentHighestBid() != null ? auction.getCurrentHighestBid() : 0L;
         long depositAmount = deposit != null && deposit.getDepositAmount() != null ? deposit.getDepositAmount() : 0L;
-        long amountToCharge = Math.max(0L, finalPrice - depositAmount);
+        long remainingDueAfterDeposit = Math.max(0L, finalPrice - depositAmount);
         long currentBalance = buyerWallet.getBalance() != null ? buyerWallet.getBalance() : 0L;
         long currentHold = buyerWallet.getHoldBalance() != null ? buyerWallet.getHoldBalance() : 0L;
 
-        if (currentBalance < amountToCharge) {
+        if (currentBalance < finalPrice) {
             throw new IllegalStateException("Insufficient wallet balance to complete auction payment");
         }
 
         LocalDateTime now = LocalDateTime.now();
-        buyerWallet.setBalance(currentBalance - amountToCharge);
+        buyerWallet.setBalance(currentBalance - finalPrice);
         buyerWallet.setHoldBalance(Math.max(0L, currentHold - depositAmount));
         buyerWallet.setUpdatedAt(now);
         walletRepository.save(buyerWallet);
 
-        if (amountToCharge > 0) {
+        if (finalPrice > 0) {
             transactionRepository.save(new Transaction(
                     buyerWallet,
-                    amountToCharge,
+                    finalPrice,
                     "AUCTION_PAYMENT",
                     "COMPLETED",
                     "AUC-PAY-" + auctionId,
-                    "Final payment for auction " + auctionId,
+                    "Final payment for auction " + auctionId
+                            + " (deposit applied: " + depositAmount
+                            + ", remaining due: " + remainingDueAfterDeposit + ")",
                     now
             ));
         }
@@ -180,7 +182,7 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
                 .productId(auction.getProduct() != null ? auction.getProduct().getProductId() : null)
                 .finalPrice(finalPrice)
                 .depositApplied(depositAmount)
-                .amountCharged(amountToCharge)
+                .amountCharged(remainingDueAfterDeposit)
                 .walletBalance(buyerWallet.getBalance())
                 .walletHoldBalance(buyerWallet.getHoldBalance())
                 .paymentStatus(auction.getPaymentStatus())

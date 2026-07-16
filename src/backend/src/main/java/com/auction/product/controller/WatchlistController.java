@@ -1,5 +1,6 @@
 package com.auction.product.controller;
 
+import com.auction.account.dao.UserRepository;
 import com.auction.account.entity.User;
 import com.auction.account.security.UserDetailsImpl;
 import com.auction.bidding.entity.Auction;
@@ -34,6 +35,7 @@ public class WatchlistController {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final AuctionRepository auctionRepository;
+    private final UserRepository userRepository;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -100,8 +102,8 @@ public class WatchlistController {
             if (!watchlistRepository.existsByUserAndProduct(Math.toIntExact(currentUser.getId()), productId)) {
                 Product product = productRepository.findById(productId)
                         .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
-                User user = new User();
-                user.setId(Math.toIntExact(currentUser.getId()));
+                User user = userRepository.findById(Math.toIntExact(currentUser.getId()))
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + currentUser.getId()));
 
                 Watchlist watchlist = new Watchlist();
                 watchlist.setUser(user);

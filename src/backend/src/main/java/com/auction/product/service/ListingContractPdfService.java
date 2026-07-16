@@ -112,7 +112,7 @@ public class ListingContractPdfService {
                 + "<p><b>Người bán:</b> " + escape(sellerName) + "</p>"
                 + "<p><b>Giá khởi điểm:</b> " + price + "</p>"
                 + "<p><b>Ngày phê duyệt niêm yết:</b> " + approvedText + "</p>"
-                + "<p>Nền tảng LuxeAuction xác nhận sản phẩm đã được duyệt và được phép đưa lên sàn đấu giá.</p>"
+                + "<p>Nền tảng BidZone xác nhận sản phẩm đã được duyệt và được phép đưa lên sàn đấu giá.</p>"
                 + "</body></html>";
     }
 

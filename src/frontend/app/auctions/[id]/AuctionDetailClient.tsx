@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import LiveBiddingPanel from "@/components/feature/LiveBiddingPanel";
 import {
+  ApiError,
   auctionApi,
+  getToken,
   toImageSrc,
+  userApi,
   type AuctionState,
   type BidRecord,
   type ProductDetail,
@@ -27,6 +30,12 @@ export default function AuctionDetailClient({
   const [bids, setBids] = useState(initialBids);
   const [activeImage, setActiveImage] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [isWatched, setIsWatched] = useState(false);
+  const [watchlistBusy, setWatchlistBusy] = useState(false);
+  const [watchlistMessage, setWatchlistMessage] = useState<{
+    kind: "success" | "error";
+    text: string;
+  } | null>(null);
 
   const images =
     product.imageUrls.length > 0
@@ -61,6 +70,26 @@ export default function AuctionDetailClient({
   }, [refresh, state.status]);
 
   useEffect(() => {
+    let cancelled = false;
+    if (!getToken()) return;
+
+    userApi
+      .watchlist()
+      .then((response) => {
+        if (!cancelled) {
+          setIsWatched(response.data.some((item) => item.productId === product.productId));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setIsWatched(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product.productId]);
+
+  useEffect(() => {
     if (!lightboxOpen) return;
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -74,6 +103,40 @@ export default function AuctionDetailClient({
   }, [lightboxOpen, showNextImage, showPreviousImage]);
 
   const isActive = state.status === "ACTIVE";
+
+  async function toggleWatchlist() {
+    setWatchlistMessage(null);
+    if (!getToken()) {
+      setWatchlistMessage({
+        kind: "error",
+        text: "Bạn cần đăng nhập để thêm sản phẩm vào danh sách theo dõi.",
+      });
+      return;
+    }
+
+    setWatchlistBusy(true);
+    try {
+      if (isWatched) {
+        await userApi.removeFromWatchlist(product.productId);
+        setIsWatched(false);
+        setWatchlistMessage({ kind: "success", text: "Đã bỏ khỏi danh sách theo dõi." });
+      } else {
+        await userApi.addToWatchlist(product.productId);
+        setIsWatched(true);
+        setWatchlistMessage({ kind: "success", text: "Đã thêm vào danh sách theo dõi." });
+      }
+    } catch (cause) {
+      setWatchlistMessage({
+        kind: "error",
+        text:
+          cause instanceof ApiError
+            ? cause.message
+            : "Không thể cập nhật danh sách theo dõi. Vui lòng thử lại.",
+      });
+    } finally {
+      setWatchlistBusy(false);
+    }
+  }
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -130,10 +193,39 @@ export default function AuctionDetailClient({
                 {product.productName}
               </h1>
             </div>
-            <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80">
-              {state.totalBids} lượt bid
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => void toggleWatchlist()}
+                disabled={watchlistBusy}
+                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                  isWatched
+                    ? "border-[var(--luxora-gold)] bg-[var(--luxora-gold)]/15 text-[var(--luxora-gold-light)]"
+                    : "border-white/15 bg-white/5 text-white/75 hover:border-[var(--luxora-gold)] hover:text-[var(--luxora-gold-light)]"
+                }`}
+              >
+                <span className="material-symbols-outlined text-base">
+                  {isWatched ? "favorite" : "favorite_border"}
+                </span>
+                {isWatched ? "Đang theo dõi" : "Theo dõi"}
+              </button>
+              <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80">
+                {state.totalBids} lượt bid
+              </span>
+            </div>
           </div>
+
+          {watchlistMessage ? (
+            <p
+              className={`mt-4 rounded-lg border px-3 py-2 text-xs ${
+                watchlistMessage.kind === "success"
+                  ? "border-green-400/30 bg-green-500/10 text-green-200"
+                  : "border-red-400/30 bg-red-500/10 text-red-200"
+              }`}
+            >
+              {watchlistMessage.text}
+            </p>
+          ) : null}
 
           <h2 className="mt-6 text-sm font-semibold text-white/70">
             Thông tin lot này

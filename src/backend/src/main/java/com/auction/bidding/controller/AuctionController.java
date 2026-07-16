@@ -74,11 +74,14 @@ public class AuctionController {
         return ResponseEntity.ok(auctionService.getEligibility(auctionId, userId));
     }
 
-    /** Polled by the frontend every 1s. Public so unauthenticated users can preview the room. */
+    /** Polled by the frontend every few seconds. Public so unauthenticated users can preview the room. */
     @GetMapping("/{auctionId}/state")
     public ResponseEntity<AuctionStateResponse> getState(@PathVariable("auctionId") Long auctionId) {
-        biddingService.lockEndedAuctions();
-
+        // NOTE: intentionally no lockEndedAuctions() here — that scans every
+        // open room in the DB and this endpoint is polled constantly by every
+        // viewer. The AuctionStatusSyncScheduler flips ended rows once a
+        // minute, and resolveEffectiveStatus() below already derives the
+        // correct ENDED/UPCOMING status dynamically from the timestamps.
         AuctionSession auction = auctionSessionRepository.findById(auctionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + auctionId));
 
@@ -316,14 +319,13 @@ public class AuctionController {
             return ResponseEntity.status(401).body(Map.of("success", false, "message", "Authentication required"));
         }
         try {
-            contractService.acknowledgePurchaseContract(auctionId, user.getId());
-            boolean persisted = contractService.hasPurchaseContract(auctionId);
+            Contract contract = contractService.signPurchaseContract(auctionId, user.getId());
             return ResponseEntity.ok(Map.of(
                     "success", true,
-                    "message", persisted
+                    "message", true
                             ? "Đã ký hợp đồng mua bán. Bạn có thể tiếp tục thanh toán."
                             : "Đã xác nhận hợp đồng. Hợp đồng sẽ được lưu khi thanh toán thành công.",
-                    "signed", persisted,
+                    "signed", true,
                     "acknowledged", true
             ));
         } catch (com.auction.common.exception.BusinessException ex) {

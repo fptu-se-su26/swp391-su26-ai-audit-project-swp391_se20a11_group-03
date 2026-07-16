@@ -274,7 +274,9 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
         }
         long amount = deposit.getDepositAmount() != null ? deposit.getDepositAmount() : 0L;
         long currentHold = wallet.getHoldBalance() != null ? wallet.getHoldBalance() : 0L;
+        long currentBalance = wallet.getBalance() != null ? wallet.getBalance() : 0L;
         wallet.setHoldBalance(Math.max(0, currentHold - amount));
+        wallet.setBalance(Math.max(0, currentBalance - amount));
         wallet.setUpdatedAt(now);
         walletRepository.save(wallet);
 
@@ -534,9 +536,7 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
         }
         long amount = deposit.getDepositAmount() != null ? deposit.getDepositAmount() : 0L;
         long currentHold = wallet.getHoldBalance() != null ? wallet.getHoldBalance() : 0L;
-        long currentBalance = wallet.getBalance() != null ? wallet.getBalance() : 0L;
         wallet.setHoldBalance(Math.max(0, currentHold - amount));
-        wallet.setBalance(currentBalance + amount);
         wallet.setUpdatedAt(now);
         walletRepository.save(wallet);
 

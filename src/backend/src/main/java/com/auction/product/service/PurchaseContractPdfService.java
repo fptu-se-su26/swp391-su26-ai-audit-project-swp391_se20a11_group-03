@@ -120,7 +120,7 @@ public class PurchaseContractPdfService {
                 + "table.info td.label { background: #f5f5f5; width: 35%; font-weight: bold; }"
                 + "</style></head><body>"
                 + "<h1>HỢP ĐỒNG MUA BÁN QUA ĐẤU GIÁ</h1>"
-                + "<div class=\"sub\">LuxeAuction · Mã hợp đồng: PUR-" + d.auctionId() + " · Ngày ký: " + signedAt + "</div>"
+                + "<div class=\"sub\">BidZone · Mã hợp đồng: PUR-" + d.auctionId() + " · Ngày ký: " + signedAt + "</div>"
 
                 + "<table class=\"info\">"
                 + row("Sản phẩm", escape(d.productName()) + " (Mã #" + d.productId() + ")")
@@ -131,15 +131,15 @@ public class PurchaseContractPdfService {
                 + "<p class=\"term\"><b>ĐIỀU 1. Các bên tham gia</b></p>"
                 + "<p class=\"term\"><b>BÊN BÁN:</b> " + escape(d.sellerName()) + " — " + escape(d.sellerEmail()) + "</p>"
                 + "<p class=\"term\"><b>BÊN MUA:</b> " + escape(d.buyerName()) + " — " + escape(d.buyerEmail()) + "</p>"
-                + "<p class=\"term\"><b>NỀN TẢNG:</b> CÔNG TY LUXEAUCTION (đại diện: " + escape(d.adminName()) + ")</p>"
+                + "<p class=\"term\"><b>NỀN TẢNG:</b> CÔNG TY BIDZONE (đại diện: " + escape(d.adminName()) + ")</p>"
 
                 + "<p class=\"term\"><b>ĐIỀU 2. Đối tượng hợp đồng</b><br/>"
                 + "Bên Mua đồng ý mua và Bên Bán đồng ý bán sản phẩm nêu trên với giá chốt "
-                + price + " thông qua nền tảng đấu giá LuxeAuction.</p>"
+                + price + " thông qua nền tảng đấu giá BidZone.</p>"
 
                 + "<p class=\"term\"><b>ĐIỀU 3. Thanh toán</b><br/>"
                 + "Bên Mua thanh toán qua ví điện tử trên nền tảng. Sau khi ký hợp đồng này và hoàn tất thanh toán, "
-                + "giao dịch được coi là hoàn thành theo quy định của LuxeAuction.</p>"
+                + "giao dịch được coi là hoàn thành theo quy định của BidZone.</p>"
 
                 + "<p class=\"term\"><b>ĐIỀU 4. Cam kết</b><br/>"
                 + "Hai bên cam kết thông tin cung cấp là chính xác và tuân thủ quy tắc đấu giá của nền tảng.</p>"
@@ -148,7 +148,7 @@ public class PurchaseContractPdfService {
                 + "<div class=\"sign-block\">"
                 + "<div class=\"sign-title\">BÊN BÁN / NỀN TẢNG</div>"
                 + "<p>" + escape(d.adminName()) + "</p>"
-                + "<p class=\"pre-signed\">✔ Đã ký sẵn (LuxeAuction)</p>"
+                + "<p class=\"pre-signed\">✔ Đã ký sẵn (BidZone)</p>"
                 + "<p class=\"row\">" + escape(d.adminEmail()) + "</p>"
                 + "</div>"
                 + "<div class=\"sign-block\" style=\"float: right;\">"
@@ -160,7 +160,7 @@ public class PurchaseContractPdfService {
                 + "</div>"
 
                 + "<p style=\"margin-top: 48px; font-size: 10px; color: #888;\">"
-                + "Tài liệu được tạo tự động trên nền tảng LuxeAuction. Bản PDF này được lưu trữ và gửi về hệ thống quản trị.</p>"
+                + "Tài liệu được tạo tự động trên nền tảng BidZone. Bản PDF này được lưu trữ và gửi về hệ thống quản trị.</p>"
                 + "</body></html>";
     }
 

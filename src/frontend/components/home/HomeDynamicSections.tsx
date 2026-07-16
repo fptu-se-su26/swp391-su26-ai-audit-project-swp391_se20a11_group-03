@@ -57,7 +57,7 @@ export default function HomeDynamicSections() {
               <span className="truncate">PHIÊN ĐẤU GIÁ LIVE</span>
             </h2>
             <Link
-              href="/storefront"
+              href="/auctions"
               className="flex shrink-0 items-center gap-2 text-[11px] font-medium tracking-wider text-white/60 transition-colors hover:text-white sm:text-xs"
             >
               XEM TẤT CẢ

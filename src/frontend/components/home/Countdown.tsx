@@ -14,7 +14,19 @@ function pad(value: number | null) {
   return value === null ? "--" : value.toString().padStart(2, "0");
 }
 
-export default function Countdown({ endsAt }: { endsAt: number }) {
+type CountdownProps = {
+  endsAt: number;
+  prefix?: string;
+  className?: string;
+  expiredLabel?: string;
+};
+
+export default function Countdown({
+  endsAt,
+  prefix,
+  className = "flex items-center gap-1 font-mono text-sm font-semibold text-white",
+  expiredLabel = "Đã kết thúc",
+}: CountdownProps) {
   const [remaining, setRemaining] = useState<number | null>(null);
 
   useEffect(() => {
@@ -35,13 +47,18 @@ export default function Countdown({ endsAt }: { endsAt: number }) {
       ? { hours: null, minutes: null, seconds: null }
       : splitRemaining(remaining);
 
+  if (remaining !== null && remaining <= 0) {
+    return <span className={className}>{expiredLabel}</span>;
+  }
+
   return (
-    <div className="flex items-center gap-1 font-mono text-sm font-semibold text-white">
+    <span className={className}>
+      {prefix ? <span>{prefix}</span> : null}
       <span>{pad(hours)}</span>
       <span className="text-white/30">:</span>
       <span>{pad(minutes)}</span>
       <span className="text-white/30">:</span>
       <span>{pad(seconds)}</span>
-    </div>
+    </span>
   );
 }

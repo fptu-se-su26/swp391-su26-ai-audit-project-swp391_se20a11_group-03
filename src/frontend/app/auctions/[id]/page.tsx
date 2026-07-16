@@ -1,5 +1,7 @@
 import Link from "next/link";
-import CollectorShell from "@/components/shells/CollectorShell";
+import Header from "@/components/home/Header";
+import Footer from "@/components/home/Footer";
+import LiveChat from "@/components/feature/LiveChat";
 import AuctionDetailClient from "@/app/auctions/[id]/AuctionDetailClient";
 import { auctionApi, productApi, type BidRecord } from "@/lib/api";
 
@@ -26,8 +28,10 @@ export default async function AuctionDetailPage({
   }
 
   return (
-    <CollectorShell>
-      <div className="mx-auto max-w-7xl px-6 py-10">
+    <div className="luxora-app flex min-h-screen flex-col bg-black text-white">
+      <Header />
+      <main className="flex-1">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
         <nav className="mb-6 flex items-center gap-2 text-xs text-white/40">
           <Link href="/storefront" className="hover:text-white">
             Cửa hàng
@@ -60,7 +64,10 @@ export default async function AuctionDetailPage({
             </Link>
           </div>
         )}
-      </div>
-    </CollectorShell>
+        </div>
+      </main>
+      <Footer />
+      <LiveChat />
+    </div>
   );
 }

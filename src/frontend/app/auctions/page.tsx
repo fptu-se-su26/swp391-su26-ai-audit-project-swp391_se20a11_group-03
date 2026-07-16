@@ -1,13 +1,17 @@
 import Image from "next/image";
 import { Suspense } from "react";
-import CollectorShell from "@/components/shells/CollectorShell";
+import Header from "@/components/home/Header";
+import Footer from "@/components/home/Footer";
+import LiveChat from "@/components/feature/LiveChat";
 import StorefrontData from "@/app/storefront/StorefrontData";
 import StorefrontDataFallback from "@/app/storefront/StorefrontDataFallback";
 
 export default function AuctionsPage() {
   return (
-    <CollectorShell>
-      <div className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8 xl:px-10">
+    <div className="luxora-app flex min-h-screen flex-col bg-black text-white">
+      <Header />
+      <main className="flex-1">
+        <div className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8 xl:px-10">
         <section className="glass-card relative min-h-[280px] overflow-hidden rounded-3xl border border-white/10 bg-[#030303]">
           <Image
             src="/images/luxury-watch-hero-lcp.webp"
@@ -37,7 +41,10 @@ export default function AuctionsPage() {
         <Suspense fallback={<StorefrontDataFallback />}>
           <StorefrontData basePath="/auctions" />
         </Suspense>
-      </div>
-    </CollectorShell>
+        </div>
+      </main>
+      <Footer />
+      <LiveChat />
+    </div>
   );
 }
