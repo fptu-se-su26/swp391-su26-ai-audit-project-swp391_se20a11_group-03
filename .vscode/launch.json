@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-AuctionApplication<com.vnec-vnec-auth>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.auction.AuctionApplication",
+      "projectName": "com.vnec-vnec-auth",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot-AuctionApplication<vnec-auth>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.auction.AuctionApplication",
+      "projectName": "vnec-auth",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}

@@ -46,6 +46,14 @@ export default function WalletPage() {
     EMPTY_WALLET,
   );
   const [showDeposit, setShowDeposit] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [accountName, setAccountName] = useState("");
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawError, setWithdrawError] = useState("");
+  const [withdrawSuccess, setWithdrawSuccess] = useState("");
   const [amount, setAmount] = useState("100000");
   const [depositQr, setDepositQr] = useState<DepositQrResponse | null>(null);
   const [balanceBeforeDeposit, setBalanceBeforeDeposit] = useState(0);
@@ -94,6 +102,53 @@ export default function WalletPage() {
       );
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  const numericWithdrawAmount = Number(withdrawAmount.replace(/\D/g, ""));
+
+  function openWithdraw() {
+    setShowWithdraw(true);
+    setWithdrawError("");
+    setWithdrawSuccess("");
+  }
+
+  async function submitWithdraw(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setWithdrawError("");
+    setWithdrawSuccess("");
+
+    if (!Number.isSafeInteger(numericWithdrawAmount) || numericWithdrawAmount < 10_000) {
+      setWithdrawError("Số tiền rút tối thiểu là 10.000 ₫.");
+      return;
+    }
+    if (numericWithdrawAmount > data.wallet.availableBalance) {
+      setWithdrawError("Số tiền rút vượt quá số dư khả dụng.");
+      return;
+    }
+
+    setWithdrawing(true);
+    try {
+      await walletApi.withdraw({
+        amount: numericWithdrawAmount,
+        bankName: bankName.trim(),
+        accountNumber: accountNumber.trim(),
+        accountName: accountName.trim(),
+      });
+      setWithdrawSuccess(
+        "Đã gửi yêu cầu rút tiền. Nhân viên sẽ xử lý trong thời gian sớm nhất.",
+      );
+      setWithdrawAmount("");
+      const nextData = await loadWallet();
+      setData(nextData);
+    } catch (cause) {
+      setWithdrawError(
+        cause instanceof ApiError
+          ? cause.message
+          : "Không thể gửi yêu cầu rút tiền. Vui lòng thử lại.",
+      );
+    } finally {
+      setWithdrawing(false);
     }
   }
 
@@ -159,6 +214,7 @@ export default function WalletPage() {
             </p>
             <button
               type="button"
+              onClick={openWithdraw}
               className="mt-4 w-full rounded-full border border-white/15 py-2.5 text-xs font-semibold hover:border-[var(--luxora-gold)]"
             >
               Rút tiền
@@ -383,6 +439,123 @@ export default function WalletPage() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      ) : null}
+      {showWithdraw ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="withdraw-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowWithdraw(false);
+          }}
+        >
+          <div className="relative max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-lg border border-white/15 bg-[#111] p-5 shadow-2xl sm:p-6">
+            <button
+              type="button"
+              onClick={() => setShowWithdraw(false)}
+              title="Đóng"
+              aria-label="Đóng"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+
+            <h2 id="withdraw-title" className="font-headline-md pr-12 text-xl">
+              Rút tiền về tài khoản ngân hàng
+            </h2>
+            <p className="mt-1 text-sm text-white/50">
+              Số dư khả dụng: {formatVnd(data.wallet.availableBalance)}. Yêu cầu
+              sẽ được nhân viên duyệt trước khi chuyển khoản.
+            </p>
+
+            <form onSubmit={submitWithdraw} className="mt-6 flex flex-col gap-4">
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
+                  Số tiền rút
+                </span>
+                <div className="mt-2 flex h-12 items-center rounded-lg border border-white/15 bg-black/40 px-4 focus-within:border-[var(--luxora-gold)]">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoFocus
+                    value={
+                      numericWithdrawAmount
+                        ? numericWithdrawAmount.toLocaleString("vi-VN")
+                        : ""
+                    }
+                    onChange={(event) =>
+                      setWithdrawAmount(event.target.value.replace(/\D/g, ""))
+                    }
+                    placeholder="Tối thiểu 10.000"
+                    className="min-w-0 flex-1 bg-transparent text-lg font-semibold outline-none"
+                  />
+                  <span className="text-sm text-white/45">₫</span>
+                </div>
+              </label>
+
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
+                  Ngân hàng
+                </span>
+                <input
+                  type="text"
+                  required
+                  value={bankName}
+                  onChange={(event) => setBankName(event.target.value)}
+                  placeholder="VD: Vietcombank"
+                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-black/40 px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
+                  Số tài khoản
+                </span>
+                <input
+                  type="text"
+                  required
+                  inputMode="numeric"
+                  value={accountNumber}
+                  onChange={(event) =>
+                    setAccountNumber(event.target.value.replace(/\D/g, ""))
+                  }
+                  placeholder="Nhập số tài khoản nhận tiền"
+                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-black/40 px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
+                  Chủ tài khoản
+                </span>
+                <input
+                  type="text"
+                  required
+                  value={accountName}
+                  onChange={(event) => setAccountName(event.target.value)}
+                  placeholder="Tên chủ tài khoản (không dấu)"
+                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-black/40 px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
+                />
+              </label>
+
+              {withdrawError ? (
+                <p className="text-sm text-red-300">{withdrawError}</p>
+              ) : null}
+              {withdrawSuccess ? (
+                <p className="text-sm text-green-300">{withdrawSuccess}</p>
+              ) : null}
+
+              <button
+                type="submit"
+                disabled={withdrawing}
+                className="gradient-cta h-11 w-full rounded-full text-sm font-bold text-black disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {withdrawing ? "ĐANG GỬI YÊU CẦU..." : "GỬI YÊU CẦU RÚT TIỀN"}
+              </button>
+            </form>
           </div>
         </div>
       ) : null}

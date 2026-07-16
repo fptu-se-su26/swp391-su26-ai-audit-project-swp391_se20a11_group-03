@@ -41,6 +41,12 @@ public class DepositServiceImpl implements DepositService {
         Wallet wallet = walletRepository.findByUser_Id(Math.toIntExact(userId))
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found for user: " + userId));
 
+        if (auction.getProduct() != null
+                && auction.getProduct().getSellerId() != null
+                && auction.getProduct().getSellerId().equals(userId)) {
+            throw new IllegalStateException("Người bán không thể đặt cọc cho phiên của chính mình");
+        }
+
         if (!"UPCOMING".equalsIgnoreCase(auction.getStatus()) && !"ACTIVE".equalsIgnoreCase(auction.getStatus())) {
             throw new IllegalStateException("Deposit is only allowed for upcoming or active auctions");
         }

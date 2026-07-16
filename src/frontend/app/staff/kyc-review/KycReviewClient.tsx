@@ -1,168 +1,273 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { adminApi, ApiError, kycApi, type KycReview } from "@/lib/api";
 
-type SubmissionStatus = "pending" | "approved" | "rejected" | "info_required";
-
-type Submission = {
-  id: string;
-  name: string;
-  email: string;
-  date: string;
-  hasGovId: boolean;
-  hasProofOfAddress: boolean;
+const STATUS_CLASS: Record<string, string> = {
+  PENDING: "bg-yellow-500/10 text-yellow-300",
+  APPROVED: "bg-green-500/10 text-green-300",
+  REJECTED: "bg-red-500/10 text-red-300",
+  INFO_REQUIRED: "bg-blue-500/10 text-blue-300",
 };
 
-const SUBMISSIONS: Submission[] = [
-  { id: "1", name: "Trần Văn Đức", email: "duc.tran@luxora.vn", date: "03/07/2026", hasGovId: true, hasProofOfAddress: true },
-  { id: "2", name: "Lê Thu Hà", email: "ha.le@luxora.vn", date: "02/07/2026", hasGovId: true, hasProofOfAddress: false },
-  { id: "3", name: "Vũ Anh Tuấn", email: "tuan.vu@luxora.vn", date: "01/07/2026", hasGovId: false, hasProofOfAddress: false },
-];
-
-const STATUS_LABEL: Record<SubmissionStatus, string> = {
-  pending: "Chờ duyệt",
-  approved: "Đã duyệt",
-  rejected: "Từ chối",
-  info_required: "Cần bổ sung",
+const SEVERITY_CLASS: Record<string, string> = {
+  HIGH: "text-red-300",
+  MEDIUM: "text-yellow-300",
+  LOW: "text-white/50",
 };
 
-const STATUS_CLASS: Record<SubmissionStatus, string> = {
-  pending: "bg-yellow-500/10 text-yellow-300",
-  approved: "bg-green-500/10 text-green-300",
-  rejected: "bg-red-500/10 text-red-300",
-  info_required: "bg-blue-500/10 text-blue-300",
-};
+function fmt(date: string | null) {
+  return date ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(date)) : "—";
+}
 
 export default function KycReviewClient() {
-  const [selected, setSelected] = useState(SUBMISSIONS[0].id);
-  const [statuses, setStatuses] = useState<Record<string, SubmissionStatus>>(
-    Object.fromEntries(SUBMISSIONS.map((s) => [s.id, "pending"])),
-  );
+  const [items, setItems] = useState<KycReview[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  const current = SUBMISSIONS.find((s) => s.id === selected)!;
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const list = await adminApi.kycList("PENDING");
+      setItems(list);
+      setSelectedId((prev) => (prev && list.some((k) => k.kycId === prev) ? prev : list[0]?.kycId ?? null));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Không thể tải hàng đợi KYC.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const current = items.find((k) => k.kycId === selectedId) ?? null;
+
+  async function act(kind: "approve" | "reject" | "info") {
+    if (!current) return;
+    if ((kind === "reject" || kind === "info") && !note.trim()) {
+      setError("Vui lòng nhập lý do / ghi chú trước khi từ chối hoặc yêu cầu bổ sung.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      if (kind === "approve") await adminApi.approveKyc(current.kycId);
+      else if (kind === "reject") await adminApi.rejectKyc(current.kycId, note.trim());
+      else await adminApi.requestInfoKyc(current.kycId, note.trim());
+      setNotice(
+        kind === "approve"
+          ? `Đã duyệt KYC của ${current.fullName ?? current.email}.`
+          : kind === "reject"
+            ? "Đã từ chối hồ sơ."
+            : "Đã yêu cầu bổ sung.",
+      );
+      setNote("");
+      await load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Thao tác thất bại.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
-    <div className="flex h-[calc(100vh-2rem)] m-4 overflow-hidden rounded-3xl border border-white/10">
+    <div className="m-4 flex h-[calc(100vh-2rem)] overflow-hidden rounded-3xl border border-white/10">
+      {/* Queue */}
       <aside className="w-72 shrink-0 overflow-y-auto border-r border-white/10">
         <div className="border-b border-white/10 p-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-white/40">
-            Hàng đợi KYC
+            Hàng đợi KYC ({items.length})
           </p>
         </div>
-        {SUBMISSIONS.map((s) => (
+        {loading && <p className="p-4 text-sm text-white/40">Đang tải...</p>}
+        {!loading && items.length === 0 && (
+          <p className="p-4 text-sm text-white/40">Không có hồ sơ chờ duyệt.</p>
+        )}
+        {items.map((s) => (
           <button
-            key={s.id}
+            key={s.kycId}
             type="button"
-            onClick={() => setSelected(s.id)}
+            onClick={() => {
+              setSelectedId(s.kycId);
+              setNote("");
+              setError(null);
+              setNotice(null);
+            }}
             className={`flex w-full flex-col gap-1 border-b border-white/5 px-4 py-3 text-left transition-colors ${
-              selected === s.id ? "bg-white/5" : "hover:bg-white/[0.03]"
+              selectedId === s.kycId ? "bg-white/5" : "hover:bg-white/[0.03]"
             }`}
           >
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">{s.name}</p>
-              <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS_CLASS[statuses[s.id]]}`}
-              >
-                {STATUS_LABEL[statuses[s.id]]}
+            <div className="flex items-center justify-between gap-2">
+              <p className="truncate text-sm font-medium">{s.fullName ?? s.email ?? `KYC #${s.kycId}`}</p>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS_CLASS[s.status] ?? "bg-white/10 text-white/50"}`}>
+                {s.status}
               </span>
             </div>
-            <p className="text-[11px] text-white/40">{s.date}</p>
+            <p className="text-[11px] text-white/40">{fmt(s.submittedAt)}</p>
           </button>
         ))}
       </aside>
 
+      {/* Detail */}
       <div className="flex flex-1 flex-col overflow-y-auto p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5">
-          <div>
-            <p className="text-lg font-semibold">{current.name}</p>
-            <p className="text-sm text-white/40">
-              {current.email} · {current.date}
-            </p>
+        {!current ? (
+          <div className="flex flex-1 items-center justify-center text-sm text-white/40">
+            {error ?? "Chọn một hồ sơ để xem chi tiết."}
           </div>
-          <span
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${STATUS_CLASS[statuses[current.id]]}`}
-          >
-            {STATUS_LABEL[statuses[current.id]]}
-          </span>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {[
-            { label: "Giấy tờ tùy thân", present: current.hasGovId },
-            { label: "Chứng minh địa chỉ", present: current.hasProofOfAddress },
-          ].map((doc) => (
-            <div key={doc.label} className="glass-panel rounded-2xl p-5">
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-semibold">{doc.label}</p>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${
-                    doc.present
-                      ? "bg-green-500/10 text-green-300"
-                      : "bg-red-500/10 text-red-300"
-                  }`}
-                >
-                  {doc.present ? "Đã tải lên" : "Thiếu"}
-                </span>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5">
+              <div>
+                <p className="text-lg font-semibold">{current.fullName ?? "—"}</p>
+                <p className="text-sm text-white/40">{current.email} · {fmt(current.submittedAt)}</p>
               </div>
-              {doc.present ? (
-                <div className="flex h-32 items-center justify-center rounded-xl bg-white/5 text-white/20">
-                  <span className="material-symbols-outlined text-4xl">
-                    description
-                  </span>
-                </div>
-              ) : (
-                <div className="flex h-32 items-center justify-center rounded-xl border border-dashed border-white/10 text-xs text-white/30">
-                  Chưa có tài liệu
-                </div>
-              )}
+              <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${STATUS_CLASS[current.status] ?? "bg-white/10 text-white/50"}`}>
+                {current.status}
+              </span>
             </div>
-          ))}
-        </div>
 
-        <div className="mt-6">
-          <label className="mb-1.5 block text-xs font-medium text-white/50">
-            Ghi chú xét duyệt
-          </label>
-          <textarea
-            rows={3}
-            placeholder="Ghi chú xét duyệt..."
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
-          />
-        </div>
+            {current.cccdDuplicate && (
+              <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                ⚠ Số CCCD này trùng với tài khoản khác trong hệ thống.
+              </div>
+            )}
 
-        <div className="mt-4 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() =>
-              setStatuses((prev) => ({ ...prev, [current.id]: "approved" }))
-            }
-            className="rounded-full bg-green-500/10 px-5 py-2.5 text-sm font-semibold text-green-300 hover:bg-green-500/20"
-          >
-            Duyệt KYC
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              setStatuses((prev) => ({
-                ...prev,
-                [current.id]: "info_required",
-              }))
-            }
-            className="rounded-full bg-blue-500/10 px-5 py-2.5 text-sm font-semibold text-blue-300 hover:bg-blue-500/20"
-          >
-            Yêu cầu bổ sung
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              setStatuses((prev) => ({ ...prev, [current.id]: "rejected" }))
-            }
-            className="rounded-full bg-red-500/10 px-5 py-2.5 text-sm font-semibold text-red-300 hover:bg-red-500/20"
-          >
-            Từ chối
-          </button>
-        </div>
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Info label="Số CCCD" value={current.cccdNumber} />
+              <Info label="Số điện thoại" value={current.phone} />
+              <Info label="Ngày sinh" value={current.dob} />
+              <Info label="Giới tính" value={current.gender} />
+              <Info label="Ngày cấp" value={current.issueDate} />
+              <Info label="Nơi cấp" value={current.issuePlace} />
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <DocCard title="CCCD trước" kycId={current.kycId} which="front" exists={!!current.frontImageUrl} analysis={current.frontImageAnalysis} />
+              <DocCard title="CCCD sau" kycId={current.kycId} which="back" exists={!!current.backImageUrl} analysis={current.backImageAnalysis} />
+              <DocCard title="Chân dung" kycId={current.kycId} which="selfie" exists={!!current.selfieImageUrl} analysis={current.selfieImageAnalysis} />
+            </div>
+
+            <div className="mt-6">
+              <label className="mb-1.5 block text-xs font-medium text-white/50">
+                Ghi chú / Lý do (bắt buộc khi từ chối hoặc yêu cầu bổ sung)
+              </label>
+              <textarea
+                rows={3}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Nhập lý do..."
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
+              />
+            </div>
+
+            {error && (
+              <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>
+            )}
+            {notice && (
+              <div className="mt-4 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-300">{notice}</div>
+            )}
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button type="button" disabled={busy} onClick={() => act("approve")}
+                className="rounded-full bg-green-500/10 px-5 py-2.5 text-sm font-semibold text-green-300 hover:bg-green-500/20 disabled:opacity-50">
+                {busy ? "..." : "Duyệt KYC"}
+              </button>
+              <button type="button" disabled={busy} onClick={() => act("info")}
+                className="rounded-full bg-blue-500/10 px-5 py-2.5 text-sm font-semibold text-blue-300 hover:bg-blue-500/20 disabled:opacity-50">
+                Yêu cầu bổ sung
+              </button>
+              <button type="button" disabled={busy} onClick={() => act("reject")}
+                className="rounded-full bg-red-500/10 px-5 py-2.5 text-sm font-semibold text-red-300 hover:bg-red-500/20 disabled:opacity-50">
+                Từ chối
+              </button>
+            </div>
+          </>
+        )}
       </div>
+    </div>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string | null }) {
+  return (
+    <div className="glass-panel rounded-xl px-4 py-3">
+      <p className="text-[11px] text-white/40">{label}</p>
+      <p className="mt-0.5 text-sm">{value || "—"}</p>
+    </div>
+  );
+}
+
+function DocCard({
+  title,
+  kycId,
+  which,
+  exists,
+  analysis,
+}: {
+  title: string;
+  kycId: number;
+  which: "front" | "back" | "selfie";
+  exists: boolean;
+  analysis?: { riskScore: number; severity: string; signals: Array<{ severity: string; message: string }> } | null;
+}) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (!exists) return;
+    let objectUrl: string | null = null;
+    let cancelled = false;
+    kycApi
+      .imageBlob(kycId, which)
+      .then((blob) => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setSrc(objectUrl);
+      })
+      .catch(() => setFailed(true));
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [kycId, which, exists]);
+
+  return (
+    <div className="glass-panel rounded-2xl p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-sm font-semibold">{title}</p>
+        {analysis && (
+          <span className={`text-[11px] font-semibold ${SEVERITY_CLASS[analysis.severity] ?? "text-white/50"}`}>
+            Rủi ro {analysis.riskScore}
+          </span>
+        )}
+      </div>
+      {exists && src ? (
+        <a href={src} target="_blank" rel="noreferrer">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt={title} className="h-36 w-full rounded-xl object-cover" />
+        </a>
+      ) : (
+        <div className="flex h-36 items-center justify-center rounded-xl border border-dashed border-white/10 text-xs text-white/30">
+          {!exists ? "Chưa có ảnh" : failed ? "Không tải được ảnh" : "Đang tải..."}
+        </div>
+      )}
+      {analysis?.signals?.length ? (
+        <ul className="mt-2 space-y-1">
+          {analysis.signals.slice(0, 3).map((sig, i) => (
+            <li key={i} className={`text-[11px] ${SEVERITY_CLASS[sig.severity] ?? "text-white/50"}`}>
+              • {sig.message}
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }

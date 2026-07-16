@@ -25,6 +25,7 @@
         <jjwt.version>0.12.6</jjwt.version>
         <flying-saucer-pdf.version>9.11.6</flying-saucer-pdf.version>
         <metadata-extractor.version>2.19.0</metadata-extractor.version>
+        <cloudinary.version>1.39.0</cloudinary.version>
     </properties>
 
     <dependencyManagement>
@@ -149,6 +150,11 @@
             <groupId>com.drewnoakes</groupId>
             <artifactId>metadata-extractor</artifactId>
             <version>${metadata-extractor.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http44</artifactId>
+            <version>${cloudinary.version}</version>
         </dependency>
     </dependencies>
 

@@ -5,7 +5,7 @@ import com.auction.account.dto.KycSubmissionResponse;
 import com.auction.account.security.UserDetailsImpl;
 import com.auction.account.service.CccdOcrService;
 import com.auction.account.service.KycService;
-import com.auction.common.service.GeminiOcrService;
+import com.auction.common.service.GroqOcrService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -28,7 +28,7 @@ public class KycController {
 
     private final KycService kycService;
     private final CccdOcrService cccdOcrService;
-    private final GeminiOcrService geminiOcrService;
+    private final GroqOcrService groqOcrService;
 
     /**
      * User submits a KYC application. Multipart so the three ID photos are
@@ -123,13 +123,13 @@ public class KycController {
     }
 
     /**
-     * Scan a single CCCD image via Google Gemini and return raw extracted JSON.
+     * Scan a single CCCD image via Groq and return raw extracted JSON.
      */
     @CrossOrigin(origins = "*")
     @PostMapping(value = "/scan-cccd", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> scanCccd(@RequestParam("image") MultipartFile image) {
         try {
-            String json = geminiOcrService.scanIdCard(image);
+            String json = groqOcrService.scanIdCard(image);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(json);
@@ -160,6 +160,37 @@ public class KycController {
         body.put("success", true);
         body.put("data", kycService.getMyLatest(currentUser.getId()).orElse(null));
         return ResponseEntity.ok(body);
+    }
+
+    /**
+     * Streams a private KYC image. Access is limited to the owner of the
+     * submission or a staff/admin reviewer; the raw Cloudinary asset itself is
+     * private (authenticated) and never directly reachable.
+     */
+    @GetMapping("/{kycId}/image/{which}")
+    public ResponseEntity<byte[]> image(
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
+            @PathVariable("kycId") Long kycId,
+            @PathVariable("which") String which) {
+        if (currentUser == null) {
+            return ResponseEntity.status(401).build();
+        }
+        boolean isStaff = currentUser.getAuthorities().stream()
+                .map(a -> a.getAuthority())
+                .anyMatch(r -> "ROLE_Staff".equals(r) || "ROLE_Admin".equals(r));
+        try {
+            byte[] bytes = kycService.getImageBytes(kycId, which, currentUser.getId(), isStaff);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .header("Cache-Control", "private, max-age=300")
+                    .body(bytes);
+        } catch (SecurityException ex) {
+            return ResponseEntity.status(403).build();
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception ex) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/list")

@@ -33,18 +33,18 @@ public class BidZoneChatbotService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-    private final GeminiKeyPool keyPool;
+    private final GroqKeyPool keyPool;
 
-    @Value("${gemini.api.base-url:https://generativelanguage.googleapis.com/v1beta}")
+    @Value("${groq.api.base-url:https://api.groq.com/openai/v1}")
     private String apiBaseUrl;
 
-    @Value("${gemini.api.model:gemini-flash-lite-latest}")
+    @Value("${groq.api.model:qwen/qwen3.6-27b}")
     private String model;
 
     public BidZoneChatbotService(
             RestTemplate restTemplate,
             ObjectMapper objectMapper,
-            @Qualifier("chat") GeminiKeyPool keyPool
+            @Qualifier("chat") GroqKeyPool keyPool
     ) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
@@ -55,31 +55,35 @@ public class BidZoneChatbotService {
         String trimmed = message == null ? "" : message.trim();
         if (keyPool.isConfigured()) {
             try {
-                String answer = keyPool.executeWithPool(apiKey -> invokeGemini(apiKey, trimmed));
+                String answer = keyPool.executeWithPool(apiKey -> invokeGroq(apiKey, trimmed));
                 return new ChatbotResponse(answer, true);
             } catch (Exception ex) {
-                log.warn("Gemini chatbot unavailable, using local support fallback: {}", ex.getMessage());
+                log.warn("Groq chatbot unavailable, using local support fallback: {}", ex.getMessage());
             }
         }
         return new ChatbotResponse(localReply(trimmed), false);
     }
 
-    private String invokeGemini(String apiKey, String message) {
-        String url = apiBaseUrl + "/models/" + model.trim() + ":generateContent?key=" + apiKey.trim();
+    private String invokeGroq(String apiKey, String message) {
+        String url = apiBaseUrl.replaceAll("/+$", "") + "/chat/completions";
         Map<String, Object> body = Map.of(
-                "contents", List.of(Map.of(
-                        "parts", List.of(Map.of("text", SYSTEM_PROMPT.formatted(message)))
+                "model", model.trim(),
+                "messages", List.of(Map.of(
+                        "role", "user",
+                        "content", SYSTEM_PROMPT.formatted(message)
                 )),
-                "generationConfig", Map.of("temperature", 0.3, "maxOutputTokens", 300)
+                "temperature", 0.3,
+                "max_completion_tokens", 300
         );
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey.trim());
         String raw = restTemplate.postForObject(url, new HttpEntity<>(body, headers), String.class);
         try {
             JsonNode root = objectMapper.readTree(raw);
-            String text = root.path("candidates").path(0).path("content").path("parts").path(0).path("text").asText("").trim();
+            String text = root.path("choices").path(0).path("message").path("content").asText("").trim();
             if (text.isBlank()) {
-                throw new IllegalStateException("Gemini không trả về nội dung");
+                throw new IllegalStateException("Groq không trả về nội dung");
             }
             return text;
         } catch (Exception ex) {

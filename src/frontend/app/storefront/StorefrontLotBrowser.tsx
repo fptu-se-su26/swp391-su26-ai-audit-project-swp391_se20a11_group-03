@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { StorefrontLot } from "@/lib/api";
 
 const VND = new Intl.NumberFormat("vi-VN");
@@ -34,6 +34,15 @@ function timeLeftToSeconds(timeLeft: string) {
   return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
 }
 
+function formatCountdown(ms: number): string {
+  if (ms <= 0) return "Đã kết thúc";
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
 function parsePrice(value: string) {
   const trimmedValue = value.trim();
 
@@ -54,6 +63,21 @@ export default function StorefrontLotBrowser({
   const [sortBy, setSortBy] = useState<SortBy>("default");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
+
+  // Live ticking clock for the countdown on each card. Starts as null so the
+  // server-rendered HTML (static lot.timeLeft) matches the first client render,
+  // then switches to a real per-second countdown after mount.
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    setNow(Date.now());
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  function liveTimeLeft(lot: StorefrontLot): string {
+    if (now === null || lot.endsAt === null) return lot.timeLeft;
+    return formatCountdown(lot.endsAt - now);
+  }
 
   const visibleLots = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("vi-VN");
@@ -280,7 +304,7 @@ export default function StorefrontLotBrowser({
                   <div className="text-right">
                     <p className="text-[11px] text-white/40">Còn lại</p>
                     <p className="text-xs font-medium text-white/70">
-                      {lot.timeLeft}
+                      {liveTimeLeft(lot)}
                     </p>
                   </div>
                 </div>

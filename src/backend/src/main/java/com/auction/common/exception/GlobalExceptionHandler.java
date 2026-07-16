@@ -70,6 +70,15 @@ public class GlobalExceptionHandler {
                 "timestamp", LocalDateTime.now().toString()));
     }
 
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleResponseStatus(
+            org.springframework.web.server.ResponseStatusException ex) {
+        return ResponseEntity.status(ex.getStatusCode()).body(Map.of(
+                "status", ex.getStatusCode().value(),
+                "message", ex.getReason() != null ? ex.getReason() : ex.getMessage(),
+                "timestamp", LocalDateTime.now().toString()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
         log.error("[GlobalExceptionHandler] Unhandled exception", ex);

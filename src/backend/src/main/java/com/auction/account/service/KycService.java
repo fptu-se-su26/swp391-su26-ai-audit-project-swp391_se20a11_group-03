@@ -7,11 +7,13 @@ import com.auction.account.dto.KycSubmissionResponse;
 import com.auction.account.entity.KycProfile;
 import com.auction.account.entity.Role;
 import com.auction.account.entity.User;
+import com.auction.common.service.CloudinaryService;
 import com.auction.common.service.ImageForensicsService;
 import com.auction.notification.entity.Notification;
 import com.auction.notification.service.NotificationService;
 import com.auction.product.entity.Contract;
 import com.auction.product.service.ContractService;
+import com.auction.bidding.service.AuctionSettlementService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -34,6 +36,9 @@ import java.util.UUID;
 @Service
 public class KycService {
 
+    private static final org.slf4j.Logger auditLog =
+            org.slf4j.LoggerFactory.getLogger("KYC_AUDIT");
+
     public static final String STATUS_PENDING = "PENDING";
     public static final String STATUS_APPROVED = "APPROVED";
     public static final String STATUS_REJECTED = "REJECTED";
@@ -47,6 +52,8 @@ public class KycService {
     private final CccdOcrService cccdOcrService;
     private final ContractService contractService;
     private final NotificationService notificationService;
+    private final CloudinaryService cloudinaryService;
+    private final AuctionSettlementService auctionSettlementService;
 
     @Value("${app.kyc.upload-dir:#{systemProperties['user.dir']}/src/main/resources/static/uploads/kyc}")
     private String uploadDir;
@@ -54,9 +61,14 @@ public class KycService {
     @Value("${app.kyc.public-prefix:/uploads/kyc}")
     private String publicPrefix;
 
+    @Value("${cloudinary.folder.kyc:auction/kyc}")
+    private String kycFolder;
+
     public KycService(JdbcTemplate jdbcTemplate, UserRepository userRepository, RoleRepository roleRepository,
                       ResourceLoader resourceLoader, ImageForensicsService imageForensicsService, CccdOcrService cccdOcrService,
-                      ContractService contractService, NotificationService notificationService) {
+                      ContractService contractService, NotificationService notificationService,
+                      CloudinaryService cloudinaryService,
+                      AuctionSettlementService auctionSettlementService) {
         this.jdbcTemplate = jdbcTemplate;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -65,6 +77,8 @@ public class KycService {
         this.cccdOcrService = cccdOcrService;
         this.contractService = contractService;
         this.notificationService = notificationService;
+        this.cloudinaryService = cloudinaryService;
+        this.auctionSettlementService = auctionSettlementService;
     }
 
     @Transactional
@@ -121,10 +135,18 @@ public class KycService {
                 frontUrl, backUrl, selfieUrl, STATUS_PENDING, now
         );
 
-        // Flip the user into a pending-KYC state so the UI can show a "under review" badge.
+        // A new submission invalidates any previous approval until staff approves
+        // the newly submitted documents.
         jdbcTemplate.update(
-                "UPDATE Users SET ProfileStatus = ? WHERE UserId = ?",
+                "UPDATE Users SET IdentityVerified = FALSE, IdentityVerifiedAt = NULL, "
+                        + "ProfileStatus = ?, "
+                        + "VerificationLevel = CASE WHEN VerificationLevel > 1 THEN 1 ELSE VerificationLevel END "
+                        + "WHERE UserId = ?",
                 "PENDING_IDENTITY_VERIFY", userId
+        );
+        auctionSettlementService.cancelSellerListingsForKycRevocation(
+                userId,
+                "Sản phẩm bị gỡ vì người bán đã gửi lại hồ sơ KYC và đang chờ xác thực."
         );
 
         if (signSellerAgreement && !contractService.hasSellerContract(userId)) {
@@ -249,13 +271,27 @@ public class KycService {
             );
         } else if (STATUS_REJECTED.equals(newStatus)) {
             jdbcTemplate.update(
-                    "UPDATE Users SET IdentityVerified = FALSE, ProfileStatus = 'KYC_REJECTED' WHERE UserId = ?",
+                    "UPDATE Users SET IdentityVerified = FALSE, IdentityVerifiedAt = NULL, "
+                            + "ProfileStatus = 'KYC_REJECTED', "
+                            + "VerificationLevel = CASE WHEN VerificationLevel > 1 THEN 1 ELSE VerificationLevel END "
+                            + "WHERE UserId = ?",
                     userId
+            );
+            auctionSettlementService.cancelSellerListingsForKycRevocation(
+                    userId.longValue(),
+                    "Sản phẩm bị gỡ vì hồ sơ KYC của người bán đã bị từ chối."
             );
         } else if (STATUS_INFO_REQUIRED.equals(newStatus)) {
             jdbcTemplate.update(
-                    "UPDATE Users SET ProfileStatus = 'KYC_INFO_REQUIRED' WHERE UserId = ?",
+                    "UPDATE Users SET IdentityVerified = FALSE, IdentityVerifiedAt = NULL, "
+                            + "ProfileStatus = 'KYC_INFO_REQUIRED', "
+                            + "VerificationLevel = CASE WHEN VerificationLevel > 1 THEN 1 ELSE VerificationLevel END "
+                            + "WHERE UserId = ?",
                     userId
+            );
+            auctionSettlementService.cancelSellerListingsForKycRevocation(
+                    userId.longValue(),
+                    "Sản phẩm bị gỡ vì hồ sơ KYC của người bán cần được bổ sung."
             );
         }
 
@@ -306,8 +342,11 @@ public class KycService {
 
     private KycSubmissionResponse mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
         String userFullName = rs.getString("UserFullName");
+        long kycId = rs.getLong("KycId");
+        // Never expose the raw stored value (Cloudinary public_id / legacy path)
+        // to clients — hand back the access-controlled proxy endpoint instead.
         KycSubmissionResponse.KycSubmissionResponseBuilder builder = KycSubmissionResponse.builder()
-                .kycId(rs.getLong("KycId"))
+                .kycId(kycId)
                 .userId(rs.getLong("UserId"))
                 .fullName(userFullName)
                 .email(rs.getString("Email"))
@@ -317,9 +356,9 @@ public class KycService {
                 .gender(rs.getString("Gender"))
                 .issueDate(rs.getDate("IssueDate") != null ? rs.getDate("IssueDate").toLocalDate() : null)
                 .issuePlace(rs.getString("IssuePlace"))
-                .frontImageUrl(rs.getString("FrontImageUrl"))
-                .backImageUrl(rs.getString("BackImageUrl"))
-                .selfieImageUrl(rs.getString("SelfieImageUrl"))
+                .frontImageUrl(imageProxyUrl(kycId, "front", rs.getString("FrontImageUrl")))
+                .backImageUrl(imageProxyUrl(kycId, "back", rs.getString("BackImageUrl")))
+                .selfieImageUrl(imageProxyUrl(kycId, "selfie", rs.getString("SelfieImageUrl")))
                 .status(rs.getString("Status"))
                 .submittedAt(rs.getTimestamp("SubmittedAt") != null ? rs.getTimestamp("SubmittedAt").toLocalDateTime() : null)
                 .processedAt(rs.getTimestamp("ProcessedAt") != null ? rs.getTimestamp("ProcessedAt").toLocalDateTime() : null)
@@ -329,6 +368,13 @@ public class KycService {
         builder.backImageAnalysis(toAnalysis(rs.getString("BackImageUrl")));
         builder.selfieImageAnalysis(toAnalysis(rs.getString("SelfieImageUrl")));
         return builder.build();
+    }
+
+    private String imageProxyUrl(long kycId, String which, String stored) {
+        if (stored == null || stored.isBlank()) {
+            return null;
+        }
+        return "/api/kyc/" + kycId + "/image/" + which;
     }
 
     private KycSubmissionResponse.ImageAnalysis toAnalysis(String url) {
@@ -363,6 +409,19 @@ public class KycService {
     }
 
     private byte[] readUploadBytes(String url) throws IOException {
+        // Legacy public Cloudinary URL: fetch directly over HTTP.
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            return cloudinaryService.download(url);
+        }
+        // Legacy local upload path.
+        if (url.startsWith("/") || url.startsWith("uploads/")) {
+            return readLegacyDiskBytes(url);
+        }
+        // New submissions store a PRIVATE Cloudinary public_id.
+        return cloudinaryService.downloadPrivate(url);
+    }
+
+    private byte[] readLegacyDiskBytes(String url) throws IOException {
         String fileName = url.startsWith("/") ? url.substring(1) : url;
         if (fileName.startsWith("uploads/")) {
             fileName = fileName.substring("uploads/".length());
@@ -389,45 +448,39 @@ public class KycService {
     }
 
     private String saveImage(MultipartFile file, String label) throws IOException {
-        Path targetDir = resolveUploadDir();
-        Files.createDirectories(targetDir);
-
-        String original = file.getOriginalFilename() == null ? "" : file.getOriginalFilename();
-        String extension = "";
-        int dot = original.lastIndexOf('.');
-        if (dot > 0 && dot < original.length() - 1) {
-            extension = original.substring(dot);
-        }
-        String stored = "kyc-" + label + "-" + UUID.randomUUID() + extension;
-        Path destination = targetDir.resolve(stored);
-        byte[] bytes;
-        try (var in = file.getInputStream()) {
-            bytes = in.readAllBytes();
-        }
-        Files.write(destination, bytes);
-
-        mirrorToClassesDir(destination, stored, bytes);
-        return publicPrefix + "/" + stored;
+        // KYC images are sensitive personal data: upload them as PRIVATE
+        // (authenticated) Cloudinary assets and persist only the public_id.
+        // They can only be viewed through the access-controlled proxy endpoint.
+        return cloudinaryService.uploadPrivate(file.getBytes(), kycFolder);
     }
 
     /**
-     * When the app is started with `mvn spring-boot:run`, static resources are
-     * served from the {@code target/classes/static} copy, not from
-     * {@code src/main/resources/static}. We mirror every upload into the
-     * classes folder so the new image is reachable via {@code /uploads/kyc/*}
-     * without restarting the server.
+     * Returns the raw bytes of one KYC image, enforcing that the caller is either
+     * the owner of the submission or a staff/admin reviewer.
+     *
+     * @param which one of {@code front}, {@code back}, {@code selfie}
      */
-    private void mirrorToClassesDir(Path source, String storedFileName, byte[] bytes) {
-        try {
-            Path classesKyc = Paths.get(System.getProperty("user.dir"), "target", "classes", "static", "uploads", "kyc");
-            if (classesKyc.startsWith(source.getParent())) {
-                return;
-            }
-            Files.createDirectories(classesKyc);
-            Files.write(classesKyc.resolve(storedFileName), bytes);
-        } catch (IOException ex) {
-            System.err.println("[KycService] Failed to mirror upload to target/classes/static/uploads/kyc: " + ex.getMessage());
+    public byte[] getImageBytes(Long kycId, String which, Long requesterId, boolean isStaff) throws IOException {
+        String column = switch (which == null ? "" : which.toLowerCase()) {
+            case "front" -> "FrontImageUrl";
+            case "back" -> "BackImageUrl";
+            case "selfie" -> "SelfieImageUrl";
+            default -> throw new IllegalArgumentException("Unknown image type: " + which);
+        };
+        Map<String, Object> row = jdbcTemplate.queryForMap(
+                "SELECT UserId, " + column + " AS Img FROM KycProfiles WHERE KycId = ?", kycId);
+        Long ownerId = ((Number) row.get("UserId")).longValue();
+        if (!isStaff && !ownerId.equals(requesterId)) {
+            throw new SecurityException("Not allowed to view this KYC image");
         }
+        String stored = (String) row.get("Img");
+        if (stored == null || stored.isBlank()) {
+            throw new IOException("Image not found");
+        }
+        // Audit trail: record every access to a sensitive KYC image.
+        auditLog.info("image_view kycId={} which={} viewerId={} role={} ownerId={}",
+                kycId, which, requesterId, isStaff ? "STAFF" : "OWNER", ownerId);
+        return readUploadBytes(stored);
     }
 
     private Path resolveUploadDir() throws IOException {
