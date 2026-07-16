@@ -2,6 +2,9 @@ package com.auction.wallet.service.impl;
 
 import com.auction.account.dao.UserRepository;
 import com.auction.account.entity.User;
+import com.auction.bidding.entity.AuctionDeposit;
+import com.auction.bidding.repository.AuctionDepositRepository;
+import com.auction.bidding.util.DepositCalculator;
 import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.wallet.dto.DepositQrResponse;
 import com.auction.wallet.dto.SepayWebhookRequest;
@@ -41,6 +44,7 @@ public class WalletServiceImpl implements WalletService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
     private final WithdrawalRequestRepository withdrawalRequestRepository;
+    private final AuctionDepositRepository auctionDepositRepository;
     private final NotificationService notificationService;
 
     @Value("${sepay.bank-id:MB}")
@@ -56,6 +60,7 @@ public class WalletServiceImpl implements WalletService {
     @Transactional
     public WalletResponse getWalletByUserId(Long userId) {
         Wallet wallet = getOrCreateWallet(userId);
+        normalizeLegacyAuctionDeposits(wallet);
 
         return WalletResponse.builder()
                 .walletId(wallet.getWalletId())
@@ -150,6 +155,7 @@ public class WalletServiceImpl implements WalletService {
     @Transactional
     public WithdrawalResponse createWithdrawal(Long userId, WithdrawRequest request) {
         Wallet wallet = getOrCreateWallet(userId);
+        normalizeLegacyAuctionDeposits(wallet);
         normalizeLegacyPendingWithdrawals(wallet);
         Long amount = request.getAmount();
         if (amount == null || amount <= 0) {
@@ -312,6 +318,71 @@ public class WalletServiceImpl implements WalletService {
         long balance = wallet.getBalance() == null ? 0L : wallet.getBalance();
         long hold = wallet.getHoldBalance() == null ? 0L : wallet.getHoldBalance();
         return Math.max(0L, balance - hold);
+    }
+
+    /**
+     * Older deposit logic deducted Balance and increased HoldBalance. The wallet
+     * model now keeps Balance as total funds and reserves deposits only in
+     * HoldBalance, so active legacy deposits need a one-time credit back.
+     */
+    private void normalizeLegacyAuctionDeposits(Wallet wallet) {
+        Integer userId = wallet.getUser().getId();
+        LocalDateTime now = LocalDateTime.now();
+        long balanceCredit = 0L;
+        long holdReduction = 0L;
+
+        for (AuctionDeposit deposit : auctionDepositRepository.findByUser_Id(userId)) {
+            if (deposit.getDepositId() == null || deposit.getAuction() == null) {
+                continue;
+            }
+            String status = deposit.getStatus();
+            if (!"LOCKED".equalsIgnoreCase(status) && !"HELD_FOR_PAYMENT".equalsIgnoreCase(status)) {
+                continue;
+            }
+            String migrationRef = "DEPOSIT-ACCOUNTING-V2-" + deposit.getDepositId();
+            String newFlowRef = "DEPOSIT-HOLD-" + deposit.getAuction().getAuctionId() + "-" + userId;
+            if (transactionRepository.findByReferenceCode(migrationRef).isPresent()
+                    || transactionRepository.findByReferenceCode(newFlowRef).isPresent()) {
+                continue;
+            }
+
+            long legacyAmount = deposit.getDepositAmount() == null ? 0L : deposit.getDepositAmount();
+            if (legacyAmount <= 0) {
+                continue;
+            }
+            long expectedAmount = legacyAmount;
+            if (deposit.getAuction().getProduct() != null
+                    && deposit.getAuction().getProduct().getStartingPrice() != null) {
+                expectedAmount = DepositCalculator.calculate(deposit.getAuction().getProduct().getStartingPrice());
+            }
+
+            balanceCredit += legacyAmount;
+            if (legacyAmount > expectedAmount) {
+                holdReduction += legacyAmount - expectedAmount;
+                deposit.setDepositAmount(expectedAmount);
+                auctionDepositRepository.save(deposit);
+            }
+
+            Transaction tx = new Transaction();
+            tx.setWallet(wallet);
+            tx.setAmount(legacyAmount);
+            tx.setTransactionType("DEPOSIT_ACCOUNTING_MIGRATION");
+            tx.setStatus("COMPLETED");
+            tx.setReferenceCode(migrationRef);
+            tx.setDescription("Normalize legacy auction deposit accounting for deposit " + deposit.getDepositId());
+            tx.setCreatedAt(now);
+            transactionRepository.save(tx);
+        }
+
+        if (balanceCredit <= 0 && holdReduction <= 0) {
+            return;
+        }
+        long balance = wallet.getBalance() == null ? 0L : wallet.getBalance();
+        long hold = wallet.getHoldBalance() == null ? 0L : wallet.getHoldBalance();
+        wallet.setBalance(balance + balanceCredit);
+        wallet.setHoldBalance(Math.max(0L, hold - holdReduction));
+        wallet.setUpdatedAt(now);
+        walletRepository.save(wallet);
     }
 
     /**

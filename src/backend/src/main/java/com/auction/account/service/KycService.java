@@ -109,15 +109,11 @@ public class KycService {
             throw new IllegalArgumentException("Please upload all three ID photos (front, back, selfie)");
         }
 
-        User user = userRepository.findById(Math.toIntExact(userId))
+        // KYC is pure identity verification: the applicant commits that the
+        // submitted identity information is genuine. Becoming a seller is a
+        // separate step (seller-contract/submit) available after approval.
+        userRepository.findById(Math.toIntExact(userId))
                 .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
-
-        boolean isSeller = user.getRole() != null
-                && "Seller".equalsIgnoreCase(user.getRole().getRoleName());
-        if (isSeller && !signSellerAgreement && !contractService.hasSellerContract(userId)) {
-            throw new IllegalArgumentException(
-                    "Người bán cần đồng ý hợp đồng nền tảng trước khi gửi hồ sơ KYC.");
-        }
 
         String frontUrl = saveImage(frontImage, "front");
         String backUrl = saveImage(backImage, "back");
@@ -148,28 +144,6 @@ public class KycService {
                 userId,
                 "Sản phẩm bị gỡ vì người bán đã gửi lại hồ sơ KYC và đang chờ xác thực."
         );
-
-        if (signSellerAgreement && !contractService.hasSellerContract(userId)) {
-            if (!isSeller) {
-                Role sellerRole = roleRepository.findByRoleName("Seller")
-                        .orElseThrow(() -> new IllegalArgumentException("Seller role not found"));
-                user.setRole(sellerRole);
-                userRepository.save(user);
-                isSeller = true;
-            }
-            Contract contract = contractService.signSellerContract(userId);
-            List<User> staff = userRepository.findAllByRole_RoleName("Staff");
-            for (User s : staff) {
-                notificationService.createNotification(
-                        s.getUserId(),
-                        "Hợp đồng seller mới chờ duyệt",
-                        "Seller " + user.getFullName() + " (" + user.getEmail()
-                                + ") đã gửi KYC và hợp đồng nền tảng đang chờ duyệt.",
-                        Notification.NotificationType.GENERAL,
-                        contract.getContractId(),
-                        "SELLER_CONTRACT");
-            }
-        }
 
         Long kycId = jdbcTemplate.queryForObject(
                 "SELECT KycId FROM KycProfiles WHERE UserId = ? ORDER BY SubmittedAt DESC LIMIT 1",

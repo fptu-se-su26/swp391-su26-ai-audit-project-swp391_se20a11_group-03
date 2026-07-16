@@ -5,6 +5,7 @@ import com.auction.bidding.dto.BidRequest;
 import com.auction.bidding.dto.BidResponse;
 import com.auction.bidding.entity.Auction;
 import com.auction.bidding.entity.AuctionDeposit;
+import com.auction.bidding.entity.AuctionMode;
 import com.auction.bidding.entity.AuctionSession;
 import com.auction.bidding.entity.AuctionStatus;
 import com.auction.bidding.entity.Bid;
@@ -16,13 +17,8 @@ import com.auction.bidding.repository.AuctionSessionRepository;
 import com.auction.bidding.repository.BidRepository;
 import com.auction.bidding.util.AuctionPhaseUtil;
 import com.auction.bidding.util.StepCalculator;
-import com.auction.account.dao.UserRepository;
 import com.auction.product.repository.ProductImageRepository;
 import com.auction.product.repository.ProductRepository;
-import com.auction.wallet.entity.Transaction;
-import com.auction.wallet.entity.Wallet;
-import com.auction.wallet.repository.TransactionRepository;
-import com.auction.wallet.repository.WalletRepository;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -53,9 +49,6 @@ public class BiddingService {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final AuctionDepositRepository auctionDepositRepository;
-    private final WalletRepository walletRepository;
-    private final TransactionRepository transactionRepository;
-    private final UserRepository userRepository;
     private final ReentrantLock auctionLock = new ReentrantLock(true);
 
     public BiddingService(
@@ -64,10 +57,7 @@ public class BiddingService {
             BidRepository bidRepository,
             ProductRepository productRepository,
             ProductImageRepository productImageRepository,
-            AuctionDepositRepository auctionDepositRepository,
-            WalletRepository walletRepository,
-            TransactionRepository transactionRepository,
-            UserRepository userRepository
+            AuctionDepositRepository auctionDepositRepository
     ) {
         this.auctionSessionRepository = auctionSessionRepository;
         this.auctionRepository = auctionRepository;
@@ -75,9 +65,6 @@ public class BiddingService {
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.auctionDepositRepository = auctionDepositRepository;
-        this.walletRepository = walletRepository;
-        this.transactionRepository = transactionRepository;
-        this.userRepository = userRepository;
     }
 
     public List<AuctionSessionDto> getOpenRooms() {
@@ -98,19 +85,14 @@ public class BiddingService {
                 return BidResponse.fail("Người bán không thể tự đặt giá cho sản phẩm của mình");
             }
 
-            boolean timedMode = auction.getAuctionMode() == com.auction.bidding.entity.AuctionMode.TIMED;
+            boolean timedMode = auction.getAuctionMode() == AuctionMode.TIMED;
 
-            // LIVE only: entry requires a locked deposit. TIMED is open to any
-            // KYC-verified user (KYC is enforced by the controller); commitment
-            // comes from locking the real bid amount in the wallet instead.
-            if (!timedMode) {
-                AuctionDeposit bidderDeposit = auctionDepositRepository
-                        .findByAuction_AuctionIdAndUser_Id(
-                                request.getAuctionId(), Math.toIntExact(request.getUserId()))
-                        .orElse(null);
-                if (bidderDeposit == null || !"LOCKED".equalsIgnoreCase(bidderDeposit.getStatus())) {
-                    return BidResponse.fail("Bạn phải đặt cọc hợp lệ trước khi tham gia đấu giá");
-                }
+            AuctionDeposit bidderDeposit = auctionDepositRepository
+                    .findByAuction_AuctionIdAndUser_Id(
+                            request.getAuctionId(), Math.toIntExact(request.getUserId()))
+                    .orElse(null);
+            if (bidderDeposit == null || !"LOCKED".equalsIgnoreCase(bidderDeposit.getStatus())) {
+                return BidResponse.fail("Bạn phải đặt cọc hợp lệ trước khi tham gia đấu giá");
             }
 
             LocalDateTime now = LocalDateTime.now();
@@ -157,16 +139,6 @@ public class BiddingService {
                 }
             }
 
-            // TIMED: real money — lock the full bid amount in the bidder's
-            // wallet (releasing the previous leader's lock). Fails the bid if
-            // the wallet balance cannot cover it.
-            if (timedMode) {
-                BidResponse lockFailure = lockTimedBidFunds(auction, request, now);
-                if (lockFailure != null) {
-                    return lockFailure;
-                }
-            }
-
             Bid bid = new Bid();
             bid.setAuctionId(request.getAuctionId());
             bid.setUserId(request.getUserId());
@@ -186,7 +158,7 @@ public class BiddingService {
             // least ANTI_SNIPER_EXTENSION_SECONDS of remaining time, so other
             // bidders always get a fair chance to respond. Bids placed earlier
             // do not extend the auction. TIMED: endTime is fixed, never extend.
-            if (auction.getAuctionMode() == com.auction.bidding.entity.AuctionMode.LIVE) {
+            if (auction.getAuctionMode() == AuctionMode.LIVE) {
                 LocalDateTime minEnd = now.plusSeconds(ANTI_SNIPER_EXTENSION_SECONDS);
                 if (auction.getEndTime().isBefore(minEnd)) {
                     auction.setEndTime(minEnd);
@@ -199,117 +171,6 @@ public class BiddingService {
         } finally {
             auctionLock.unlock();
         }
-    }
-
-    /**
-     * TIMED real-money bidding: lock the full bid amount in the bidder's wallet
-     * and release the previous leader's lock. Reuses the {@link AuctionDeposit}
-     * row (one per auction+user) so the existing settlement pipeline applies:
-     * the winner's lock becomes HELD_FOR_PAYMENT and covers the full price at
-     * checkout; anyone still locked at settlement is refunded automatically.
-     *
-     * @return a failure response when funds cannot be locked, or null on success
-     */
-    private BidResponse lockTimedBidFunds(AuctionSession auction, BidRequest request, LocalDateTime now) {
-        Wallet wallet = walletRepository.findByUser_Id(Math.toIntExact(request.getUserId())).orElse(null);
-        if (wallet == null) {
-            return BidResponse.fail("Không tìm thấy ví của bạn. Vui lòng liên hệ hỗ trợ.");
-        }
-
-        AuctionDeposit lockRow = auctionDepositRepository
-                .findByAuction_AuctionIdAndUser_Id(auction.getAuctionId(), Math.toIntExact(request.getUserId()))
-                .orElse(null);
-        long existingLock = lockRow != null
-                && "LOCKED".equalsIgnoreCase(lockRow.getStatus())
-                && lockRow.getDepositAmount() != null
-                ? lockRow.getDepositAmount()
-                : 0L;
-        long delta = request.getBidAmount() - existingLock;
-        long balance = wallet.getBalance() == null ? 0L : wallet.getBalance();
-        if (delta > 0 && balance < delta) {
-            return BidResponse.fail("Số dư ví không đủ: cần thêm " + String.format("%,d", delta - balance)
-                    + " VND. Tiền đặt giá sẽ bị khóa trong ví và hoàn lại ngay nếu bạn bị vượt giá.");
-        }
-
-        Long previousLeaderId = auction.getCurrentWinnerUserId();
-
-        if (delta != 0) {
-            wallet.setBalance(balance - delta);
-            long hold = wallet.getHoldBalance() == null ? 0L : wallet.getHoldBalance();
-            wallet.setHoldBalance(Math.max(0L, hold + delta));
-            wallet.setUpdatedAt(now);
-            walletRepository.save(wallet);
-
-            Transaction tx = new Transaction();
-            tx.setWallet(wallet);
-            tx.setAmount(Math.abs(delta));
-            tx.setTransactionType("HOLD_BID");
-            tx.setStatus("COMPLETED");
-            tx.setReferenceCode("BID-LOCK-" + auction.getAuctionId());
-            tx.setDescription("Lock bid of " + String.format("%,d", request.getBidAmount())
-                    + " VND for timed auction " + auction.getAuctionId());
-            tx.setCreatedAt(now);
-            transactionRepository.save(tx);
-        }
-
-        if (lockRow == null) {
-            Auction legacyAuction = auctionRepository.findById(auction.getAuctionId()).orElse(null);
-            com.auction.account.entity.User bidder =
-                    userRepository.findById(Math.toIntExact(request.getUserId())).orElse(null);
-            if (legacyAuction == null || bidder == null) {
-                return BidResponse.fail("Không thể ghi nhận khoản khóa tiền. Vui lòng thử lại.");
-            }
-            lockRow = new AuctionDeposit();
-            lockRow.setAuction(legacyAuction);
-            lockRow.setUser(bidder);
-            lockRow.setCreatedAt(now);
-        }
-        lockRow.setDepositAmount(request.getBidAmount());
-        lockRow.setStatus("LOCKED");
-        lockRow.setSettlementType(null);
-        lockRow.setSettledAt(null);
-        auctionDepositRepository.save(lockRow);
-
-        // The previous leader has been outbid — return their locked funds now.
-        if (previousLeaderId != null && !previousLeaderId.equals(request.getUserId())) {
-            releaseTimedBidLock(auction.getAuctionId(), previousLeaderId, now);
-        }
-        return null;
-    }
-
-    /** Refund an outbid user's locked funds back to their spendable balance. */
-    private void releaseTimedBidLock(Long auctionId, Long userId, LocalDateTime now) {
-        AuctionDeposit row = auctionDepositRepository
-                .findByAuction_AuctionIdAndUser_Id(auctionId, Math.toIntExact(userId))
-                .orElse(null);
-        if (row == null || !"LOCKED".equalsIgnoreCase(row.getStatus())) {
-            return;
-        }
-        long amount = row.getDepositAmount() == null ? 0L : row.getDepositAmount();
-        Wallet wallet = walletRepository.findByUser_Id(Math.toIntExact(userId)).orElse(null);
-        if (wallet != null && amount > 0) {
-            long hold = wallet.getHoldBalance() == null ? 0L : wallet.getHoldBalance();
-            long balance = wallet.getBalance() == null ? 0L : wallet.getBalance();
-            wallet.setHoldBalance(Math.max(0L, hold - amount));
-            wallet.setBalance(balance + amount);
-            wallet.setUpdatedAt(now);
-            walletRepository.save(wallet);
-
-            Transaction tx = new Transaction();
-            tx.setWallet(wallet);
-            tx.setAmount(amount);
-            tx.setTransactionType("RELEASE_BID");
-            tx.setStatus("COMPLETED");
-            tx.setReferenceCode("BID-RELEASE-" + auctionId);
-            tx.setDescription("Bid lock released (outbid) for timed auction " + auctionId);
-            tx.setCreatedAt(now);
-            transactionRepository.save(tx);
-        }
-        // settlementType REFUNDED makes the settlement pass skip this row.
-        row.setStatus("RELEASED");
-        row.setSettlementType("REFUNDED");
-        row.setSettledAt(now);
-        auctionDepositRepository.save(row);
     }
 
     /**

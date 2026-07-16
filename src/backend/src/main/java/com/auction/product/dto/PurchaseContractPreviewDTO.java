@@ -10,6 +10,8 @@ public class PurchaseContractPreviewDTO {
     private Long productId;
     private String productName;
     private Long finalPrice;
+    private Long depositAmount;
+    private Long remainingAmount;
     private String sellerName;
     private String sellerEmail;
     private String buyerName;

@@ -62,6 +62,7 @@ export default function WalletPage() {
   const [actionError, setActionError] = useState("");
   const [depositStatus, setDepositStatus] = useState("");
   const [copiedField, setCopiedField] = useState("");
+  const [qrImageError, setQrImageError] = useState(false);
 
   const numericAmount = Number(amount.replace(/\D/g, ""));
 
@@ -71,6 +72,7 @@ export default function WalletPage() {
     setActionError("");
     setDepositStatus("");
     setCopiedField("");
+    setQrImageError(false);
   }
 
   function closeDeposit() {
@@ -78,6 +80,7 @@ export default function WalletPage() {
     setDepositQr(null);
     setActionError("");
     setDepositStatus("");
+    setQrImageError(false);
   }
 
   async function createDepositQr(event: React.FormEvent<HTMLFormElement>) {
@@ -94,6 +97,7 @@ export default function WalletPage() {
       const qr = await walletApi.deposit(numericAmount);
       setBalanceBeforeDeposit(data.wallet.balance);
       setDepositQr(qr);
+      setQrImageError(false);
     } catch (cause) {
       setActionError(
         cause instanceof ApiError
@@ -374,10 +378,27 @@ export default function WalletPage() {
                     alt={`Mã VietQR nạp ${formatVnd(depositQr.amount)}`}
                     width={280}
                     height={280}
+                    unoptimized
                     priority
+                    onError={() => setQrImageError(true)}
                     className="h-auto w-[260px] sm:w-[280px]"
                   />
                 </div>
+
+                {qrImageError ? (
+                  <div className="mt-3 rounded-lg border border-yellow-400/25 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
+                    Không tải được ảnh QR trong trang này. Bạn vẫn có thể{" "}
+                    <a
+                      href={depositQr.qrUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-semibold text-[var(--luxora-gold-light)] underline"
+                    >
+                      mở mã QR ở tab mới
+                    </a>{" "}
+                    hoặc chuyển khoản thủ công theo thông tin bên dưới.
+                  </div>
+                ) : null}
 
                 <dl className="mt-5 divide-y divide-white/10 border-y border-white/10 text-sm">
                   <DepositDetail label="Số tiền" value={formatVnd(depositQr.amount)} />
@@ -423,6 +444,7 @@ export default function WalletPage() {
                     onClick={() => {
                       setDepositQr(null);
                       setDepositStatus("");
+                      setQrImageError(false);
                     }}
                     className="h-11 flex-1 rounded-full border border-white/15 text-sm font-semibold hover:border-white/30"
                   >

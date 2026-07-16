@@ -16,6 +16,7 @@ public class ProductSummaryResponse {
     private String status;
     private String imageUrl;
     private Long auctionId;
+    private Long totalBids;
     private String auctionStatus;
     private String auctionStartTime;
     private String auctionEndTime;

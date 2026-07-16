@@ -64,6 +64,12 @@ public class ContractPdfAccessService {
         Contract contract = contractRepository.findById(contractId)
                 .orElseThrow(() -> new ResourceNotFoundException("Contract not found: " + contractId));
 
+        byte[] rendered = renderPdfBytes(contract);
+        if (rendered.length > 0) {
+            persistRenderedPdf(contract, rendered);
+            return rendered;
+        }
+
         Path existing = toLocalPath(contract.getFileUrl());
         if (existing != null && Files.isRegularFile(existing)) {
             try {
@@ -73,11 +79,10 @@ public class ContractPdfAccessService {
             }
         }
 
-        byte[] pdf = renderPdfBytes(contract);
-        if (pdf.length == 0) {
-            throw new ResourceNotFoundException("PDF file not available for contract " + contractId);
-        }
+        throw new ResourceNotFoundException("PDF file not available for contract " + contractId);
+    }
 
+    private void persistRenderedPdf(Contract contract, byte[] pdf) {
         String fileUrl = regenerateAndPersist(contract);
         Path persisted = toLocalPath(fileUrl);
         if (persisted != null) {
@@ -85,11 +90,9 @@ public class ContractPdfAccessService {
                 Files.createDirectories(persisted.getParent());
                 Files.write(persisted, pdf);
             } catch (Exception ex) {
-                log.warn("Could not persist regenerated contract PDF for {}", contractId, ex);
+                log.warn("Could not persist regenerated contract PDF for {}", contract.getContractId(), ex);
             }
         }
-
-        return pdf;
     }
 
     private byte[] renderPdfBytes(Contract contract) {
@@ -150,10 +153,10 @@ public class ContractPdfAccessService {
         boolean platformListing = seller != null && seller.getRole() != null
                 && "Admin".equalsIgnoreCase(seller.getRole().getRoleName());
         String sellerName = platformListing
-                ? "CÔNG TY LUXEAUCTION"
+                ? "CÔNG TY BIDZONE"
                 : (seller != null ? displayName(seller) : "—");
         String sellerEmail = platformListing
-                ? (admin != null ? admin.getEmail() : "admin@luxeauction.vn")
+                ? (admin != null ? admin.getEmail() : "admin@bidzone.vn")
                 : (seller != null ? seller.getEmail() : "—");
 
         long finalPrice = auction.getCurrentHighestBid() != null ? auction.getCurrentHighestBid() : 0L;
@@ -169,8 +172,8 @@ public class ContractPdfAccessService {
                         displayName(buyer),
                         buyer.getEmail(),
                         finalPrice,
-                        admin != null ? displayName(admin) : "LuxeAuction Admin",
-                        admin != null ? admin.getEmail() : "admin@luxeauction.vn",
+                        admin != null ? displayName(admin) : "BidZone Admin",
+                        admin != null ? admin.getEmail() : "admin@bidzone.vn",
                         signedAt);
 
         return purchaseContractPdfService.renderPdf(data);
@@ -240,10 +243,10 @@ public class ContractPdfAccessService {
         boolean platformListing = seller != null && seller.getRole() != null
                 && "Admin".equalsIgnoreCase(seller.getRole().getRoleName());
         String sellerName = platformListing
-                ? "CÔNG TY LUXEAUCTION"
+                ? "CÔNG TY BIDZONE"
                 : (seller != null ? displayName(seller) : "—");
         String sellerEmail = platformListing
-                ? (admin != null ? admin.getEmail() : "admin@luxeauction.vn")
+                ? (admin != null ? admin.getEmail() : "admin@bidzone.vn")
                 : (seller != null ? seller.getEmail() : "—");
 
         long finalPrice = auction.getCurrentHighestBid() != null ? auction.getCurrentHighestBid() : 0L;
@@ -259,8 +262,8 @@ public class ContractPdfAccessService {
                         displayName(buyer),
                         buyer.getEmail(),
                         finalPrice,
-                        admin != null ? displayName(admin) : "LuxeAuction Admin",
-                        admin != null ? admin.getEmail() : "admin@luxeauction.vn",
+                        admin != null ? displayName(admin) : "BidZone Admin",
+                        admin != null ? admin.getEmail() : "admin@bidzone.vn",
                         signedAt);
 
         return purchaseContractPdfService.generateAndStore(data);

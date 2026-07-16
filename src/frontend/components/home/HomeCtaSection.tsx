@@ -1,7 +1,30 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useSyncExternalStore } from "react";
+import { AUTH_STATE_EVENT, getToken } from "@/lib/api";
+
+function subscribeToAuthState(onStoreChange: () => void) {
+  window.addEventListener(AUTH_STATE_EVENT, onStoreChange);
+  window.addEventListener("storage", onStoreChange);
+  return () => {
+    window.removeEventListener(AUTH_STATE_EVENT, onStoreChange);
+    window.removeEventListener("storage", onStoreChange);
+  };
+}
+
+function hasStoredToken() {
+  return Boolean(getToken());
+}
 
 export default function HomeCtaSection() {
+  const isLoggedIn = useSyncExternalStore(
+    subscribeToAuthState,
+    hasStoredToken,
+    () => false,
+  );
+
   return (
     <section className="border-b border-white/10">
       <div className="mx-auto max-w-[1600px] px-4 py-10 sm:px-6 sm:py-14 lg:px-12">
@@ -29,7 +52,7 @@ export default function HomeCtaSection() {
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/storefront"
+                  href="/auctions"
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#f0c982] px-7 text-sm font-semibold text-black transition-colors hover:bg-[#f4d79b]"
                 >
                   XEM PHIÊN LIVE
@@ -38,12 +61,12 @@ export default function HomeCtaSection() {
                   </span>
                 </Link>
                 <Link
-                  href="/auth"
+                  href={isLoggedIn ? "/auctions" : "/auth?mode=signup"}
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#d7aa63]/55 bg-black/35 px-7 text-sm font-semibold text-white transition-colors hover:bg-white/10"
                 >
-                  ĐĂNG KÝ TÀI KHOẢN
+                  {isLoggedIn ? "VÀO PHÒNG ĐẤU GIÁ" : "ĐĂNG KÝ TÀI KHOẢN"}
                   <span className="material-symbols-outlined text-base">
-                    person_add
+                    {isLoggedIn ? "gavel" : "person_add"}
                   </span>
                 </Link>
               </div>

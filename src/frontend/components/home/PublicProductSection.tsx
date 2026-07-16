@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import Countdown from "@/components/home/Countdown";
 import type { StorefrontCategory, StorefrontLot } from "@/lib/api";
 
 type PublicProductSectionProps = {
@@ -137,9 +138,15 @@ export default function PublicProductSection({
                   <p className="text-xl font-bold text-white">
                     {VND.format(lot.currentBid)} ₫
                   </p>
-                  <p className="mt-1 text-xs text-white/45">
-                    Còn lại {lot.timeLeft}
-                  </p>
+                  {lot.endsAt ? (
+                    <Countdown
+                      endsAt={lot.endsAt}
+                      prefix="Còn lại"
+                      className="mt-1 inline-flex items-center gap-1 font-mono text-xs text-white/45"
+                    />
+                  ) : (
+                    <p className="mt-1 text-xs text-white/45">Chưa có lịch kết thúc</p>
+                  )}
                 </div>
               </Link>
             </article>

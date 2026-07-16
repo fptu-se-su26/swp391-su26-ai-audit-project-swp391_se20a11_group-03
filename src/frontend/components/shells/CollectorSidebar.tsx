@@ -19,7 +19,6 @@ const NAV_GROUPS: NavGroup[] = [
   {
     title: "Sàn đấu giá",
     items: [
-      { label: "Phòng đấu giá", href: "/auctions", icon: "storefront" },
       { label: "Tổng quan", href: "/dashboard", icon: "dashboard" },
       { label: "Theo dõi", href: "/watchlist", icon: "visibility" },
       { label: "Đã thắng", href: "/won-items", icon: "emoji_events" },
@@ -106,10 +105,6 @@ export default function CollectorSidebar() {
   }
 
   function isItemActive(href: string) {
-    if (href === "/auctions") {
-      return pathname === href || pathname.startsWith("/auctions/");
-    }
-
     return pathname === href;
   }
 

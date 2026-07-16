@@ -139,6 +139,7 @@ export type ProductSummary = {
   status: string;
   imageUrl: string | null;
   auctionId: number | null;
+  totalBids: number;
   auctionStatus: string | null;
   auctionStartTime: string | null;
   auctionEndTime: string | null;
@@ -330,6 +331,26 @@ export type WonAuction = {
   paymentStatus: string | null;
   paymentDeadline: string | null;
   status: "paid" | "pending_payment" | "forfeited";
+};
+
+export type PurchaseContractPreview = {
+  auctionId: number;
+  productId: number | null;
+  productName: string;
+  finalPrice: number;
+  depositAmount: number;
+  remainingAmount: number;
+  sellerName: string;
+  sellerEmail: string | null;
+  buyerName: string;
+  buyerEmail: string | null;
+  adminName: string;
+  adminEmail: string | null;
+  signed: boolean;
+  acknowledged: boolean;
+  contractId: number | null;
+  fileUrl: string | null;
+  signedAt: string | null;
 };
 
 export type WatchlistEntry = {
@@ -766,7 +787,33 @@ export const sellerContractApi = {
     if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
     return res.blob();
   },
+  /**
+   * Sign the seller agreement and upgrade User -> Seller immediately.
+   * Requires an APPROVED KYC (identityVerified) — enforced server-side.
+   */
+  submit() {
+    return apiFetch<ApiEnvelope<{ signed: boolean; roleName: string; roleUpgraded: boolean }>>(
+      "/seller-contract/submit",
+      { method: "POST" },
+    );
+  },
+  mine() {
+    return apiFetch<ApiEnvelope<{ signed: boolean; contractId: number | null }>>(
+      "/seller-contract/me",
+    );
+  },
 };
+
+/**
+ * Re-sync the role cookie (used by proxy.ts routing) after a role change that
+ * happens without re-login — e.g. the User -> Seller upgrade.
+ */
+export function updateRoleCookie(roleName: string | null) {
+  setAuthRoleCookie(toFrontendRole(roleName));
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(AUTH_STATE_EVENT));
+  }
+}
 
 // ---------------------------------------------------------------------------
 // AUCTIONS & BIDDING — /api/auctions/*, /api/bidding/*
@@ -801,6 +848,22 @@ export const auctionApi = {
     return apiFetch<Record<string, unknown>>(`/auctions/${auctionId}/pay`, {
       method: "POST",
     });
+  },
+  purchaseContract(auctionId: number) {
+    return apiFetch<PurchaseContractPreview>(`/auctions/${auctionId}/purchase-contract`);
+  },
+  signPurchaseContract(auctionId: number) {
+    return apiFetch<Record<string, unknown>>(`/auctions/${auctionId}/purchase-contract/sign`, {
+      method: "POST",
+    });
+  },
+  async purchaseContractPdf(auctionId: number): Promise<Blob> {
+    const token = getToken();
+    const res = await fetch(`${API_BASE_URL}/auctions/${auctionId}/purchase-contract/pdf`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
+    return res.blob();
   },
   deposit(auctionId: number) {
     return apiFetch<AuctionDepositResult>(`/deposits?auctionId=${auctionId}`, {
@@ -911,6 +974,11 @@ export const userApi = {
   watchlist() {
     return apiFetch<ApiEnvelope<WatchlistEntry[]>>("/watchlist");
   },
+  addToWatchlist(productId: number) {
+    return apiFetch<{ success: boolean; message: string }>(`/watchlist/${productId}`, {
+      method: "POST",
+    });
+  },
   removeFromWatchlist(productId: number) {
     return apiFetch(`/watchlist/${productId}`, { method: "DELETE" });
   },
@@ -954,6 +1022,23 @@ export const userApi = {
     return apiFetch<ConversationMessage>("/v1/messages", {
       method: "POST",
       body: JSON.stringify({ conversationId, content }),
+    });
+  },
+  // --- Staff support inbox ---
+  assignedConversations() {
+    return apiFetch<Conversation[]>("/v1/conversations/assigned");
+  },
+  unassignedConversations() {
+    return apiFetch<Conversation[]>("/v1/conversations/unassigned");
+  },
+  assignConversation(conversationId: number) {
+    return apiFetch<Conversation>(`/v1/conversations/${conversationId}/assign`, {
+      method: "PATCH",
+    });
+  },
+  closeConversation(conversationId: number) {
+    return apiFetch<Conversation>(`/v1/conversations/${conversationId}/close`, {
+      method: "PATCH",
     });
   },
 };
@@ -1049,6 +1134,87 @@ export const adminApi = {
       { method: "POST" },
     );
   },
+  // --- Users & roles (Admin only) ---
+  users(q = "") {
+    const qs = q ? `?q=${encodeURIComponent(q)}` : "";
+    return apiFetch<ApiEnvelope<AdminUser[]>>(`/admin/users${qs}`);
+  },
+  userStats() {
+    return apiFetch<ApiEnvelope<Record<string, number>>>("/admin/users/stats");
+  },
+  updateUserRole(userId: number, roleName: string) {
+    return apiFetch<ApiEnvelope<AdminUser>>(`/admin/users/${userId}/role`, {
+      method: "PATCH",
+      body: JSON.stringify({ roleName }),
+    });
+  },
+  updateUserStatus(userId: number, active: boolean) {
+    return apiFetch<ApiEnvelope<AdminUser>>(`/admin/users/${userId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ active }),
+    });
+  },
+  // --- Withdrawals (Staff/Admin) — backend returns raw lists, no envelope ---
+  withdrawals(status = "") {
+    const qs = status ? `?status=${encodeURIComponent(status)}` : "";
+    return apiFetch<Withdrawal[]>(`/staff/withdrawals${qs}`);
+  },
+  updateWithdrawal(id: number, status: string, staffNote = "") {
+    return apiFetch<Withdrawal>(`/staff/withdrawals/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status, staffNote }),
+    });
+  },
+  // --- Contracts & ledger (Admin/Staff dashboard) ---
+  contracts(cccd = "") {
+    const qs = cccd ? `?cccd=${encodeURIComponent(cccd)}` : "";
+    return apiFetch<ApiEnvelope<ContractRow[]>>(`/admin/dashboard/contracts${qs}`);
+  },
+  async contractPdfBlob(contractId: number): Promise<Blob> {
+    const token = getToken();
+    const res = await fetch(
+      `${API_BASE_URL}/admin/dashboard/contracts/${contractId}/pdf`,
+      { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+    );
+    if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
+    return res.blob();
+  },
+  balanceLedger(params: { from?: string; to?: string; userId?: number; type?: string } = {}) {
+    const q = new URLSearchParams();
+    for (const [k, v] of Object.entries(params)) {
+      if (v !== undefined && v !== null && v !== "") q.set(k, String(v));
+    }
+    const qs = q.toString() ? `?${q}` : "";
+    return apiFetch<ApiEnvelope<WalletTransaction[]>>(`/admin/dashboard/balance-ledger${qs}`);
+  },
+};
+
+export type AdminUser = {
+  userId: number;
+  fullName: string | null;
+  email: string;
+  phone: string | null;
+  identityNumber: string | null;
+  latestKycCccd: string | null;
+  roleName: string | null;
+  status: string | null;
+  profileStatus: string | null;
+  active: boolean;
+  emailVerified: boolean;
+  identityVerified: boolean;
+  paymentStrikeCount: number;
+  lockedByPaymentStrikes: boolean;
+};
+
+export type ContractRow = {
+  contractId: number;
+  contractType: string | null;
+  typeLabel: string | null;
+  referenceId: number | null;
+  referenceName: string | null;
+  identityNumber: string | null;
+  fileUrl: string | null;
+  createdAt: string | null;
 };
 
 export const chatbotApi = {
@@ -1081,7 +1247,7 @@ function toLiveAuctionItem(p: ProductSummary): LiveAuctionItem {
     subtitle: p.categoryName ?? "",
     currentPrice: `${VND.format(price)} ₫`,
     estimatedPrice: `Giá khởi điểm ${VND.format(p.startingPrice)} ₫`,
-    bidCount: 0,
+    bidCount: p.totalBids ?? 0,
     endsAt: p.auctionEndTime ? new Date(p.auctionEndTime).getTime() : Date.now(),
     imageSrc: toImageSrc(p.imageUrl),
   };
@@ -1121,6 +1287,7 @@ export type StorefrontLot = {
   /** Auction end time (epoch ms) so the card can run a live countdown. */
   endsAt: number | null;
   isLive: boolean;
+  auctionStatus: string | null;
   image: string;
 };
 
@@ -1179,6 +1346,7 @@ function toStorefrontLot(p: ProductSummary): StorefrontLot {
     timeLeft: formatTimeLeft(p.auctionEndTime),
     endsAt: p.auctionEndTime ? new Date(p.auctionEndTime).getTime() : null,
     isLive: p.auctionStatus === "ACTIVE",
+    auctionStatus: p.auctionStatus,
     image: toImageSrc(p.imageUrl),
   };
 }
