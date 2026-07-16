@@ -141,11 +141,11 @@ public class SellerContractPdfService {
                 + "</style></head><body>"
                 + previewBanner
                 + "<h1>HỢP ĐỒNG NỀN TẢNG DÀNH CHO NGƯỜI BÁN</h1>"
-                + "<div class=\"sub\">LuxeAuction · Mã tham chiếu người dùng #" + userId + " · Ngày ký: " + signedText + "</div>"
-                + "<p class=\"party\"><b>BÊN A (Nền tảng):</b> CÔNG TY LUXEAUCTION.</p>"
+                + "<div class=\"sub\">BidZone · Mã tham chiếu người dùng #" + userId + " · Ngày ký: " + signedText + "</div>"
+                + "<p class=\"party\"><b>BÊN A (Nền tảng):</b> CÔNG TY BIDZONE.</p>"
                 + "<p class=\"party\"><b>BÊN B (Người bán):</b> " + safeName + " — " + safeEmail + ".</p>"
                 + "<p class=\"heading\">ĐIỀU KHOẢN HỢP ĐỒNG NGƯỜI BÁN</p>"
-                + "<p class=\"term\">1. Người bán đồng ý niêm yết và bán sản phẩm qua nền tảng đấu giá LuxeAuction.</p>"
+                + "<p class=\"term\">1. Người bán đồng ý niêm yết và bán sản phẩm qua nền tảng đấu giá BidZone.</p>"
                 + "<p class=\"term\">2. Phí dịch vụ nền tảng là <b>20%</b> trên giá chốt (giá thắng) của mỗi phiên đấu giá thành công; 80% còn lại được chuyển cho người bán.</p>"
                 + "<p class=\"term\">3. Người bán có trách nhiệm tự kê khai và nộp thuế thu nhập cá nhân (TNCN) theo quy định pháp luật đối với khoản thu nhập nhận được. Nền tảng chỉ thu phí dịch vụ và không khấu trừ thuế thay người bán.</p>"
                 + "<p class=\"term\">4. Người bán cam kết thông tin định danh (KYC) là chính xác và sản phẩm được niêm yết là hợp pháp, đúng mô tả.</p>"
@@ -158,9 +158,9 @@ public class SellerContractPdfService {
                 + "<p>Ký điện tử bởi: <b>" + safeName + "</b> (" + safeEmail + ")</p>"
                 + "<p>Thời điểm ký: <b>" + signedText + "</b></p>"
                 + (preview
-                ? "<p class=\"muted\">Đây là bản xem trước. Hợp đồng chính thức được tạo khi bạn ký điện tử trên LuxeAuction.</p>"
+                ? "<p class=\"muted\">Đây là bản xem trước. Hợp đồng chính thức được tạo khi bạn ký điện tử trên BidZone.</p>"
                 : "<p class=\"badge\">✔ Đã ký điện tử (Electronically signed)</p>"
-                + "<p class=\"muted\">Tài liệu này được tạo và ký điện tử trên nền tảng LuxeAuction. Hợp đồng chính thức có hiệu lực sau khi KYC của người bán được duyệt.</p>")
+                + "<p class=\"muted\">Tài liệu này được tạo và ký điện tử trên nền tảng BidZone. Hợp đồng chính thức có hiệu lực sau khi KYC của người bán được duyệt.</p>")
                 + "</div>"
                 + "</body></html>";
     }

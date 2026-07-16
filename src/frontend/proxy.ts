@@ -13,7 +13,6 @@ const ROLE_HOME: Record<UserRole, string> = {
 };
 
 const COLLECTOR_PATHS = [
-  "/auctions",
   "/dashboard",
   "/kyc",
   "/messages",
@@ -88,7 +87,6 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/staff/:path*",
-    "/auctions/:path*",
     "/dashboard/:path*",
     "/earnings/:path*",
     "/inventory/:path*",

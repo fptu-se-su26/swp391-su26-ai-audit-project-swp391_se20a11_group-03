@@ -3,12 +3,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
 import { ApiError, authApi, toFrontendRole } from "@/lib/api";
 
 type AuthMode = "login" | "signup";
+
+type AuthPageProps = {
+  searchParams: Promise<{ mode?: string; next?: string }>;
+};
+
+function safeNextPath(value: string | undefined) {
+  return value?.startsWith("/") && !value.startsWith("//") ? value : null;
+}
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
 
@@ -34,56 +42,14 @@ declare global {
     };
   }
 }
-type DemoRole = "collector" | "seller" | "staff" | "admin";
+type UserRole = "collector" | "seller" | "staff" | "admin";
 
-const ROLE_HOME: Record<DemoRole, string> = {
+const ROLE_HOME: Record<UserRole, string> = {
   collector: "/dashboard",
   seller: "/inventory",
   staff: "/staff/approvals",
   admin: "/admin/dashboard",
 };
-
-const DEMO_ACCOUNTS: {
-  role: DemoRole;
-  label: string;
-  email: string;
-  password: string;
-  href: string;
-  icon: string;
-}[] = [
-  {
-    role: "collector",
-    label: "Collector",
-    email: "collector@bidzone.demo",
-    password: "Demo@123",
-    href: "/dashboard",
-    icon: "person_search",
-  },
-  {
-    role: "seller",
-    label: "Seller",
-    email: "seller@bidzone.demo",
-    password: "Demo@123",
-    href: "/inventory",
-    icon: "storefront",
-  },
-  {
-    role: "staff",
-    label: "Staff",
-    email: "staff@bidzone.demo",
-    password: "Demo@123",
-    href: "/staff/approvals",
-    icon: "badge",
-  },
-  {
-    role: "admin",
-    label: "Admin",
-    email: "admin@bidzone.demo",
-    password: "Demo@123",
-    href: "/admin/dashboard",
-    icon: "admin_panel_settings",
-  },
-];
 
 const TRUST_ITEMS = [
   {
@@ -126,18 +92,18 @@ const AUTH_STATS = [
   },
 ];
 
-export default function AuthPage() {
+export default function AuthPage({ searchParams }: AuthPageProps) {
+  const resolvedSearchParams = use(searchParams);
   const router = useRouter();
-  const [mode, setMode] = useState<AuthMode>("login");
+  const redirectAfterAuth = safeNextPath(resolvedSearchParams.next);
+  const [mode, setMode] = useState<AuthMode>(
+    resolvedSearchParams.mode === "signup" ? "signup" : "login",
+  );
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [loginError, setLoginError] = useState("");
-  const [selectedDemoRole, setSelectedDemoRole] =
-    useState<DemoRole>("collector");
-  const [emailOrPhone, setEmailOrPhone] = useState(
-    DEMO_ACCOUNTS[0].email,
-  );
-  const [password, setPassword] = useState(DEMO_ACCOUNTS[0].password);
+  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -157,7 +123,7 @@ export default function AuthPage() {
       try {
         const res = await authApi.googleLogin(response.credential);
         const role = toFrontendRole(res.roleName);
-        router.push(ROLE_HOME[role]);
+        router.push(redirectAfterAuth ?? ROLE_HOME[role]);
       } catch (err) {
         setLoginError(
           err instanceof ApiError
@@ -168,7 +134,7 @@ export default function AuthPage() {
         setSubmitting(false);
       }
     },
-    [router],
+    [redirectAfterAuth, router],
   );
 
   useEffect(() => {
@@ -205,9 +171,6 @@ export default function AuthPage() {
   }, [handleGoogleCredential]);
 
   const isSignup = mode === "signup";
-  const selectedDemo =
-    DEMO_ACCOUNTS.find((account) => account.role === selectedDemoRole) ??
-    DEMO_ACCOUNTS[0];
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -248,7 +211,7 @@ export default function AuthPage() {
 
       const res = await authApi.login(emailOrPhone.trim(), password);
       const role = toFrontendRole(res.roleName);
-      router.push(ROLE_HOME[role]);
+      router.push(redirectAfterAuth ?? ROLE_HOME[role]);
     } catch (err) {
       if (err instanceof ApiError) {
         setLoginError(
@@ -264,17 +227,6 @@ export default function AuthPage() {
     } finally {
       setSubmitting(false);
     }
-  }
-
-  function selectDemoAccount(role: DemoRole) {
-    const account =
-      DEMO_ACCOUNTS.find((demoAccount) => demoAccount.role === role) ??
-      DEMO_ACCOUNTS[0];
-    setMode("login");
-    setSelectedDemoRole(account.role);
-    setEmailOrPhone(account.email);
-    setPassword(account.password);
-    setLoginError("");
   }
 
   return (
@@ -362,13 +314,10 @@ export default function AuthPage() {
                     type="button"
                     onClick={() => {
                       setMode(item);
-                      if (item === "signup") {
-                        setEmailOrPhone("");
-                        setPassword("");
-                      } else {
-                        setEmailOrPhone(selectedDemo.email);
-                        setPassword(selectedDemo.password);
-                      }
+                      setEmailOrPhone("");
+                      setPassword("");
+                      setConfirmPassword("");
+                      setLoginError("");
                     }}
                     className={`h-9 w-1/2 rounded-full text-sm font-semibold transition-colors ${
                       mode === item
@@ -391,38 +340,6 @@ export default function AuthPage() {
                     : "Chào mừng bạn trở lại BidZone"}
                 </p>
               </div>
-
-              {!isSignup ? (
-                <div className="mt-4 rounded-xl border border-[#d7aa63]/25 bg-[#f0c982]/[0.04] p-2.5">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#f0c982]">
-                      Tài khoản demo
-                    </p>
-                    <p className="text-[11px] text-white/45">
-                      Mật khẩu: Demo@123
-                    </p>
-                  </div>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    {DEMO_ACCOUNTS.map((account) => (
-                      <button
-                        key={account.role}
-                        type="button"
-                        onClick={() => selectDemoAccount(account.role)}
-                        className={`flex min-h-9 items-center gap-2 rounded-lg border px-3 text-left text-xs font-semibold transition-colors ${
-                          selectedDemoRole === account.role
-                            ? "border-[#f0c982] bg-[#f0c982] text-black"
-                            : "border-white/12 bg-black/40 text-white/65 hover:border-[#f0c982]/60 hover:text-white"
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-base">
-                          {account.icon}
-                        </span>
-                        {account.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
 
               {loginError ? (
                 <p className="mt-3 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">

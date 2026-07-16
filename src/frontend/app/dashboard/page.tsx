@@ -25,9 +25,41 @@ const EMPTY_DATA: DashboardData = {
   wonItems: [],
 };
 
+const ACTIVE_BID_STATUSES = new Set(["leading", "outbid", "deposited", "sealed"]);
+
+function bidStatusLabel(status: string) {
+  switch (status) {
+    case "leading":
+      return "Đang dẫn đầu";
+    case "won":
+      return "Đã thắng";
+    case "lost":
+      return "Đã thua";
+    case "outbid":
+      return "Đã bị vượt giá";
+    case "deposited":
+      return "Đã đặt cọc";
+    case "sealed":
+      return "Đã đặt giá kín";
+    default:
+      return status;
+  }
+}
+
+function bidStatusClass(status: string) {
+  if (status === "leading" || status === "won") {
+    return "bg-green-500/10 text-green-300";
+  }
+  if (status === "lost" || status === "outbid") {
+    return "bg-red-500/10 text-red-300";
+  }
+  return "bg-yellow-500/10 text-yellow-300";
+}
+
 export default function DashboardPage() {
   const { data, loading, error } = useApiData(loadDashboard, EMPTY_DATA);
-  const leadingLot = data.bids[0];
+  const activeBids = data.bids.filter((bid) => ACTIVE_BID_STATUSES.has(bid.status));
+  const leadingLot = activeBids[0];
   const totalSpent = data.wonItems
     .filter((item) => item.status === "paid")
     .reduce((sum, item) => sum + item.finalPrice, 0);
@@ -49,7 +81,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-3 gap-6">
               <div>
                 <p className="text-2xl font-bold text-[var(--luxora-gold-light)]">
-                  {data.bids.length}
+                  {activeBids.length}
                 </p>
                 <p className="text-xs text-white/50">Phiên đang tham gia</p>
               </div>
@@ -125,12 +157,10 @@ export default function DashboardPage() {
                     </div>
                     <span
                       className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-                        bid.status === "leading" || bid.status === "won"
-                          ? "bg-green-500/10 text-green-300"
-                          : "bg-red-500/10 text-red-300"
+                        bidStatusClass(bid.status)
                       }`}
                     >
-                      {bid.status === "leading" || bid.status === "won" ? "Đang dẫn đầu" : bid.status}
+                      {bidStatusLabel(bid.status)}
                     </span>
                   </Link>
                 ))}

@@ -48,12 +48,14 @@ public class BiddingProductServiceImpl implements BiddingProductService {
         List<Product> products = productRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "productId"));
         Map<Long, Auction> auctionsByProductId = getAuctionsByProductId(products);
         Map<Long, String> imageUrlsByProductId = getPrimaryImageUrlsByProductId(products);
+        Map<Long, Long> bidCountsByAuctionId = getBidCountsByAuctionId(auctionsByProductId);
 
         List<ProductSummaryResponse> filtered = products.stream()
                 .map(product -> toSummaryResponse(
                         product,
                         auctionsByProductId.get(product.getProductId()),
-                        imageUrlsByProductId.get(product.getProductId())))
+                        imageUrlsByProductId.get(product.getProductId()),
+                        bidCountsByAuctionId))
                 .filter(response -> matchesAuctionStatus(response, request.getAuctionStatus()))
                 .toList();
 
@@ -145,6 +147,7 @@ public class BiddingProductServiceImpl implements BiddingProductService {
         List<Product> products = productRepository.findAllById(distinctIds);
         Map<Long, Auction> auctionsByProductId = getAuctionsByProductId(products);
         Map<Long, String> imageUrlsByProductId = getPrimaryImageUrlsByProductId(products);
+        Map<Long, Long> bidCountsByAuctionId = getBidCountsByAuctionId(auctionsByProductId);
         Map<Long, Product> productById = new HashMap<>();
         for (Product product : products) {
             productById.put(product.getProductId(), product);
@@ -155,11 +158,16 @@ public class BiddingProductServiceImpl implements BiddingProductService {
                 .map(product -> toSummaryResponse(
                         product,
                         auctionsByProductId.get(product.getProductId()),
-                        imageUrlsByProductId.get(product.getProductId())))
+                        imageUrlsByProductId.get(product.getProductId()),
+                        bidCountsByAuctionId))
                 .toList();
     }
 
-    private ProductSummaryResponse toSummaryResponse(Product product, Auction auction, String imageUrl) {
+    private ProductSummaryResponse toSummaryResponse(
+            Product product,
+            Auction auction,
+            String imageUrl,
+            Map<Long, Long> bidCountsByAuctionId) {
         Long currentBid = auction != null
                 ? (auction.getCurrentHighestBid() != null ? auction.getCurrentHighestBid() : product.getStartingPrice())
                 : null;
@@ -173,6 +181,9 @@ public class BiddingProductServiceImpl implements BiddingProductService {
                 .status(product.getStatus())
                 .imageUrl(imageUrl)
                 .auctionId(auction != null ? auction.getAuctionId() : null)
+                .totalBids(auction != null
+                        ? bidCountsByAuctionId.getOrDefault(auction.getAuctionId(), 0L)
+                        : 0L)
                 .auctionStatus(auction != null ? auction.getStatus() : null)
                 .auctionStartTime(auction != null && auction.getStartTime() != null ? auction.getStartTime().toString() : null)
                 .auctionEndTime(auction != null && auction.getEndTime() != null ? auction.getEndTime().toString() : null)
@@ -181,6 +192,22 @@ public class BiddingProductServiceImpl implements BiddingProductService {
                         : product.getAuctionMode())
                 .scheduledDurationSeconds(auction != null ? auction.getScheduledDurationSeconds() : null)
                 .build();
+    }
+
+    private Map<Long, Long> getBidCountsByAuctionId(Map<Long, Auction> auctionsByProductId) {
+        List<Long> auctionIds = auctionsByProductId.values().stream()
+                .map(Auction::getAuctionId)
+                .filter(id -> id != null)
+                .distinct()
+                .toList();
+        Map<Long, Long> result = new HashMap<>();
+        if (auctionIds.isEmpty()) {
+            return result;
+        }
+        for (Object[] row : bidRepository.countByAuctionIds(auctionIds)) {
+            result.put(((Number) row[0]).longValue(), ((Number) row[1]).longValue());
+        }
+        return result;
     }
 
     private boolean matchesAuctionStatus(ProductSummaryResponse response, String auctionStatus) {

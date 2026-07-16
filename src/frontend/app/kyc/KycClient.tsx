@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ApiError, kycApi, sellerContractApi } from "@/lib/api";
+import { ApiError, kycApi, sellerContractApi, updateRoleCookie, userApi } from "@/lib/api";
 
 type Picked = { file: File; preview: string } | null;
 
@@ -89,7 +89,14 @@ export default function KycClient() {
   const [gender, setGender] = useState("MALE");
   const [issueDate, setIssueDate] = useState("");
   const [issuePlace, setIssuePlace] = useState("");
-  const [signSellerAgreement, setSignSellerAgreement] = useState(false);
+  // KYC form: identity-truth commitment (required). Seller registration is a
+  // separate step shown only after the KYC is APPROVED.
+  const [identityCommit, setIdentityCommit] = useState(false);
+  const [roleName, setRoleName] = useState<string | null>(null);
+  const [agreeSellerTerms, setAgreeSellerTerms] = useState(false);
+  const [registering, setRegistering] = useState(false);
+  const [sellerSuccess, setSellerSuccess] = useState<string | null>(null);
+  const [sellerError, setSellerError] = useState<string | null>(null);
 
   const [ocrLoading, setOcrLoading] = useState(false);
   const [contractLoading, setContractLoading] = useState(false);
@@ -114,7 +121,34 @@ export default function KycClient() {
       })
       .catch(() => setExistingStatus(null))
       .finally(() => setStatusLoading(false));
-  }, [success]);
+    // Role determines whether the seller-registration box shows after approval.
+    userApi
+      .profile()
+      .then((res) => setRoleName(res.data.roleName))
+      .catch(() => setRoleName(null));
+  }, [success, sellerSuccess]);
+
+  async function handleBecomeSeller() {
+    setSellerError(null);
+    if (!agreeSellerTerms) {
+      setSellerError("Bạn cần đọc và đồng ý hợp đồng người bán trước khi đăng ký.");
+      return;
+    }
+    setRegistering(true);
+    try {
+      const res = await sellerContractApi.submit();
+      updateRoleCookie(res.data?.roleName ?? "Seller");
+      setSellerSuccess(
+        "Đăng ký Seller thành công! Hợp đồng đã được ký điện tử. Bạn có thể đăng vật phẩm ngay.",
+      );
+    } catch (err) {
+      setSellerError(
+        err instanceof ApiError ? err.message : "Không thể đăng ký Seller. Vui lòng thử lại.",
+      );
+    } finally {
+      setRegistering(false);
+    }
+  }
 
   function pick(setter: (v: Picked) => void, current: Picked) {
     return (file: File) => {
@@ -181,6 +215,8 @@ export default function KycClient() {
       return setError("Vui lòng tải đủ 3 ảnh: CCCD mặt trước, mặt sau và ảnh chân dung.");
     if (!fullName.trim() || !phone.trim() || !cccdNumber.trim() || !dob || !issueDate || !issuePlace.trim())
       return setError("Vui lòng điền đầy đủ các trường thông tin.");
+    if (!identityCommit)
+      return setError("Bạn cần cam kết thông tin cung cấp là chính xác trước khi gửi.");
 
     setSubmitting(true);
     try {
@@ -195,7 +231,7 @@ export default function KycClient() {
         frontImage: front.file,
         backImage: back.file,
         selfieImage: selfie.file,
-        signSellerAgreement,
+        signSellerAgreement: false,
       });
       setSuccess("Đã gửi hồ sơ KYC. Nhân viên sẽ duyệt trong thời gian sớm nhất.");
     } catch (err) {
@@ -214,6 +250,8 @@ export default function KycClient() {
   }
 
   if (existingStatus === "APPROVED") {
+    const isSeller = (roleName ?? "").toLowerCase() === "seller";
+    const isBasicUser = (roleName ?? "").toLowerCase() === "user";
     return (
       <div className="mx-auto max-w-3xl px-6 py-10">
         <h1 className="font-display-lg text-3xl">Xác minh danh tính</h1>
@@ -224,6 +262,74 @@ export default function KycClient() {
             Danh tính của bạn đã được xác minh. Bạn có thể sử dụng đầy đủ các tính năng.
           </p>
         </div>
+
+        {/* Seller registration — unlocked only after KYC approval. */}
+        {isSeller || sellerSuccess ? (
+          <div className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-[var(--luxora-gold)]/30 bg-[var(--luxora-gold)]/5 p-8 text-center">
+            <span className="material-symbols-outlined text-4xl text-[var(--luxora-gold-light)]">
+              storefront
+            </span>
+            <p className="text-base font-semibold text-[var(--luxora-gold-light)]">
+              {sellerSuccess ?? "Bạn đã là Seller"}
+            </p>
+            <p className="text-sm text-white/50">
+              Hợp đồng người bán đã được ký điện tử. Vào &quot;Đăng vật phẩm&quot; để bắt đầu bán.
+            </p>
+          </div>
+        ) : isBasicUser ? (
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-2xl text-[var(--luxora-gold-light)]">
+                storefront
+              </span>
+              <h2 className="text-base font-semibold">Đăng ký làm Seller</h2>
+            </div>
+            <p className="mt-2 text-sm leading-6 text-white/55">
+              Danh tính của bạn đã được xác thực — bạn đủ điều kiện đăng ký bán hàng.
+              Chỉ cần đọc và ký hợp đồng người bán, tài khoản sẽ được nâng cấp{" "}
+              <b>ngay lập tức</b>, không cần chờ duyệt.
+            </p>
+
+            <button
+              type="button"
+              onClick={handleViewContract}
+              disabled={contractLoading}
+              className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--luxora-gold-light)] hover:underline disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-base">picture_as_pdf</span>
+              {contractLoading ? "Đang mở hợp đồng..." : "Đọc hợp đồng người bán (PDF)"}
+            </button>
+
+            <label className="mt-3 flex items-start gap-2 text-xs text-white/60">
+              <input
+                type="checkbox"
+                checked={agreeSellerTerms}
+                onChange={(e) => setAgreeSellerTerms(e.target.checked)}
+                className="mt-0.5"
+              />
+              <span>
+                Tôi đã đọc và đồng ý với hợp đồng người bán, trong đó cam đoan{" "}
+                <b>chỉ bán hàng thật, không đăng bán hàng giả/hàng nhái</b> và chịu hoàn
+                toàn trách nhiệm trước pháp luật nếu vi phạm.
+              </span>
+            </label>
+
+            {sellerError && (
+              <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                {sellerError}
+              </div>
+            )}
+
+            <button
+              type="button"
+              disabled={registering || !agreeSellerTerms}
+              onClick={() => void handleBecomeSeller()}
+              className="gradient-cta mt-5 w-full rounded-full py-3 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {registering ? "Đang ký hợp đồng..." : "Ký hợp đồng & trở thành Seller"}
+            </button>
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -337,26 +443,17 @@ export default function KycClient() {
       </div>
 
       <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-        <button
-          type="button"
-          onClick={handleViewContract}
-          disabled={contractLoading}
-          className="mb-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--luxora-gold-light)] hover:underline disabled:opacity-50"
-        >
-          <span className="material-symbols-outlined text-base">picture_as_pdf</span>
-          {contractLoading ? "Đang mở hợp đồng..." : "Xem hợp đồng người bán (PDF)"}
-        </button>
         <label className="flex items-start gap-2 text-xs text-white/60">
           <input
             type="checkbox"
-            checked={signSellerAgreement}
-            onChange={(e) => setSignSellerAgreement(e.target.checked)}
+            checked={identityCommit}
+            onChange={(e) => setIdentityCommit(e.target.checked)}
             className="mt-0.5"
           />
           <span>
-            Tôi đã đọc và đồng ý với hợp đồng nền tảng dành cho người bán, trong đó cam
-            đoan <b>không đăng bán hàng giả/hàng nhái</b> và chịu hoàn toàn trách nhiệm
-            trước pháp luật nếu vi phạm (bắt buộc nếu bạn muốn đăng bán vật phẩm).
+            Tôi cam kết toàn bộ thông tin và giấy tờ cung cấp là <b>chính xác, thật 100%</b> và
+            thuộc về chính tôi. Tôi hiểu rằng cung cấp giấy tờ giả mạo có thể bị khóa tài
+            khoản và xử lý theo quy định pháp luật.
           </span>
         </label>
       </div>

@@ -114,15 +114,10 @@ export default function LiveBiddingPanel({
 
   const isActive = state.status === "ACTIVE";
   const isUpcoming = state.status === "UPCOMING";
-  const isTimed = state.auctionMode === "TIMED";
-  // TIMED (open, real-money): any KYC-verified buyer may bid, no deposit.
-  // LIVE: entry still requires a locked deposit.
   const canBid =
     isActive &&
     viewerMode === "buyer" &&
-    (isTimed
-      ? Boolean(eligibility?.kycVerified)
-      : Boolean(eligibility?.alreadyDeposited));
+    Boolean(eligibility?.alreadyDeposited);
 
   async function placeDeposit() {
     setMessage(null);
@@ -256,9 +251,9 @@ export default function LiveBiddingPanel({
         </div>
       ) : null}
 
-      {viewerMode === "buyer" && isTimed && (isUpcoming || isActive) ? (
+      {false && viewerMode === "buyer" && (isUpcoming || isActive) ? (
         <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-          {eligibility && !eligibility.kycVerified ? (
+          {!eligibility?.kycVerified ? (
             <Link
               href="/kyc"
               className="block rounded-xl border border-yellow-400/30 bg-yellow-500/10 py-2.5 text-center text-xs font-semibold text-yellow-200"
@@ -276,7 +271,7 @@ export default function LiveBiddingPanel({
                 <p className="mt-2 text-xs text-white/70">
                   Giá cao nhất của bạn (đang khóa):{" "}
                   <span className="font-semibold text-[var(--luxora-gold-light)]">
-                    {VND.format(myBidAmount)} ₫
+                    {VND.format(myBidAmount ?? 0)} ₫
                   </span>
                 </p>
               ) : null}
@@ -285,7 +280,7 @@ export default function LiveBiddingPanel({
         </div>
       ) : null}
 
-      {viewerMode === "buyer" && !isTimed && eligibility && (isUpcoming || isActive) ? (
+      {viewerMode === "buyer" && eligibility && (isUpcoming || isActive) ? (
         <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
           {eligibility.alreadyDeposited ? (
             <div>
@@ -299,7 +294,7 @@ export default function LiveBiddingPanel({
                 <p className="mt-2 text-xs text-white/70">
                   {state.priceHidden ? "Giá kín của bạn: " : "Giá cao nhất bạn đã đặt: "}
                   <span className="font-semibold text-[var(--luxora-gold-light)]">
-                    {VND.format(myBidAmount)} ₫
+                    {VND.format(myBidAmount ?? 0)} ₫
                   </span>
                 </p>
               ) : null}

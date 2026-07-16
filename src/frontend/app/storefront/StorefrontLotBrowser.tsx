@@ -29,11 +29,6 @@ type StorefrontLotBrowserProps = {
   categoryLabel: string;
 };
 
-function timeLeftToSeconds(timeLeft: string) {
-  const [hours = "0", minutes = "0", seconds = "0"] = timeLeft.split(":");
-  return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
-}
-
 function formatCountdown(ms: number): string {
   if (ms <= 0) return "Đã kết thúc";
   const totalSec = Math.floor(ms / 1000);
@@ -50,8 +45,14 @@ function parsePrice(value: string) {
     return undefined;
   }
 
-  const price = Number(trimmedValue);
-  return Number.isFinite(price) && price >= 0 ? price : undefined;
+  const price = Number(trimmedValue.replace(",", "."));
+  if (!Number.isFinite(price) || price < 0) {
+    return undefined;
+  }
+
+  // Người dùng thường nhập 40–50 với ý nghĩa 40–50 triệu đồng. Vẫn chấp
+  // nhận giá trị VND đầy đủ (40.000.000) để không phá thói quen cũ.
+  return price < 100_000 ? price * 1_000_000 : price;
 }
 
 export default function StorefrontLotBrowser({
@@ -63,21 +64,6 @@ export default function StorefrontLotBrowser({
   const [sortBy, setSortBy] = useState<SortBy>("default");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-
-  // Live ticking clock for the countdown on each card. Starts as null so the
-  // server-rendered HTML (static lot.timeLeft) matches the first client render,
-  // then switches to a real per-second countdown after mount.
-  const [now, setNow] = useState<number | null>(null);
-  useEffect(() => {
-    setNow(Date.now());
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  function liveTimeLeft(lot: StorefrontLot): string {
-    if (now === null || lot.endsAt === null) return lot.timeLeft;
-    return formatCountdown(lot.endsAt - now);
-  }
 
   const visibleLots = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("vi-VN");
@@ -92,13 +78,16 @@ export default function StorefrontLotBrowser({
       const matchesLive = !liveOnly || lot.isLive;
       const matchesMin = min === undefined || lot.currentBid >= min;
       const matchesMax = max === undefined || lot.currentBid <= max;
+      const matchesEnding =
+        sortBy !== "ending" ||
+        (lot.isLive && (lot.endsAt === null || lot.endsAt > Date.now()));
 
-      return matchesQuery && matchesLive && matchesMin && matchesMax;
+      return matchesQuery && matchesLive && matchesMin && matchesMax && matchesEnding;
     });
 
     return filteredLots.sort((a, b) => {
       if (sortBy === "ending") {
-        return timeLeftToSeconds(a.timeLeft) - timeLeftToSeconds(b.timeLeft);
+        return (a.endsAt ?? Number.MAX_SAFE_INTEGER) - (b.endsAt ?? Number.MAX_SAFE_INTEGER);
       }
 
       if (sortBy === "highest") {
@@ -190,23 +179,34 @@ export default function StorefrontLotBrowser({
         </div>
 
         <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(280px,0.45fr)_minmax(360px,1fr)_auto] xl:items-center">
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              type="number"
-              min="0"
-              value={minPrice}
-              onChange={(event) => setMinPrice(event.target.value)}
-              placeholder="Giá từ"
-              className="h-10 min-w-0 rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-[var(--luxora-gold)]"
-            />
-            <input
-              type="number"
-              min="0"
-              value={maxPrice}
-              onChange={(event) => setMaxPrice(event.target.value)}
-              placeholder="Giá đến"
-              className="h-10 min-w-0 rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-[var(--luxora-gold)]"
-            />
+          <div>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex h-10 min-w-0 items-center rounded-xl border border-white/10 bg-black/30 px-3 focus-within:border-[var(--luxora-gold)]">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={minPrice}
+                  onChange={(event) => setMinPrice(event.target.value)}
+                  placeholder="Giá từ"
+                  className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
+                />
+                <span className="ml-1 whitespace-nowrap text-[10px] text-white/35">triệu ₫</span>
+              </label>
+              <label className="flex h-10 min-w-0 items-center rounded-xl border border-white/10 bg-black/30 px-3 focus-within:border-[var(--luxora-gold)]">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={maxPrice}
+                  onChange={(event) => setMaxPrice(event.target.value)}
+                  placeholder="Giá đến"
+                  className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
+                />
+                <span className="ml-1 whitespace-nowrap text-[10px] text-white/35">triệu ₫</span>
+              </label>
+            </div>
+            <p className="mt-1.5 px-1 text-[10px] text-white/35">Ví dụ: nhập 40 và 50 để lọc từ 40–50 triệu đồng.</p>
           </div>
 
           <div className="flex min-w-0 flex-wrap gap-2">
@@ -304,7 +304,7 @@ export default function StorefrontLotBrowser({
                   <div className="text-right">
                     <p className="text-[11px] text-white/40">Còn lại</p>
                     <p className="text-xs font-medium text-white/70">
-                      {liveTimeLeft(lot)}
+                      <LotCountdown endsAt={lot.endsAt} fallback={lot.timeLeft} />
                     </p>
                   </div>
                 </div>
@@ -323,9 +323,36 @@ export default function StorefrontLotBrowser({
         </div>
       ) : (
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center text-sm text-white/50">
-          Chưa có lot phù hợp với bộ lọc này.
+          <p>Chưa có lot phù hợp với bộ lọc này.</p>
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="mt-4 rounded-full border border-[#d7aa63]/50 px-5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#f0c982] hover:text-black"
+          >
+            Xóa bộ lọc
+          </button>
         </div>
       )}
     </div>
   );
+}
+
+/**
+ * Per-card ticking countdown. Isolated in its own component so the 1-second
+ * tick re-renders only this tiny text node — NOT the whole lot grid (which
+ * previously re-filtered, re-sorted and re-painted every card each second).
+ * Renders the server-provided fallback string until mounted (hydration-safe).
+ */
+function LotCountdown({ endsAt, fallback }: { endsAt: number | null; fallback: string }) {
+  const [now, setNow] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (endsAt === null) return;
+    setNow(Date.now());
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [endsAt]);
+
+  if (endsAt === null || now === null) return <>{fallback}</>;
+  return <>{formatCountdown(endsAt - now)}</>;
 }

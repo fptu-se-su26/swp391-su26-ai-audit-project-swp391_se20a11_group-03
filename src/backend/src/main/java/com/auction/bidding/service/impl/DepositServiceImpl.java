@@ -57,7 +57,10 @@ public class DepositServiceImpl implements DepositService {
         }
 
         long depositAmount = DepositCalculator.calculate(auction.getProduct().getStartingPrice());
-        if (wallet.getBalance() == null || wallet.getBalance() < depositAmount) {
+        long currentBalance = wallet.getBalance() == null ? 0L : wallet.getBalance();
+        long currentHold = wallet.getHoldBalance() == null ? 0L : wallet.getHoldBalance();
+        long availableBalance = currentBalance - currentHold;
+        if (availableBalance < depositAmount) {
             throw new IllegalStateException("Insufficient wallet balance");
         }
 
@@ -65,8 +68,7 @@ public class DepositServiceImpl implements DepositService {
             throw new IllegalStateException("User already deposited for this auction");
         }
 
-        wallet.setBalance(wallet.getBalance() - depositAmount);
-        wallet.setHoldBalance((wallet.getHoldBalance() == null ? 0L : wallet.getHoldBalance()) + depositAmount);
+        wallet.setHoldBalance(currentHold + depositAmount);
         wallet.setUpdatedAt(LocalDateTime.now());
         walletRepository.save(wallet);
 
@@ -75,6 +77,7 @@ public class DepositServiceImpl implements DepositService {
         transaction.setAmount(depositAmount);
         transaction.setTransactionType("HOLD_BID");
         transaction.setStatus("COMPLETED");
+        transaction.setReferenceCode("DEPOSIT-HOLD-" + auctionId + "-" + userId);
         transaction.setDescription("Lock " + DepositCalculator.describeTier(auction.getProduct().getStartingPrice())
                 + " deposit for auction " + auctionId);
         transaction.setCreatedAt(LocalDateTime.now());

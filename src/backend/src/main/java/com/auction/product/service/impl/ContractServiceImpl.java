@@ -3,7 +3,9 @@ package com.auction.product.service.impl;
 import com.auction.account.dao.UserRepository;
 import com.auction.account.entity.User;
 import com.auction.bidding.entity.Auction;
+import com.auction.bidding.entity.AuctionDeposit;
 import com.auction.bidding.entity.AuctionSession;
+import com.auction.bidding.repository.AuctionDepositRepository;
 import com.auction.bidding.repository.AuctionRepository;
 import com.auction.bidding.repository.AuctionSessionRepository;
 import com.auction.product.dto.PurchaseContractPreviewDTO;
@@ -45,6 +47,7 @@ public class ContractServiceImpl implements ContractService {
     private final ProductRepository productRepository;
     private final AuctionRepository auctionRepository;
     private final AuctionSessionRepository auctionSessionRepository;
+    private final AuctionDepositRepository auctionDepositRepository;
 
     @Override
     @Transactional
@@ -193,12 +196,18 @@ public class ContractServiceImpl implements ContractService {
         Contract existing = contractRepository.findByContractTypeAndReferenceId(TYPE_PURCHASE, auctionId).orElse(null);
         boolean acknowledged = existing != null
                 || hasPurchaseContractAcknowledgment(auctionId, buyerUserId);
+        long depositAmount = auctionDepositRepository
+                .findByAuction_AuctionIdAndUser_Id(auctionId, Math.toIntExact(buyerUserId))
+                .map(AuctionDeposit::getDepositAmount)
+                .orElse(0L);
 
         return PurchaseContractPreviewDTO.builder()
                 .auctionId(auctionId)
                 .productId(ctx.productId())
                 .productName(ctx.productName())
                 .finalPrice(ctx.finalPrice())
+                .depositAmount(depositAmount)
+                .remainingAmount(Math.max(0L, ctx.finalPrice() - depositAmount))
                 .sellerName(ctx.sellerName())
                 .sellerEmail(ctx.sellerEmail())
                 .buyerName(ctx.buyerName())
@@ -286,10 +295,10 @@ public class ContractServiceImpl implements ContractService {
 
         boolean platformListing = seller != null && isAdminRole(seller);
         String sellerName = platformListing
-                ? "CÔNG TY LUXEAUCTION"
+                ? "CÔNG TY BIDZONE"
                 : (seller != null ? displayName(seller) : "—");
         String sellerEmail = platformListing
-                ? (admin != null ? admin.getEmail() : "admin@luxeauction.vn")
+                ? (admin != null ? admin.getEmail() : "admin@bidzone.vn")
                 : (seller != null ? seller.getEmail() : "—");
         long finalPrice = auction.getCurrentHighestBid() != null ? auction.getCurrentHighestBid() : 0L;
 
@@ -301,8 +310,8 @@ public class ContractServiceImpl implements ContractService {
                 sellerEmail,
                 displayName(buyer),
                 buyer.getEmail(),
-                admin != null ? displayName(admin) : "LuxeAuction Admin",
-                admin != null ? admin.getEmail() : "admin@luxeauction.vn"
+                admin != null ? displayName(admin) : "BidZone Admin",
+                admin != null ? admin.getEmail() : "admin@bidzone.vn"
         );
     }
 
