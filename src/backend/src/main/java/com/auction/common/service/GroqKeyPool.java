@@ -12,22 +12,23 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 /**
- * Round-robin API key pool with sequential failover on HTTP 429.
+ * Round-robin API key pool with sequential failover when a key is rejected or
+ * rate limited.
  */
-public class GeminiKeyPool {
+public class GroqKeyPool {
 
-    private static final Logger log = LoggerFactory.getLogger(GeminiKeyPool.class);
+    private static final Logger log = LoggerFactory.getLogger(GroqKeyPool.class);
 
     private final String poolName;
     private final List<String> keys;
     private final AtomicInteger roundRobin = new AtomicInteger(0);
 
-    public GeminiKeyPool(String poolName, List<String> keys) {
+    public GroqKeyPool(String poolName, List<String> keys) {
         this.poolName = poolName;
         this.keys = List.copyOf(keys);
     }
 
-    public static GeminiKeyPool fromConfig(String poolName, String keysCsv, String... singleKeyFallbacks) {
+    public static GroqKeyPool fromConfig(String poolName, String keysCsv, String... singleKeyFallbacks) {
         LinkedHashSet<String> unique = new LinkedHashSet<>();
         addKeysFromCsv(unique, keysCsv);
         if (singleKeyFallbacks != null) {
@@ -35,7 +36,7 @@ public class GeminiKeyPool {
                 addKeyIfValid(unique, candidate);
             }
         }
-        return new GeminiKeyPool(poolName, new ArrayList<>(unique));
+        return new GroqKeyPool(poolName, new ArrayList<>(unique));
     }
 
     public boolean isConfigured() {
@@ -48,28 +49,30 @@ public class GeminiKeyPool {
 
     public <T> T executeWithPool(Function<String, T> action) {
         if (keys.isEmpty()) {
-            throw new IllegalStateException("Chưa cấu hình Gemini API key cho pool " + poolName);
+            throw new IllegalStateException("Chưa cấu hình Groq API key cho pool " + poolName);
         }
 
         int start = Math.floorMod(roundRobin.getAndIncrement(), keys.size());
-        HttpStatusCodeException lastRateLimit = null;
+        HttpStatusCodeException lastKeyFailure = null;
 
         for (int attempt = 0; attempt < keys.size(); attempt++) {
             String key = keys.get((start + attempt) % keys.size());
             try {
                 T result = action.apply(key);
                 if (attempt > 0) {
-                    log.info("Gemini pool {} succeeded with failover keySuffix={} attempt={}/{}",
+                    log.info("Groq pool {} succeeded with failover keySuffix={} attempt={}/{}",
                             poolName, keySuffix(key), attempt + 1, keys.size());
                 }
                 return result;
             } catch (HttpStatusCodeException ex) {
-                if (ex.getStatusCode().value() == 429) {
-                    lastRateLimit = ex;
+                int status = ex.getStatusCode().value();
+                if (status == 401 || status == 403 || status == 429) {
+                    lastKeyFailure = ex;
                     String body = ex.getResponseBodyAsString(StandardCharsets.UTF_8);
                     log.warn(
-                            "Gemini pool {} rate limited (429) keySuffix={} attempt={}/{} body={}",
+                            "Groq pool {} key rejected (HTTP {}) keySuffix={} attempt={}/{} body={}",
                             poolName,
+                            status,
                             keySuffix(key),
                             attempt + 1,
                             keys.size(),
@@ -81,10 +84,10 @@ public class GeminiKeyPool {
             }
         }
 
-        if (lastRateLimit != null) {
-            throw lastRateLimit;
+        if (lastKeyFailure != null) {
+            throw lastKeyFailure;
         }
-        throw new IllegalStateException("Gemini pool " + poolName + " exhausted all keys");
+        throw new IllegalStateException("Groq pool " + poolName + " exhausted all keys");
     }
 
     private static void addKeysFromCsv(LinkedHashSet<String> keys, String csv) {
@@ -101,7 +104,7 @@ public class GeminiKeyPool {
             return;
         }
         String trimmed = candidate.trim();
-        if (trimmed.isEmpty() || "YOUR_GEMINI_API_KEY".equals(trimmed)) {
+        if (trimmed.isEmpty() || "YOUR_GROQ_API_KEY".equals(trimmed)) {
             return;
         }
         keys.add(trimmed);

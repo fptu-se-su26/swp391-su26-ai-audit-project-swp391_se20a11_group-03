@@ -2,7 +2,7 @@ package com.auction.account.service;
 
 import com.auction.account.dto.CccdDuplicateInfo;
 import com.auction.account.dto.CccdOcrResult;
-import com.auction.common.service.GeminiOcrService;
+import com.auction.common.service.GroqOcrService;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,7 +26,7 @@ public class CccdOcrService {
     private static final DateTimeFormatter DD_MM_YYYY = DateTimeFormatter.ofPattern("d/M/uuuu");
     private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_LOCAL_DATE;
 
-    private final GeminiOcrService geminiOcrService;
+    private final GroqOcrService groqOcrService;
     private final JdbcTemplate jdbcTemplate;
 
     public CccdOcrResult extract(Long userId, MultipartFile frontImage, MultipartFile backImage) throws IOException {
@@ -37,14 +37,14 @@ public class CccdOcrService {
         JsonNode frontData;
         JsonNode backData;
         try {
-            JsonNode dual = geminiOcrService.parseDualIdCardJson(
-                    geminiOcrService.scanIdCardPair(frontImage, backImage));
+            JsonNode dual = groqOcrService.parseDualIdCardJson(
+                    groqOcrService.scanIdCardPair(frontImage, backImage));
             frontData = dual.path("front");
             backData = dual.path("back");
         } catch (IllegalStateException ex) {
             return CccdOcrResult.builder()
                     .success(false)
-                    .provider("gemini")
+                    .provider("groq")
                     .message(ex.getMessage())
                     .build();
         }
@@ -58,7 +58,7 @@ public class CccdOcrService {
 
         CccdOcrResult.CccdOcrResultBuilder builder = CccdOcrResult.builder()
                 .success(hasMinimumFields(cccdNumber, fullName, dob))
-                .provider("gemini")
+                .provider("groq")
                 .confidenceScore(0.85)
                 .fullName(fullName)
                 .cccdNumber(cccdNumber)

@@ -52,19 +52,21 @@ cloudinary.api-secret=${CLOUDINARY_API_SECRET:}
 cloudinary.folder.products=${CLOUDINARY_FOLDER_PRODUCTS:auction/products}
 cloudinary.folder.kyc=${CLOUDINARY_FOLDER_KYC:auction/kyc}
 
-# Google Gemini
-gemini.api.key=${GEMINI_API_KEY:}
-gemini.ocr.api.key=${GEMINI_OCR_API_KEY:${gemini.api.key:}}
-gemini.valuation.api.key=${GEMINI_VALUATION_API_KEY:${gemini.api.key:}}
-gemini.chat.api.key=${GEMINI_CHAT_API_KEY:${gemini.api.key:}}
+# Groq
+# Set GROQ_API_KEY in the environment. Never put a real key in this file.
+groq.api.key=${GROQ_API_KEY:}
+groq.api.keys=${GROQ_API_KEYS:}
+groq.ocr.api.key=${GROQ_OCR_API_KEY:${groq.api.key:}}
+groq.valuation.api.key=${GROQ_VALUATION_API_KEY:${groq.api.key:}}
+groq.chat.api.key=${GROQ_CHAT_API_KEY:${groq.api.key:}}
 
-# Comma-separated key pools (round-robin and failover on HTTP 429).
-# The corresponding single-key properties above are used as fallbacks.
-gemini.ocr.api.keys=${GEMINI_OCR_API_KEYS:}
-gemini.valuation.api.keys=${GEMINI_VALUATION_API_KEYS:}
-gemini.chat.api.keys=${GEMINI_CHAT_API_KEYS:}
-gemini.api.base-url=${GEMINI_API_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
-gemini.api.model=${GEMINI_API_MODEL:gemini-flash-lite-latest}
+# Optional task-specific pools. They fall back to GROQ_API_KEYS.
+groq.ocr.api.keys=${GROQ_OCR_API_KEYS:${groq.api.keys}}
+groq.valuation.api.keys=${GROQ_VALUATION_API_KEYS:${groq.api.keys}}
+groq.chat.api.keys=${GROQ_CHAT_API_KEYS:${groq.api.keys}}
+groq.api.base-url=${GROQ_API_BASE_URL:https://api.groq.com/openai/v1}
+groq.api.model=${GROQ_API_MODEL:qwen/qwen3.6-27b}
+groq.vision.model=${GROQ_VISION_MODEL:${groq.api.model}}
 
 # SePay
 sepay.bank-id=${SEPAY_BANK_ID:}

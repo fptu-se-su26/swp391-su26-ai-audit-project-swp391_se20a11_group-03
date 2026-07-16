@@ -1,6 +1,6 @@
 package com.auction.product.service;
 
-import com.auction.common.service.GeminiKeyPool;
+import com.auction.common.service.GroqKeyPool;
 import com.auction.product.dto.AiValuationRequest;
 import com.auction.product.dto.AiValuationResponse;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,28 +25,28 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-public class GeminiValuationService {
+public class GroqValuationService {
 
     private static final int MAX_IMAGES = 3;
     private static final Pattern MARKDOWN_JSON = Pattern.compile("```(?:json)?\\s*([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
 
     private static final String RATE_LIMIT_MESSAGE =
-            "Gemini đang bận (giới hạn request). Thử lại sau khoảng 1 phút.";
+            "Groq đang bận (giới hạn request). Thử lại sau khoảng 1 phút.";
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-    private final GeminiKeyPool keyPool;
+    private final GroqKeyPool keyPool;
 
-    @Value("${gemini.api.base-url:https://generativelanguage.googleapis.com/v1beta}")
+    @Value("${groq.api.base-url:https://api.groq.com/openai/v1}")
     private String apiBaseUrl;
 
-    @Value("${gemini.api.model:gemini-flash-lite-latest}")
+    @Value("${groq.vision.model:qwen/qwen3.6-27b}")
     private String model;
 
-    public GeminiValuationService(
+    public GroqValuationService(
             RestTemplate restTemplate,
             ObjectMapper objectMapper,
-            @Qualifier("valuation") GeminiKeyPool keyPool
+            @Qualifier("valuation") GroqKeyPool keyPool
     ) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
@@ -56,7 +56,7 @@ public class GeminiValuationService {
     public AiValuationResponse value(AiValuationRequest request) {
         if (!keyPool.isConfigured()) {
             throw new IllegalStateException(
-                    "Chưa cấu hình gemini.valuation.api.keys, gemini.valuation.api.key hoặc biến môi trường GEMINI_VALUATION_API_KEYS.");
+                    "Chưa cấu hình GROQ_API_KEY hoặc GROQ_VALUATION_API_KEY.");
         }
         if (request == null) {
             throw new IllegalArgumentException("Thiếu dữ liệu định giá");
@@ -75,19 +75,20 @@ public class GeminiValuationService {
                 throw new IllegalStateException(RATE_LIMIT_MESSAGE, ex);
             }
             String errBody = ex.getResponseBodyAsString(StandardCharsets.UTF_8);
-            throw new IllegalStateException("Gemini API HTTP " + ex.getStatusCode().value() + ": " + errBody, ex);
+            throw new IllegalStateException("Groq API HTTP " + ex.getStatusCode().value() + ": " + errBody, ex);
         } catch (IllegalArgumentException | IllegalStateException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new IllegalStateException("Gọi Gemini định giá thất bại: " + ex.getMessage(), ex);
+            throw new IllegalStateException("Gọi Groq định giá thất bại: " + ex.getMessage(), ex);
         }
     }
 
     private AiValuationResponse invokeValuation(String apiKey, Map<String, Object> body) {
-        String url = apiBaseUrl + "/models/" + model.trim() + ":generateContent?key=" + apiKey.trim();
+        String url = apiBaseUrl.replaceAll("/+$", "") + "/chat/completions";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey.trim());
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
@@ -98,13 +99,13 @@ public class GeminiValuationService {
         } catch (IllegalArgumentException | IllegalStateException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new IllegalStateException("Gọi Gemini định giá thất bại: " + ex.getMessage(), ex);
+            throw new IllegalStateException("Gọi Groq định giá thất bại: " + ex.getMessage(), ex);
         }
     }
 
     private Map<String, Object> buildRequestBody(AiValuationRequest request) {
         List<Map<String, Object>> parts = new ArrayList<>();
-        parts.add(Map.of("text", buildPrompt(request)));
+        parts.add(Map.of("type", "text", "text", buildPrompt(request)));
 
         List<AiValuationRequest.AiValuationImage> images = request.getImages();
         if (images != null) {
@@ -118,21 +119,22 @@ public class GeminiValuationService {
                 }
                 String raw = stripDataUrl(image.getBase64());
                 String mime = resolveMime(image.getMimeType(), raw);
-                Map<String, Object> inlineData = new LinkedHashMap<>();
-                inlineData.put("mime_type", mime);
-                inlineData.put("data", raw);
                 Map<String, Object> imagePart = new LinkedHashMap<>();
-                imagePart.put("inline_data", inlineData);
+                imagePart.put("type", "image_url");
+                imagePart.put("image_url", Map.of(
+                        "url", "data:" + mime + ";base64," + raw
+                ));
                 parts.add(imagePart);
                 count++;
             }
         }
 
-        Map<String, Object> content = new LinkedHashMap<>();
-        content.put("parts", parts);
-
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("contents", List.of(content));
+        body.put("model", model.trim());
+        body.put("messages", List.of(Map.of("role", "user", "content", parts)));
+        body.put("temperature", 0.2);
+        body.put("max_completion_tokens", 1500);
+        body.put("response_format", Map.of("type", "json_object"));
         return body;
     }
 
@@ -209,15 +211,15 @@ public class GeminiValuationService {
 
     private static String extractGeneratedText(JsonNode root) {
         if (root == null || root.isMissingNode()) {
-            throw new IllegalStateException("Gemini trả về response rỗng");
+            throw new IllegalStateException("Groq trả về response rỗng");
         }
         JsonNode error = root.path("error");
         if (!error.isMissingNode() && !error.isNull()) {
-            throw new IllegalStateException(error.path("message").asText("Gemini API error"));
+            throw new IllegalStateException(error.path("message").asText("Groq API error"));
         }
-        JsonNode textNode = root.path("candidates").path(0).path("content").path("parts").path(0).path("text");
+        JsonNode textNode = root.path("choices").path(0).path("message").path("content");
         if (textNode.isMissingNode() || textNode.isNull() || textNode.asText("").isBlank()) {
-            throw new IllegalStateException("Gemini không trả về nội dung định giá");
+            throw new IllegalStateException("Groq không trả về nội dung định giá");
         }
         return textNode.asText().trim();
     }

@@ -5,7 +5,7 @@ import com.auction.account.dto.KycSubmissionResponse;
 import com.auction.account.security.UserDetailsImpl;
 import com.auction.account.service.CccdOcrService;
 import com.auction.account.service.KycService;
-import com.auction.common.service.GeminiOcrService;
+import com.auction.common.service.GroqOcrService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -28,7 +28,7 @@ public class KycController {
 
     private final KycService kycService;
     private final CccdOcrService cccdOcrService;
-    private final GeminiOcrService geminiOcrService;
+    private final GroqOcrService groqOcrService;
 
     /**
      * User submits a KYC application. Multipart so the three ID photos are
@@ -123,13 +123,13 @@ public class KycController {
     }
 
     /**
-     * Scan a single CCCD image via Google Gemini and return raw extracted JSON.
+     * Scan a single CCCD image via Groq and return raw extracted JSON.
      */
     @CrossOrigin(origins = "*")
     @PostMapping(value = "/scan-cccd", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> scanCccd(@RequestParam("image") MultipartFile image) {
         try {
-            String json = geminiOcrService.scanIdCard(image);
+            String json = groqOcrService.scanIdCard(image);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(json);
