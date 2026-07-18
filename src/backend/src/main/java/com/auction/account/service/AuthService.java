@@ -87,6 +87,21 @@ public class AuthService {
         return value == null ? null : value.trim();
     }
 
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    /**
+     * The database still requires a unique phone value. Accounts created
+     * without one receive an internal placeholder that can be replaced later
+     * from the profile or KYC flow.
+     */
+    private String generatePlaceholderPhone() {
+        String candidate = "L" + System.currentTimeMillis()
+                + String.format("%04d", (int) (Math.random() * 10000));
+        return candidate.length() > 20 ? candidate.substring(0, 20) : candidate;
+    }
+
     public static final class AuthResult {
         private final boolean success;
         private final String message;
@@ -119,5 +134,4 @@ public class AuthService {
         }
     }
 }
-
 

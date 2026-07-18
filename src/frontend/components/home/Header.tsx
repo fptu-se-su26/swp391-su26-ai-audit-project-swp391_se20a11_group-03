@@ -11,6 +11,7 @@ import {
 } from "react";
 import { FiChevronDown, FiGrid, FiLogOut, FiUser } from "react-icons/fi";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import {
   ApiError,
   AUTH_STATE_EVENT,
@@ -113,7 +114,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-black/85 backdrop-blur-md">
+    <header className="site-header sticky top-0 z-50 border-b border-white/10 bg-black/85 backdrop-blur-md">
       <div className="flex min-h-16 w-full items-center justify-between gap-3 px-4 py-3 sm:min-h-20 sm:px-6 lg:px-12">
         <Link
           href="/"
@@ -128,6 +129,21 @@ export default function Header() {
             <Link
               key={link.label}
               href={link.href}
+              prefetch={link.href === "/storefront" ? false : undefined}
+              onClick={(event) => {
+                if (
+                  link.href !== "/storefront" ||
+                  event.ctrlKey ||
+                  event.metaKey ||
+                  event.shiftKey ||
+                  event.altKey
+                ) {
+                  return;
+                }
+
+                event.preventDefault();
+                window.location.assign("/storefront");
+              }}
               className="transition-colors hover:text-[#f0c982]"
             >
               {link.label}
@@ -136,6 +152,7 @@ export default function Header() {
         </nav>
 
         <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
+          <ThemeToggle />
           {isLoggedIn ? (
             <div ref={accountMenuRef} className="relative">
               <button

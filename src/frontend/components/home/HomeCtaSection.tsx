@@ -28,7 +28,7 @@ export default function HomeCtaSection() {
   return (
     <section className="border-b border-white/10">
       <div className="mx-auto max-w-[1600px] px-4 py-10 sm:px-6 sm:py-14 lg:px-12">
-        <div className="relative overflow-hidden rounded-lg border border-[#d7aa63]/45 bg-black">
+        <div className="theme-dark-content relative overflow-hidden rounded-lg border border-[#d7aa63]/45 bg-black">
           <Image
             src="/images/luxury-watch-hero.webp"
             alt="Đồng hồ cao cấp trong bộ sưu tập đấu giá"

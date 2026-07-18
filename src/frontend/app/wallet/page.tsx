@@ -325,7 +325,7 @@ export default function WalletPage() {
                 >
                   Số tiền nạp
                 </label>
-                <div className="mt-2 flex h-12 items-center rounded-lg border border-white/15 bg-black/40 px-4 focus-within:border-[var(--luxora-gold)]">
+                <div className="mt-2 flex h-12 items-center rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 focus-within:border-[var(--luxora-gold)]">
                   <input
                     id="deposit-amount"
                     type="text"
@@ -498,7 +498,7 @@ export default function WalletPage() {
                 <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
                   Số tiền rút
                 </span>
-                <div className="mt-2 flex h-12 items-center rounded-lg border border-white/15 bg-black/40 px-4 focus-within:border-[var(--luxora-gold)]">
+                <div className="mt-2 flex h-12 items-center rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 focus-within:border-[var(--luxora-gold)]">
                   <input
                     type="text"
                     inputMode="numeric"
@@ -528,7 +528,7 @@ export default function WalletPage() {
                   value={bankName}
                   onChange={(event) => setBankName(event.target.value)}
                   placeholder="VD: Vietcombank"
-                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-black/40 px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
+                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
                 />
               </label>
 
@@ -545,7 +545,7 @@ export default function WalletPage() {
                     setAccountNumber(event.target.value.replace(/\D/g, ""))
                   }
                   placeholder="Nhập số tài khoản nhận tiền"
-                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-black/40 px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
+                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
                 />
               </label>
 
@@ -559,7 +559,7 @@ export default function WalletPage() {
                   value={accountName}
                   onChange={(event) => setAccountName(event.target.value)}
                   placeholder="Tên chủ tài khoản (không dấu)"
-                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-black/40 px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
+                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
                 />
               </label>
 

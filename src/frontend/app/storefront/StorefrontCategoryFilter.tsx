@@ -59,7 +59,7 @@ export default function StorefrontCategoryFilter({
         )}
       </div>
 
-      <label className="mt-4 flex items-center gap-2 rounded-xl border border-white/10 bg-black/30 px-3 py-2 focus-within:border-[var(--luxora-gold)]">
+      <label className="storefront-control mt-4 flex items-center gap-2 rounded-xl border border-white/10 bg-[var(--luxora-bg-elevated)] px-3 py-2 focus-within:border-[var(--luxora-gold)]">
         <span className="material-symbols-outlined text-base text-white/35">
           search
         </span>

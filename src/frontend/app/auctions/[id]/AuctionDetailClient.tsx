@@ -142,7 +142,7 @@ export default function AuctionDetailClient({
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
       {/* Cột trái (2/3) */}
       <div className="flex flex-col gap-6 lg:col-span-2">
-        <div className="group relative overflow-hidden rounded-3xl">
+        <div className="theme-dark-content group relative overflow-hidden rounded-3xl">
           <button
             type="button"
             onClick={() => setLightboxOpen(true)}

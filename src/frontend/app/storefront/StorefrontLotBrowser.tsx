@@ -80,7 +80,7 @@ export default function StorefrontLotBrowser({
       const matchesMax = max === undefined || lot.currentBid <= max;
       const matchesEnding =
         sortBy !== "ending" ||
-        (lot.isLive && (lot.endsAt === null || lot.endsAt > Date.now()));
+        lot.isLive;
 
       return matchesQuery && matchesLive && matchesMin && matchesMax && matchesEnding;
     });
@@ -143,7 +143,7 @@ export default function StorefrontLotBrowser({
     <div className="min-w-0">
       <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
         <div className="grid gap-3 xl:grid-cols-[minmax(320px,1fr)_auto] xl:items-center">
-          <label className="flex h-10 min-w-0 items-center gap-2 rounded-xl border border-white/10 bg-black/30 px-3 focus-within:border-[var(--luxora-gold)]">
+          <label className="storefront-control flex h-10 min-w-0 items-center gap-2 rounded-xl border border-white/10 bg-[var(--luxora-bg-elevated)] px-3 focus-within:border-[var(--luxora-gold)]">
             <span className="material-symbols-outlined text-base text-white/35">
               search
             </span>
@@ -156,7 +156,7 @@ export default function StorefrontLotBrowser({
             />
           </label>
 
-          <label className="flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-black/30 px-3 text-sm text-white/55">
+          <label className="storefront-control flex h-10 items-center gap-2 rounded-xl border border-white/10 bg-[var(--luxora-bg-elevated)] px-3 text-sm text-white/55">
             <span className="material-symbols-outlined text-base text-white/35">
               sort
             </span>
@@ -169,7 +169,7 @@ export default function StorefrontLotBrowser({
                 <option
                   key={option.value}
                   value={option.value}
-                  className="bg-[#111] text-white"
+                  className="bg-[var(--luxora-bg-elevated)] text-white"
                 >
                   {option.label}
                 </option>
@@ -181,7 +181,7 @@ export default function StorefrontLotBrowser({
         <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(280px,0.45fr)_minmax(360px,1fr)_auto] xl:items-center">
           <div>
             <div className="grid grid-cols-2 gap-2">
-              <label className="flex h-10 min-w-0 items-center rounded-xl border border-white/10 bg-black/30 px-3 focus-within:border-[var(--luxora-gold)]">
+              <label className="storefront-control flex h-10 min-w-0 items-center rounded-xl border border-white/10 bg-[var(--luxora-bg-elevated)] px-3 focus-within:border-[var(--luxora-gold)]">
                 <input
                   type="number"
                   min="0"
@@ -193,7 +193,7 @@ export default function StorefrontLotBrowser({
                 />
                 <span className="ml-1 whitespace-nowrap text-[10px] text-white/35">triệu ₫</span>
               </label>
-              <label className="flex h-10 min-w-0 items-center rounded-xl border border-white/10 bg-black/30 px-3 focus-within:border-[var(--luxora-gold)]">
+              <label className="storefront-control flex h-10 min-w-0 items-center rounded-xl border border-white/10 bg-[var(--luxora-bg-elevated)] px-3 focus-within:border-[var(--luxora-gold)]">
                 <input
                   type="number"
                   min="0"
@@ -270,7 +270,7 @@ export default function StorefrontLotBrowser({
               href={`/auctions/${lot.id}`}
               className="glass-card group flex h-full flex-col overflow-hidden rounded-2xl"
             >
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#030303]">
+              <div className="theme-dark-content relative aspect-[4/3] w-full overflow-hidden bg-[#030303]">
                 <Image
                   src={lot.image}
                   alt={lot.title}
@@ -284,7 +284,7 @@ export default function StorefrontLotBrowser({
                     LIVE
                   </span>
                 )}
-                <span className="absolute right-3 top-3 rounded-full border border-white/15 bg-black/55 px-2.5 py-1 text-[10px] font-medium text-white/75 backdrop-blur">
+                <span className="storefront-lot-badge absolute right-3 top-3 rounded-full border px-2.5 py-1 text-[10px] font-semibold backdrop-blur">
                   {lot.lotNumber}
                 </span>
               </div>
@@ -348,9 +348,12 @@ function LotCountdown({ endsAt, fallback }: { endsAt: number | null; fallback: s
 
   useEffect(() => {
     if (endsAt === null) return;
-    setNow(Date.now());
+    const initialTimer = window.setTimeout(() => setNow(Date.now()), 0);
     const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
+    return () => {
+      window.clearTimeout(initialTimer);
+      clearInterval(timer);
+    };
   }, [endsAt]);
 
   if (endsAt === null || now === null) return <>{fallback}</>;
