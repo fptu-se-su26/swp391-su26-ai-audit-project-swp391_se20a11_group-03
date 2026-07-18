@@ -51,7 +51,8 @@ export default function WithdrawalsClient() {
   }, []);
 
   useEffect(() => {
-    void load(filter);
+    const timer = window.setTimeout(() => void load(filter), 0);
+    return () => window.clearTimeout(timer);
   }, [filter, load]);
 
   async function act(item: Withdrawal, status: "APPROVED" | "REJECTED") {

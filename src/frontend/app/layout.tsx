@@ -13,13 +13,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className="h-full antialiased" suppressHydrationWarning>
+    <html
+      lang="vi"
+      data-theme="light"
+      className="h-full antialiased"
+      suppressHydrationWarning
+    >
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              '(function(){try{var t=localStorage.getItem("bidzone-theme");document.documentElement.dataset.theme=t==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})()',
+          }}
+        />
       </head>
-      <body
-        className="min-h-full flex flex-col bg-black text-white"
-        suppressHydrationWarning
-      >
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {children}
         <MaterialSymbolsLoader />
       </body>

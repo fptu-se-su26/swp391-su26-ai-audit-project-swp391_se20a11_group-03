@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Header from "@/components/home/Header";
 import Footer from "@/components/home/Footer";
+import ThemedAuctionBackdrop from "@/components/theme/ThemedAuctionBackdrop";
 import { DEFAULT_PUBLIC_STATS, WHY_CHOOSE_FEATURES } from "@/lib/home-data";
 
 const TIMELINE = [
@@ -30,19 +30,12 @@ const OPERATIONS = [
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="luxora-app min-h-screen bg-black text-white">
       <Header />
       <main>
-        <section className="relative overflow-hidden border-b border-white/10">
-          <Image
-            src="/images/luxury-watch-hero.webp"
-            alt="BidZone luxury auction house"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-[72%_center]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/88 to-black/30" />
+        <section className="public-auction-hero relative overflow-hidden border-b border-white/10">
+          <ThemedAuctionBackdrop priority />
+          <div className="public-auction-hero__overlay absolute inset-0" />
           <div className="relative mx-auto grid max-w-[1600px] gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-12">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.42em] text-[#f0c982]">
@@ -61,7 +54,7 @@ export default function AboutPage() {
               {DEFAULT_PUBLIC_STATS.map((stat) => (
                 <div
                   key={stat.id}
-                  className="rounded-xl border border-white/10 bg-black/45 p-5 backdrop-blur"
+                  className="rounded-xl border border-white/10 bg-[var(--luxora-bg-elevated)]/85 p-5 shadow-sm backdrop-blur"
                 >
                   <p className="text-3xl font-bold text-[#f0c982]">
                     {stat.value}
@@ -74,7 +67,7 @@ export default function AboutPage() {
         </section>
 
         <section className="mx-auto grid max-w-[1600px] gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:px-12">
-          <div className="rounded-2xl border border-[#d7aa63]/30 bg-[radial-gradient(circle_at_20%_20%,rgba(240,201,130,0.12),transparent_35%),#050505] p-6 sm:p-8">
+          <div className="themed-feature-panel rounded-2xl border border-[#d7aa63]/30 p-6 sm:p-8">
             <p className="text-sm font-semibold tracking-[0.25em] text-[#f0c982]">
               MÔ HÌNH VẬN HÀNH
             </p>

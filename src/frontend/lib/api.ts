@@ -584,7 +584,7 @@ export const authApi = {
   register(data: {
     fullName: string;
     email: string;
-    phone: string;
+    phone?: string;
     password: string;
     confirmPassword: string;
   }) {
@@ -1323,6 +1323,20 @@ const CATEGORY_ICONS: Record<string, string> = {
   "do-co": "museum",
 };
 
+const CATEGORY_IMAGES: Record<string, string> = {
+  art: "/images/categories/art.jpg",
+  "tranh-nghe-thuat": "/images/categories/art.jpg",
+  "luxury-watch": "/images/categories/watch.jpg",
+  "dong-ho": "/images/categories/watch.jpg",
+  jewelry: "/images/categories/jewelry.jpg",
+  "trang-suc": "/images/categories/jewelry.jpg",
+  automotive: "/images/categories/automotive.jpg",
+  furniture: "/images/categories/furniture.jpg",
+  ceramics: "/images/categories/ceramics.jpg",
+  "do-co": "/images/categories/antiques.jpg",
+  khac: "/images/categories/collectibles.jpg",
+};
+
 function formatTimeLeft(endTime: string | null): string {
   if (!endTime) return "—";
   const ms = new Date(endTime).getTime() - Date.now();
@@ -1392,7 +1406,7 @@ export async function fetchStorefrontCategories(
           count: String(inCategory.length),
           description: c.description ?? "",
           imageSrc:
-            inCategory[0]?.image ?? "/images/auction-products/placeholder.png",
+            CATEGORY_IMAGES[slug] ?? "/images/categories/collectibles.jpg",
         };
       });
   } catch {

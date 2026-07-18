@@ -44,7 +44,7 @@ export default function LiveAuctionGrid({ items }: LiveAuctionGridProps) {
             <button
               type="button"
               onClick={() => setSelectedItem(item)}
-              className="relative aspect-[4/3] w-full overflow-hidden bg-black text-left sm:aspect-square"
+              className="theme-dark-content relative aspect-[4/3] w-full overflow-hidden bg-black text-left sm:aspect-square"
               aria-label={`Phóng to ${item.title}`}
             >
               <Image
@@ -126,7 +126,7 @@ export default function LiveAuctionGrid({ items }: LiveAuctionGridProps) {
           onClick={() => setSelectedItem(null)}
         >
           <div
-            className="relative flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-[#d7aa63]/45 bg-[#050505] shadow-[0_30px_120px_rgba(240,201,130,0.2)]"
+            className="theme-dark-content theme-dark-surface relative flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-[#d7aa63]/45 bg-[#050505] shadow-[0_30px_120px_rgba(240,201,130,0.2)]"
             onClick={(event) => event.stopPropagation()}
           >
             <button

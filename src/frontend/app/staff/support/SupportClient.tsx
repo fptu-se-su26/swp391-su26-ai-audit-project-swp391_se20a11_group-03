@@ -53,9 +53,12 @@ export default function SupportClient() {
   }, []);
 
   useEffect(() => {
-    void loadLists();
+    const initialTimer = window.setTimeout(() => void loadLists(), 0);
     const timer = setInterval(() => void loadLists(), 15000);
-    return () => clearInterval(timer);
+    return () => {
+      window.clearTimeout(initialTimer);
+      clearInterval(timer);
+    };
   }, [loadLists]);
 
   const loadMessages = useCallback(async (conversationId: number) => {

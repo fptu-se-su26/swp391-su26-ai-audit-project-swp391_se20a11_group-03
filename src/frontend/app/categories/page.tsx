@@ -1,26 +1,19 @@
-import Image from "next/image";
 import Link from "next/link";
 import Header from "@/components/home/Header";
 import Footer from "@/components/home/Footer";
+import ThemedAuctionBackdrop from "@/components/theme/ThemedAuctionBackdrop";
 import CategoriesGrid from "./CategoriesGrid";
 import { DEFAULT_PUBLIC_STATS, WHY_CHOOSE_FEATURES } from "@/lib/home-data";
 
 export default function CategoriesPage() {
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="luxora-app min-h-screen bg-black text-white">
       <Header />
       <main>
         {/* Hero */}
-        <section className="relative overflow-hidden border-b border-white/10">
-          <Image
-            src="/images/luxury-watch-hero.webp"
-            alt="Danh mục đấu giá BidZone"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-[72%_center]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/86 to-black/35" />
+        <section className="public-auction-hero relative overflow-hidden border-b border-white/10">
+          <ThemedAuctionBackdrop priority />
+          <div className="public-auction-hero__overlay absolute inset-0" />
           <div className="relative mx-auto grid max-w-[1600px] gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-12">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.42em] text-[#f0c982]">
@@ -69,7 +62,7 @@ export default function CategoriesPage() {
               {WHY_CHOOSE_FEATURES.map((feature) => (
                 <div
                   key={feature.id}
-                  className="rounded-2xl border border-white/10 bg-black/60 p-6 text-center transition-colors hover:border-[#f0c982]/40"
+                  className="rounded-2xl border border-white/10 bg-[var(--luxora-bg-elevated)] p-6 text-center shadow-sm transition-colors hover:border-[#f0c982]/40"
                 >
                   <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-[#d7aa63]/40 bg-black">
                     <span className="material-symbols-outlined text-2xl text-[#f0c982]">

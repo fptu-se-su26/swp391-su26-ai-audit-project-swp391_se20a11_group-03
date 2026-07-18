@@ -53,7 +53,7 @@ function BrandMark({ id, name }: { id: string; name: string }) {
 
   if (id === "leica") {
     return (
-      <span className="flex h-16 w-16 items-center justify-center rounded-full bg-red-600 text-sm font-bold italic text-white">
+      <span className="theme-dark-content flex h-16 w-16 items-center justify-center rounded-full bg-red-600 text-sm font-bold italic text-white">
         Leica
       </span>
     );
@@ -81,11 +81,11 @@ export default function BrandsPage() {
   const heroBrand = BRAND_ITEMS[0];
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="luxora-app min-h-screen bg-black text-white">
       <Header />
       <main className="mx-auto max-w-[1600px] px-4 py-14 sm:px-6 lg:px-12">
         <section className="mb-12 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-2xl border border-[#d7aa63]/35 bg-[radial-gradient(circle_at_20%_20%,rgba(240,201,130,0.14),transparent_32%),#050505] p-6 sm:p-10">
+          <div className="themed-feature-panel rounded-2xl border border-[#d7aa63]/35 p-6 sm:p-10">
             <p className="text-xs font-semibold uppercase tracking-[0.42em] text-[#f0c982]">
               Kho thương hiệu
             </p>
@@ -137,7 +137,7 @@ export default function BrandsPage() {
             >
               <div className="flex h-full flex-col justify-between">
                 <span>
-                  <div className="flex h-20 items-center justify-center rounded-xl border border-white/10 bg-black/45">
+                  <div className="flex h-20 items-center justify-center rounded-xl border border-white/10 bg-[var(--luxora-bg-soft)]">
                     <BrandMark id={brand.id} name={brand.name} />
                   </div>
                   <div className="mt-5 flex items-start justify-between gap-4">

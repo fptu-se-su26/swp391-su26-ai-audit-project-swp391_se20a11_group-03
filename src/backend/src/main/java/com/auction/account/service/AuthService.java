@@ -39,14 +39,18 @@ public class AuthService {
         if (userDAO.existsByEmail(normalizedEmail)) {
             return AuthResult.failure("Email đã tồn tại. Vui lòng dùng email khác.");
         }
-        if (userDAO.existsByPhone(normalizedPhone)) {
+        if (!isBlank(normalizedPhone) && userDAO.existsByPhone(normalizedPhone)) {
             return AuthResult.failure("Số điện thoại đã tồn tại. Vui lòng dùng số khác.");
         }
+
+        String storedPhone = isBlank(normalizedPhone)
+                ? generatePlaceholderPhone()
+                : normalizedPhone;
 
         String salt = PasswordUtil.generateSalt();
         int iterations = PasswordUtil.getIterations();
         String passwordHash = PasswordUtil.hashPassword(password, salt, iterations);
-        User user = new User(normalizedFullName, normalizedEmail, normalizedPhone, null, passwordHash, salt, iterations);
+        User user = new User(normalizedFullName, normalizedEmail, storedPhone, null, passwordHash, salt, iterations);
         user.setVerificationLevel((byte) 0);
 
         try {
@@ -85,6 +89,21 @@ public class AuthService {
         return value == null ? null : value.trim();
     }
 
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    /**
+     * The database still requires a unique phone value. Accounts created
+     * without one receive an internal placeholder that can be replaced later
+     * from the profile or KYC flow.
+     */
+    private String generatePlaceholderPhone() {
+        String candidate = "L" + System.currentTimeMillis()
+                + String.format("%04d", (int) (Math.random() * 10000));
+        return candidate.length() > 20 ? candidate.substring(0, 20) : candidate;
+    }
+
     public static final class AuthResult {
         private final boolean success;
         private final String message;
@@ -117,5 +136,4 @@ public class AuthService {
         }
     }
 }
-
 
