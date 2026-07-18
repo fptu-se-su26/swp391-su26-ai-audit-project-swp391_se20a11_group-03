@@ -27,8 +27,14 @@ public class User {
     @Column(name = "Email", nullable = false, unique = true, length = 255)
     private String email;
 
-    @Column(name = "Phone", nullable = false, unique = true, length = 20)
+    @Column(name = "Phone", unique = true, length = 20)
     private String phone;
+
+    @Column(name = "PhoneVerified", nullable = false)
+    private boolean phoneVerified;
+
+    @Column(name = "PhoneVerifiedAt")
+    private LocalDateTime phoneVerifiedAt;
 
     @Column(name = "IdentityNumber", length = 20)
     private String identityNumber;
@@ -94,6 +100,7 @@ public class User {
         this.salt = salt;
         this.passwordIterations = passwordIterations;
         this.emailVerified = false;
+        this.phoneVerified = false;
         this.identityVerified = false;
         this.verificationLevel = 0;
         this.profileStatus = "PENDING_PROFILE";
@@ -133,6 +140,22 @@ public class User {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public boolean isPhoneVerified() {
+        return phoneVerified;
+    }
+
+    public void setPhoneVerified(boolean phoneVerified) {
+        this.phoneVerified = phoneVerified;
+    }
+
+    public LocalDateTime getPhoneVerifiedAt() {
+        return phoneVerifiedAt;
+    }
+
+    public void setPhoneVerifiedAt(LocalDateTime phoneVerifiedAt) {
+        this.phoneVerifiedAt = phoneVerifiedAt;
     }
 
     public String getIdentityNumber() {

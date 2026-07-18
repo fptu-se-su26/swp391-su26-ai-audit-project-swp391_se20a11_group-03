@@ -38,6 +38,10 @@ public class ChatAuthService {
         if (!passwordMatches(request.getPassword(), user)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sai mật khẩu");
         }
+        if (!user.isEmailVerified()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Email chưa được xác minh. Vui lòng kiểm tra hộp thư trước khi đăng nhập.");
+        }
 
         UserDetailsImpl userDetails = new UserDetailsImpl(user);
         String token = jwtService.generateToken(userDetails);
@@ -52,6 +56,7 @@ public class ChatAuthService {
                 .status(user.getStatus())
                 .token(token)
                 .identityVerified(user.isIdentityVerified())
+                .phoneVerified(user.isPhoneVerified())
                 .profileStatus(user.getProfileStatus())
                 .build();
     }
@@ -62,7 +67,7 @@ public class ChatAuthService {
         }
         String trimmed = identifier.trim();
         if (trimmed.contains("@")) {
-            return userRepository.findByEmail(trimmed);
+            return userRepository.findByEmail(trimmed.toLowerCase(java.util.Locale.ROOT));
         }
         return userRepository.findFirstByUsernameIgnoreCase(trimmed)
                 .or(() -> userRepository.findByUsernameOrEmail(trimmed, trimmed));

@@ -85,7 +85,6 @@ public class KycService {
     public KycSubmissionResponse submit(
             Long userId,
             String fullName,
-            String phone,
             String cccdNumber,
             LocalDate dob,
             String gender,
@@ -99,7 +98,7 @@ public class KycService {
         if (userId == null) {
             throw new IllegalArgumentException("Missing user id");
         }
-        if (isBlank(fullName) || isBlank(phone) || isBlank(cccdNumber) || dob == null
+        if (isBlank(fullName) || isBlank(cccdNumber) || dob == null
                 || isBlank(gender) || issueDate == null || isBlank(issuePlace)) {
             throw new IllegalArgumentException("Please fill in every required KYC field");
         }
@@ -112,8 +111,13 @@ public class KycService {
         // KYC is pure identity verification: the applicant commits that the
         // submitted identity information is genuine. Becoming a seller is a
         // separate step (seller-contract/submit) available after approval.
-        userRepository.findById(Math.toIntExact(userId))
+        User applicant = userRepository.findById(Math.toIntExact(userId))
                 .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
+        if (!applicant.isPhoneVerified() || isBlank(applicant.getPhone())) {
+            throw new IllegalArgumentException(
+                    "Vui lòng xác minh số điện thoại trong Hồ sơ cá nhân trước khi gửi KYC.");
+        }
+        String phone = applicant.getPhone();
 
         String frontUrl = saveImage(frontImage, "front");
         String backUrl = saveImage(backImage, "back");

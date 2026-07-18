@@ -47,6 +47,7 @@ IF OBJECT_ID('dbo.Wallets', 'U') IS NOT NULL DROP TABLE dbo.Wallets;
 IF OBJECT_ID('dbo.KycProfiles', 'U') IS NOT NULL DROP TABLE dbo.KycProfiles;
 IF OBJECT_ID('dbo.IdentityDocuments', 'U') IS NOT NULL DROP TABLE dbo.IdentityDocuments;
 IF OBJECT_ID('dbo.UserVerificationTokens', 'U') IS NOT NULL DROP TABLE dbo.UserVerificationTokens;
+IF OBJECT_ID('dbo.PendingEmailVerifications', 'U') IS NOT NULL DROP TABLE dbo.PendingEmailVerifications;
 IF OBJECT_ID('dbo.PasswordResetTokens', 'U') IS NOT NULL DROP TABLE dbo.PasswordResetTokens;
 IF OBJECT_ID('dbo.Products', 'U') IS NOT NULL DROP TABLE dbo.Products;
 IF OBJECT_ID('dbo.Categories', 'U') IS NOT NULL DROP TABLE dbo.Categories;
@@ -74,13 +75,15 @@ BEGIN
         Username                NVARCHAR(255)        NULL,
         FullName                NVARCHAR(150)        NOT NULL,
         Email                   NVARCHAR(255)        NOT NULL UNIQUE,
-        Phone                   NVARCHAR(20)         NOT NULL UNIQUE,
+        Phone                   NVARCHAR(20)         NULL,
         IdentityNumber          NVARCHAR(20)         NULL,
         PasswordHash            NVARCHAR(128)        NOT NULL,
         Salt                    NVARCHAR(32)         NOT NULL,
         PasswordIterations      INT                  NOT NULL,
         EmailVerified           BIT                  NOT NULL DEFAULT 0,
         EmailVerifiedAt         DATETIME2            NULL,
+        PhoneVerified           BIT                  NOT NULL DEFAULT 0,
+        PhoneVerifiedAt         DATETIME2            NULL,
         IdentityVerified        BIT                  NOT NULL DEFAULT 0,
         IdentityVerifiedAt      DATETIME2            NULL,
         VerificationLevel       TINYINT              NOT NULL DEFAULT 0,
@@ -93,6 +96,18 @@ BEGIN
         CreatedAt               DATETIME2            NOT NULL DEFAULT SYSDATETIME(),
         CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES dbo.Roles(RoleId)
     );
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'UX_Users_Phone_NotNull'
+      AND object_id = OBJECT_ID('dbo.Users')
+)
+BEGIN
+    CREATE UNIQUE INDEX UX_Users_Phone_NotNull
+        ON dbo.Users(Phone)
+        WHERE Phone IS NOT NULL;
 END;
 GO
 
@@ -158,6 +173,28 @@ BEGIN
         CreatedAt           DATETIME2            NOT NULL DEFAULT SYSDATETIME(),
         CONSTRAINT FK_UserVerificationTokens_Users FOREIGN KEY (UserID) REFERENCES dbo.Users(UserId)
     );
+END;
+GO
+
+IF OBJECT_ID('dbo.PendingEmailVerifications', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.PendingEmailVerifications (
+        VerificationId         BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        Email                  NVARCHAR(255) NOT NULL,
+        OtpSalt                NVARCHAR(64)  NOT NULL,
+        OtpHash                NVARCHAR(64)  NOT NULL,
+        RegistrationTokenHash  NVARCHAR(64)  NULL,
+        AttemptCount           INT           NOT NULL DEFAULT 0,
+        ExpiresAt              DATETIME2     NOT NULL,
+        VerifiedAt             DATETIME2     NULL,
+        ConsumedAt             DATETIME2     NULL,
+        CreatedAt              DATETIME2     NOT NULL DEFAULT SYSDATETIME()
+    );
+    CREATE INDEX IX_PendingEmailVerifications_Email_CreatedAt
+        ON dbo.PendingEmailVerifications(Email, CreatedAt DESC);
+    CREATE UNIQUE INDEX UX_PendingEmailVerifications_RegistrationToken
+        ON dbo.PendingEmailVerifications(RegistrationTokenHash)
+        WHERE RegistrationTokenHash IS NOT NULL;
 END;
 GO
 

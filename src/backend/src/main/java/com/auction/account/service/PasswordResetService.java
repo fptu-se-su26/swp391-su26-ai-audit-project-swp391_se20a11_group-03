@@ -8,14 +8,16 @@ import com.auction.account.entity.PasswordResetToken;
 import com.auction.account.entity.User;
 import com.auction.common.util.TokenUtil;
 import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Service
+@RequiredArgsConstructor
 public class PasswordResetService {
-    private final UserDAO userDAO = new UserDAO();
-    private final PasswordResetTokenDAO tokenDAO = new PasswordResetTokenDAO();
-    private final MailService mailService = new MailService();
+    private final UserDAO userDAO;
+    private final PasswordResetTokenDAO tokenDAO;
+    private final MailService mailService;
 
     public boolean requestReset(String loginId, String resetBaseUrl, int validMinutes) {
         if (loginId == null || loginId.trim().isEmpty()) {

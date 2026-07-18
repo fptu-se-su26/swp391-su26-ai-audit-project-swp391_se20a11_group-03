@@ -80,7 +80,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [loginError, setLoginError] = useState("");
-  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -100,7 +100,11 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
       try {
         const res = await authApi.googleLogin(response.credential);
         const role = toFrontendRole(res.roleName);
-        router.push(redirectAfterAuth ?? ROLE_HOME[role]);
+        router.push(
+          res.phoneVerified
+            ? (redirectAfterAuth ?? ROLE_HOME[role])
+            : "/profile?verifyPhone=1",
+        );
       } catch (err) {
         setLoginError(
           err instanceof ApiError
@@ -180,6 +184,28 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
 
   const isSignup = mode === "signup";
 
+  async function resendVerificationEmail() {
+    if (!email.trim()) {
+      setLoginError("Vui lòng nhập email để gửi lại liên kết xác minh.");
+      return;
+    }
+    setLoginError("");
+    setSignupSuccess("");
+    setSubmitting(true);
+    try {
+      const response = await authApi.resendEmailVerification(email.trim());
+      setSignupSuccess(response.message);
+    } catch (err) {
+      setLoginError(
+        err instanceof ApiError
+          ? err.message
+          : "Không thể gửi lại email xác minh. Vui lòng thử lại.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoginError("");
@@ -203,22 +229,24 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
           );
           return;
         }
-        await authApi.register({
+        const response = await authApi.register({
           fullName: fullName.trim(),
-          email: emailOrPhone.trim(),
+          email: email.trim().toLowerCase(),
           password,
           confirmPassword,
         });
-        setSignupSuccess(
-          "Tạo tài khoản thành công! Đăng nhập để bắt đầu đấu giá.",
-        );
+        setSignupSuccess(response.message);
         setMode("login");
         return;
       }
 
-      const res = await authApi.login(emailOrPhone.trim(), password);
+      const res = await authApi.login(email.trim().toLowerCase(), password);
       const role = toFrontendRole(res.roleName);
-      router.push(redirectAfterAuth ?? ROLE_HOME[role]);
+      router.push(
+        res.phoneVerified
+          ? (redirectAfterAuth ?? ROLE_HOME[role])
+          : "/profile?verifyPhone=1",
+      );
     } catch (err) {
       if (err instanceof ApiError) {
         setLoginError(
@@ -362,7 +390,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                     type="button"
                     onClick={() => {
                       setMode(item);
-                      setEmailOrPhone("");
+                      setEmail("");
                       setPassword("");
                       setConfirmPassword("");
                       setLoginError("");
@@ -406,31 +434,34 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                         value={fullName}
                         onChange={(event) => setFullName(event.target.value)}
                         placeholder="Nhập họ và tên"
-                        className="auth-input min-w-0 flex-1 bg-transparent text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text-muted)]"
+                        className="auth-input min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
                       />
                     </div>
                   </div>
                 ) : null}
 
                 <div>
-                  <label className="auth-label">
-                    {isSignup ? "EMAIL" : "EMAIL HOẶC SỐ ĐIỆN THOẠI"}
+                  <label className="text-[11px] font-semibold tracking-wider text-white/75">
+                    EMAIL
                   </label>
                   <div className="auth-field">
                     <span className="material-symbols-outlined text-lg text-white/45">
                       mail
                     </span>
                     <input
-                      type={isSignup ? "email" : "text"}
+                      type="email"
                       required
-                      value={emailOrPhone}
-                      onChange={(event) => setEmailOrPhone(event.target.value)}
-                      placeholder={
-                        isSignup ? "Nhập email" : "Nhập email hoặc số điện thoại"
-                      }
-                      className="auth-input min-w-0 flex-1 bg-transparent text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text-muted)]"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="Nhập địa chỉ email"
+                      className="auth-input min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
                     />
                   </div>
+                  {isSignup && (
+                    <p className="mt-1.5 text-[10px] text-white/40">
+                      Sau khi đăng ký, hãy mở email và nhấn liên kết kích hoạt tài khoản.
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -534,9 +565,20 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                     : "ĐĂNG NHẬP"}
               </button>
 
-              <div className="auth-social-divider my-5 flex items-center gap-4">
-                <span className="auth-divider h-px flex-1" />
-                <span className="text-[10px] uppercase tracking-[0.16em] text-[var(--luxora-text-muted)]">
+              {!isSignup && (
+                <button
+                  type="button"
+                  onClick={() => void resendVerificationEmail()}
+                  disabled={submitting}
+                  className="mt-2 w-full text-center text-[11px] font-medium text-[#f0c982] transition hover:text-[#f4d79b] disabled:opacity-50"
+                >
+                  Chưa nhận được email xác minh? Gửi lại
+                </button>
+              )}
+
+              <div className="my-3 flex items-center gap-4">
+                <span className="h-px flex-1 bg-white/10" />
+                <span className="text-[11px] uppercase tracking-wider text-white/35">
                   {isSignup ? "hoặc đăng ký với" : "hoặc đăng nhập với"}
                 </span>
                 <span className="auth-divider h-px flex-1" />

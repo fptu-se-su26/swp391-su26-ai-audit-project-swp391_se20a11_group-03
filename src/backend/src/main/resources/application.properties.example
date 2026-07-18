@@ -37,6 +37,28 @@ app.cors.allowed-origin-patterns=${APP_CORS_ALLOWED_ORIGIN_PATTERNS:}
 # Google OAuth
 app.google.client-id=${GOOGLE_CLIENT_ID:}
 
+# Frontend links used in verification emails
+app.frontend.base-url=${APP_FRONTEND_BASE_URL:http://localhost:3000}
+
+# SMTP email verification
+vnec.mail.smtp.auth=${MAIL_SMTP_AUTH:true}
+vnec.mail.smtp.starttls=${MAIL_SMTP_STARTTLS:true}
+vnec.mail.smtp.host=${MAIL_SMTP_HOST:smtp.gmail.com}
+vnec.mail.smtp.port=${MAIL_SMTP_PORT:587}
+vnec.mail.username=${MAIL_USERNAME:}
+vnec.mail.password=${MAIL_PASSWORD:}
+vnec.mail.from=${MAIL_FROM:${MAIL_USERNAME:}}
+
+# Twilio Verify phone OTP (SMS / WhatsApp)
+twilio.verify.api-key=${TWILIO_API_KEY:${TWILIO_ACCOUNT_SID:}}
+twilio.verify.api-secret=${TWILIO_API_SECRET:${TWILIO_AUTH_TOKEN:}}
+twilio.verify.service-sid=${TWILIO_VERIFY_SERVICE_SID:}
+
+# SpeedSMS fallback for Vietnamese SMS
+speedsms.access-token=${SPEEDSMS_ACCESS_TOKEN:}
+speedsms.sms-type=${SPEEDSMS_SMS_TYPE:2}
+speedsms.sender=${SPEEDSMS_SENDER:}
+
 # File upload
 app.upload.dir=${APP_UPLOAD_DIR:${user.dir}/uploads}
 app.kyc.upload-dir=${APP_KYC_UPLOAD_DIR:${user.dir}/uploads/kyc}

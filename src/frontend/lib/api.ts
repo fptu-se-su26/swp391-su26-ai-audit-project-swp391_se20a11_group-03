@@ -66,7 +66,7 @@ async function apiFetch<T>(
     let message = `HTTP ${res.status}`;
     try {
       const body = await res.json();
-      message = body.message ?? body.error ?? message;
+      message = body.message ?? body.detail ?? body.error ?? message;
     } catch {
       /* body không phải JSON */
     }
@@ -91,7 +91,7 @@ async function postMultipart<T>(path: string, form: FormData): Promise<T> {
     let message = `HTTP ${res.status}`;
     try {
       const body = await res.json();
-      message = body.message ?? body.error ?? message;
+      message = body.message ?? body.detail ?? body.error ?? message;
     } catch {
       /* body không phải JSON */
     }
@@ -170,6 +170,7 @@ export type LoginResponse = {
   roleName: string | null;
   status: string | null;
   identityVerified: boolean;
+  phoneVerified: boolean;
   profileStatus: string | null;
   newUser: boolean;
 };
@@ -257,7 +258,10 @@ export type UserProfile = {
   userId: number;
   fullName: string;
   email: string;
-  phone: string;
+  emailVerified: boolean;
+  phone: string | null;
+  phoneVerified: boolean;
+  phoneVerifiedAt: string | null;
   identityNumber: string | null;
   roleName: string;
   status: string;
@@ -584,15 +588,51 @@ export const authApi = {
   register(data: {
     fullName: string;
     email: string;
-    phone?: string;
     password: string;
     confirmPassword: string;
   }) {
-    return apiFetch("/auth/register", {
+    return apiFetch<{ success: boolean; message: string }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(data),
       auth: false,
     });
+  },
+  sendRegistrationEmailCode(email: string) {
+    return apiFetch<{ success: boolean; message: string }>(
+      "/auth/register/email/send-code",
+      {
+        method: "POST",
+        body: JSON.stringify({ email }),
+        auth: false,
+      },
+    );
+  },
+  verifyRegistrationEmailCode(email: string, code: string) {
+    return apiFetch<{
+      success: boolean;
+      message: string;
+      registrationToken: string;
+    }>("/auth/register/email/verify-code", {
+      method: "POST",
+      body: JSON.stringify({ email, code }),
+      auth: false,
+    });
+  },
+  verifyEmail(token: string) {
+    return apiFetch<{ success: boolean; message: string }>(
+      `/auth/verify-email?token=${encodeURIComponent(token)}`,
+      { auth: false },
+    );
+  },
+  resendEmailVerification(email: string) {
+    return apiFetch<{ success: boolean; message: string }>(
+      "/auth/email-verification/resend",
+      {
+        method: "POST",
+        body: JSON.stringify({ email }),
+        auth: false,
+      },
+    );
   },
   async googleLogin(credential: string) {
     const res = await apiFetch<LoginResponse>("/auth/google", {
@@ -726,7 +766,6 @@ export type CccdOcrResult = {
 
 export type KycSubmitPayload = {
   fullName: string;
-  phone: string;
   cccdNumber: string;
   dob: string; // yyyy-MM-dd
   gender: string;
@@ -748,7 +787,6 @@ export const kycApi = {
   submit(payload: KycSubmitPayload) {
     const form = new FormData();
     form.append("fullName", payload.fullName);
-    form.append("phone", payload.phone);
     form.append("cccdNumber", payload.cccdNumber);
     form.append("dob", payload.dob);
     form.append("gender", payload.gender);
@@ -946,11 +984,29 @@ export const userApi = {
   profile() {
     return apiFetch<ApiEnvelope<UserProfile>>("/users/me/profile");
   },
-  updateProfile(fullName: string, phone: string) {
+  updateProfile(fullName: string) {
     return apiFetch<ApiEnvelope<UserProfile>>("/users/me/profile", {
       method: "PUT",
-      body: JSON.stringify({ fullName, phone }),
+      body: JSON.stringify({ fullName }),
     });
+  },
+  sendPhoneVerification(phone: string, channel: "SMS" | "WHATSAPP") {
+    return apiFetch<ApiEnvelope<UserProfile>>(
+      "/users/me/phone-verification/send",
+      {
+        method: "POST",
+        body: JSON.stringify({ phone, channel }),
+      },
+    );
+  },
+  checkPhoneVerification(code: string) {
+    return apiFetch<ApiEnvelope<UserProfile>>(
+      "/users/me/phone-verification/check",
+      {
+        method: "POST",
+        body: JSON.stringify({ code }),
+      },
+    );
   },
   changePassword(data: {
     currentPassword: string;

@@ -34,13 +34,15 @@ CREATE TABLE IF NOT EXISTS Users (
     Username                VARCHAR(255)  NULL,
     FullName                VARCHAR(150)  NOT NULL,
     Email                   VARCHAR(255)  NOT NULL UNIQUE,
-    Phone                   VARCHAR(20)   NOT NULL UNIQUE,
+    Phone                   VARCHAR(20)   NULL UNIQUE,
     IdentityNumber          VARCHAR(20)   NULL,
     PasswordHash            VARCHAR(128)  NOT NULL,
     Salt                    VARCHAR(32)   NOT NULL,
     PasswordIterations      INT           NOT NULL,
     EmailVerified           BOOLEAN       NOT NULL DEFAULT FALSE,
     EmailVerifiedAt         TIMESTAMPTZ   NULL,
+    PhoneVerified           BOOLEAN       NOT NULL DEFAULT FALSE,
+    PhoneVerifiedAt         TIMESTAMPTZ   NULL,
     IdentityVerified        BOOLEAN       NOT NULL DEFAULT FALSE,
     IdentityVerifiedAt      TIMESTAMPTZ   NULL,
     VerificationLevel       SMALLINT      NOT NULL DEFAULT 0,
@@ -96,6 +98,24 @@ CREATE TABLE IF NOT EXISTS UserVerificationTokens (
     UsedAt              TIMESTAMPTZ   NULL,
     CreatedAt           TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS PendingEmailVerifications (
+    VerificationId         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    Email                  VARCHAR(255) NOT NULL,
+    OtpSalt                VARCHAR(64)  NOT NULL,
+    OtpHash                VARCHAR(64)  NOT NULL,
+    RegistrationTokenHash  VARCHAR(64)  NULL,
+    AttemptCount           INT          NOT NULL DEFAULT 0,
+    ExpiresAt              TIMESTAMPTZ  NOT NULL,
+    VerifiedAt             TIMESTAMPTZ  NULL,
+    ConsumedAt             TIMESTAMPTZ  NULL,
+    CreatedAt              TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS IX_PendingEmailVerifications_Email_CreatedAt
+    ON PendingEmailVerifications (Email, CreatedAt DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS UX_PendingEmailVerifications_RegistrationToken
+    ON PendingEmailVerifications (RegistrationTokenHash)
+    WHERE RegistrationTokenHash IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS PasswordResetTokens (
     PasswordResetTokenID BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

@@ -15,7 +15,7 @@ async function loadInbox(): Promise<InboxData> {
   return { conversations, profile: profile.data };
 }
 
-const EMPTY_INBOX: InboxData = { conversations: [], profile: { userId: 0, fullName: "", email: "", phone: "", identityNumber: null, roleName: "", status: "", identityVerified: false, profileStatus: null, identityVerifiedAt: null, active: false, paymentStrikeCount: 0, lockedByPaymentStrikes: false } };
+const EMPTY_INBOX: InboxData = { conversations: [], profile: { userId: 0, fullName: "", email: "", emailVerified: false, phone: null, phoneVerified: false, phoneVerifiedAt: null, identityNumber: null, roleName: "", status: "", identityVerified: false, profileStatus: null, identityVerifiedAt: null, active: false, paymentStrikeCount: 0, lockedByPaymentStrikes: false } };
 
 export default function MessagesClient() {
   const { data, setData, loading, error } = useApiData(loadInbox, EMPTY_INBOX);
