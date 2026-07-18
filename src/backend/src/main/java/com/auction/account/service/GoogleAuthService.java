@@ -97,6 +97,7 @@ public class GoogleAuthService {
                 .status(user.getStatus())
                 .token(token)
                 .identityVerified(user.isIdentityVerified())
+                .phoneVerified(user.isPhoneVerified())
                 .profileStatus(user.getProfileStatus())
                 .newUser(newUser)
                 .build();
@@ -148,26 +149,15 @@ public class GoogleAuthService {
         int iterations = PasswordUtil.getIterations();
         String passwordHash = PasswordUtil.hashPassword(UUID.randomUUID().toString(), salt, iterations);
 
-        User user = new User(fullName, email, generatePlaceholderPhone(), null, passwordHash, salt, iterations);
+        User user = new User(fullName, email, null, null, passwordHash, salt, iterations);
         user.setAuthProvider("GOOGLE");
         user.setEmailVerified(true);
         user.setEmailVerifiedAt(LocalDateTime.now());
         user.setVerificationLevel((byte) 0);
-        user.setProfileStatus("PENDING_PROFILE");
+        user.setProfileStatus("PENDING_PHONE_VERIFY");
         user.setRole(userRole);
 
         return userRepository.save(user);
-    }
-
-    /**
-     * The Phone column is NOT NULL + UNIQUE, but Google sign-in provides no phone.
-     * Generate a clearly-fake placeholder (within the 20-char limit) that the user
-     * replaces when completing their profile.
-     */
-    private String generatePlaceholderPhone() {
-        String candidate = "G" + System.currentTimeMillis()
-                + String.format("%04d", (int) (Math.random() * 10000));
-        return candidate.length() > 20 ? candidate.substring(0, 20) : candidate;
     }
 
     private String textValue(JsonNode node, String field) {

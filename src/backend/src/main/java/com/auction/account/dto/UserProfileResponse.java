@@ -16,7 +16,10 @@ public class UserProfileResponse {
     private Long userId;
     private String fullName;
     private String email;
+    private boolean emailVerified;
     private String phone;
+    private boolean phoneVerified;
+    private LocalDateTime phoneVerifiedAt;
     private String identityNumber;
     private String roleName;
     private String status;

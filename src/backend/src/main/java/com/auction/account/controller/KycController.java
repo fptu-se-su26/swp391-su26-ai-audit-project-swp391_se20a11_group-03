@@ -38,7 +38,6 @@ public class KycController {
     public ResponseEntity<?> submit(
             @AuthenticationPrincipal UserDetailsImpl currentUser,
             @RequestParam("fullName") String fullName,
-            @RequestParam("phone") String phone,
             @RequestParam("cccdNumber") String cccdNumber,
             @RequestParam("dob") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dob,
             @RequestParam("gender") String gender,
@@ -58,7 +57,7 @@ public class KycController {
         try {
             KycSubmissionResponse result = kycService.submit(
                     currentUser.getId(),
-                    fullName, phone, cccdNumber, dob, gender, issueDate, issuePlace,
+                    fullName, cccdNumber, dob, gender, issueDate, issuePlace,
                     frontImage, backImage, selfieImage, signSellerAgreement
             );
             return ResponseEntity.ok(Map.of(

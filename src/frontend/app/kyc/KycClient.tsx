@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ApiError, kycApi, sellerContractApi, updateRoleCookie, userApi } from "@/lib/api";
+import LuxuryDatePicker from "@/components/ui/LuxuryDatePicker";
 
 type Picked = { file: File; preview: string } | null;
 
@@ -77,13 +78,16 @@ function ImagePicker({
 const FIELD_CLASS =
   "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]";
 
+// Họ tên trên CCCD in hoa toàn bộ: chỉ chữ hoa (kể cả có dấu) và khoảng trắng.
+const NAME_PATTERN = /^[\p{Lu}][\p{Lu}\s]*$/u;
+const CCCD_PATTERN = /^0\d{11}$/;
+
 export default function KycClient() {
   const [front, setFront] = useState<Picked>(null);
   const [back, setBack] = useState<Picked>(null);
   const [selfie, setSelfie] = useState<Picked>(null);
 
   const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
   const [cccdNumber, setCccdNumber] = useState("");
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("MALE");
@@ -191,7 +195,7 @@ export default function KycClient() {
     try {
       const res = await kycApi.ocr(front.file, back.file);
       const d = res.data;
-      if (d?.fullName) setFullName(d.fullName);
+      if (d?.fullName) setFullName(d.fullName.toLocaleUpperCase("vi-VN"));
       if (d?.cccdNumber) setCccdNumber(d.cccdNumber);
       if (d?.dob) setDob(d.dob);
       if (d?.gender) setGender(d.gender);
@@ -213,8 +217,19 @@ export default function KycClient() {
 
     if (!front || !back || !selfie)
       return setError("Vui lòng tải đủ 3 ảnh: CCCD mặt trước, mặt sau và ảnh chân dung.");
-    if (!fullName.trim() || !phone.trim() || !cccdNumber.trim() || !dob || !issueDate || !issuePlace.trim())
-      return setError("Vui lòng điền đầy đủ các trường thông tin.");
+    if (!fullName.trim()) return setError("Vui lòng nhập họ và tên như trên CCCD.");
+    if (!cccdNumber.trim()) return setError("Vui lòng nhập số CCCD.");
+    if (!dob) return setError("Vui lòng chọn ngày sinh.");
+    if (!issueDate) return setError("Vui lòng chọn ngày cấp CCCD.");
+    if (!issuePlace.trim()) return setError("Vui lòng nhập nơi cấp CCCD.");
+    if (!NAME_PATTERN.test(fullName.trim()))
+      return setError("Họ và tên phải viết HOA toàn bộ như trên CCCD (chỉ gồm chữ cái và khoảng trắng).");
+    if (!CCCD_PATTERN.test(cccdNumber.trim()))
+      return setError("Số CCCD không hợp lệ (12 chữ số, bắt đầu bằng 0).");
+    const today = new Date().toISOString().slice(0, 10);
+    if (dob >= today) return setError("Ngày sinh không hợp lệ.");
+    if (issueDate > today) return setError("Ngày cấp không thể ở tương lai.");
+    if (issueDate <= dob) return setError("Ngày cấp phải sau ngày sinh.");
     if (!identityCommit)
       return setError("Bạn cần cam kết thông tin cung cấp là chính xác trước khi gửi.");
 
@@ -222,7 +237,6 @@ export default function KycClient() {
     try {
       await kycApi.submit({
         fullName: fullName.trim(),
-        phone: phone.trim(),
         cccdNumber: cccdNumber.trim(),
         dob,
         gender,
@@ -410,19 +424,34 @@ export default function KycClient() {
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className="mb-1.5 block text-xs font-medium text-white/50">Họ và tên</label>
-          <input className={FIELD_CLASS} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="NGUYEN VAN A" />
-        </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-white/50">Số điện thoại</label>
-          <input className={FIELD_CLASS} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="09xxxxxxxx" />
+          <input
+            className={FIELD_CLASS}
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value.toLocaleUpperCase("vi-VN"))}
+            placeholder="Nhập họ và tên trên CCCD"
+          />
+          <p className="mt-1 text-[11px] text-white/35">Viết HOA toàn bộ như trên CCCD (tự động chuyển).</p>
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-medium text-white/50">Số CCCD</label>
-          <input className={FIELD_CLASS} value={cccdNumber} onChange={(e) => setCccdNumber(e.target.value)} placeholder="0xxxxxxxxxxx" />
+          <input
+            className={FIELD_CLASS}
+            value={cccdNumber}
+            onChange={(e) => setCccdNumber(e.target.value.replace(/\D/g, "").slice(0, 12))}
+            placeholder="0xxxxxxxxxxx"
+            inputMode="numeric"
+            maxLength={12}
+          />
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-medium text-white/50">Ngày sinh</label>
-          <input type="date" className={FIELD_CLASS} value={dob} onChange={(e) => setDob(e.target.value)} />
+          <LuxuryDatePicker
+            ariaLabel="Ngày sinh"
+            value={dob}
+            onChange={setDob}
+            max={new Date().toISOString().slice(0, 10)}
+            placeholder="Chọn ngày sinh"
+          />
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-medium text-white/50">Giới tính</label>
@@ -434,7 +463,13 @@ export default function KycClient() {
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-medium text-white/50">Ngày cấp</label>
-          <input type="date" className={FIELD_CLASS} value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
+          <LuxuryDatePicker
+            ariaLabel="Ngày cấp"
+            value={issueDate}
+            onChange={setIssueDate}
+            max={new Date().toISOString().slice(0, 10)}
+            placeholder="Chọn ngày cấp"
+          />
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-medium text-white/50">Nơi cấp</label>

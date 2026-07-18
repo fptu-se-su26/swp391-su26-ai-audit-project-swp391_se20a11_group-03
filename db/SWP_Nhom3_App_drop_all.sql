@@ -26,6 +26,7 @@ IF OBJECT_ID('dbo.Wallets', 'U') IS NOT NULL DROP TABLE dbo.Wallets;
 IF OBJECT_ID('dbo.KycProfiles', 'U') IS NOT NULL DROP TABLE dbo.KycProfiles;
 IF OBJECT_ID('dbo.IdentityDocuments', 'U') IS NOT NULL DROP TABLE dbo.IdentityDocuments;
 IF OBJECT_ID('dbo.UserVerificationTokens', 'U') IS NOT NULL DROP TABLE dbo.UserVerificationTokens;
+IF OBJECT_ID('dbo.PendingEmailVerifications', 'U') IS NOT NULL DROP TABLE dbo.PendingEmailVerifications;
 IF OBJECT_ID('dbo.PasswordResetTokens', 'U') IS NOT NULL DROP TABLE dbo.PasswordResetTokens;
 IF OBJECT_ID('dbo.Products', 'U') IS NOT NULL DROP TABLE dbo.Products;
 IF OBJECT_ID('dbo.Categories', 'U') IS NOT NULL DROP TABLE dbo.Categories;

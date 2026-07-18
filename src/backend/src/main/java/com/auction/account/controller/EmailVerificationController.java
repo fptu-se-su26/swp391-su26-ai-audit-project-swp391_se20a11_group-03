@@ -35,10 +35,12 @@ public class EmailVerificationController {
     }
 
     private void updateProfileStatus(User user) {
-        if (user.isEmailVerified() && user.isIdentityVerified()) {
+        if (user.isEmailVerified() && user.isPhoneVerified() && user.isIdentityVerified()) {
             user.setProfileStatus("VERIFIED");
+        } else if (user.isEmailVerified() && !user.isPhoneVerified()) {
+            user.setProfileStatus("PENDING_PHONE_VERIFY");
         } else if (user.isEmailVerified()) {
-            user.setProfileStatus("EMAIL_VERIFIED");
+            user.setProfileStatus("PENDING_IDENTITY_VERIFY");
         }
     }
 }

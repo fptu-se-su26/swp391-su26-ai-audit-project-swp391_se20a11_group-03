@@ -18,7 +18,7 @@ async function loadDashboard(): Promise<DashboardData> {
 
 const EMPTY_DATA: DashboardData = {
   account: {
-    profile: { userId: 0, fullName: "", email: "", phone: "", identityNumber: null, roleName: "", status: "", identityVerified: false, profileStatus: null, identityVerifiedAt: null, active: false, paymentStrikeCount: 0, lockedByPaymentStrikes: false },
+    profile: { userId: 0, fullName: "", email: "", emailVerified: false, phone: null, phoneVerified: false, phoneVerifiedAt: null, identityNumber: null, roleName: "", status: "", identityVerified: false, profileStatus: null, identityVerifiedAt: null, active: false, paymentStrikeCount: 0, lockedByPaymentStrikes: false },
     wallet: { walletId: 0, userId: 0, balance: 0, holdBalance: 0, availableBalance: 0, status: "" },
   },
   bids: [],

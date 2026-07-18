@@ -20,6 +20,21 @@ public class UserDAO {
         }
     }
 
+    public User findByEmail(String email) {
+        EntityManager em = JpaUtil.createEntityManager();
+        try {
+            return em.createQuery(
+                            "SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email)",
+                            User.class)
+                    .setParameter("email", email)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
+        } finally {
+            closeQuietly(em);
+        }
+    }
+
     public boolean existsByPhone(String phone) {
         EntityManager em = JpaUtil.createEntityManager();
         try {
