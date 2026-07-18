@@ -271,7 +271,7 @@ export default function ApprovalsClient() {
 
             <div className="grid gap-8 p-6 lg:grid-cols-[1.05fr_0.95fr]">
               <section aria-label="Ảnh sản phẩm">
-                <div className="aspect-[4/3] overflow-hidden rounded-2xl border border-white/10 bg-black/30">
+                <div className="aspect-[4/3] overflow-hidden rounded-2xl border border-white/10 bg-[var(--luxora-bg-soft)]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={toImageSrc(
@@ -289,7 +289,7 @@ export default function ApprovalsClient() {
                         key={image.imageId}
                         type="button"
                         onClick={() => setDetailImageIndex(index)}
-                        className={`aspect-square overflow-hidden rounded-lg border bg-black/30 ${
+                        className={`aspect-square overflow-hidden rounded-lg border bg-[var(--luxora-bg-soft)] ${
                           detailImageIndex === index
                             ? "border-[var(--luxora-gold)]"
                             : "border-white/10 hover:border-white/30"

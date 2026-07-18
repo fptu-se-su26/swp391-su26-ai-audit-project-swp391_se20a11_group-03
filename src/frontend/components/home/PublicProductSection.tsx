@@ -66,7 +66,7 @@ export default function PublicProductSection({
             className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
               selectedCategoryId
                 ? "border border-white/15 text-white/70 hover:border-[#d7aa63] hover:text-white"
-                : "bg-white text-black"
+                : "bg-[var(--luxora-gold)] text-black"
             }`}
           >
             Tất cả
@@ -78,7 +78,7 @@ export default function PublicProductSection({
               onClick={() => setSelectedCategoryId(category.id)}
               className={`shrink-0 rounded-full px-4 py-2 text-xs font-medium transition-colors ${
                 selectedCategoryId === category.id
-                  ? "bg-white text-black"
+                  ? "bg-[var(--luxora-gold)] text-black"
                   : "border border-white/15 text-white/70 hover:border-[#d7aa63] hover:text-white"
               }`}
             >
@@ -93,7 +93,7 @@ export default function PublicProductSection({
               key={lot.id}
               className="group flex flex-col overflow-hidden rounded-lg border border-[#d7aa63]/25 bg-[#080808] transition-colors hover:border-[#f0c982]"
             >
-              <div className="relative aspect-square w-full overflow-hidden bg-black">
+              <div className="theme-dark-content relative aspect-square w-full overflow-hidden bg-black">
                 <Link
                   href={`/auctions/${lot.id}`}
                   aria-label={`Xem chi tiết ${lot.title}`}

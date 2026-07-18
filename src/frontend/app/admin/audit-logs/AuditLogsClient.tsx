@@ -33,7 +33,8 @@ export default function AuditLogsClient() {
   }, []);
 
   useEffect(() => {
-    void load();
+    const timer = window.setTimeout(() => void load(), 0);
+    return () => window.clearTimeout(timer);
   }, [load]);
 
   const types = Array.from(new Set(rows.map((r) => r.transactionType))).sort();

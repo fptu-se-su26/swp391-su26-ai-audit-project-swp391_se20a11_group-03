@@ -366,7 +366,7 @@ export default function LiveBiddingPanel({
               value={customAmount}
               onChange={(e) => setCustomAmount(e.target.value)}
               placeholder={`Tối thiểu ${VND.format(state.minNextBid)} ₫`}
-              className={`${state.priceHidden ? "" : "mt-3"} w-full rounded-xl border border-white/10 bg-black/40 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]`}
+              className={`${state.priceHidden ? "" : "mt-3"} w-full rounded-xl border border-white/10 bg-[var(--luxora-bg-soft)] px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]`}
             />
           </div>
 

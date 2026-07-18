@@ -1,8 +1,8 @@
-import Image from "next/image";
 import { Suspense } from "react";
 import Header from "@/components/home/Header";
 import Footer from "@/components/home/Footer";
 import LiveChat from "@/components/feature/LiveChat";
+import ThemedAuctionBackdrop from "@/components/theme/ThemedAuctionBackdrop";
 import StorefrontData from "@/app/storefront/StorefrontData";
 import StorefrontDataFallback from "@/app/storefront/StorefrontDataFallback";
 
@@ -12,16 +12,13 @@ export default function AuctionsPage() {
       <Header />
       <main className="flex-1">
         <div className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8 xl:px-10">
-        <section className="glass-card relative min-h-[280px] overflow-hidden rounded-3xl border border-white/10 bg-[#030303]">
-          <Image
-            src="/images/luxury-watch-hero-lcp.webp"
-            alt="Phòng đấu giá BidZone"
-            fill
+        <section className="public-auction-hero glass-card relative min-h-[280px] overflow-hidden rounded-3xl border border-white/10 bg-[#030303]">
+          <ThemedAuctionBackdrop
             priority
             sizes="(min-width: 768px) calc(100vw - 16rem), 100vw"
-            className="object-cover object-[70%_center] opacity-45"
+            className="object-cover object-[70%_center]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/88 to-black/35" />
+          <div className="public-auction-hero__overlay absolute inset-0" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_42%,rgba(240,201,130,0.16),transparent_36%)]" />
           <div className="relative z-10 flex max-w-3xl flex-col gap-5 px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
             <p className="text-xs font-semibold uppercase tracking-[0.36em] text-[var(--luxora-gold)]">

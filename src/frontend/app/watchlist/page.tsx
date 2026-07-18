@@ -37,7 +37,7 @@ export default function WatchlistPage() {
               key={item.id}
               className="glass-card group flex flex-col overflow-hidden rounded-2xl"
             >
-              <div className="relative aspect-square w-full overflow-hidden">
+              <div className="theme-dark-content relative aspect-square w-full overflow-hidden">
                 <div
                   className="h-full w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
                   style={{ backgroundImage: `url(${toImageSrc(item.image)})` }}

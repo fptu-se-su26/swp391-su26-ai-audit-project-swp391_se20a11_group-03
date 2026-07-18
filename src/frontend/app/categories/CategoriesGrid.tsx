@@ -45,7 +45,6 @@ export default function CategoriesGrid() {
         return {
           ...category,
           count: String(categoryLots.length),
-          imageSrc: categoryLots[0]?.image ?? category.imageSrc,
         };
       }),
     [categories, lots],
@@ -75,66 +74,89 @@ export default function CategoriesGrid() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-8">
         {loading
           ? Array.from({ length: 4 }, (_, index) => (
               <div
                 key={index}
-                className="aspect-[3/4] animate-pulse rounded-2xl border border-white/10 bg-white/[0.03]"
+                className="min-h-[340px] animate-pulse rounded-2xl border border-white/10 bg-white/[0.03] lg:col-span-2 xl:min-h-[390px]"
               />
             ))
-          : hydratedCategories.map((category) => {
+          : hydratedCategories.map((category, index) => {
               const fillPct = Math.round(
                 (Number(category.count) / maxCount) * 100,
               );
+              const finalRowCount = hydratedCategories.length % 4;
+              const firstFinalRowIndex =
+                hydratedCategories.length - finalRowCount;
+              const finalRowStartClass =
+                index === firstFinalRowIndex
+                  ? finalRowCount === 3
+                    ? "lg:col-start-2"
+                    : finalRowCount === 2
+                      ? "lg:col-start-3"
+                      : finalRowCount === 1
+                        ? "lg:col-start-4"
+                        : ""
+                  : "";
 
               return (
                 <Link
                   key={category.id}
                   href={`/storefront?category=${category.id}`}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#070707] transition-all hover:-translate-y-1 hover:border-[#f0c982]/60 hover:shadow-[0_20px_45px_-25px_rgba(240,201,130,0.5)]"
+                  className={`theme-dark-content theme-dark-surface group relative isolate min-h-[340px] overflow-hidden rounded-2xl border border-white/15 bg-[#080808] text-white transition-all duration-500 hover:-translate-y-1.5 hover:border-[#f0c982]/70 hover:shadow-[0_26px_55px_-28px_rgba(215,170,99,0.75)] lg:col-span-2 xl:min-h-[390px] ${finalRowStartClass}`}
                 >
-                  <div className="relative aspect-[4/3] bg-black">
-                    <Image
-                      src={category.imageSrc}
-                      alt={category.label}
-                      fill
-                      sizes="(min-width: 1024px) 25vw, 100vw"
-                      className="object-contain p-4 transition-transform group-hover:scale-105"
-                    />
-                    <span className="absolute left-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-[#d7aa63]/40 bg-black/60">
+                  <Image
+                    src={category.imageSrc}
+                    alt={category.label}
+                    fill
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.07]"
+                  />
+                  <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/15 via-black/20 to-black/95" />
+                  <div className="absolute inset-0 z-[1] bg-[linear-gradient(120deg,rgba(0,0,0,0.18),transparent_55%)]" />
+
+                  <div className="absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-4 p-5 sm:p-6">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full border border-[#f0c982]/50 bg-black/55 shadow-lg backdrop-blur-md">
                       <span className="material-symbols-outlined text-2xl text-[#f0c982]">
                         {category.icon}
                       </span>
                     </span>
+                    <span className="rounded-full border border-white/20 bg-black/45 px-3 py-2 text-right backdrop-blur-md">
+                      <span className="text-base font-bold text-[#f0c982]">
+                        {category.count}
+                      </span>
+                      <span className="ml-1.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/60">
+                        LOT
+                      </span>
+                    </span>
                   </div>
-                  <div className="flex flex-1 flex-col p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <h3 className="text-lg font-bold tracking-wider">
-                        {category.label}
-                      </h3>
-                      <span className="text-right">
-                        <span className="block text-2xl font-bold text-[#f0c982]">
-                          {category.count}
-                        </span>
-                        <span className="text-[10px] uppercase tracking-wider text-white/35">
-                          lot
-                        </span>
+
+                  <div className="absolute inset-x-0 bottom-0 z-10 p-5 sm:p-6">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#f0c982]">
+                      Danh mục tuyển chọn
+                    </p>
+                    <div className="flex items-end justify-between gap-4">
+                      <div>
+                        <h3 className="text-2xl font-bold tracking-wide text-white">
+                          {category.label}
+                        </h3>
+                        <p className="mt-2 line-clamp-2 max-w-[28ch] text-sm leading-relaxed text-white/68">
+                          {category.description ||
+                            "Khám phá những vật phẩm nổi bật đang được tuyển chọn."}
+                        </p>
+                      </div>
+                      <span className="flex h-11 w-11 shrink-0 translate-y-2 items-center justify-center rounded-full border border-white/25 bg-white/10 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                        <FiArrowRight className="h-5 w-5" aria-hidden="true" />
                       </span>
                     </div>
-                    <p className="mt-3 text-sm leading-relaxed text-white/55">
-                      {category.description}
-                    </p>
-                    <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-white/10">
+
+                    <div className="mt-5 h-px w-full overflow-hidden bg-white/20">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#f0c982] to-[#d7aa63]"
-                        style={{ width: `${fillPct}%` }}
+                        className="h-full bg-gradient-to-r from-[#f0c982] to-[#d7aa63] transition-[width] duration-700"
+                        style={{ width: `${Math.max(fillPct, 12)}%` }}
                       />
                     </div>
-                    <span className="mt-auto flex items-center gap-1 pt-5 text-xs font-semibold uppercase tracking-wider text-[#f0c982] opacity-0 transition-opacity group-hover:opacity-100">
-                      Khám phá ngay
-                      <FiArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                    </span>
                   </div>
                 </Link>
               );

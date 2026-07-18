@@ -2,13 +2,14 @@ package com.auction.account.service;
 
 public final class AuthValidator {
     public String validateRegistration(String fullName, String email, String phone, String password, String confirmPassword) {
-        if (isBlank(fullName) || isBlank(email) || isBlank(phone) || isBlank(password) || isBlank(confirmPassword)) {
+        if (isBlank(fullName) || isBlank(email) || isBlank(password) || isBlank(confirmPassword)) {
             return "Vui lòng nhập đầy đủ thông tin.";
         }
         if (fullName.length() < 2 || fullName.length() > 100) {
             return "Họ và tên phải có độ dài từ 2 đến 100 ký tự.";
         }
-        if (phone.length() < 9 || phone.length() > 15 || !phone.matches("^[0-9+()\\-\\s]+$")) {
+        if (!isBlank(phone)
+                && (phone.length() < 9 || phone.length() > 15 || !phone.matches("^[0-9+()\\-\\s]+$"))) {
             return "Số điện thoại không hợp lệ.";
         }
         if (!password.equals(confirmPassword)) {
@@ -42,6 +43,5 @@ public final class AuthValidator {
         return value == null || value.trim().isEmpty();
     }
 }
-
 
 

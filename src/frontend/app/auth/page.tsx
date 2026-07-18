@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import { ApiError, authApi, toFrontendRole } from "@/lib/api";
 
 type AuthMode = "login" | "signup";
@@ -69,29 +70,6 @@ const TRUST_ITEMS = [
   },
 ];
 
-const AUTH_STATS = [
-  {
-    icon: "workspace_premium",
-    title: "SẢN PHẨM CAO CẤP",
-    description: "Tuyển chọn kỹ lưỡng từ các thương hiệu hàng đầu.",
-  },
-  {
-    icon: "verified_user",
-    title: "ĐẤU GIÁ MINH BẠCH",
-    description: "Quy trình công khai, công bằng, rõ ràng.",
-  },
-  {
-    icon: "diamond",
-    title: "THÀNH VIÊN TOÀN CẦU",
-    description: "Cộng đồng đam mê luxury trên toàn thế giới.",
-  },
-  {
-    icon: "headset_mic",
-    title: "HỖ TRỢ CHUYÊN NGHIỆP",
-    description: "Đội ngũ tư vấn tận tâm, hỗ trợ mọi lúc.",
-  },
-];
-
 export default function AuthPage({ searchParams }: AuthPageProps) {
   const resolvedSearchParams = use(searchParams);
   const router = useRouter();
@@ -105,7 +83,6 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
   const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState("");
@@ -140,6 +117,25 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID) return;
 
+    function renderGoogleButton() {
+      const google = window.google;
+      if (!google || !googleButtonRef.current) return;
+
+      googleButtonRef.current.replaceChildren();
+      const isDark = document.documentElement.dataset.theme === "dark";
+
+      google.accounts.id.renderButton(googleButtonRef.current, {
+        type: "standard",
+        theme: isDark ? "filled_black" : "outline",
+        size: "large",
+        shape: "pill",
+        text: "continue_with",
+        logo_alignment: "left",
+        locale: "vi",
+        width: Math.min(400, googleButtonRef.current.clientWidth || 400),
+      });
+    }
+
     function initGoogle() {
       const google = window.google;
       if (!google || !googleButtonRef.current) return;
@@ -147,27 +143,39 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
         client_id: GOOGLE_CLIENT_ID,
         callback: handleGoogleCredential,
       });
-      google.accounts.id.renderButton(googleButtonRef.current, {
-        theme: "filled_black",
-        size: "large",
-        shape: "rectangular",
-        text: "continue_with",
-        width: 360,
-      });
+      renderGoogleButton();
       setGoogleReady(true);
     }
 
-    if (window.google) {
-      initGoogle();
-      return;
+    function handleThemeChange() {
+      renderGoogleButton();
     }
 
-    const script = document.createElement("script");
-    script.src = GSI_SCRIPT_SRC;
-    script.async = true;
-    script.defer = true;
-    script.onload = initGoogle;
-    document.head.appendChild(script);
+    window.addEventListener("bidzone:theme-change", handleThemeChange);
+
+    let script: HTMLScriptElement | null = null;
+    if (window.google) {
+      initGoogle();
+    } else {
+      script = document.querySelector<HTMLScriptElement>(
+        `script[src="${GSI_SCRIPT_SRC}"]`,
+      );
+
+      if (!script) {
+        script = document.createElement("script");
+        script.src = GSI_SCRIPT_SRC;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+
+      script.addEventListener("load", initGoogle);
+    }
+
+    return () => {
+      window.removeEventListener("bidzone:theme-change", handleThemeChange);
+      script?.removeEventListener("load", initGoogle);
+    };
   }, [handleGoogleCredential]);
 
   const isSignup = mode === "signup";
@@ -198,7 +206,6 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
         await authApi.register({
           fullName: fullName.trim(),
           email: emailOrPhone.trim(),
-          phone: phone.trim(),
           password,
           confirmPassword,
         });
@@ -230,9 +237,12 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-black text-white">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1280px] flex-col px-4 py-4 sm:px-6 lg:px-8 lg:py-3">
-        <header className="flex shrink-0 items-center justify-between">
+    <main className="luxora-app auth-page min-h-screen overflow-x-hidden lg:fixed lg:inset-0 lg:h-dvh lg:min-h-0 lg:w-full lg:overflow-hidden">
+      <div className="auth-page__glow auth-page__glow--one" aria-hidden="true" />
+      <div className="auth-page__glow auth-page__glow--two" aria-hidden="true" />
+
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-4 sm:px-6 lg:h-full lg:min-h-0 lg:px-10">
+        <header className="flex h-20 shrink-0 items-center justify-between">
           <Link
             href="/"
             className="inline-flex items-center"
@@ -241,60 +251,60 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
             <BidZoneLogo priority className="h-12 w-auto" />
           </Link>
 
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-full border border-[#d7aa63]/40 px-3 py-2 text-xs text-white/75"
-          >
-            <span className="material-symbols-outlined text-base text-[#f0c982]">
-              language
-            </span>
-            Tiếng Việt
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/"
+              className="auth-back-link hidden h-10 items-center gap-2 rounded-full px-4 text-xs font-semibold sm:inline-flex sm:text-sm"
+            >
+              <span className="material-symbols-outlined text-base">arrow_back</span>
+              <span className="hidden sm:inline">Về trang chủ</span>
+            </Link>
+            <ThemeToggle />
+          </div>
         </header>
 
-        <section className="grid flex-1 grid-cols-1 items-center gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_390px] lg:items-start lg:gap-8 lg:py-6 xl:grid-cols-[minmax(0,1fr)_410px]">
-          <div className="relative min-h-[500px] overflow-hidden rounded-2xl lg:sticky lg:top-6 lg:h-[min(640px,calc(100dvh-128px))] lg:min-h-[560px]">
+        <section className="auth-layout mb-6 grid flex-1 overflow-hidden rounded-[28px] lg:mb-5 lg:min-h-0 lg:grid-cols-[1.08fr_0.92fr]">
+          <div className="theme-dark-content relative hidden min-h-0 overflow-hidden lg:flex">
             <Image
-              src="/images/luxury-watch-hero.webp"
+              src="/images/hero-auction-dark-v2.webp"
               alt="Đồng hồ cao cấp BidZone"
               fill
               priority
-              sizes="(min-width: 1024px) 58vw, 100vw"
-              className="object-cover object-[60%_center]"
+              sizes="(min-width: 1024px) 56vw, 100vw"
+              className="object-cover object-center"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/68 to-black/5" />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/5 to-black" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/70 to-black/10" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/90" />
 
-            <div className="relative z-10 flex min-h-[500px] flex-col justify-center p-6 sm:p-8 lg:h-full lg:p-9">
-              <div className="max-w-[390px]">
+            <div className="relative z-10 flex h-full w-full flex-col justify-between p-10 xl:p-14">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-black/20 px-4 py-2 text-[11px] font-semibold tracking-[0.24em] text-white/70 backdrop-blur">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#f0c982]" />
+                VERIFIED AUCTION PLATFORM
+              </div>
+
+              <div className="max-w-[520px] py-12">
                 <p className="text-xs font-semibold tracking-[0.42em] text-[#f0c982]">
                   LUXURY AUCTION HOUSE
                 </p>
-                <h1 className="mt-6 text-4xl font-bold leading-[1.08] text-white sm:text-5xl lg:text-[44px]">
+                <h1 className="mt-6 text-5xl font-bold leading-[1.02] tracking-[-0.03em] text-white xl:text-6xl">
                   NƠI GIÁ TRỊ
                   <br />
                   <span className="text-[#f0c982]">ĐƯỢC TÔN VINH</span>
                 </h1>
-                <p className="mt-5 text-sm leading-relaxed text-white/72">
-                  Khám phá những sản phẩm đẳng cấp, công nghệ, hiếm có từ các
-                  thương hiệu hàng đầu thế giới. Đấu giá live mỗi ngày với mức
-                  giá tốt nhất.
+                <p className="mt-6 max-w-[460px] text-base leading-7 text-white/68">
+                  Tiếp cận những vật phẩm tuyển chọn, hồ sơ minh bạch và trải
+                  nghiệm đấu giá trực tuyến được thiết kế cho người sưu tầm.
                 </p>
               </div>
 
-              <div className="mt-7 grid max-w-[390px] gap-3">
+              <div className="grid grid-cols-3 gap-3 border-t border-white/15 pt-7">
                 {TRUST_ITEMS.map((item) => (
-                  <div key={item.title} className="flex items-start gap-3">
-                    <span className="material-symbols-outlined mt-0.5 text-xl text-[#f0c982]">
+                  <div key={item.title} className="min-w-0">
+                    <span className="material-symbols-outlined text-xl text-[#f0c982]">
                       {item.icon}
                     </span>
-                    <span>
-                      <span className="block text-xs font-semibold tracking-wider text-white">
-                        {item.title}
-                      </span>
-                      <span className="mt-1 block text-xs leading-relaxed text-white/58">
-                        {item.description}
-                      </span>
+                    <span className="mt-2 block text-[10px] font-semibold tracking-wider text-white xl:text-[11px]">
+                      {item.title}
                     </span>
                   </div>
                 ))}
@@ -302,12 +312,50 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
             </div>
           </div>
 
-          <div className="flex justify-center lg:justify-end">
+          <div className="auth-form-pane flex min-h-[calc(100dvh-7rem)] min-w-0 flex-col justify-center px-5 py-8 sm:px-10 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:px-12 lg:py-5 xl:px-16">
+            <div className="theme-dark-content relative mb-8 min-h-40 overflow-hidden rounded-2xl p-6 lg:hidden">
+              <Image
+                src="/images/hero-auction-dark-v2.webp"
+                alt="Đồng hồ cao cấp BidZone"
+                fill
+                sizes="100vw"
+                className="object-cover object-[68%_center]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-black/20" />
+              <div className="relative z-10 max-w-[260px]">
+                <p className="text-[10px] font-semibold tracking-[0.3em] text-[#f0c982]">
+                  BIDZONE
+                </p>
+                <p className="mt-3 text-2xl font-bold leading-tight text-white">
+                  Giá trị thật.
+                  <br />Đấu giá minh bạch.
+                </p>
+              </div>
+            </div>
+
             <form
               onSubmit={handleSubmit}
-              className="w-full max-w-[410px] rounded-2xl border border-[#d7aa63]/35 bg-black/80 p-4 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur sm:p-5 lg:max-w-[390px] xl:max-w-[410px]"
+              className={`auth-form mx-auto min-w-0 w-full max-w-[470px] ${
+                isSignup ? "auth-form--signup" : ""
+              }`}
             >
-              <div className="rounded-full border border-white/10 bg-white/[0.03] p-1">
+              <p className="text-xs font-semibold tracking-[0.26em] text-[var(--luxora-gold-dark)]">
+                TÀI KHOẢN BIDZONE
+              </p>
+              <div className="mt-3 flex items-end justify-between gap-4">
+                <div>
+                  <h2 className="text-3xl font-bold tracking-[-0.03em] text-[var(--luxora-text)] sm:text-4xl">
+                    {isSignup ? "Tạo tài khoản" : "Chào mừng trở lại"}
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-[var(--luxora-text-muted)]">
+                    {isSignup
+                      ? "Tham gia cộng đồng đấu giá cao cấp của BidZone."
+                      : "Đăng nhập để tiếp tục hành trình sưu tầm của bạn."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="auth-mode-switch mt-7 grid grid-cols-2 rounded-xl p-1">
                 {(["login", "signup"] as const).map((item) => (
                   <button
                     key={item}
@@ -319,10 +367,10 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                       setConfirmPassword("");
                       setLoginError("");
                     }}
-                    className={`h-9 w-1/2 rounded-full text-sm font-semibold transition-colors ${
+                    className={`h-11 rounded-lg text-sm font-semibold transition-all ${
                       mode === item
-                        ? "bg-[#f0c982] text-black"
-                        : "text-white/60 hover:text-white"
+                        ? "auth-mode-switch__active"
+                        : "text-[var(--luxora-text-muted)] hover:text-[var(--luxora-text)]"
                     }`}
                   >
                     {item === "login" ? "Đăng nhập" : "Đăng ký"}
@@ -330,36 +378,25 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                 ))}
               </div>
 
-              <div className="mt-3 text-center">
-                <h2 className="text-xl font-bold tracking-wide text-white xl:text-2xl">
-                  {isSignup ? "ĐĂNG KÝ" : "ĐĂNG NHẬP"}
-                </h2>
-                <p className="mt-1.5 text-xs text-white/50 xl:text-sm">
-                  {isSignup
-                    ? "Tạo tài khoản để bắt đầu đấu giá"
-                    : "Chào mừng bạn trở lại BidZone"}
-                </p>
-              </div>
-
               {loginError ? (
-                <p className="mt-3 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                <p className="mt-5 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-600">
                   {loginError}
                 </p>
               ) : null}
 
               {signupSuccess ? (
-                <p className="mt-3 rounded-lg border border-green-400/30 bg-green-500/10 px-3 py-2 text-xs text-green-200">
+                <p className="mt-5 rounded-xl border border-green-500/25 bg-green-500/10 px-4 py-3 text-sm text-green-700">
                   {signupSuccess}
                 </p>
               ) : null}
 
-              <div className="mt-3 space-y-2.5">
+              <div className="auth-fields mt-6 space-y-4">
                 {isSignup ? (
                   <div>
-                    <label className="text-[11px] font-semibold tracking-wider text-white/75">
+                    <label className="auth-label">
                       HỌ VÀ TÊN
                     </label>
-                    <div className="mt-1.5 flex h-9 items-center gap-3 rounded-lg border border-white/12 bg-[#050505] px-4 focus-within:border-[#f0c982]/70">
+                    <div className="auth-field">
                       <span className="material-symbols-outlined text-lg text-white/45">
                         person
                       </span>
@@ -369,55 +406,36 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                         value={fullName}
                         onChange={(event) => setFullName(event.target.value)}
                         placeholder="Nhập họ và tên"
-                        className="auth-input min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
-                      />
-                    </div>
-                  </div>
-                ) : null}
-
-                {isSignup ? (
-                  <div>
-                    <label className="text-[11px] font-semibold tracking-wider text-white/75">
-                      SỐ ĐIỆN THOẠI
-                    </label>
-                    <div className="mt-1.5 flex h-9 items-center gap-3 rounded-lg border border-white/12 bg-[#050505] px-4 focus-within:border-[#f0c982]/70">
-                      <span className="material-symbols-outlined text-lg text-white/45">
-                        call
-                      </span>
-                      <input
-                        type="tel"
-                        required
-                        value={phone}
-                        onChange={(event) => setPhone(event.target.value)}
-                        placeholder="Nhập số điện thoại"
-                        className="auth-input min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
+                        className="auth-input min-w-0 flex-1 bg-transparent text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text-muted)]"
                       />
                     </div>
                   </div>
                 ) : null}
 
                 <div>
-                  <label className="text-[11px] font-semibold tracking-wider text-white/75">
-                    EMAIL HOẶC SỐ ĐIỆN THOẠI
+                  <label className="auth-label">
+                    {isSignup ? "EMAIL" : "EMAIL HOẶC SỐ ĐIỆN THOẠI"}
                   </label>
-                  <div className="mt-1.5 flex h-9 items-center gap-3 rounded-lg border border-white/12 bg-[#050505] px-4 focus-within:border-[#f0c982]/70">
+                  <div className="auth-field">
                     <span className="material-symbols-outlined text-lg text-white/45">
                       mail
                     </span>
                     <input
-                      type="text"
+                      type={isSignup ? "email" : "text"}
                       required
                       value={emailOrPhone}
                       onChange={(event) => setEmailOrPhone(event.target.value)}
-                      placeholder="Nhập email hoặc số điện thoại"
-                      className="auth-input min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
+                      placeholder={
+                        isSignup ? "Nhập email" : "Nhập email hoặc số điện thoại"
+                      }
+                      className="auth-input min-w-0 flex-1 bg-transparent text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text-muted)]"
                     />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between gap-3">
-                    <label className="text-[11px] font-semibold tracking-wider text-white/75">
+                    <label className="auth-label">
                       MẬT KHẨU
                     </label>
                     {!isSignup ? (
@@ -429,7 +447,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                       </button>
                     ) : null}
                   </div>
-                  <div className="mt-1.5 flex h-9 items-center gap-3 rounded-lg border border-white/12 bg-[#050505] px-4 focus-within:border-[#f0c982]/70">
+                  <div className="auth-field">
                     <span className="material-symbols-outlined text-lg text-white/45">
                       lock
                     </span>
@@ -439,7 +457,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder="Nhập mật khẩu"
-                      className="auth-input min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
+                      className="auth-input min-w-0 flex-1 bg-transparent text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text-muted)]"
                     />
                     <button
                       type="button"
@@ -456,10 +474,10 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
 
                 {isSignup ? (
                   <div>
-                    <label className="text-[11px] font-semibold tracking-wider text-white/75">
+                    <label className="auth-label">
                       XÁC NHẬN MẬT KHẨU
                     </label>
-                    <div className="mt-1.5 flex h-9 items-center gap-3 rounded-lg border border-white/12 bg-[#050505] px-4 focus-within:border-[#f0c982]/70">
+                    <div className="auth-field">
                       <span className="material-symbols-outlined text-lg text-white/45">
                         lock_reset
                       </span>
@@ -471,7 +489,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                           setConfirmPassword(event.target.value)
                         }
                         placeholder="Nhập lại mật khẩu"
-                        className="auth-input min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
+                        className="auth-input min-w-0 flex-1 bg-transparent text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text-muted)]"
                       />
                       <button
                         type="button"
@@ -493,7 +511,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
               </div>
 
               {isSignup ? (
-                <label className="mt-2.5 flex items-start gap-3 text-xs leading-relaxed text-white/50">
+                <label className="auth-consent mt-4 flex items-start gap-3 text-xs leading-relaxed text-[var(--luxora-text-muted)]">
                   <input
                     type="checkbox"
                     required
@@ -507,7 +525,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
               <button
                 type="submit"
                 disabled={submitting}
-                className="mt-3 h-10 w-full rounded-lg bg-[#f0c982] text-sm font-bold tracking-wide text-black transition-colors hover:bg-[#f4d79b] disabled:cursor-not-allowed disabled:opacity-60"
+                className="auth-submit mt-6 h-12 w-full rounded-xl bg-[#e2b34f] text-sm font-bold tracking-wide text-[#17130b] shadow-[0_12px_30px_rgba(194,137,38,0.2)] transition-all hover:-translate-y-0.5 hover:bg-[#efc66e] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting
                   ? "ĐANG XỬ LÝ..."
@@ -516,23 +534,23 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                     : "ĐĂNG NHẬP"}
               </button>
 
-              <div className="my-3 flex items-center gap-4">
-                <span className="h-px flex-1 bg-white/10" />
-                <span className="text-[11px] uppercase tracking-wider text-white/35">
+              <div className="auth-social-divider my-5 flex items-center gap-4">
+                <span className="auth-divider h-px flex-1" />
+                <span className="text-[10px] uppercase tracking-[0.16em] text-[var(--luxora-text-muted)]">
                   {isSignup ? "hoặc đăng ký với" : "hoặc đăng nhập với"}
                 </span>
-                <span className="h-px flex-1 bg-white/10" />
+                <span className="auth-divider h-px flex-1" />
               </div>
 
               <div
                 ref={googleButtonRef}
-                className={googleReady ? "flex justify-center" : "hidden"}
+                className={googleReady ? "auth-google-slot flex min-w-0 justify-center overflow-hidden" : "hidden"}
               />
               {!googleReady ? (
                 <button
                   type="button"
                   disabled
-                  className="grid h-9 w-full cursor-wait grid-cols-[28px_1fr_28px] items-center rounded-lg border border-white/12 bg-white/[0.02] px-4 text-sm text-white/50"
+                  className="auth-google-button mx-auto grid h-11 w-full max-w-[400px] cursor-wait grid-cols-[28px_1fr_28px] items-center rounded-full px-4 text-sm font-medium"
                 >
                   <FcGoogle className="mx-auto text-lg" aria-hidden="true" />
                   <span className="text-center">
@@ -542,55 +560,13 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                 </button>
               ) : null}
 
+              <p className="auth-security-note mt-6 text-center text-xs leading-5 text-[var(--luxora-text-muted)]">
+                Thông tin của bạn được mã hóa và bảo vệ theo tiêu chuẩn bảo mật
+                của BidZone.
+              </p>
             </form>
           </div>
         </section>
-
-        <section className="grid shrink-0 gap-3 rounded-lg border border-[#d7aa63]/30 bg-white/[0.02] px-4 py-3 sm:grid-cols-2 lg:grid-cols-4">
-          {AUTH_STATS.map((item, index) => (
-            <div
-              key={item.title}
-              className={`flex items-start gap-2 ${
-                index > 0 ? "lg:border-l lg:border-white/10 lg:pl-5" : ""
-              }`}
-            >
-              <span className="material-symbols-outlined text-xl text-[#f0c982]">
-                {item.icon}
-              </span>
-              <span>
-                <span className="block text-xs font-semibold tracking-wider text-white">
-                  {item.title}
-                </span>
-                <span className="mt-0.5 block text-[11px] leading-relaxed text-white/50">
-                  {item.description}
-                </span>
-              </span>
-            </div>
-          ))}
-        </section>
-
-        <footer className="mt-5 flex shrink-0 flex-col gap-4 border-t border-white/10 py-4 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between lg:hidden">
-          <div>
-            <Link
-              href="/"
-              className="inline-flex items-center"
-              aria-label="BidZone"
-            >
-              <BidZoneLogo className="h-12 w-auto" />
-            </Link>
-            <p className="mt-3">© 2024 BidZone. All rights reserved.</p>
-          </div>
-          <div className="flex gap-4">
-            {["f", "ig", "yt"].map((item) => (
-              <span
-                key={item}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 text-[10px] font-semibold uppercase text-white/65"
-              >
-                {item}
-              </span>
-            ))}
-          </div>
-        </footer>
       </div>
     </main>
   );
