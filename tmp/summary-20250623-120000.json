@@ -1,0 +1,4 @@
+{
+  "summary": "Implemented balance movement history (lịch sử biến động số dư) for admin, seller, and user roles. Backend: WalletTransactionDTO, TransactionLedgerService with date/type filters, GET /api/wallet/transactions for authenticated users, GET /api/admin/dashboard/balance-ledger for admin/staff. Frontend: reusable WalletBalanceLedger component with date range pickers (today/7d/30d), transaction type filter, optional group-by-day view, and signed amount display; integrated into /wallet, /earnings, and /admin/wallet-ledger (new default tab). Backend compiles successfully; restart backend required to use new APIs.",
+  "current_status": "Balance ledger feature complete end-to-end. Prior features (payment overdue, auction chat, purchase contract sign) remain on dev with uncommitted changes. User should restart backend (npm run backend) and test the three ledger pages with date filters."
+}

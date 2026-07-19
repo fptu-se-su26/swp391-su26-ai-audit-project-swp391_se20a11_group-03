@@ -1,0 +1,4 @@
+{
+  "summary": "Fixed empty category dropdown on post-item for Admin users: categories were only fetched when roleName included 'seller', but Admin123 posts as Admin. Updated the effect to load categories for both seller and admin roles. Improved multi-image upload to append new selections instead of replacing previous ones, allow repeated picks up to 6 images, show image count, and update UI copy for multiple uploads.",
+  "current_status": "Backend has 11 categories seeded; frontend post-item page should now show categories for Admin and support accumulating up to 6 images per listing. User should hard-refresh /post-item to see changes."
+}

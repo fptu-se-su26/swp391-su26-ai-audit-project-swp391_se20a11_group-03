@@ -1,0 +1,4 @@
+﻿{
+  "summary": "Analyzed the Context Usage canvas for chat 'Product status check constraint' (composer de08e8a4). At ~596.5K / 1M tokens (60% full), conversation dominates at 565K (95% of usage). Fixed overhead: tools 22.8K, system prompt 4.7K, skills 2.1K, subagents 1.4K, rules 518. Top reduction levers: start a new chat for new topics, use Task/explore subagents for broad searches, narrow @file references, and optionally disable-model-invocation on unused Cursor skills. Canvas file was not writable from the agent environment so recommendations were delivered in chat only.",
+  "current_status": "Auction platform project has extensive frontend dashboard work and backend admin/bidding features in progress. Context window for the product-status chat is 60% consumed, mostly by accumulated conversation history rather than rules or MCP overhead."
+}

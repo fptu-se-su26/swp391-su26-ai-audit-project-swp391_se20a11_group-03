@@ -1,0 +1,4 @@
+{
+  "summary": "User muốn test OCR KYC. Đã thêm app.fpt.ai.api-key vào application.properties + FptAiSpringConfig để IntelliJ/npm đều có key; restart backend :8096. Hướng dẫn test upload CCCD trên /kyc.",
+  "current_status": "OCR FPT.AI đã cấu hình mặc định dev. Cần ảnh CCCD thật (không screenshot) để OCR đọc được; backend đang chạy npm run backend."
+}

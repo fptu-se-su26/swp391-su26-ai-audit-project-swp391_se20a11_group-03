@@ -1,0 +1,4 @@
+{
+  "summary": "Fixed admin unable to send messages: MessageServiceImpl explicitly blocked Admin with 'Admin chỉ giám sát, không gửi tin'. Removed block so Admin can send in all viewable conversations. Admin now auto-assigns support threads like Staff. Added send error alert on messages page.",
+  "current_status": "Admin can message users via /messages after backend restart. Support threads auto-assign to admin on open."
+}

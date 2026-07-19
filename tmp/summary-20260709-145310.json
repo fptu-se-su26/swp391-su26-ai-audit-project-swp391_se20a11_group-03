@@ -1,0 +1,4 @@
+﻿{
+  "summary": "Diagnosed user16: KYC verified + Seller role but no Contracts row despite UI ack. Added SellerContractHealRunner to auto-create missing SELLER_AGREEMENT on startup; healed userId=16 contractId=5.",
+  "current_status": "nguyenngocbaolong1008@gmail.com can now post items after refresh. Future users must use Gửi đăng ký Seller on /become-seller."
+}

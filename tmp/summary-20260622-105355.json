@@ -1,0 +1,4 @@
+{
+  "summary": "Fixed the application startup crash caused by a DataIntegrityViolationException. The DataSeeder (com.auction.config.DataSeeder) was inserting Products with Status='ACTIVE', which violated the CK_Product_Status CHECK constraint in database SWP_Nhom3. Valid product statuses per the workflow (ProductServiceImpl) are PENDING, APPROVED, REJECTED. Replaced all 16 'ACTIVE' product status values with 'APPROVED' in the seeder. Confirmed a clean Maven compile using JDK 25 (JAVA_HOME=C:/Program Files/Java/jdk-25.0.3).",
+  "current_status": "Build compiles successfully and the seeding no longer violates the Products status constraint. The app should now start and the web on localhost:8096 should be reachable. Note: JAVA_HOME must be set when running mvnw."
+}

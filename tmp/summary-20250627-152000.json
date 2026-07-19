@@ -1,0 +1,4 @@
+{
+  "summary": "Sửa lỗi hydration trên /dashboard: tách NotificationBell ra khỏi thẻ Link (tránh div trong a) và khởi tạo hasUser=false trên SSR rồi cập nhật trong useEffect.",
+  "current_status": "Lỗi hydration NotificationBell đã được fix; user refresh trang dashboard để kiểm tra."
+}

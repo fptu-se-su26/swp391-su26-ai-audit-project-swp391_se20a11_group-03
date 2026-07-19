@@ -1,0 +1,4 @@
+{
+  "summary": "Fixed garbled fonts on /luxe: Vietnamese text was mojibake because earlier PowerShell Out-File extraction mis-encoded UTF-8. Re-extracted luxe/page.tsx via cmd redirection preserving UTF-8; verified no mojibake, no lint errors; Next.js recompiled /luxe successfully.",
+  "current_status": "/luxe renders correct Vietnamese. Frontend on 3000, backend on 8096. User should hard-refresh browser (Ctrl+F5)."
+}

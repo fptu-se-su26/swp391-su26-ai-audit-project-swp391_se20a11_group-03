@@ -1,0 +1,4 @@
+{
+  "summary": "Explained that the app connects to SQL Server (SWP_Nhom3_App on localhost:1433), not mock-in-code. Deleted 8 seeded demo auctions (Vintage Painting, Rolex Classic, etc. from seller1@example.com) from the database. Disabled DataSeeder from re-creating/refreshing demo auctions on backend restart.",
+  "current_status": "7 real user-created auctions remain in DB. Demo auction seeding removed from DataSeeder. Backend restart will no longer inject fake live sessions."
+}

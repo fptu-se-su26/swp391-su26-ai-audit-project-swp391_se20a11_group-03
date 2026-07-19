@@ -1,0 +1,4 @@
+{
+  "summary": "User notified about background task 378651 exit code 1: expected because the first smoke-test backend was intentionally stopped (taskkill) before starting a second instance. Backend is currently listening on port 8096 (PID 24804). Wallet DB-only implementation remains complete.",
+  "current_status": "app.seed.enabled=false active; wallet balance persistence verified; backend running on 8096."
+}

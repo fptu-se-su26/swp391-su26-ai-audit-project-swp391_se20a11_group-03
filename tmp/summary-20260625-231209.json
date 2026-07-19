@@ -1,0 +1,4 @@
+﻿{
+  "summary": "Fixed recurring port 8096 conflict: killed stale Java PID 41856, added scripts/free-port.ps1 and start-backend.ps1, npm scripts backend/backend:kill, VS Code tasks, and IntelliJ shared run config that frees port before Spring Boot start.",
+  "current_status": "Port 8096 is free. User can start backend via npm run backend, scripts/start-backend.bat, VS Code task, or IntelliJ run config Auction Backend (free port 8096)."
+}

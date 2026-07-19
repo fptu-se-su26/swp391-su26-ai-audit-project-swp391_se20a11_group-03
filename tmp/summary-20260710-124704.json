@@ -1,0 +1,4 @@
+﻿{
+    "summary":  "Fixed admin depositsHeld: was summing all HOLD_BID history (2M stale). Now sums Auction_Deposits with LOCKED/HELD_FOR_PAYMENT only. DB has 0 active holds (1 refunded + 1 applied). Revenue unchanged (commission/forfeit only, no holds). API verified depositsHeld=0 after backend restart.",
+    "current_status":  "Held-deposit metric fixed and verified via API. Refresh /admin/revenue to see Cọc đang giữ = 0."
+}

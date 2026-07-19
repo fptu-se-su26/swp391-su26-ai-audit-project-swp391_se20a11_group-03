@@ -1,0 +1,4 @@
+{
+  "summary": "User asked for a NotebookLM prompt to generate a 10-slide SWP391 deck from the FPT DN PPTX template screenshots. Prepared a Vietnamese NotebookLM prompt mapped to BidZone/LuxeAuction (auction + Gemini OCR/valuation), following template slides: cover, problem/GAP, solution, PM, use case, ERD, testing, demo, Q&A — condensed to exactly 10 slides with speaker tips.",
+  "current_status": "Prompt ready for user to paste into NotebookLM. Placeholders left for group names and supervisor."
+}

@@ -1,0 +1,4 @@
+{
+  "summary": "User notified that the Next.js dev server restart completed successfully after clearing stale .next cache; /luxe, /dashboard, and /inventory respond with HTTP 200. restart-frontend.ps1 is available for future chunk errors.",
+  "current_status": "Frontend dev server healthy on localhost:3000. Seller sidebar split and i18n changes in place; use restart-frontend.ps1 if MODULE_NOT_FOUND chunk errors return."
+}

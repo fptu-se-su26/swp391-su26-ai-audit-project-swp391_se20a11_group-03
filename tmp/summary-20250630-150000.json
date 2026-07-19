@@ -1,0 +1,4 @@
+{
+  "summary": "Implemented no-bid auction end flow: when session ends with zero bids (including deposit-only), refund all deposits immediately, notify depositors/seller/admin/staff, set product back to PENDING with relist reason for staff approvals and seller inventory. Fixed re-approval by allowing auction reschedule for ENDED+NO_WINNER. Settlement runs every 30s and after status sync.",
+  "current_status": "No-bid relist flow complete in backend and UI hints on staff/seller pages. User should restart backend to apply. Existing local uncommitted fixes remain alongside this change."
+}

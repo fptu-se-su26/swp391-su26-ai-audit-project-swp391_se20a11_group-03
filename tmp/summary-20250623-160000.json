@@ -1,0 +1,4 @@
+{
+  "summary": "Triển khai OCR CCCD tự điền form KYC qua FPT.AI (POST /api/kyc/ocr), luồng UX mới upload mặt trước/sau trước rồi review thông tin + selfie, cảnh báo trùng CCCD cho user và staff/admin khi duyệt. Cần cấu hình FPT_AI_API_KEY và restart backend.",
+  "current_status": "KYC có OCR bank-style và duplicate warning; Google login và sidebar verification đã có từ trước. User cần set FPT_AI_API_KEY để OCR hoạt động thật."
+}

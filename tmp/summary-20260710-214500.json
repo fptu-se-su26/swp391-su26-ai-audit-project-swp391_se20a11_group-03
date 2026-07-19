@@ -1,0 +1,4 @@
+{
+  "summary": "User provided 4 Gemini API keys; configured application-local.properties with 2-key OCR pool (BTEp + CSj) and 2-key valuation pool (DeM6 + AKK), restarted backend on 8096.",
+  "current_status": "GeminiKeyPool active with 2 keys per feature. Keys exposed in chat should be rotated after demo. If all keys share one Google account, RPM may still be shared across pools."
+}
