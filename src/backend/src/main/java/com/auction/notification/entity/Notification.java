@@ -70,6 +70,12 @@ public class Notification {
         ORDER_DELIVERED,
         ORDER_COMPLETED,
         ORDER_FAILED,
-        GENERAL
+        GENERAL,
+        EVENT_PUBLISHED,
+        EVENT_ONGOING,
+        EVENT_CANCELLED,
+        EVENT_ENDED,
+        EVENT_WON,
+        EVENT_LOST
     }
 }
