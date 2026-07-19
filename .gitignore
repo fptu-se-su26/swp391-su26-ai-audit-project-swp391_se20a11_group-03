@@ -4,6 +4,7 @@
 **/*.local.properties
 .env
 .env.local
+deploy/vps/backend.env
 *.pem
 *.key
 run-backend.ps1

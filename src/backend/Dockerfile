@@ -5,15 +5,16 @@ COPY pom.xml ./
 RUN mvn -B -DskipTests dependency:go-offline
 
 COPY src src
-RUN mvn -B -DskipTests package spring-boot:repackage
+RUN cp src/main/resources/application.properties.example src/main/resources/application.properties \
+    && mvn -B -DskipTests package spring-boot:repackage
 
 FROM eclipse-temurin:21-jre-jammy
 
 RUN useradd --create-home --shell /usr/sbin/nologin bidzone
 WORKDIR /app
 COPY --from=build /workspace/target/vnec-auth.war app.war
-RUN mkdir -p /tmp/bidzone/uploads/kyc && chown -R bidzone:bidzone /app /tmp/bidzone
+RUN mkdir -p /app/uploads/kyc && chown -R bidzone:bidzone /app
 
 USER bidzone
-EXPOSE 10000
+EXPOSE 8096
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.war"]

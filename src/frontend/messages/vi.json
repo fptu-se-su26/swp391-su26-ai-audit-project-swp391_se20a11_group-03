@@ -668,11 +668,13 @@
         "dashboard": "Tổng quan",
         "watchlist": "Theo dõi",
         "wonItems": "Đã thắng",
+        "orders": "Đơn hàng",
         "messages": "Tin nhắn",
         "wallet": "Ví BidZone",
         "kyc": "Xác minh KYC",
         "profile": "Hồ sơ",
         "security": "Bảo mật",
+        "premium": "Gói Premium",
         "inventory": "Kho vật phẩm",
         "postItem": "Đăng vật phẩm",
         "earnings": "Doanh thu"
@@ -720,6 +722,7 @@
       "staff": "Nhân viên",
       "online": "Đang trực",
       "items": {
+        "orders": "Đơn giao hàng",
         "approvals": "Duyệt sản phẩm",
         "kycReview": "Duyệt hồ sơ KYC",
         "supportInbox": "Hộp thư hỗ trợ"

@@ -736,11 +736,13 @@
         "dashboard": "Overview",
         "watchlist": "Watchlist",
         "wonItems": "Won items",
+        "orders": "Orders",
         "messages": "Messages",
         "wallet": "BidZone Wallet",
         "kyc": "KYC Verification",
         "profile": "Profile",
         "security": "Security",
+        "premium": "Premium plan",
         "inventory": "Inventory",
         "postItem": "Post item",
         "earnings": "Earnings"
@@ -788,6 +790,7 @@
       "staff": "Staff",
       "online": "Online",
       "items": {
+        "orders": "Delivery orders",
         "approvals": "Product approvals",
         "kycReview": "KYC profile review",
         "supportInbox": "Support inbox"

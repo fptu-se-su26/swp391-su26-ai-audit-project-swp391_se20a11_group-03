@@ -8,10 +8,10 @@ import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { authApi } from "@/lib/api";
 
 const NAV_ITEMS = [
-  { label: "Đơn giao hàng", href: "/staff/orders", icon: "local_shipping" },
-  { label: "Duyệt sản phẩm", href: "/staff/approvals", icon: "fact_check" },
-  { label: "Duyệt hồ sơ KYC", href: "/staff/kyc-review", icon: "badge" },
-  { label: "Hộp thư hỗ trợ", href: "/staff/support", icon: "inbox" },
+  { labelKey: "orders", href: "/staff/orders", icon: "local_shipping" },
+  { labelKey: "approvals", href: "/staff/approvals", icon: "fact_check" },
+  { labelKey: "kycReview", href: "/staff/kyc-review", icon: "badge" },
+  { labelKey: "supportInbox", href: "/staff/support", icon: "inbox" },
 ];
 
 export default function StaffSidebar() {

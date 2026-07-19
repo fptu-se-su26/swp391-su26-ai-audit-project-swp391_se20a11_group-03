@@ -233,7 +233,7 @@ export default function SupportClient() {
                   {selected.subject || t("noSubject")}
                 </p>
                 <p className="text-sm text-white/40">
-                  {selected.userName} · {fmt(selected.createdAt)} · {realtimeConnected ? "Realtime" : "Đang kết nối..."}
+                  {selected.userName} · {fmt(selected.createdAt, locale)} · {realtimeConnected ? "Realtime" : "Đang kết nối..."}
                   {selected.assignedStaffName ? ` · Phụ trách: ${selected.assignedStaffName}` : ""}
                 </p>
               </div>
