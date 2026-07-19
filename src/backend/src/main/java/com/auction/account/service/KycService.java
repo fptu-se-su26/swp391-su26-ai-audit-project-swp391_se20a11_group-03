@@ -102,6 +102,7 @@ public class KycService {
                 || isBlank(gender) || issueDate == null || isBlank(issuePlace)) {
             throw new IllegalArgumentException("Please fill in every required KYC field");
         }
+        String normalizedFullName = KycInputValidator.normalizeFullName(fullName);
         if (frontImage == null || frontImage.isEmpty()
                 || backImage == null || backImage.isEmpty()
                 || selfieImage == null || selfieImage.isEmpty()) {
@@ -131,7 +132,7 @@ public class KycService {
                 "INSERT INTO KycProfiles (UserId, Phone, CccdNumber, FullName, Dob, Gender, IssueDate, IssuePlace, "
                         + "FrontImageUrl, BackImageUrl, SelfieImageUrl, Status, SubmittedAt) "
                         + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                userId, phone, cccdNumber, fullName, dob, gender, issueDate, issuePlace,
+                userId, phone, cccdNumber, normalizedFullName, dob, gender, issueDate, issuePlace,
                 frontUrl, backUrl, selfieUrl, STATUS_PENDING, now
         );
 

@@ -12,19 +12,22 @@ class TwilioVerifyServiceTest {
 
     @Test
     void normalizesVietnameseLocalNumberToE164() {
-        assertEquals("+84901234567", service.normalizePhone("090 123 4567"));
+        assertEquals("+84901234567", service.normalizePhone("0901234567"));
     }
 
     @Test
-    void keepsValidInternationalNumber() {
-        assertEquals("+84901234567", service.normalizePhone("+84 90 123 4567"));
-    }
-
-    @Test
-    void rejectsInvalidPhone() {
+    void rejectsInternationalInputBecauseFormRequiresTenLocalDigits() {
         assertThrows(
                 IllegalArgumentException.class,
-                () -> service.normalizePhone("abc123")
+                () -> service.normalizePhone("+84901234567")
+        );
+    }
+
+    @Test
+    void rejectsPhoneWithWrongLength() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.normalizePhone("090123456")
         );
     }
 }
