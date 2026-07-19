@@ -43,6 +43,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import com.auction.order.dto.ShippingAddressRequest;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -248,6 +250,7 @@ public class AuctionController {
     @PostMapping("/{auctionId}/pay")
     public ResponseEntity<?> payAuction(
             @PathVariable("auctionId") Long auctionId,
+            @Valid @RequestBody ShippingAddressRequest address,
             @AuthenticationPrincipal UserDetailsImpl user
     ) {
         if (user == null) {
@@ -257,7 +260,7 @@ public class AuctionController {
             ));
         }
         try {
-            return ResponseEntity.ok(auctionPaymentService.payAuction(auctionId, user.getId()));
+            return ResponseEntity.ok(auctionPaymentService.payAuction(auctionId, user.getId(), address));
         } catch (IllegalStateException ex) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,

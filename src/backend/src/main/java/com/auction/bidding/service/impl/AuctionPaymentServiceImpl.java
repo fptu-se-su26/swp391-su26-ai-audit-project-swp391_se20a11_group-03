@@ -15,6 +15,8 @@ import com.auction.wallet.entity.Transaction;
 import com.auction.wallet.entity.Wallet;
 import com.auction.wallet.repository.TransactionRepository;
 import com.auction.wallet.repository.WalletRepository;
+import com.auction.order.dto.ShippingAddressRequest;
+import com.auction.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,9 +27,6 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class AuctionPaymentServiceImpl implements AuctionPaymentService {
 
-    /** Platform commission rate taken from the final price on a paid auction. */
-    public static final double PLATFORM_COMMISSION_RATE = 0.20d;
-
     private final AuctionRepository auctionRepository;
     private final AuctionDepositRepository auctionDepositRepository;
     private final WalletRepository walletRepository;
@@ -35,10 +34,11 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
     private final UserRepository userRepository;
     private final ContractService contractService;
     private final UserPaymentStrikeService userPaymentStrikeService;
+    private final OrderService orderService;
 
     @Override
     @Transactional
-    public AuctionPaymentResponse payAuction(Long auctionId, Long userId) {
+    public AuctionPaymentResponse payAuction(Long auctionId, Long userId, ShippingAddressRequest address) {
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + auctionId));
 
@@ -75,12 +75,14 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
         long currentBalance = buyerWallet.getBalance() != null ? buyerWallet.getBalance() : 0L;
         long currentHold = buyerWallet.getHoldBalance() != null ? buyerWallet.getHoldBalance() : 0L;
 
-        if (currentBalance < finalPrice) {
+        long shippingFee = orderService.getShippingFee();
+        long totalCharge = finalPrice + shippingFee;
+        if (currentBalance < totalCharge) {
             throw new IllegalStateException("Insufficient wallet balance to complete auction payment");
         }
 
         LocalDateTime now = LocalDateTime.now();
-        buyerWallet.setBalance(currentBalance - finalPrice);
+        buyerWallet.setBalance(currentBalance - totalCharge);
         buyerWallet.setHoldBalance(Math.max(0L, currentHold - depositAmount));
         buyerWallet.setUpdatedAt(now);
         walletRepository.save(buyerWallet);
@@ -99,6 +101,19 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
             ));
         }
 
+        if (shippingFee > 0) {
+            transactionRepository.save(new Transaction(buyerWallet, shippingFee, "SHIPPING_FEE", "COMPLETED",
+                    "SHIP-FEE-" + auctionId, "Flat shipping fee for auction " + auctionId, now));
+        }
+        Wallet adminShippingWallet = getAdminWallet(now);
+        if (adminShippingWallet != null && shippingFee > 0) {
+            adminShippingWallet.setBalance((adminShippingWallet.getBalance() == null ? 0L : adminShippingWallet.getBalance()) + shippingFee);
+            adminShippingWallet.setUpdatedAt(now);
+            walletRepository.save(adminShippingWallet);
+            transactionRepository.save(new Transaction(adminShippingWallet, shippingFee, "SHIPPING_FEE_REVENUE", "COMPLETED",
+                    "SHIP-FEE-REV-" + auctionId, "Flat shipping fee for auction " + auctionId, now));
+        }
+
         if (deposit != null) {
             deposit.setStatus("APPLIED_TO_PAYMENT");
             deposit.setSettlementType("APPLIED_TO_PAYMENT");
@@ -106,68 +121,11 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
             auctionDepositRepository.save(deposit);
         }
 
-        // Platform-owned listings (posted by Admin): 100% to admin wallet.
-        // Regular seller listings: 20% commission to admin, 80% to seller.
-        boolean platformListing = isAdminSeller(auction);
-
-        if (platformListing) {
-            Wallet adminWallet = getAdminWallet(now);
-            if (adminWallet != null && finalPrice > 0) {
-                long adminBalance = adminWallet.getBalance() != null ? adminWallet.getBalance() : 0L;
-                adminWallet.setBalance(adminBalance + finalPrice);
-                adminWallet.setUpdatedAt(now);
-                walletRepository.save(adminWallet);
-                transactionRepository.save(new Transaction(
-                        adminWallet,
-                        finalPrice,
-                        "ADMIN_AUCTION_REVENUE",
-                        "COMPLETED",
-                        "AUC-ADMIN-REV-" + auctionId,
-                        "Full revenue (100%) for platform listing auction " + auctionId,
-                        now
-                ));
-            }
-        } else {
-            long commission = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
-            long sellerAmount = Math.max(0L, finalPrice - commission);
-
-            Wallet sellerWallet = null;
-            if (auction.getProduct() != null && auction.getProduct().getSellerId() != null) {
-                sellerWallet = walletRepository.findByUser_Id(Math.toIntExact(auction.getProduct().getSellerId())).orElse(null);
-            }
-            if (sellerWallet != null) {
-                long sellerBalance = sellerWallet.getBalance() != null ? sellerWallet.getBalance() : 0L;
-                sellerWallet.setBalance(sellerBalance + sellerAmount);
-                sellerWallet.setUpdatedAt(now);
-                walletRepository.save(sellerWallet);
-                transactionRepository.save(new Transaction(
-                        sellerWallet,
-                        sellerAmount,
-                        "AUCTION_PAYOUT",
-                        "COMPLETED",
-                        "AUC-PAYOUT-" + auctionId,
-                        "Payout (80%) for auction " + auctionId,
-                        now
-                ));
-            }
-
-            Wallet adminWallet = getAdminWallet(now);
-            if (adminWallet != null && commission > 0) {
-                long adminBalance = adminWallet.getBalance() != null ? adminWallet.getBalance() : 0L;
-                adminWallet.setBalance(adminBalance + commission);
-                adminWallet.setUpdatedAt(now);
-                walletRepository.save(adminWallet);
-                transactionRepository.save(new Transaction(
-                        adminWallet,
-                        commission,
-                        "PLATFORM_COMMISSION",
-                        "COMPLETED",
-                        "AUC-COMMISSION-" + auctionId,
-                        "Platform commission (20%) for auction " + auctionId,
-                        now
-                ));
-            }
-        }
+        User buyer = userRepository.findById(Math.toIntExact(userId))
+                .orElseThrow(() -> new ResourceNotFoundException("Buyer not found: " + userId));
+        User seller = userRepository.findById(Math.toIntExact(auction.getProduct().getSellerId()))
+                .orElseThrow(() -> new ResourceNotFoundException("Seller not found for auction: " + auctionId));
+        orderService.createOrder(auction, buyer, seller, address, finalPrice);
 
         auction.setStatus("PAID");
         auction.setPaymentStatus("PAID");
@@ -206,13 +164,4 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
         });
     }
 
-    /** True when the product was listed by an Admin account (platform-owned inventory). */
-    private boolean isAdminSeller(Auction auction) {
-        if (auction.getProduct() == null || auction.getProduct().getSellerId() == null) {
-            return false;
-        }
-        return userRepository.findById(Math.toIntExact(auction.getProduct().getSellerId()))
-                .map(u -> u.getRole() != null && "Admin".equalsIgnoreCase(u.getRole().getRoleName()))
-                .orElse(false);
-    }
 }

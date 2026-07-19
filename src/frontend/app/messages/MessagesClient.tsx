@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { ApiError, userApi, type Conversation, type ConversationMessage, type UserProfile } from "@/lib/api";
 import { UNREAD_REFRESH_EVENT } from "@/components/shells/CollectorSidebar";
 import { useApiData } from "@/lib/use-api-data";
+import { connectChatRealtime } from "@/lib/chat-realtime";
 
 type InboxData = { conversations: Conversation[]; profile: UserProfile };
 
@@ -27,12 +28,11 @@ export default function MessagesClient() {
   const [input, setInput] = useState("");
   const [sendError, setSendError] = useState("");
   const [showNew, setShowNew] = useState(false);
-  const [newKind, setNewKind] = useState<"support" | "seller">("support");
-  const [newSellerEmail, setNewSellerEmail] = useState("");
   const [newSubject, setNewSubject] = useState("");
   const [newFirstMessage, setNewFirstMessage] = useState("");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
   const selectedId = activeId ?? data.conversations[0]?.conversationId ?? null;
 
   const loadMessages = useCallback(async () => {
@@ -40,7 +40,9 @@ export default function MessagesClient() {
     return userApi.conversationMessages(selectedId);
   }, [selectedId]);
   const messageData = useApiData(loadMessages, [] as ConversationMessage[]);
-  const messages = [...messageData.data, ...sentMessages];
+  const messages = Array.from(new Map(
+    [...messageData.data, ...sentMessages].map((message) => [message.messageId, message]),
+  ).values());
   const active = data.conversations.find((item) => item.conversationId === selectedId) ?? null;
 
   // Mark the active conversation as read and refresh the sidebar badge.
@@ -64,6 +66,27 @@ export default function MessagesClient() {
       });
   }, [selectedId, setData]);
 
+  useEffect(() => connectChatRealtime({
+    conversationId: selectedId,
+    onConnectionChange: setRealtimeConnected,
+    onMessage: (message) => {
+      setSentMessages((items) => items.some((item) => item.messageId === message.messageId)
+        ? items : [...items, message]);
+      setData((current) => ({
+        ...current,
+        conversations: current.conversations.map((conversation) =>
+          conversation.conversationId === message.conversationId
+            ? { ...conversation, lastMessage: message.content, updatedAt: message.sentAt,
+                unreadCount: message.senderId === current.profile.userId || message.conversationId === selectedId
+                  ? 0 : conversation.unreadCount + 1 }
+            : conversation),
+      }));
+      if (message.conversationId === selectedId) void userApi.markConversationRead(selectedId);
+      window.dispatchEvent(new Event(UNREAD_REFRESH_EVENT));
+    },
+    onConversation: () => { void loadInbox().then(setData); },
+  }), [selectedId, setData]);
+
   async function sendMessage() {
     if (!selectedId || !input.trim()) return;
     setSendError("");
@@ -84,26 +107,13 @@ export default function MessagesClient() {
     event.preventDefault();
     setCreateError("");
 
-    if (newKind === "seller" && !newSellerEmail.trim()) {
-      setCreateError(t("sellerEmailRequired"));
-      return;
-    }
-
     const isSeller = data.profile.roleName?.toLowerCase() === "seller";
     setCreating(true);
     try {
       const conversation = await userApi.createConversation({
-        type:
-          newKind === "seller"
-            ? "BUYER_SELLER"
-            : isSeller
-              ? "SELLER_STAFF"
-              : "BUYER_STAFF",
-        subject: newSubject.trim() || t("defaultSubject"),
+        type: isSeller ? "SELLER_STAFF" : "BUYER_STAFF",
+        subject: newSubject.trim() || "Yêu cầu hỗ trợ",
         firstMessage: newFirstMessage.trim(),
-        ...(newKind === "seller"
-          ? { sellerEmail: newSellerEmail.trim() }
-          : {}),
       });
       const inbox = await loadInbox();
       setData(inbox);
@@ -112,7 +122,6 @@ export default function MessagesClient() {
       setShowNew(false);
       setNewSubject("");
       setNewFirstMessage("");
-      setNewSellerEmail("");
     } catch (cause) {
       setCreateError(
         cause instanceof ApiError
@@ -170,7 +179,7 @@ export default function MessagesClient() {
       </aside>
 
       <div className="flex flex-1 flex-col">
-        <div className="border-b border-white/10 px-5 py-4"><p className="text-sm font-semibold">{active?.subject ?? t("chooseConversation")}</p><p className="text-[11px] text-white/40">{active?.status ?? ""}</p></div>
+        <div className="border-b border-white/10 px-5 py-4"><p className="text-sm font-semibold">{active?.subject ?? "Chọn một hội thoại"}</p><p className="text-[11px] text-white/40">{active?.status ?? ""}{active ? ` · ${realtimeConnected ? "Realtime" : "Đang kết nối..."}` : ""}</p></div>
         <div className="custom-scrollbar flex-1 space-y-3 overflow-y-auto p-5">
           {messages.map((message) => {
             const mine = message.senderId === data.profile.userId;
@@ -184,8 +193,8 @@ export default function MessagesClient() {
           </p>
         ) : null}
         <div className="flex items-center gap-3 border-t border-white/10 p-4">
-          <input type="text" value={input} disabled={!active} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => event.key === "Enter" && void sendMessage()} placeholder={active ? t("inputActive") : t("inputInactive")} className="flex-1 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)] disabled:opacity-50" />
-          <button type="button" onClick={() => void sendMessage()} disabled={!active || !input.trim()} aria-label={t("sendAria")} className="gradient-cta flex h-11 w-11 items-center justify-center rounded-full text-black disabled:opacity-40"><span className="material-symbols-outlined">send</span></button>
+          <input type="text" value={input} disabled={!active || active.status === "CLOSED"} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => event.key === "Enter" && void sendMessage()} placeholder={!active ? "Tạo hội thoại mới để bắt đầu nhắn tin" : active.status === "CLOSED" ? "Hội thoại đã đóng — chỉ xem lại" : "Nhập tin nhắn..."} className="flex-1 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)] disabled:opacity-50" />
+          <button type="button" onClick={() => void sendMessage()} disabled={!active || active.status === "CLOSED" || !input.trim()} aria-label="Gửi tin nhắn" className="gradient-cta flex h-11 w-11 items-center justify-center rounded-full text-black disabled:opacity-40"><span className="material-symbols-outlined">send</span></button>
         </div>
       </div>
 
@@ -214,46 +223,9 @@ export default function MessagesClient() {
             </h2>
 
             <form onSubmit={createConversation} className="mt-5 flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setNewKind("support")}
-                  className={`h-10 rounded-lg border text-xs font-semibold ${
-                    newKind === "support"
-                      ? "border-[var(--luxora-gold)] bg-[var(--luxora-gold)]/10 text-[var(--luxora-gold-light)]"
-                      : "border-white/10 text-white/65 hover:border-white/25"
-                  }`}
-                >
-                  {t("support")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setNewKind("seller")}
-                  className={`h-10 rounded-lg border text-xs font-semibold ${
-                    newKind === "seller"
-                      ? "border-[var(--luxora-gold)] bg-[var(--luxora-gold)]/10 text-[var(--luxora-gold-light)]"
-                      : "border-white/10 text-white/65 hover:border-white/25"
-                  }`}
-                >
-                  {t("seller")}
-                </button>
-              </div>
-
-              {newKind === "seller" ? (
-                <label className="block">
-                  <span className="mb-1.5 block text-xs text-white/50">
-                    {t("sellerEmail")}
-                  </span>
-                  <input
-                    type="email"
-                    required
-                    value={newSellerEmail}
-                    onChange={(event) => setNewSellerEmail(event.target.value)}
-                    placeholder="seller@example.com"
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
-                  />
-                </label>
-              ) : null}
+              <p className="text-xs text-white/50">
+                Hội thoại sẽ được gửi đến đội ngũ hỗ trợ BidZone.
+              </p>
 
               <label className="block">
                 <span className="mb-1.5 block text-xs text-white/50">

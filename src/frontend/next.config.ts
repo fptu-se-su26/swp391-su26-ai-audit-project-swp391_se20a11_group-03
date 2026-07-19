@@ -46,7 +46,10 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
+            value:
+              process.env.NODE_ENV === "development"
+                ? "no-store, max-age=0"
+                : "public, max-age=31536000, immutable",
           },
         ],
       },

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-type UserRole = "collector" | "seller" | "staff" | "admin";
+type UserRole = "collector" | "seller" | "staff" | "admin" | "shipper";
 
 const AUTH_COOKIE = "bidzone_role";
 
@@ -10,6 +10,7 @@ const ROLE_HOME: Record<UserRole, string> = {
   seller: "/inventory",
   staff: "/staff/approvals",
   admin: "/admin/dashboard",
+  shipper: "/shipper/orders",
 };
 
 const COLLECTOR_PATHS = [
@@ -21,7 +22,7 @@ const COLLECTOR_PATHS = [
   "/wallet",
   "/watchlist",
   "/won-items",
-  "/premium",
+  "/orders",
 ];
 
 const ROLE_PATHS: Record<UserRole, string[]> = {
@@ -34,6 +35,7 @@ const ROLE_PATHS: Record<UserRole, string[]> = {
   ],
   staff: ["/staff"],
   admin: ["/admin"],
+  shipper: ["/shipper"],
 };
 
 function pathStartsWith(pathname: string, protectedPath: string) {
@@ -53,7 +55,8 @@ function getValidRole(value: string | undefined): UserRole | null {
     value === "collector" ||
     value === "seller" ||
     value === "staff" ||
-    value === "admin"
+    value === "admin" ||
+    value === "shipper"
   ) {
     return value;
   }
@@ -88,6 +91,7 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/staff/:path*",
+    "/shipper/:path*",
     "/dashboard/:path*",
     "/earnings/:path*",
     "/inventory/:path*",
@@ -100,5 +104,6 @@ export const config = {
     "/wallet/:path*",
     "/watchlist/:path*",
     "/won-items/:path*",
+    "/orders/:path*",
   ],
 };

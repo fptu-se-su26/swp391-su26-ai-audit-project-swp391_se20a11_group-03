@@ -64,6 +64,12 @@ public class Notification {
         WITHDRAWAL_APPROVED,
         WITHDRAWAL_REJECTED,
         BID_PLACED,
+        ORDER_CREATED,
+        ORDER_ASSIGNED,
+        ORDER_STATUS_UPDATED,
+        ORDER_DELIVERED,
+        ORDER_COMPLETED,
+        ORDER_FAILED,
         GENERAL
     }
 }

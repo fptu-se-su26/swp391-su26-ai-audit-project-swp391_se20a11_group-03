@@ -44,13 +44,14 @@ declare global {
     };
   }
 }
-type UserRole = "collector" | "seller" | "staff" | "admin";
+type UserRole = "collector" | "seller" | "staff" | "admin" | "shipper";
 
 const ROLE_HOME: Record<UserRole, string> = {
   collector: "/dashboard",
   seller: "/inventory",
   staff: "/staff/approvals",
   admin: "/admin/dashboard",
+  shipper: "/shipper/orders",
 };
 
 const TRUST_ITEMS = [

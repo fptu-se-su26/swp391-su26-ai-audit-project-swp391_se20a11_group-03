@@ -40,7 +40,7 @@ public class GroqValuationService {
     @Value("${groq.api.base-url:https://api.groq.com/openai/v1}")
     private String apiBaseUrl;
 
-    @Value("${groq.vision.model:qwen/qwen3.6-27b}")
+    @Value("${groq.vision.model:${groq.api.model:qwen/qwen3.6-27b}}")
     private String model;
 
     public GroqValuationService(
@@ -134,6 +134,8 @@ public class GroqValuationService {
         body.put("messages", List.of(Map.of("role", "user", "content", parts)));
         body.put("temperature", 0.2);
         body.put("max_completion_tokens", 1500);
+        body.put("reasoning_effort", "none");
+        body.put("reasoning_format", "hidden");
         body.put("response_format", Map.of("type", "json_object"));
         return body;
     }
