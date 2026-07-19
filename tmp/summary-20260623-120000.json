@@ -1,4 +1,0 @@
-{
-  "summary": "Hoàn thiện chế độ đấu giá TIMED (đấu giá kín): backend mask giá/trạng thái trong API my-bids, scrub WebSocket legacy BiddingController, frontend cập nhật auctions/[id], dashboard quick-bid, và i18n vi/en. Backend compile thành công.",
-  "current_status": "TIMED blind auction đã triển khai end-to-end: không bước giá, không cập nhật giá công khai, bid ẩn danh, không gia hạn thời gian, thông báo người thắng khi kết phiên. Cần restart backend để áp dụng."
-}

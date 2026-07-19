@@ -1,4 +1,0 @@
-{
-  "summary": "User asked how docs/CHANGELOG.md works. Explained it is a manual academic project changelog template (6 phases + metadata + AI audit fields), not auto-generated from git; currently empty placeholders awaiting team input.",
-  "current_status": "CHANGELOG.md is an unfilled SWP391-style documentation template. Project implementation continues separately; changelog not yet populated by the team."
-}

@@ -1,4 +1,0 @@
-{
-  "summary": "Brief status update: backend startup task completed successfully on port 8096 after freeing the port conflict.",
-  "current_status": "Backend and frontend should both be runnable; user can test Gemini CCCD OCR on /kyc."
-}

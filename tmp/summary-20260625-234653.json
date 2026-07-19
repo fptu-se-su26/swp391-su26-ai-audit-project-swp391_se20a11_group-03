@@ -1,4 +1,0 @@
-﻿{
-  "summary": "Redesigned admin UI: slim dark sidebar with core nav only (no user features like post-item), single focused dashboard with live auction overview (active/upcoming/awaiting payment/ended counts), live session list, KPIs, revenue chart, and grouped admin module cards. Added GET /api/admin/dashboard/auction-overview backend endpoint.",
-  "current_status": "Admin panel is dashboard-centric with core operations only. Restart backend for auction-overview API. Admin at /admin/dashboard."
-}

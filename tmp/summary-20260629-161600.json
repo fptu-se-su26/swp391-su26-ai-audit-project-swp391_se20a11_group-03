@@ -1,4 +1,0 @@
-{
-  "summary": "User lỗi Spring Boot port 8096 already in use (IntelliJ). Đã chạy npm run backend:kill, giải phóng PID 26808 trên :8096.",
-  "current_status": "Port 8096 trống. User chọn chạy backend MỘT nơi: IntelliJ hoặc npm run backend, không chạy song song."
-}

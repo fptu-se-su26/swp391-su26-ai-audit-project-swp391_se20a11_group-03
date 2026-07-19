@@ -1,4 +1,0 @@
-{
-  "summary": "Implemented GeminiKeyPool with round-robin + 429 failover: new GeminiKeyPool.java and GeminiKeyPoolConfig (separate ocr/valuation beans). Refactored GeminiOcrService and GeminiValuationService to use pools. Added gemini.ocr.api.keys and gemini.valuation.api.keys to application.properties; migrated existing 2 keys to application-local.properties as comma-separated pools. Updated docs and example. mvn compile OK, backend restarted on 8096.",
-  "current_status": "Key pool infrastructure ready. Add more keys to gemini.ocr.api.keys / gemini.valuation.api.keys (prefer different Gmail accounts) in application-local.properties. Current keys may still hit shared-project quota until new keys added or daily reset."
-}

@@ -1,4 +1,0 @@
-﻿{
-  "summary": "Fixed Java compile error in AuctionController: added missing import com.auction.product.entity.Contract used by getPurchaseContract and signPurchaseContract endpoints. mvn compile succeeds.",
-  "current_status": "Backend compiles cleanly. User can rebuild in IDE and restart backend on 8096."
-}

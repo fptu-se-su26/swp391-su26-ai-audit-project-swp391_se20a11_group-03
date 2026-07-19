@@ -1,4 +1,0 @@
-{
-  "summary": "Re-diagnosed recurring 'Cannot find module ./760.js' as stale/corrupted .next cache from running next dev alongside npm run build or long HMR sessions—not application code bugs. Stopped port 3000, deleted .next, restarted dev server; verified /luxe, /dashboard, /inventory return 200. Added -Clean switch to start-frontend.ps1 and new restart-frontend.ps1 for one-command recovery.",
-  "current_status": "Frontend dev server running cleanly on localhost:3000. Seller sidebar split and i18n work unchanged. User should hard-refresh browser; use scripts/restart-frontend.ps1 when chunk errors reappear and avoid npm run build while dev server is running."
-}

@@ -1,4 +1,0 @@
-{
-  "summary": "Implemented payment overdue UX: hide contract/pay buttons when deadline passed or FORFEITED; show deposit-forfeit message. Dashboard awaiting-payment excludes overdue items; forfeited wins shown in red on dashboard and won-items page. Backend getWonItems returns forfeited status; forfeit notifies winner. Deposit-to-admin on forfeit already existed in AuctionSettlementServiceImpl.",
-  "current_status": "Payment deadline flow complete on frontend and backend. User sees overdue state immediately when countdown hits zero; scheduler marks FORFEITED and moves deposit to admin wallet within ~5 minutes."
-}

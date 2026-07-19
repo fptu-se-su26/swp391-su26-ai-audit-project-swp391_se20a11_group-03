@@ -1,4 +1,0 @@
-﻿{
-    "summary":  "Synced /messages and /staff/support to full dark theme. Removed LiveChat floating button from user dashboard (DashboardLayout + CollectorSidebar). Moved admin PortalSwitcher from bottom-right to top-right so it no longer overlaps chat send button. ChatMessageList now supports dark theme for incoming bubbles.",
-    "current_status":  "Chat UI dark theme unified on both user and staff sides. Floating mock chat removed for users; admin quick-access hub relocated to top-right."
-}

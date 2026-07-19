@@ -1,4 +1,0 @@
-{
-  "summary": "Sửa luồng hợp đồng KYC: chỉ role Seller thấy và ký; bắt buộc tick đồng ý + nút 'Ký hợp đồng điện tử' (không auto-ký khi submit); không hiện đã ký từ DB khi đang nộp lại. Sidebar hiển thị Người bán/Sưu tầm đúng role.",
-  "current_status": "KYC seller phải ký thủ công trước khi gửi; buyer không thấy hợp đồng. Refresh /kyc để áp dụng."
-}

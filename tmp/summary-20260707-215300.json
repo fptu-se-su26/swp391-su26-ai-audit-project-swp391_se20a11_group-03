@@ -1,4 +1,0 @@
-{
-  "summary": "Merged Duc (Tran-Van-Duc) frontend selectively: pulled origin/dev, added luxe landing page and PortalSwitcher from Duc branch, root redirects to /luxe, preserved old dynamic homepage at /browse, restored all local stash work without full branch overwrite.",
-  "current_status": "Dev synced with origin/dev plus Duc landing at /luxe. User local backend/frontend features intact. Visit /luxe for Duc UI, /browse for live marketplace home."
-}

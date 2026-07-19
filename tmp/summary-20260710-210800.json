@@ -1,4 +1,0 @@
-{
-  "summary": "Implemented full OCR 429 mitigation plan: merged front/back into single Gemini request (scanIdCardPair), added key failover (OCR key then valuation key on 429) with SLF4J logging of key suffix and response body, updated CccdOcrService to use dual-image flow, added 60s cooldown UX on KYC page with i18n, updated docs/example. Backend recompiled and restarted.",
-  "current_status": "KYC OCR now uses 1 API call per scan with automatic fallback to valuation key on 429. User should retry Quét CCCD on /kyc; if both keys exhausted, manual entry still works. Backend restarting on port 8096."
-}

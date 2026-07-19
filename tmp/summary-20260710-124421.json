@@ -1,4 +1,0 @@
-﻿{
-    "summary":  "Confirmed no active auction deposits in DB (2 historical HOLD_BID txns totaling 2M were already REFUNDED/APPLIED). Fixed depositsHeld to sum Auction_Deposits with LOCKED/HELD_FOR_PAYMENT instead of all HOLD_BID forever. Revenue still excludes holds/refunds (only commission + admin revenue + forfeit). Backend restarted; API now returns depositsHeld=0.",
-    "current_status":  "Held-deposit metric corrected and live. Frontend on :3000, backend on :8096. Admin revenue page should show Cọc đang giữ = 0 after refresh."
-}

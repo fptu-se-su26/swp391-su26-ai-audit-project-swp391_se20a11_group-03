@@ -1,4 +1,0 @@
-{
-  "summary": "Implemented withdrawal approval flow: balance no longer deducted on submit (held in holdBalance instead); deducted only when admin marks COMPLETED. User wallet page shows withdrawal request list with status. Admin added /admin/wallet-ledger for deposit and withdrawal history. Notifications sent to user on approve/reject.",
-  "current_status": "Wallet withdraw flow matches business rules (approve-then-deduct). Users can track request status on /wallet; admins review at /staff/withdrawals and view ledger at /admin/wallet-ledger. Restart backend to apply Java changes."
-}
