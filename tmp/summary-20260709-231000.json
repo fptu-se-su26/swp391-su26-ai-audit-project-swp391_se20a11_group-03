@@ -1,4 +1,0 @@
-{
-  "summary": "Diagnosed unstyled frontend: stale .next cache caused _next/static/css and chunks to return 404 after npm run build overlapped dev server. Restarted frontend with clean cache; /luxe CSS now returns 200. User URL typo /luxor should be /luxe.",
-  "current_status": "Frontend dev server restarted clean; /luxe loads with CSS. Use http://localhost:3000/luxe not /luxor."
-}

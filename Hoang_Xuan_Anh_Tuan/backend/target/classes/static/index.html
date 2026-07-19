@@ -5,81 +5,459 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Auction Marketplace</title>
   <style>
-    :root{--bg:#eef4ff;--surface:rgba(255,255,255,.86);--text:#0f172a;--muted:#64748b;--border:rgba(148,163,184,.22);--primary:#2563eb;--primary2:#06b6d4;--success:#16a34a;--warn:#d97706;--shadow:0 18px 60px rgba(15,23,42,.12);--r:20px}
-    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:radial-gradient(circle at top,#f8fbff 0%,var(--bg) 55%,#e8f0ff 100%);color:var(--text)}
-    .top{position:sticky;top:0;background:rgba(255,255,255,.8);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);z-index:10}
-    .top-inner{max-width:1400px;margin:0 auto;padding:14px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-    .brand{font-weight:900;font-size:20px;letter-spacing:-.03em}.brand span{color:var(--primary)}
-    .seg{display:flex;gap:8px;background:#fff;border:1px solid var(--border);padding:6px;border-radius:999px}
-    .seg button,.btn{border:0;border-radius:12px;padding:11px 14px;font-weight:800;cursor:pointer}
-    .seg button.active,.btn{color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary2))}
-    .seg button{background:transparent;color:var(--muted)}
-    .wrap{max-width:1400px;margin:0 auto;padding:22px 20px 50px}
-    .main{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:18px}
-    .panel{background:var(--surface);border:1px solid var(--border);box-shadow:0 18px 60px rgba(15,23,42,.12);border-radius:20px;overflow:hidden}
-    .hero{padding:26px}
-    h1{margin:10px 0 8px;font-size:clamp(30px,4vw,52px);line-height:1.03;letter-spacing:-.04em}
-    .muted{color:var(--muted)}
-    .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
-    .card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px}
-    .card .n{font-weight:900;font-size:20px}
-    .box{padding:18px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    input,select{width:100%;border:1px solid var(--border);border-radius:12px;padding:11px 12px;font:inherit;background:#fff}
-    .search{display:grid;grid-template-columns:1fr 180px 180px auto;gap:10px}
-    .section{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
-    .products{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
-    .p{background:#fff;border:1px solid var(--border);border-radius:18px;padding:14px;display:grid;gap:10px}
-    .thumb{height:140px;border-radius:14px;background:linear-gradient(135deg,#dbeafe,#eff6ff 60%,#e0f2fe);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--primary);font-size:18px}
-    .pill{display:inline-flex;width:max-content;padding:5px 9px;border-radius:999px;background:rgba(22,163,74,.1);color:var(--success);font-size:12px;font-weight:800}
-    .detail{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px;margin-top:12px}
-    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.tab{border:1px solid var(--border);background:#fff;color:var(--muted);padding:9px 12px;border-radius:999px;font-weight:800;cursor:pointer}.tab.active{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border-color:transparent}
-    .modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:18px}.modal.show{display:flex}.modal-card{width:min(1040px,100%);background:#fff;border-radius:24px;overflow:hidden;display:grid;grid-template-columns:1.2fr .8fr;box-shadow:0 30px 100px rgba(15,23,42,.34)}
-    .mleft{padding:22px;background:linear-gradient(135deg,#dbeafe,#eff6ff 60%,#dbeafe)} .mright{padding:22px}
-    .kv{display:grid;gap:8px}.kv div{display:flex;justify-content:space-between;gap:12px;font-size:14px}.kv strong{color:var(--text)} .kv span{color:var(--muted);text-align:right}
-    .notice{padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.5}.ok{background:rgba(22,163,74,.1);color:#166534}.warn{background:rgba(245,158,11,.14);color:#92400e}.err{background:rgba(220,38,38,.1);color:#991b1b}
-    .hidden{display:none !important}.txlist{display:grid;gap:10px}.tx{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px}.txtop{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}.badge{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:800}.badge.plus{background:rgba(22,163,74,.1);color:#166534}.badge.minus{background:rgba(245,158,11,.14);color:#92400e}.badge.info{background:rgba(37,99,235,.1);color:#1d4ed8}
-    @media(max-width:1100px){.main,.modal-card{grid-template-columns:1fr}.search{grid-template-columns:1fr}}
+    :root {
+      --bg: #eef4ff;
+      --surface: rgba(255,255,255,.84);
+      --surface-strong: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: rgba(148,163,184,.24);
+      --primary: #2563eb;
+      --primary-2: #06b6d4;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #dc2626;
+      --shadow: 0 18px 60px rgba(15,23,42,.12);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(circle at top, #f8fbff 0%, var(--bg) 55%, #e8f0ff 100%);
+      color: var(--text);
+    }
+    .navbar {
+      position: sticky; top: 0; z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(255,255,255,.78);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1320px; margin: 0 auto; padding: 16px 20px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .brand { font-size: 20px; font-weight: 900; letter-spacing: -.03em; white-space: nowrap; }
+    .brand span { color: var(--primary); }
+    .searchbar {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.3fr .8fr .8fr auto;
+      gap: 10px;
+    }
+    .searchbar input, .searchbar select, .field, .modal input {
+      width: 100%; border: 1px solid var(--border); background: var(--surface-strong);
+      border-radius: 14px; padding: 12px 14px; outline: none; font-size: 14px; color: var(--text);
+    }
+    .btn {
+      border: none; border-radius: 14px; padding: 12px 16px; font-weight: 800; cursor: pointer; color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 10px 25px rgba(37,99,235,.22);
+      transition: transform .15s ease, opacity .15s ease, box-shadow .15s ease;
+      white-space: nowrap;
+    }
+    .btn:hover { transform: translateY(-1px); opacity: .97; }
+    .btn.secondary { background: linear-gradient(135deg, #334155, #0f172a); box-shadow: none; }
+    .btn.success { background: linear-gradient(135deg, #16a34a, #22c55e); }
+    .btn.warning { background: linear-gradient(135deg, #f59e0b, #fb7185); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .wrap { max-width: 1320px; margin: 0 auto; padding: 24px 20px 60px; }
+    .hero { display: grid; grid-template-columns: 1.25fr .75fr; gap: 18px; margin-top: 18px; }
+    .panel {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+    }
+    .hero-main { padding: 30px; }
+    .tag { display: inline-flex; gap: 8px; align-items: center; padding: 8px 12px; border-radius: 999px; font-size: 13px; font-weight: 800; background: rgba(37,99,235,.08); color: var(--primary); }
+    h1 { margin: 16px 0 12px; font-size: clamp(32px, 4vw, 54px); line-height: 1.03; letter-spacing: -.045em; }
+    .hero p { margin: 0; color: var(--muted); line-height: 1.75; font-size: 15px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
+    .stat, .mini-card, .side-box, .product, .detail-card {
+      background: #fff; border: 1px solid var(--border); border-radius: 18px;
+    }
+    .stat { padding: 16px; }
+    .stat .num { font-size: 20px; font-weight: 900; margin-bottom: 6px; }
+    .stat .lbl { color: var(--muted); font-size: 13px; }
+    .hero-side { padding: 22px; display: grid; gap: 14px; }
+    .mini-card { padding: 18px; }
+    .mini-card h3 { margin: 0 0 10px; font-size: 16px; }
+    .mini-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
+    .content { display: grid; grid-template-columns: 1fr 380px; gap: 18px; margin-top: 18px; align-items: start; }
+    .products { padding: 20px; }
+    .section-title { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 14px; }
+    .section-title h2 { margin:0; font-size: 20px; }
+    .hint { color: var(--muted); font-size: 13px; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .product { padding: 16px; display:grid; gap: 10px; box-shadow: 0 10px 25px rgba(15,23,42,.04); }
+    .thumb {
+      height: 150px; border-radius: 16px; background: linear-gradient(135deg, #dbeafe, #eff6ff 55%, #e0f2fe);
+      border: 1px solid rgba(37,99,235,.08); display:flex; align-items:center; justify-content:center;
+      color: var(--primary); font-weight: 900; font-size: 18px;
+    }
+    .product h3 { margin: 0; font-size: 17px; }
+    .meta { color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .price { font-size: 16px; font-weight: 900; }
+    .pill { display:inline-flex; width:fit-content; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; background: rgba(22,163,74,.1); color: var(--success); }
+    .sidebar { display:grid; gap: 18px; }
+    .side-box { padding: 20px; }
+    .detail-card { padding: 16px; margin-top: 12px; }
+    .empty { padding: 28px; text-align: center; color: var(--muted); background: #fff; border: 1px dashed var(--border); border-radius: 18px; }
+    .footer-note { color: var(--muted); font-size: 13px; margin-top: 10px; line-height: 1.6; }
+    .row { display:flex; gap:10px; align-items:center; }
+    .kv { display:grid; gap: 8px; margin-top: 12px; }
+    .kv div { display:flex; justify-content:space-between; gap: 12px; font-size: 14px; }
+    .kv strong { color: var(--text); }
+    .kv span { color: var(--muted); text-align:right; }
+    .notice { padding: 12px 14px; border-radius: 14px; font-size: 13px; line-height: 1.6; }
+    .notice.ok { background: rgba(22,163,74,.10); color: #166534; }
+    .notice.warn { background: rgba(245,158,11,.14); color: #92400e; }
+    .notice.err { background: rgba(220,38,38,.10); color: #991b1b; }
+    .tabs { display:flex; gap:10px; margin-top: 14px; flex-wrap: wrap; }
+    .tab { border:1px solid var(--border); background:#fff; padding:10px 12px; border-radius:999px; cursor:pointer; font-weight:700; color: var(--muted); }
+    .tab.active { color:#fff; background: linear-gradient(135deg, var(--primary), var(--primary-2)); border-color: transparent; }
+
+    .overlay { position: fixed; inset: 0; background: rgba(15,23,42,.48); display:none; align-items:center; justify-content:center; z-index: 100; padding: 20px; }
+    .overlay.show { display:flex; }
+    .modal { width: min(1040px, 100%); background: #fff; border-radius: 26px; box-shadow: 0 30px 100px rgba(15,23,42,.34); overflow:hidden; display:grid; grid-template-columns: 1.2fr .8fr; }
+    .modal-media { min-height: 100%; background: linear-gradient(135deg, #dbeafe, #eff6ff 60%, #dbeafe); padding: 28px; display:flex; flex-direction:column; justify-content:space-between; }
+    .modal-media .image { height: 300px; border-radius: 22px; background: rgba(255,255,255,.7); border: 1px solid rgba(37,99,235,.12); display:flex; align-items:center; justify-content:center; font-size: 30px; font-weight: 900; color: var(--primary); }
+    .modal-body { padding: 24px; }
+    .modal-body h2 { margin: 0; font-size: 28px; letter-spacing: -.03em; }
+    .close { position:absolute; right: 18px; top: 18px; border:none; background:#0f172a; color:#fff; width:38px; height:38px; border-radius:999px; cursor:pointer; }
+    .modal-wrap { position: relative; width: min(1040px, 100%); }
+    .modal-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top: 16px; }
+    pre { margin: 10px 0 0; white-space: pre-wrap; word-break: break-word; background: #0f172a; color: #e2e8f0; border-radius: 14px; padding: 12px; overflow:auto; max-height: 240px; }
+    @media (max-width: 1120px) { .hero, .content, .modal { grid-template-columns: 1fr; } }
+    @media (max-width: 860px) { .nav-inner { flex-direction: column; align-items: stretch; } .searchbar { grid-template-columns: 1fr; } .stats { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
-<header class="top"><div class="top-inner"><div class="brand">Auction<span>Market</span></div><div class="seg"><button id="modeUser" class="active" onclick="setMode('user')">User</button><button id="modeAdmin" onclick="setMode('admin')">Staff/Admin</button></div><div class="muted" id="modeHint">Giao diện User để xem sản phẩm, cọc, ví, rút tiền.</div></div></header>
-<main class="wrap">
-  <section class="panel hero"><span class="pill">Live auction marketplace</span><h1>Ví tiền điện tử, nạp rút và duyệt lệnh.</h1><div class="muted">User dùng để xem sản phẩm, kiểm tra cọc, đặt cọc, nạp/rút. Staff/Admin dùng để duyệt lệnh rút và nạp.</div><div class="cards"><div class="card"><div class="n" id="countProducts">0</div><div class="muted">Sản phẩm hiển thị</div></div><div class="card"><div class="n">10%</div><div class="muted">Tiền cọc trên giá khởi điểm</div></div><div class="card"><div class="n">30m</div><div class="muted">Khóa cọc trước giờ đấu</div></div></div></section>
-  <section class="main">
-    <div class="panel box"><div class="section"><h2 style="margin:0">Danh sách sản phẩm</h2><div class="muted" id="resultHint">Đang tải...</div></div><div class="search"><input id="q" placeholder="Tìm tên sản phẩm..." /><select id="categoryFilter"><option value="">Tất cả danh mục</option><option value="1">Art</option><option value="2">Luxury Watch</option></select><select id="sortFilter"><option value="newest">Mới nhất</option><option value="priceAsc">Giá tăng dần</option><option value="priceDesc">Giá giảm dần</option></select><button class="btn" onclick="applySearch()">Tìm kiếm</button></div><div id="productsGrid" class="products" style="margin-top:14px"></div></div>
-    <div class="panel box">
-      <div id="userPanel"><div class="section"><h2 style="margin:0">User Panel</h2></div><div class="row"><input id="walletUserId" type="number" value="1" min="1" /><button class="btn" onclick="loadWallet()">Xem ví</button></div><div id="walletBox" class="detail">Chưa tải ví.</div><div class="detail"><div class="section" style="margin-bottom:8px"><strong>Lịch sử giao dịch</strong><button class="btn" onclick="loadTransactions()">Xem</button></div><div id="txBox" class="muted">Chưa tải giao dịch.</div></div><div class="detail"><div class="section" style="margin-bottom:8px"><strong>Nạp tiền vào ví</strong></div><div class="row"><input id="topupUserId" type="number" value="1" min="1" placeholder="UserId" /></div><div class="row" style="margin-top:8px"><input id="topupAmount" type="number" placeholder="Số tiền" /></div><div class="row" style="margin-top:8px"><input id="topupMethod" placeholder="Phương thức thanh toán" value="VietQR" /></div><div class="row" style="margin-top:8px"><input id="topupRef" placeholder="Mã tham chiếu / nội dung" /></div><div class="row" style="margin-top:10px"><button class="btn" onclick="showFixedQr()">Hiện QR cố định</button><button class="btn" onclick="createTopUp()">Xác nhận đã chuyển khoản</button></div><div id="topupQrBox" style="margin-top:12px"></div><div id="topupMsg" style="margin-top:10px"></div></div><div class="detail"><div class="section" style="margin-bottom:8px"><strong>Tạo lệnh rút tiền</strong></div><div class="row"><input id="wdUserId" type="number" value="1" min="1" placeholder="UserId" /></div><div class="row" style="margin-top:8px"><input id="wdAmount" type="number" placeholder="Số tiền" /></div><div class="row" style="margin-top:8px"><input id="wdBankAccount" placeholder="Số tài khoản" /></div><div class="row" style="margin-top:8px"><input id="wdBankName" placeholder="Tên ngân hàng" /></div><div class="row" style="margin-top:8px"><input id="wdHolder" placeholder="Chủ tài khoản" /></div><div class="row" style="margin-top:10px"><button class="btn" onclick="createWithdrawal()">Gửi yêu cầu rút</button></div><div id="wdMsg" style="margin-top:10px"></div></div></div>
-      <div id="adminPanel" class="hidden"><div class="section"><h2 style="margin:0">Staff/Admin Panel</h2></div><div class="detail"><div class="section" style="margin-bottom:8px"><strong>Lệnh rút chờ duyệt</strong><button class="btn" onclick="loadPendingWithdrawals()">Tải</button></div><div id="pendingBox" class="muted">Chưa tải danh sách.</div></div></div>
+  <header class="navbar">
+    <div class="nav-inner">
+      <div class="brand">Auction<span>Market</span></div>
+      <div class="searchbar">
+        <input id="q" placeholder="Tìm tên sản phẩm..." />
+        <select id="categoryFilter">
+          <option value="">Tất cả danh mục</option>
+          <option value="1">Art</option>
+          <option value="2">Luxury Watch</option>
+        </select>
+        <select id="sortFilter">
+          <option value="newest">Mới nhất</option>
+          <option value="priceAsc">Giá tăng dần</option>
+          <option value="priceDesc">Giá giảm dần</option>
+        </select>
+        <button class="btn" onclick="applySearch()">Tìm kiếm</button>
+      </div>
     </div>
-  </section>
-</main>
-<div class="modal" id="modal" onclick="closeModal(event)"><div class="modal-card" onclick="event.stopPropagation()"><div class="mleft"><div class="pill">Auction detail</div><div id="modalLeft"></div></div><div class="mright"><button class="btn" style="float:right" onclick="hideModal()">Đóng</button><div id="modalRight"></div></div></div></div>
-<script>
-let allProducts=[]; let mode='user'; const userIdForDemo=1; const money=v=>v==null?'':new Intl.NumberFormat('vi-VN').format(v); const moneyVnd=v=>`${money(v)} VND`; const showNotice=(t,k='ok')=>`<div class="notice ${k}">${t}</div>`;
-async function apiJson(url, options={}){const res=await fetch(url,{headers:{'Content-Type':'application/json'},...options});if(!res.ok)throw new Error(await res.text()||res.statusText);return res.json();}
-function setMode(m){mode=m; document.getElementById('modeUser').classList.toggle('active',m==='user'); document.getElementById('modeAdmin').classList.toggle('active',m==='admin'); document.getElementById('userPanel').classList.toggle('hidden',m!=='user'); document.getElementById('adminPanel').classList.toggle('hidden',m!=='admin'); document.getElementById('modeHint').textContent=m==='user'?'Giao diện User để xem sản phẩm, cọc, ví, nạp/rút tiền.':'Giao diện Staff/Admin để duyệt lệnh nạp/rút.'; }
-function renderProducts(list){document.getElementById('countProducts').textContent=list.length; document.getElementById('resultHint').textContent=`${list.length} kết quả`; const grid=document.getElementById('productsGrid'); if(!list.length){grid.innerHTML='<div class="detail muted">Không có sản phẩm phù hợp.</div>'; return;} grid.innerHTML=list.map(p=>`<article class="p"><div class="thumb">#${p.productId}</div><span class="pill">${p.status??'ACTIVE'}</span><h3 style="margin:0">${p.productName??''}</h3><div class="muted">${p.categoryName??''}</div><div style="font-weight:900">${moneyVnd(p.startingPrice)}</div><button class="btn" onclick="openDetail(${p.productId})">Xem chi tiết</button></article>`).join(''); }
-function applyFilters(){const q=document.getElementById('q').value.trim().toLowerCase(); const cat=document.getElementById('categoryFilter').value; let r=[...allProducts]; if(q) r=r.filter(p=>(p.productName||'').toLowerCase().includes(q)); if(cat) r=r.filter(p=>String(p.categoryId)===cat); const s=document.getElementById('sortFilter').value; if(s==='priceAsc') r.sort((a,b)=>(a.startingPrice||0)-(b.startingPrice||0)); if(s==='priceDesc') r.sort((a,b)=>(b.startingPrice||0)-(a.startingPrice||0)); if(s==='newest') r.sort((a,b)=>(b.productId||0)-(a.productId||0)); renderProducts(r);}
-function applySearch(){applyFilters();}
-async function loadAll(){const data=await apiJson('/api/products?page=0&size=100'); allProducts=data.content||[]; renderProducts(allProducts);}
-async function openDetail(id){showModalLoading(id); const d=await apiJson('/api/products/'+id); const a=d.auction; const bids=(a&&a.bids)||[]; document.getElementById('modalLeft').innerHTML=`<div class="detail"><div class="kv"><div><strong>Tên SP</strong><span>${d.productName||''}</span></div><div><strong>Danh mục</strong><span>${d.categoryName||''}</span></div><div><strong>Giá khởi điểm</strong><span>${moneyVnd(d.startingPrice)}</span></div><div><strong>Auction</strong><span>${a?a.status:'Chưa có'}</span></div></div><div class="tabs"><button class="tab active" id="t1" onclick="setTab('overview')">Tổng quan</button><button class="tab" id="t2" onclick="setTab('auction')">Auction</button><button class="tab" id="t3" onclick="setTab('deposit')">Đặt cọc 10%</button></div><div id="tabBody" style="margin-top:10px"></div></div>`; window._detail=d; window._auction=a; setTab('overview'); document.getElementById('modalRight').innerHTML=`<div class="detail"><strong>Hành động nhanh</strong><div class="row" style="margin-top:10px"><button class="btn" onclick="checkEligibility()">Kiểm tra cọc</button><button class="btn" onclick="depositNow()">Đặt cọc 10%</button></div><div id="actionMsg" style="margin-top:10px"></div></div><div class="detail"><strong>Lịch sử Bid</strong><pre style="max-height:360px;overflow:auto">${JSON.stringify(bids,null,2)}</pre></div>`; showModal(); }
-function setTab(t){['t1','t2','t3'].forEach(id=>document.getElementById(id).classList.remove('active')); if(t==='overview') document.getElementById('t1').classList.add('active'); if(t==='auction') document.getElementById('t2').classList.add('active'); if(t==='deposit') document.getElementById('t3').classList.add('active'); const d=window._detail; const a=window._auction; const start=a&&a.startTime?new Date(a.startTime):null; const deadline=start?new Date(start.getTime()-30*60000):null; document.getElementById('tabBody').innerHTML=t==='overview'?`<div class="muted">${d.description||''}</div>`:t==='auction'?(a?`<div class="kv"><div><strong>Start</strong><span>${a.startTime||''}</span></div><div><strong>End</strong><span>${a.endTime||''}</span></div><div><strong>Highest bid</strong><span>${moneyVnd(a.currentHighestBid||0)}</span></div><div><strong>Status</strong><span>${a.status||''}</span></div></div>`:'<div class="notice warn">Chưa có auction.</div>'):`<div class="notice ok">Cọc 10% sẽ khóa tiền vào holdBalance.</div><div class="kv" style="margin-top:10px"><div><strong>Tiền cọc</strong><span>${moneyVnd(Math.round((d.startingPrice||0)*0.1))}</span></div><div><strong>Deadline</strong><span>${deadline?deadline.toLocaleString('vi-VN'):''}</span></div></div>`; }
-async function checkEligibility(){try{const d=window._detail; const r=await apiJson(`/api/auctions/${d.auction.auctionId}/eligibility?userId=${userIdForDemo}`); document.getElementById('actionMsg').innerHTML=showNotice(r.message,r.depositAllowed?'ok':'warn');}catch(e){document.getElementById('actionMsg').innerHTML=showNotice(e.message,'err');}}
-async function depositNow(){try{const d=window._detail; const r=await apiJson(`/api/deposits?auctionId=${d.auction.auctionId}&userId=${userIdForDemo}`,{method:'POST'}); document.getElementById('actionMsg').innerHTML=showNotice(`Đặt cọc thành công: ${moneyVnd(r.depositAmount)}`,'ok'); await loadWallet(); await loadTransactions();}catch(e){document.getElementById('actionMsg').innerHTML=showNotice(e.message,'err');}}
-async function loadWallet(){try{const userId=document.getElementById('walletUserId').value||1; const d=await apiJson(`/api/wallets/user/${userId}`); document.getElementById('walletBox').innerHTML=`<div class="kv"><div><strong>Balance</strong><span>${moneyVnd(d.balance)}</span></div><div><strong>Hold</strong><span>${moneyVnd(d.holdBalance)}</span></div><div><strong>Status</strong><span>${d.status}</span></div></div>`;}catch(e){document.getElementById('walletBox').innerHTML=showNotice(e.message,'err');}}
-async function loadTransactions(){try{const userId=document.getElementById('walletUserId').value||1; const d=await apiJson(`/api/wallets/user/${userId}/transactions`); document.getElementById('txBox').innerHTML=d.length?`<div class="txlist">${d.map(x=>{const cls=(x.signedAmount||0)<0?'minus':'plus'; return `<div class="tx"><div class="txtop"><div><strong>${x.transactionTypeLabel||x.transactionType||''}</strong> <span class="badge ${cls}">${x.amountLabel||''}</span></div><div class="muted">${x.createdAtLabel||''}</div></div><div class="muted" style="margin-top:6px">${x.description||''}</div><div class="muted" style="margin-top:6px">Trạng thái: ${x.statusLabel||x.status||''}</div></div>`}).join('')}</div>`:'<div class="detail muted">Chưa có giao dịch.</div>';}catch(e){document.getElementById('txBox').innerHTML=showNotice(e.message,'err');}}
-function showFixedQr(){const amount=document.getElementById('topupAmount').value||''; const ref=document.getElementById('topupRef').value||('NAP'+Date.now()); document.getElementById('topupRef').value=ref; const qrUrl=`https://img.vietqr.io/image/MB-6819062005-compact2.png?amount=${encodeURIComponent(amount)}&addInfo=${encodeURIComponent(ref)}&accountName=${encodeURIComponent('Hoang Xuan Anh Tuan')}`; document.getElementById('topupQrBox').innerHTML=`<div class="detail"><div class="muted">Quét QR để chuyển khoản vào MB Bank</div><img src="${qrUrl}" alt="VietQR" style="width:100%;max-width:320px;display:block;margin:12px auto;border-radius:16px;background:#fff;padding:8px;"><div class="kv"><div><strong>Ngân hàng</strong><span>MB Bank</span></div><div><strong>Số tài khoản</strong><span>6819062005</span></div><div><strong>Chủ tài khoản</strong><span>Hoang Xuan Anh Tuan</span></div><div><strong>Nội dung</strong><span>${ref}</span></div></div></div>`;}
-async function createTopUp(){try{const body={userId:Number(document.getElementById('topupUserId').value),amount:Number(document.getElementById('topupAmount').value),paymentMethod:document.getElementById('topupMethod').value,referenceCode:document.getElementById('topupRef').value}; const d=await apiJson('/api/topups',{method:'POST',body:JSON.stringify(body)}); document.getElementById('topupMsg').innerHTML=showNotice('Đã ghi nhận giao dịch nạp qua VietQR. Hãy xác nhận trong lịch sử nếu cần.','ok'); await loadWallet(); await loadTransactions();}catch(e){document.getElementById('topupMsg').innerHTML=showNotice(e.message,'err');}}
-async function createWithdrawal(){try{const body={userId:Number(document.getElementById('wdUserId').value),amount:Number(document.getElementById('wdAmount').value),bankAccount:document.getElementById('wdBankAccount').value,bankName:document.getElementById('wdBankName').value,accountHolder:document.getElementById('wdHolder').value}; const d=await apiJson('/api/withdrawals',{method:'POST',body:JSON.stringify(body)}); document.getElementById('wdMsg').innerHTML=showNotice(d.message||'Đã tạo lệnh rút','ok'); await loadWallet(); await loadTransactions();}catch(e){document.getElementById('wdMsg').innerHTML=showNotice(e.message,'err');}}
-async function loadPendingTopups(){try{const d=await apiJson('/api/topups/pending'); document.getElementById('pendingTopupsBox').innerHTML=d.length?d.map(x=>`<div class="detail"><div><strong>#${x.topUpRequestId}</strong> - ${moneyVnd(x.amount)}</div><div class="muted">${x.paymentMethod} | ${x.referenceCode||''}</div><div class="muted">Trạng thái: ${x.status}</div><div class="row" style="margin-top:8px"><button class="btn" onclick="approveTopup(${x.topUpRequestId})">Approve</button><button class="btn" onclick="rejectTopup(${x.topUpRequestId})">Reject</button></div></div>`).join(''):'<div class="muted">Không có lệnh chờ duyệt.</div>';}catch(e){document.getElementById('pendingTopupsBox').innerHTML=showNotice(e.message,'err');}}
-async function loadPendingWithdrawals(){try{const d=await apiJson('/api/withdrawals/pending'); document.getElementById('pendingBox').innerHTML=d.length?d.map(x=>`<div class="detail"><div><strong>#${x.withdrawalRequestId}</strong> - ${moneyVnd(x.amount)}</div><div class="muted">${x.bankName} | ${x.accountHolder}</div><div class="muted">Trạng thái: ${x.status}</div><div class="row" style="margin-top:8px"><button class="btn" onclick="approveWD(${x.withdrawalRequestId})">Approve</button><button class="btn" onclick="rejectWD(${x.withdrawalRequestId})">Reject</button></div></div>`).join(''):'<div class="muted">Không có lệnh chờ duyệt.</div>';}catch(e){document.getElementById('pendingBox').innerHTML=showNotice(e.message,'err');}}
-async function approveTopup(id){try{await apiJson(`/api/topups/${id}/approve?reviewerId=1`,{method:'POST'}); await loadPendingTopups(); await loadWallet();}catch(e){alert(e.message);}}
-async function rejectTopup(id){try{await apiJson(`/api/topups/${id}/reject?reviewerId=1`,{method:'POST'}); await loadPendingTopups();}catch(e){alert(e.message);}}
-async function approveWD(id){try{await apiJson(`/api/withdrawals/${id}/approve?reviewerId=1`,{method:'POST'}); await loadPendingWithdrawals();}catch(e){alert(e.message);}}
-async function rejectWD(id){try{await apiJson(`/api/withdrawals/${id}/reject?reviewerId=1`,{method:'POST'}); await loadPendingWithdrawals();}catch(e){alert(e.message);}}
-function showModal(){document.getElementById('modal').classList.add('show')} function hideModal(){document.getElementById('modal').classList.remove('show')} function closeModal(e){if(e.target.id==='modal') hideModal()} function showModalLoading(id){document.getElementById('modalLeft').innerHTML=`<div class="detail">Đang tải sản phẩm #${id}...</div>`; document.getElementById('modalRight').innerHTML=''; showModal();}
-document.getElementById('q').addEventListener('input',applySearch); document.getElementById('categoryFilter').addEventListener('change',applySearch); document.getElementById('sortFilter').addEventListener('change',applySearch); loadAll().then(()=>{loadWallet(); loadTransactions();});
-</script>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="panel hero-main">
+        <span class="tag">Live auction marketplace</span>
+        <h1>Giao diện test trực quan cho sản phẩm đấu giá.</h1>
+        <p>
+          Mở sản phẩm để xem chi tiết trong trang/modal riêng, kiểm tra thời gian cọc, và bấm đặt cọc 10% ngay trên giao diện.
+        </p>
+        <div class="stats">
+          <div class="stat"><div class="num" id="statCount">0</div><div class="lbl">Sản phẩm hiển thị</div></div>
+          <div class="stat"><div class="num">1</div><div class="lbl">Phiên đấu giá mẫu</div></div>
+          <div class="stat"><div class="num">10%</div><div class="lbl">Cọc trên giá khởi điểm</div></div>
+        </div>
+      </div>
+      <aside class="panel hero-side">
+        <div class="mini-card"><h3>Cách test nhanh</h3><p>Chọn sản phẩm, mở trang chi tiết rồi dùng nút <strong>Kiểm tra cọc</strong> hoặc <strong>Đặt cọc 10%</strong>.</p></div>
+        <div class="mini-card"><h3>Backend</h3><p><code>/api/products</code> · <code>/api/auctions/{id}/eligibility</code> · <code>/api/deposits</code></p></div>
+        <div class="mini-card"><h3>Ví mẫu</h3><p><code>/api/wallets/user/1</code> để xem số dư trước/sau cọc.</p></div>
+      </aside>
+    </section>
+
+    <section class="content">
+      <div class="panel products">
+        <div class="section-title">
+          <h2>Danh sách sản phẩm</h2>
+          <div class="hint" id="resultHint">Đang tải dữ liệu...</div>
+        </div>
+        <div id="productsGrid" class="grid"></div>
+      </div>
+
+      <div class="sidebar">
+        <div class="panel side-box">
+          <div class="section-title" style="margin-bottom:8px;"><h2 style="font-size:18px;">Tra cứu nhanh</h2></div>
+          <div class="row">
+            <input id="detailId" type="number" value="1" min="1" class="field" />
+            <button class="btn secondary" onclick="openDetailById()">Mở</button>
+          </div>
+          <div class="footer-note">Bấm vào thẻ sản phẩm cũng sẽ mở chi tiết.</div>
+          <div id="quickInfo" class="detail-card">Chọn sản phẩm để xem nhanh.</div>
+        </div>
+
+        <div class="panel side-box">
+          <h3 style="margin-top:0;">Kiểm tra ví</h3>
+          <div class="row">
+            <input id="walletUserId" type="number" value="1" min="1" class="field" />
+            <button class="btn warning" onclick="loadWallet()">Xem ví</button>
+          </div>
+          <div id="walletBox" class="detail-card">Chưa tải ví.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="overlay" class="overlay" onclick="closeModal(event)">
+    <div class="modal-wrap" onclick="event.stopPropagation()">
+      <button class="close" onclick="hideModal()">×</button>
+      <div class="modal" id="modalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    let allProducts = [];
+    let currentProduct = null;
+    const auctionIdForDemo = 1;
+    const userIdForDemo = 1;
+
+    const money = (v) => v == null ? '' : new Intl.NumberFormat('vi-VN').format(v);
+    const moneyVnd = (v) => `${money(v)} VND`;
+
+    function showNotice(text, kind = 'ok') {
+      return `<div class="notice ${kind}">${text}</div>`;
+    }
+
+    async function apiJson(url, options = {}) {
+      const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...options });
+      if (!res.ok) throw new Error(await res.text() || res.statusText);
+      return res.json();
+    }
+
+    function renderProducts(list) {
+      const grid = document.getElementById('productsGrid');
+      const hint = document.getElementById('resultHint');
+      document.getElementById('statCount').textContent = list.length;
+      hint.textContent = `${list.length} kết quả`;
+
+      if (!list.length) {
+        grid.innerHTML = '<div class="empty">Không có sản phẩm phù hợp.</div>';
+        return;
+      }
+
+      grid.innerHTML = list.map(p => `
+        <article class="product">
+          <div class="thumb">#${p.productId}</div>
+          <span class="pill">${p.status ?? 'ACTIVE'}</span>
+          <h3>${p.productName ?? ''}</h3>
+          <div class="meta">${p.categoryName ?? 'No category'}</div>
+          <div class="price">${moneyVnd(p.startingPrice)}</div>
+          <button class="btn" style="width:100%;" onclick="openDetailById(${p.productId})">Xem chi tiết</button>
+        </article>
+      `).join('');
+    }
+
+    function applyFilters(list) {
+      const q = document.getElementById('q').value.trim().toLowerCase();
+      const cat = document.getElementById('categoryFilter').value;
+      let result = [...list];
+      if (q) result = result.filter(p => (p.productName || '').toLowerCase().includes(q));
+      if (cat) result = result.filter(p => String(p.categoryId) === cat);
+      const sort = document.getElementById('sortFilter').value;
+      if (sort === 'priceAsc') result.sort((a, b) => (a.startingPrice || 0) - (b.startingPrice || 0));
+      if (sort === 'priceDesc') result.sort((a, b) => (b.startingPrice || 0) - (a.startingPrice || 0));
+      if (sort === 'newest') result.sort((a, b) => (b.productId || 0) - (a.productId || 0));
+      return result;
+    }
+
+    function applySearch() { renderProducts(applyFilters(allProducts)); }
+
+    async function loadAll() {
+      document.getElementById('resultHint').textContent = 'Đang tải...';
+      const data = await apiJson('/api/products?page=0&size=100');
+      allProducts = data.content || [];
+      renderProducts(allProducts);
+    }
+
+    async function openDetailById(idFromCard) {
+      const id = idFromCard || document.getElementById('detailId').value;
+      currentProduct = null;
+      document.getElementById('detailId').value = id;
+      const product = allProducts.find(p => String(p.productId) === String(id));
+      if (product) currentProduct = product;
+      showModalLoading(id);
+      try {
+        const detail = await apiJson('/api/products/' + id);
+        currentProduct = detail;
+        const auction = detail.auction;
+        const auctionText = auction
+          ? `<div class="kv">
+              <div><strong>Trạng thái auction</strong><span>${auction.status ?? ''}</span></div>
+              <div><strong>Thời gian bắt đầu</strong><span>${auction.startTime ?? ''}</span></div>
+              <div><strong>Thời gian kết thúc</strong><span>${auction.endTime ?? ''}</span></div>
+              <div><strong>Số bid</strong><span>${(auction.bids || []).length}</span></div>
+            </div>`
+          : `<div class="notice warn">Sản phẩm này hiện chưa có auction.</div>`;
+
+        const quick = `
+          <div><strong>${detail.productName ?? ''}</strong></div>
+          <div class="footer-note">${detail.categoryName ?? ''}</div>
+          <div style="margin-top:10px;font-size:18px;font-weight:900;">${moneyVnd(detail.startingPrice)}</div>
+        `;
+        document.getElementById('quickInfo').innerHTML = quick;
+
+        document.getElementById('modalContent').innerHTML = `
+          <div class="modal-media">
+            <div>
+              <div class="tag">Auction detail</div>
+              <div class="image">#${detail.productId}</div>
+            </div>
+            <div style="display:grid;gap:10px;">
+              <div class="notice ok">Mở chi tiết xong, bạn có thể kiểm tra cọc hoặc đặt cọc trực tiếp ở panel bên phải.</div>
+              <div class="kv">
+                <div><strong>ProductId</strong><span>${detail.productId}</span></div>
+                <div><strong>Category</strong><span>${detail.categoryName ?? ''}</span></div>
+                <div><strong>Giá khởi điểm</strong><span>${moneyVnd(detail.startingPrice)}</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-body">
+            <h2>${detail.productName ?? ''}</h2>
+            <p style="color:var(--muted); line-height:1.7; margin-top:10px;">${detail.description ?? ''}</p>
+            <div class="tabs">
+              <button class="tab active" id="tabOverview" onclick="setTab('overview')">Tổng quan</button>
+              <button class="tab" id="tabAuction" onclick="setTab('auction')">Auction</button>
+              <button class="tab" id="tabDeposit" onclick="setTab('deposit')">Đặt cọc 10%</button>
+            </div>
+            <div id="tabBody" style="margin-top:14px;">
+              ${renderOverview(detail)}
+            </div>
+            <div class="modal-actions">
+              <button class="btn secondary" onclick="checkEligibility()">Kiểm tra cọc</button>
+              <button class="btn success" onclick="depositNow()">Đặt cọc 10%</button>
+            </div>
+          </div>
+        `;
+        showModal();
+        window._currentDetail = detail;
+        window._currentAuction = auction;
+        window._currentTab = 'overview';
+      } catch (e) {
+        document.getElementById('modalContent').innerHTML = `<div class="modal-body"><h2>Lỗi</h2><p>${e.message}</p></div>`;
+        showModal();
+      }
+    }
+
+    function renderOverview(detail) {
+      return `
+        <div class="kv">
+          <div><strong>Danh mục</strong><span>${detail.categoryName ?? ''}</span></div>
+          <div><strong>Trạng thái</strong><span>${detail.status ?? ''}</span></div>
+          <div><strong>Giá khởi điểm</strong><span>${moneyVnd(detail.startingPrice)}</span></div>
+          <div><strong>Chi tiết auction</strong><span>${detail.auction ? 'Có' : 'Chưa có'}</span></div>
+        </div>
+        ${detail.auction ? `<div class="detail-card" style="margin-top:14px;">${auctionBlock(detail.auction)}</div>` : ''}
+      `;
+    }
+
+    function auctionBlock(auction) {
+      return `
+        <div class="kv">
+          <div><strong>AuctionId</strong><span>${auction.auctionId}</span></div>
+          <div><strong>StartTime</strong><span>${auction.startTime ?? ''}</span></div>
+          <div><strong>EndTime</strong><span>${auction.endTime ?? ''}</span></div>
+          <div><strong>Highest bid</strong><span>${moneyVnd(auction.currentHighestBid ?? 0)}</span></div>
+          <div><strong>Status</strong><span>${auction.status ?? ''}</span></div>
+        </div>
+        <pre>${JSON.stringify(auction.bids || [], null, 2)}</pre>
+      `;
+    }
+
+    function setTab(tab) {
+      window._currentTab = tab;
+      document.getElementById('tabOverview').classList.toggle('active', tab === 'overview');
+      document.getElementById('tabAuction').classList.toggle('active', tab === 'auction');
+      document.getElementById('tabDeposit').classList.toggle('active', tab === 'deposit');
+      const detail = window._currentDetail;
+      if (!detail) return;
+      if (tab === 'overview') document.getElementById('tabBody').innerHTML = renderOverview(detail);
+      if (tab === 'auction') document.getElementById('tabBody').innerHTML = detail.auction ? auctionBlock(detail.auction) : '<div class="notice warn">Chưa có auction cho sản phẩm này.</div>';
+      if (tab === 'deposit') document.getElementById('tabBody').innerHTML = renderDepositTab(detail);
+    }
+
+    function renderDepositTab(detail) {
+      const auction = detail.auction;
+      if (!auction) return '<div class="notice warn">Sản phẩm chưa có auction nên chưa thể cọc.</div>';
+      const start = auction.startTime ? new Date(auction.startTime) : null;
+      const deadline = start ? new Date(start.getTime() - 30 * 60000) : null;
+      return `
+        <div class="notice ok">Cọc sẽ khóa 10% giá khởi điểm vào ví hold.</div>
+        <div class="kv" style="margin-top:12px;">
+          <div><strong>Giá khởi điểm</strong><span>${moneyVnd(detail.startingPrice)}</span></div>
+          <div><strong>Tiền cọc 10%</strong><span>${moneyVnd(Math.round((detail.startingPrice || 0) * 0.1))}</span></div>
+          <div><strong>Deadline cọc</strong><span>${deadline ? deadline.toLocaleString('vi-VN') : ''}</span></div>
+        </div>
+        <div class="footer-note">Nếu quá deadline, nút đặt cọc sẽ bị chặn bởi backend.</div>
+      `;
+    }
+
+    async function checkEligibility() {
+      const detail = window._currentDetail;
+      if (!detail?.auction?.auctionId) {
+        document.getElementById('quickInfo').innerHTML = showNotice('Sản phẩm chưa có auction để kiểm tra.', 'warn');
+        return;
+      }
+      try {
+        const data = await apiJson(`/api/auctions/${detail.auction.auctionId}/eligibility?userId=${userIdForDemo}`);
+        document.getElementById('quickInfo').innerHTML = showNotice(data.message || 'Đã kiểm tra cọc.', data.depositAllowed ? 'ok' : 'warn');
+        if (window._currentTab === 'deposit') setTab('deposit');
+      } catch (e) {
+        document.getElementById('quickInfo').innerHTML = showNotice(e.message, 'err');
+      }
+    }
+
+    async function depositNow() {
+      const detail = window._currentDetail;
+      if (!detail?.auction?.auctionId) {
+        document.getElementById('quickInfo').innerHTML = showNotice('Sản phẩm chưa có auction để đặt cọc.', 'warn');
+        return;
+      }
+      try {
+        const data = await apiJson(`/api/deposits?auctionId=${detail.auction.auctionId}&userId=${userIdForDemo}`, { method: 'POST' });
+        document.getElementById('quickInfo').innerHTML = showNotice(`Đặt cọc thành công. Số tiền cọc: ${moneyVnd(data.depositAmount)}`, 'ok');
+        await loadWallet();
+      } catch (e) {
+        document.getElementById('quickInfo').innerHTML = showNotice(e.message, 'err');
+      }
+    }
+
+    async function loadWallet() {
+      const userId = document.getElementById('walletUserId').value || userIdForDemo;
+      try {
+        const data = await apiJson(`/api/wallets/user/${userId}`);
+        document.getElementById('walletBox').innerHTML = `
+          <div class="kv">
+            <div><strong>WalletId</strong><span>${data.walletId}</span></div>
+            <div><strong>UserId</strong><span>${data.userId}</span></div>
+            <div><strong>Balance</strong><span>${moneyVnd(data.balance)}</span></div>
+            <div><strong>HoldBalance</strong><span>${moneyVnd(data.holdBalance)}</span></div>
+            <div><strong>Status</strong><span>${data.status}</span></div>
+          </div>
+        `;
+      } catch (e) {
+        document.getElementById('walletBox').innerHTML = showNotice(e.message, 'err');
+      }
+    }
+
+    function showModal() { document.getElementById('overlay').classList.add('show'); }
+    function hideModal() { document.getElementById('overlay').classList.remove('show'); }
+    function closeModal(e) { if (e.target.id === 'overlay') hideModal(); }
+    function showModalLoading(id) { document.getElementById('modalContent').innerHTML = `<div class="modal-body"><h2>Đang tải sản phẩm #${id}...</h2></div>`; showModal(); }
+
+    document.getElementById('q').addEventListener('input', applySearch);
+    document.getElementById('categoryFilter').addEventListener('change', applySearch);
+    document.getElementById('sortFilter').addEventListener('change', applySearch);
+
+    loadAll().then(() => loadWallet()).catch(err => {
+      document.getElementById('productsGrid').innerHTML = `<div class="empty">Lỗi tải dữ liệu: ${err.message}</div>`;
+    });
+  </script>
 </body>
 </html>

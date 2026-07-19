@@ -1,4 +1,0 @@
-{
-  "summary": "Status update: backend Spring Boot was started successfully on port 8096 after freeing the port. Subsequent work included admin messaging fix and chat permission updates.",
-  "current_status": "Backend should be on http://localhost:8096; use npm run backend:kill if port conflict when starting from IDE."
-}

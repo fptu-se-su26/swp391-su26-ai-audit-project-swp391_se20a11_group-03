@@ -1,4 +1,0 @@
-{
-  "summary": "Synced /support page with collector app: CollectorShell layout, dark luxury theme matching dashboard/watchlist, i18n eyebrow, FAQ cards link to relevant routes (live, wallet, messages, become-seller, kyc), chat buttons link to /messages, empty search state, sidebar highlights active support link.",
-  "current_status": "Support page UI aligned with rest of collector workspace. Gemini OCR quota still exhausted on both keys; KYC manual entry remains available."
-}

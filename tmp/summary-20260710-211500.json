@@ -1,4 +1,0 @@
-{
-  "summary": "Investigated KYC OCR 429 claim: confirmed real Gemini RESOURCE_EXHAUSTED (not app bug). Backend logs at 21:09:30 show both keys (...A0-I then ...wNpU) returned 429 on user's OCR click. Direct curl tests to both keys with minimal 'hi' request also return 429 with free-tier daily+per-minute quota violations (limit 0). OCR does not auto-run on upload. Likely causes: same Google project quota shared by both keys, heavy dev/testing earlier today, keys leaked in chat. User can fill KYC manually or create new keys from separate Google accounts.",
-  "current_status": "Both Gemini free-tier keys exhausted for gemini-2.0-flash. OCR failover implemented but ineffective when both keys share depleted quota. Backend may need restart after crash at 21:09:54."
-}

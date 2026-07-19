@@ -1,4 +1,0 @@
-{
-  "summary": "User hỏi thông báo trên trang KYC về FPT_AI_API_KEY. Giải thích: backend thiếu biến môi trường OCR FPT.AI nên không auto-fill CCCD; vẫn điền tay và gửi KYC bình thường; fix bằng npm run backend hoặc set env trong IntelliJ.",
-  "current_status": "KYC page hoạt động; OCR tùy chọn phụ thuộc FPT_AI_API_KEY khi khởi động backend."
-}

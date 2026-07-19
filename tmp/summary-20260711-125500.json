@@ -1,4 +1,0 @@
-{
-  "summary": "Diagnosed persistent 429: not a frontend/countdown bug and not key rotation issue. Direct curl tests on all 4 keys showed 429 with 'limit: 0' for gemini-2.0-flash free tier (Google removed free-tier quota for that model). ListModels confirmed keys valid (not 401). Tested alternatives: gemini-2.5-flash/2.5-flash-lite return 404 for new users; gemini-flash-latest and gemini-flash-lite-latest return 200 on all 4 keys. Fixed by changing gemini.api.model default from gemini-2.0-flash to gemini-flash-lite-latest in application.properties + both service Java defaults. Recompiled and restarted backend on 8096.",
-  "current_status": "Root cause was model quota (limit 0), not rate limit or round-robin. Switched to gemini-flash-lite-latest which has working free tier on all 4 keys. Backend restarted; OCR and valuation should work now. Frontend on 3000."
-}

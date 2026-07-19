@@ -1,4 +1,0 @@
-{
-  "summary": "User disputed 429 on first CCCD scan. Explained shared FPT_AI_API_KEY hardcoded in application.properties and start-backend.ps1 (not personal quota); one scan = 2 API calls; React dev useEffect may double-call; key likely exhausted by team/shared usage.",
-  "current_status": "CCCD OCR fails due to shared FPT.AI key rate limit, not user-only usage. Fix: own API key via env var."
-}

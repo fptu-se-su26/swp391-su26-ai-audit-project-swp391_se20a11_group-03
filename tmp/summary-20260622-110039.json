@@ -1,4 +1,0 @@
-{
-  "summary": "Changed the Spring Boot backend port from 8096 to 3000 in src/main/resources/application.properties per user request. Updated all hardcoded 8096 references that point to the backend: frontend apiClient.ts, post-item/page.tsx (NEXT_PUBLIC_API_URL fallback), next.config.mjs (image remotePatterns + /uploads rewrite), and README (server.port, backend URL, ngrok). Since the Next.js frontend also defaulted to port 3000, moved the frontend to port 3001 (package.json dev/start scripts and README) to avoid a port collision, while keeping the frontend's API calls pointed at the backend on 3000.",
-  "current_status": "Backend now serves on http://localhost:3000; frontend dev server moved to http://localhost:3001 and calls the backend at 3000. Prior fix (Products status ACTIVE -> APPROVED to satisfy CK_Product_Status) still in place. Remember to set JAVA_HOME when running mvnw."
-}

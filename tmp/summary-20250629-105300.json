@@ -1,4 +1,0 @@
-{
-  "summary": "User hit 'Port 8096 already in use' when starting backend from IDE. Freed port with npm run backend:kill (stopped java PID 32216) and restarted backend successfully on http://localhost:8096.",
-  "current_status": "Backend is running. If IDE run fails again, use npm run backend:kill before starting, or only run one backend instance (IDE vs terminal)."
-}

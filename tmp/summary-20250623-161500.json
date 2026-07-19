@@ -1,4 +1,0 @@
-{
-  "summary": "Xác nhận curl FPT.AI ID Recognition đúng với backend (/vision/idr/vnm, header api-key, form image). Đã cấu hình FPT_AI_API_KEY vào start-backend.ps1 cho user.",
-  "current_status": "OCR CCCD sẵn sàng khi restart backend qua start-backend.ps1 hoặc dev:all; FPT free tier 50 requests/năm."
-}

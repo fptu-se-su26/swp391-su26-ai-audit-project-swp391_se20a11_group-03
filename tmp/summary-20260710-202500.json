@@ -1,4 +1,0 @@
-{
-  "summary": "Fixed Gemini 429 UX in AiValuationChat: in-flight request lock, 60s cooldown with countdown banner after rate-limit, errors only in banner (no chat flood), Send requires typed text (photos via Value from form only). NotificationBell and TopNav now call markAllAsRead when opening the panel so badge clears immediately. Added aiChatRateLimited i18n vi/en.",
-  "current_status": "Gemini guard and notification read-on-open implemented. Refresh /post-item to test; open notification bell to verify badge disappears."
-}

@@ -1,4 +1,0 @@
-{
-  "summary": "User notified that background task 154246 (second backend restart for wallet persistence test) exit_code=1 is expected from intentional process stop during earlier smoke test, not an application failure. Current backend is listening on port 8096.",
-  "current_status": "Auction seed + featured products implementation complete; backend running on 8096."
-}

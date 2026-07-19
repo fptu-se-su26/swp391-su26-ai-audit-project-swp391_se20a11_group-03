@@ -1,4 +1,0 @@
-{
-  "summary": "Fixed Gemini 404: gemini-1.5-flash no longer available. Updated to gemini-2.5-flash via gemini.api.model config, restarted backend.",
-  "current_status": "Backend restarting with gemini-2.5-flash. User should retry CCCD OCR on /kyc."
-}
