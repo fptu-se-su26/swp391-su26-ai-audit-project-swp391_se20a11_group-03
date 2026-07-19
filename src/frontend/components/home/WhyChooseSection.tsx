@@ -1,16 +1,17 @@
+import { getTranslations } from "next-intl/server";
 import { WHY_CHOOSE_FEATURES } from "@/lib/home-data";
 
-const FEATURE_META = ["Đã xác minh", "Thời gian thực", "Ký quỹ", "24/7"];
+export default async function WhyChooseSection() {
+  const t = await getTranslations("why");
 
-export default function WhyChooseSection() {
   return (
     <div>
       <div className="mb-6">
         <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/35">
-          Nền tảng tin cậy
+          {t("badge")}
         </p>
         <h2 className="mt-2 text-sm font-semibold tracking-[0.25em] text-[#f0c982]">
-          VÌ SAO CHỌN LUXURY AUCTION?
+          {t("title")}
         </h2>
       </div>
 
@@ -30,14 +31,14 @@ export default function WhyChooseSection() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="text-xs font-bold tracking-wider text-white">
-                    {feature.title}
+                    {t(`features.${feature.id}.title` as Parameters<typeof t>[0])}
                   </h3>
                   <span className="rounded-full border border-white/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white/40">
-                    {FEATURE_META[index]}
+                    {t(`featureMeta.${index}` as Parameters<typeof t>[0])}
                   </span>
                 </div>
                 <p className="mt-2 text-xs leading-relaxed text-white/56">
-                  {feature.description}
+                  {t(`features.${feature.id}.description` as Parameters<typeof t>[0])}
                 </p>
               </div>
             </div>

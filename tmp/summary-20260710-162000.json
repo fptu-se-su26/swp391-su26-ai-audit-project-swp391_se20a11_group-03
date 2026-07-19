@@ -1,0 +1,4 @@
+{
+  "summary": "Completed all post-item plan todos: contrast fixes in globals.css/post-item, backend POST /api/ai/valuation with GeminiValuationService (JWT-protected, VND estimates + chat reply), and AiValuationChat replacing the mock USD panel with dark chat UI, i18n, and form/image context. Fixed Gemini default model from gemini-2.5-flash (404 for new users) to gemini-2.0-flash; smoke-tested endpoint (auth OK, Gemini reachable; hit 429 rate limit during test). Key remains in gitignored application-local.properties only.",
+  "current_status": "Post-item readability + Gemini valuation chatbot is implemented end-to-end. Backend restarted on :8096. User should rotate exposed Gemini key and retry valuation if rate-limited."
+}

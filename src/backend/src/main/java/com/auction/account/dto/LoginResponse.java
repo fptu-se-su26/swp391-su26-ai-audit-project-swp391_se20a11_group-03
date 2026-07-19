@@ -14,6 +14,7 @@ public class LoginResponse {
     private String status;
     private String token;
     private boolean identityVerified;
+    private boolean phoneVerified;
     private String profileStatus;
 
     /** True when this response created a brand-new account (e.g. first Google sign-in). */

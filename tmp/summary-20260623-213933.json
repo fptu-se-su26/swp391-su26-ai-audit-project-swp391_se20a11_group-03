@@ -1,0 +1,4 @@
+{
+  "summary": "Backend failed to start because port 8096 was already in use by a previous mvn spring-boot:run instance (PID 16472). Stopped that process; port 8096 is now free so the user can restart the app from the IDE.",
+  "current_status": "Port 8096 freed. User should rerun backend from IDE. Test accounts user1@gmail.com / user2@gmail.com (123456, 50M VND each) remain in DB from DataSeeder."
+}

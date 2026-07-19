@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { userApi, type UserProfile } from "@/lib/api";
 import { useApiData } from "@/lib/use-api-data";
 
@@ -12,7 +13,10 @@ const EMPTY_PROFILE: UserProfile = {
   userId: 0,
   fullName: "",
   email: "",
-  phone: "",
+  emailVerified: false,
+  phone: null,
+  phoneVerified: false,
+  phoneVerifiedAt: null,
   identityNumber: null,
   roleName: "",
   status: "",
@@ -25,24 +29,24 @@ const EMPTY_PROFILE: UserProfile = {
 };
 
 export default function ProfileClient() {
-  const { data: profile, setData, loading, error } = useApiData(loadProfile, EMPTY_PROFILE);
+  const t = useTranslations("profilePage");
+  const { data: profile, setData, loading, error } = useApiData(
+    loadProfile,
+    EMPTY_PROFILE,
+  );
   const [editing, setEditing] = useState(false);
   const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
 
   function toggleEditing() {
-    if (!editing) {
-      setFullName(profile.fullName);
-      setPhone(profile.phone);
-    }
+    if (!editing) setFullName(profile.fullName);
     setEditing((value) => !value);
   }
 
   async function save() {
     setSaving(true);
     try {
-      const response = await userApi.updateProfile(fullName, phone);
+      const response = await userApi.updateProfile(fullName);
       setData(response.data);
       setEditing(false);
     } finally {
@@ -57,20 +61,21 @@ export default function ProfileClient() {
     .map((part) => part[0])
     .join("")
     .toUpperCase();
-
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
       <div className="flex items-center justify-between">
-        <h1 className="font-display-lg text-3xl">Hồ sơ cá nhân</h1>
+        <h1 className="font-display-lg text-3xl">{t("title")}</h1>
         <button
           type="button"
           onClick={toggleEditing}
           disabled={loading || Boolean(error)}
-          className={editing
-            ? "rounded-full border border-white/15 px-5 py-2.5 text-xs font-semibold hover:border-white/30"
-            : "gradient-cta rounded-full px-5 py-2.5 text-xs font-semibold text-black"}
+          className={
+            editing
+              ? "rounded-full border border-white/15 px-5 py-2.5 text-xs font-semibold hover:border-white/30"
+              : "gradient-cta rounded-full px-5 py-2.5 text-xs font-semibold text-black"
+          }
         >
-          {editing ? "Hủy" : "Chỉnh sửa hồ sơ"}
+          {editing ? t("cancelBtn") : t("editBtn")}
         </button>
       </div>
 
@@ -81,45 +86,78 @@ export default function ProfileClient() {
           {initials || "?"}
         </div>
         <div>
-          <p className="text-lg font-semibold">{profile.fullName || "Đang tải..."}</p>
+          <p className="text-lg font-semibold">
+            {profile.fullName || t("loading")}
+          </p>
           <p className="text-sm capitalize text-white/40">{profile.roleName}</p>
-          <span className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${profile.identityVerified ? "bg-green-500/10 text-green-300" : "bg-yellow-500/10 text-yellow-300"}`}>
+          <span
+            className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${
+              profile.identityVerified
+                ? "bg-green-500/10 text-green-300"
+                : "bg-yellow-500/10 text-yellow-300"
+            }`}
+          >
             <span className="material-symbols-outlined text-sm">verified</span>
-            {profile.identityVerified ? "Đã xác minh danh tính" : "Chưa xác minh danh tính"}
+            {profile.identityVerified
+              ? t("verifiedBadge")
+              : t("notVerifiedBadge")}
           </span>
         </div>
       </div>
 
       <div className="glass-panel mt-6 rounded-2xl p-6">
-        <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/40">Thông tin tài khoản</p>
+        <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/40">
+          {t("accountInfoTitle")}
+        </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-[11px] text-white/40">Họ và tên</label>
+            <label className="mb-1 block text-[11px] text-white/40">
+              {t("fullNameLabel")}
+            </label>
             {editing ? (
-              <input value={fullName} onChange={(event) => setFullName(event.target.value)} className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm outline-none focus:border-[var(--luxora-gold)]" />
-            ) : <p className="text-sm font-medium">{profile.fullName || "—"}</p>}
+              <input
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
+                className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm outline-none focus:border-[var(--luxora-gold)]"
+              />
+            ) : (
+              <p className="text-sm font-medium">{profile.fullName || "—"}</p>
+            )}
           </div>
           <div>
-            <label className="mb-1 block text-[11px] text-white/40">Email</label>
-            <p className="text-sm font-medium">{profile.email || "—"}</p>
+            <label className="mb-1 block text-[11px] text-white/40">
+              {t("emailLabel")}
+            </label>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-medium">{profile.email || "—"}</p>
+              {profile.emailVerified && (
+                <span className="rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-semibold text-green-300">
+                  {t("verifiedBadge")}
+                </span>
+              )}
+            </div>
           </div>
           <div>
-            <label className="mb-1 block text-[11px] text-white/40">Số điện thoại</label>
-            {editing ? (
-              <input value={phone} onChange={(event) => setPhone(event.target.value)} className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm outline-none focus:border-[var(--luxora-gold)]" />
-            ) : <p className="text-sm font-medium">{profile.phone || "—"}</p>}
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] text-white/40">Số giấy tờ</label>
-            <p className="text-sm font-medium">{profile.identityNumber || "Chưa cập nhật"}</p>
+            <label className="mb-1 block text-[11px] text-white/40">
+              {t("idNumberLabel")}
+            </label>
+            <p className="text-sm font-medium">
+              {profile.identityNumber || t("noIdNumber")}
+            </p>
           </div>
         </div>
         {editing && (
-          <button type="button" onClick={() => void save()} disabled={saving} className="gradient-cta mt-6 rounded-full px-6 py-3 text-sm font-semibold text-black disabled:opacity-50">
-            {saving ? "Đang lưu..." : "Lưu thay đổi"}
+          <button
+            type="button"
+            onClick={() => void save()}
+            disabled={saving}
+            className="gradient-cta mt-6 rounded-full px-6 py-3 text-sm font-semibold text-black disabled:opacity-50"
+          >
+            {saving ? t("saving") : t("saveBtn")}
           </button>
         )}
       </div>
+
     </div>
   );
 }

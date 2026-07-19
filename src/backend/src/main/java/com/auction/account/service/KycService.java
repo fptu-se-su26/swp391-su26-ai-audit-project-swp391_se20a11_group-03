@@ -85,7 +85,6 @@ public class KycService {
     public KycSubmissionResponse submit(
             Long userId,
             String fullName,
-            String phone,
             String cccdNumber,
             LocalDate dob,
             String gender,
@@ -99,10 +98,11 @@ public class KycService {
         if (userId == null) {
             throw new IllegalArgumentException("Missing user id");
         }
-        if (isBlank(fullName) || isBlank(phone) || isBlank(cccdNumber) || dob == null
+        if (isBlank(fullName) || isBlank(cccdNumber) || dob == null
                 || isBlank(gender) || issueDate == null || isBlank(issuePlace)) {
             throw new IllegalArgumentException("Please fill in every required KYC field");
         }
+        String normalizedFullName = KycInputValidator.normalizeFullName(fullName);
         if (frontImage == null || frontImage.isEmpty()
                 || backImage == null || backImage.isEmpty()
                 || selfieImage == null || selfieImage.isEmpty()) {
@@ -112,8 +112,12 @@ public class KycService {
         // KYC is pure identity verification: the applicant commits that the
         // submitted identity information is genuine. Becoming a seller is a
         // separate step (seller-contract/submit) available after approval.
-        userRepository.findById(Math.toIntExact(userId))
+        User applicant = userRepository.findById(Math.toIntExact(userId))
                 .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
+        // Phone verification is no longer part of the account/KYC flow. Keep an
+        // empty value for compatibility with existing KycProfiles schemas where
+        // Phone is still NOT NULL.
+        String phone = applicant.getPhone() == null ? "" : applicant.getPhone();
 
         String frontUrl = saveImage(frontImage, "front");
         String backUrl = saveImage(backImage, "back");
@@ -127,7 +131,7 @@ public class KycService {
                 "INSERT INTO KycProfiles (UserId, Phone, CccdNumber, FullName, Dob, Gender, IssueDate, IssuePlace, "
                         + "FrontImageUrl, BackImageUrl, SelfieImageUrl, Status, SubmittedAt) "
                         + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                userId, phone, cccdNumber, fullName, dob, gender, issueDate, issuePlace,
+                userId, phone, cccdNumber, normalizedFullName, dob, gender, issueDate, issuePlace,
                 frontUrl, backUrl, selfieUrl, STATUS_PENDING, now
         );
 
@@ -217,14 +221,13 @@ public class KycService {
 
         if (STATUS_APPROVED.equals(newStatus)) {
             // Pull the latest KYC data so we can mirror it onto the user row.
-            // This ensures Users.FullName / Phone / IdentityNumber always reflect
+            // This ensures Users.FullName / IdentityNumber always reflect
             // the verified identity info, not whatever the user typed at signup.
             Map<String, Object> kyc = jdbcTemplate.queryForMap(
-                    "SELECT FullName, Phone, CccdNumber FROM KycProfiles WHERE KycId = ? LIMIT 1",
+                    "SELECT FullName, CccdNumber FROM KycProfiles WHERE KycId = ? LIMIT 1",
                     kycId
             );
             String verifiedFullName = (String) kyc.get("FullName");
-            String verifiedPhone = (String) kyc.get("Phone");
             String verifiedCccd = (String) kyc.get("CccdNumber");
 
             if (!cccdOcrService.findDuplicateAccounts(verifiedCccd, userId.longValue()).isEmpty()) {
@@ -238,10 +241,9 @@ public class KycService {
                     "UPDATE Users SET IdentityVerified = TRUE, IdentityVerifiedAt = ?, "
                             + "ProfileStatus = 'VERIFIED', VerificationLevel = 2, "
                             + "FullName = COALESCE(?, FullName), "
-                            + "Phone = COALESCE(?, Phone), "
                             + "IdentityNumber = COALESCE(?, IdentityNumber) "
                             + "WHERE UserId = ?",
-                    now, verifiedFullName, verifiedPhone, verifiedCccd, userId
+                    now, verifiedFullName, verifiedCccd, userId
             );
         } else if (STATUS_REJECTED.equals(newStatus)) {
             jdbcTemplate.update(

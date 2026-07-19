@@ -1,14 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
+import { useTranslations } from "next-intl";
 import Header from "@/components/home/Header";
 import Footer from "@/components/home/Footer";
 import StorefrontData from "./StorefrontData";
 import StorefrontDataFallback from "./StorefrontDataFallback";
 
 export default function StorefrontPage() {
+  const t = useTranslations("storefront");
+
   return (
-    <div className="luxora-app flex min-h-screen flex-col bg-black text-white">
+    <div className="storefront-page luxora-app flex min-h-screen flex-col bg-black text-white">
       <Header />
       <main className="flex-1">
         <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-10">
@@ -33,23 +36,23 @@ export default function StorefrontPage() {
               className="storefront-hero__overlay absolute inset-0"
               aria-hidden="true"
             />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_45%,rgba(240,201,130,0.12),transparent_34%)]" />
+            <div className="storefront-hero__radial absolute inset-0 bg-[radial-gradient(circle_at_72%_45%,rgba(240,201,130,0.12),transparent_34%)]" />
             <div className="relative z-10 flex max-w-2xl flex-col gap-5 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
               <span className="text-xs font-semibold tracking-[0.3em] text-[var(--luxora-gold)]">
-                BIDZONE STOREFRONT
+                {t("heroBadge")}
               </span>
               <h1 className="font-display-lg max-w-lg text-3xl sm:text-4xl">
-                Phòng đấu giá tuyển chọn
+                {t("heroTitle")}
               </h1>
               <p className="max-w-xl text-sm leading-relaxed text-white/55">
-                Khám phá toàn bộ lot đang bán theo từng danh mục nổi bật.
+                {t("heroDesc")}
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
                   href="/watchlist"
                   className="rounded-full border border-white/25 px-6 py-3 text-sm font-semibold hover:bg-white/10"
                 >
-                  Theo dõi
+                  {t("watchlist")}
                 </Link>
               </div>
             </div>

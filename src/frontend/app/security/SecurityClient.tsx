@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ApiError, userApi } from "@/lib/api";
 
 export default function SecurityClient() {
+  const t = useTranslations("security");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -17,7 +19,7 @@ export default function SecurityClient() {
     setSuccess("");
 
     if (newPassword !== confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp.");
+      setError(t("passwordMismatch"));
       return;
     }
     if (
@@ -26,7 +28,7 @@ export default function SecurityClient() {
       !/[a-z]/.test(newPassword) ||
       !/\d/.test(newPassword)
     ) {
-      setError("Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường và số.");
+      setError(t("passwordWeak"));
       return;
     }
 
@@ -37,7 +39,7 @@ export default function SecurityClient() {
         newPassword,
         confirmPassword,
       });
-      setSuccess(res.message || "Đổi mật khẩu thành công.");
+      setSuccess(res.message || t("changeSuccess"));
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -45,7 +47,7 @@ export default function SecurityClient() {
       setError(
         err instanceof ApiError
           ? err.message
-          : "Không kết nối được máy chủ. Vui lòng thử lại.",
+          : t("serverError"),
       );
     } finally {
       setSubmitting(false);
@@ -54,19 +56,19 @@ export default function SecurityClient() {
 
   const fields = [
     {
-      label: "Mật khẩu hiện tại",
+      label: t("currentPassword"),
       value: currentPassword,
       set: setCurrentPassword,
       autoComplete: "current-password",
     },
     {
-      label: "Mật khẩu mới",
+      label: t("newPassword"),
       value: newPassword,
       set: setNewPassword,
       autoComplete: "new-password",
     },
     {
-      label: "Xác nhận mật khẩu mới",
+      label: t("confirmNewPassword"),
       value: confirmPassword,
       set: setConfirmPassword,
       autoComplete: "new-password",
@@ -75,13 +77,13 @@ export default function SecurityClient() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
-      <h1 className="font-display-lg text-3xl">Bảo mật</h1>
+      <h1 className="font-display-lg text-3xl">{t("title")}</h1>
 
       <form
         onSubmit={handleChangePassword}
         className="glass-panel mt-8 rounded-2xl p-6"
       >
-        <p className="mb-4 text-sm font-semibold">Đổi mật khẩu</p>
+        <p className="mb-4 text-sm font-semibold">{t("changePassword")}</p>
 
         {error ? (
           <p className="mb-3 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
@@ -117,22 +119,22 @@ export default function SecurityClient() {
           disabled={submitting}
           className="gradient-cta mt-4 rounded-full px-6 py-2.5 text-sm font-semibold text-black disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {submitting ? "Đang cập nhật..." : "Cập nhật mật khẩu"}
+          {submitting ? t("updating") : t("updatePassword")}
         </button>
       </form>
 
       <div className="glass-panel mt-6 rounded-2xl p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold">Xác thực hai yếu tố</p>
+            <p className="text-sm font-semibold">{t("twoFactor")}</p>
             <p className="mt-1 text-xs text-white/50">
-              Tính năng đang được phát triển, sẽ sớm ra mắt.
+              {t("twoFactorDesc")}
             </p>
           </div>
           <button
             type="button"
             disabled
-            aria-label="2FA chưa khả dụng"
+            aria-label={t("twoFactorUnavailable")}
             className="relative h-7 w-12 cursor-not-allowed rounded-full bg-white/10 opacity-50"
           >
             <span className="absolute top-0.5 h-6 w-6 translate-x-0.5 rounded-full bg-black" />
@@ -142,18 +144,17 @@ export default function SecurityClient() {
 
       <div className="glass-panel mt-6 rounded-2xl p-6">
         <p className="mb-4 text-sm font-semibold">
-          Phiên đăng nhập đang hoạt động
+          {t("activeSessions")}
         </p>
         <div className="rounded-xl border border-white/10 px-4 py-3">
           <p className="text-sm font-medium">
-            Thiết bị này
+            {t("thisDevice")}
             <span className="ml-2 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-semibold text-green-300">
-              Hiện tại
+              {t("current")}
             </span>
           </p>
           <p className="text-xs text-white/40">
-            Phiên đăng nhập hiện tại trên trình duyệt của bạn. Quản lý nhiều
-            thiết bị sẽ sớm ra mắt.
+            {t("sessionDesc")}
           </p>
         </div>
       </div>

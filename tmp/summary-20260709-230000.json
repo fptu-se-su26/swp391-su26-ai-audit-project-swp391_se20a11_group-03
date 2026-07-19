@@ -1,0 +1,4 @@
+{
+  "summary": "Implemented PortalShell so admin users keep AdminShell sidebar on /staff/* operation pages; added Hộp thư hỗ trợ to admin nav; dark-themed staff support chat (SupportChatPanel theme=dark + support page restyle). npm run build passed.",
+  "current_status": "Admin Vận hành links no longer swap to StaffSidebar; support inbox uses dark UI aligned with admin theme."
+}

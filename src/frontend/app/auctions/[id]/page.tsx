@@ -4,12 +4,14 @@ import Footer from "@/components/home/Footer";
 import LiveChat from "@/components/feature/LiveChat";
 import AuctionDetailClient from "@/app/auctions/[id]/AuctionDetailClient";
 import { auctionApi, productApi, type BidRecord } from "@/lib/api";
+import { getTranslations } from "next-intl/server";
 
 export default async function AuctionDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = await getTranslations("auctionDetail");
   const { id } = await params;
   const auctionId = Number(id);
 
@@ -24,7 +26,7 @@ export default async function AuctionDetailPage({
       auctionApi.bids(auctionId),
     ]);
   } catch {
-    // backend tắt hoặc phiên không tồn tại — render thông báo bên dưới
+    // Render the fallback message below when the backend is unavailable or the auction is missing.
   }
 
   return (
@@ -34,10 +36,10 @@ export default async function AuctionDetailPage({
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-10">
         <nav className="mb-6 flex items-center gap-2 text-xs text-white/40">
           <Link href="/storefront" className="hover:text-white">
-            Cửa hàng
+            {t("storefront")}
           </Link>
           <span>/</span>
-          <span>{product?.categoryName ?? "Đấu giá"}</span>
+          <span>{product?.categoryName ?? t("categoryFallback")}</span>
           <span>/</span>
           <span className="text-white/70">
             {product ? `LOT #${product.productId}` : `#${id}`}
@@ -53,14 +55,13 @@ export default async function AuctionDetailPage({
         ) : (
           <div className="glass-panel rounded-2xl p-10 text-center">
             <p className="text-sm text-white/60">
-              Không tải được phiên đấu giá. Kiểm tra backend đang chạy và phiên
-              tồn tại.
+              {t("loadError")}
             </p>
             <Link
               href="/storefront"
               className="mt-4 inline-block rounded-full border border-[#d7aa63]/50 px-6 py-2 text-xs font-semibold text-white hover:bg-[#f0c982] hover:text-black"
             >
-              Quay lại cửa hàng
+              {t("backToStorefront")}
             </Link>
           </div>
         )}

@@ -1,0 +1,4 @@
+{
+  "summary": "Replaced FPT.AI CCCD OCR with Google Gemini API. Added GeminiOcrService, RestTemplateConfig, gemini config in application.properties, POST /api/kyc/scan-cccd endpoint, refactored CccdOcrService to use Gemini for existing /api/kyc/ocr flow. Removed hardcoded FPT key from start-backend.ps1. Backend compiles successfully.",
+  "current_status": "Gemini OCR integrated. User must set GEMINI_API_KEY and restart backend. Frontend KYC /ocr flow works unchanged via CccdOcrService."
+}

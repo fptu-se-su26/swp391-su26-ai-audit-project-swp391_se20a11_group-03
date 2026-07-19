@@ -1,0 +1,4 @@
+{
+  "summary": "Added default Vietnamese categories to the backend DataSeeder for product posting: Đồng hồ, Đồ cổ, Tranh nghệ thuật, Trang sức, and Khác. Moved category seeding before attribute seeding and made category attribute seeding idempotent per attribute so existing databases still receive missing attributes. Restarted the backend on port 8096, verified /api/categories returns the new categories, verified /api/categories/7/attributes returns watch attributes, and confirmed /post-item still returns HTTP 200.",
+  "current_status": "Frontend is running on localhost:3000 and backend is running on localhost:8096 with the new categories seeded. User can refresh the post-item page and select the new categories."
+}

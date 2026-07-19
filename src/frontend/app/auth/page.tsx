@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
+import { useTranslations } from "next-intl";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import { ApiError, authApi, toFrontendRole } from "@/lib/api";
@@ -43,34 +44,33 @@ declare global {
     };
   }
 }
-type UserRole = "collector" | "seller" | "staff" | "admin";
+type UserRole = "collector" | "seller" | "staff" | "admin" | "shipper";
 
 const ROLE_HOME: Record<UserRole, string> = {
   collector: "/dashboard",
   seller: "/inventory",
   staff: "/staff/approvals",
   admin: "/admin/dashboard",
+  shipper: "/shipper/orders",
 };
 
 const TRUST_ITEMS = [
   {
     icon: "verified_user",
-    title: "HÀNG THẬT 100%",
-    description: "Cam kết chính hãng, kiểm định chặt chẽ.",
   },
   {
     icon: "lock",
-    title: "THANH TOÁN AN TOÀN",
-    description: "Bảo mật tuyệt đối mọi giao dịch.",
   },
   {
     icon: "support_agent",
-    title: "HỖ TRỢ 24/7",
-    description: "Đội ngũ chuyên nghiệp luôn sẵn sàng.",
   },
 ];
 
 export default function AuthPage({ searchParams }: AuthPageProps) {
+  const t = useTranslations("auth");
+  const tPage = useTranslations("authPage");
+  const tCommon = useTranslations("common");
+  const heroTitle = tPage("heroTitle").split("\n");
   const resolvedSearchParams = use(searchParams);
   const router = useRouter();
   const redirectAfterAuth = safeNextPath(resolvedSearchParams.next);
@@ -80,7 +80,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
   const [showPass, setShowPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [loginError, setLoginError] = useState("");
-  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -92,7 +92,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
   const handleGoogleCredential = useCallback(
     async (response: GoogleCredentialResponse) => {
       if (!response.credential) {
-        setLoginError("Không nhận được thông tin đăng nhập từ Google.");
+        setLoginError(tPage("googleCredError"));
         return;
       }
       setLoginError("");
@@ -105,13 +105,13 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
         setLoginError(
           err instanceof ApiError
             ? err.message
-            : "Không kết nối được máy chủ. Kiểm tra backend đang chạy ở port 8096.",
+            : tPage("serverError"),
         );
       } finally {
         setSubmitting(false);
       }
     },
-    [redirectAfterAuth, router],
+    [redirectAfterAuth, router, tPage],
   );
 
   useEffect(() => {
@@ -180,6 +180,28 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
 
   const isSignup = mode === "signup";
 
+  async function resendVerificationEmail() {
+    if (!email.trim()) {
+      setLoginError(tPage("resendEmailRequired"));
+      return;
+    }
+    setLoginError("");
+    setSignupSuccess("");
+    setSubmitting(true);
+    try {
+      const response = await authApi.resendEmailVerification(email.trim());
+      setSignupSuccess(response.message);
+    } catch (err) {
+      setLoginError(
+        err instanceof ApiError
+          ? err.message
+          : tPage("resendError"),
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoginError("");
@@ -189,7 +211,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
     try {
       if (isSignup) {
         if (password !== confirmPassword) {
-          setLoginError("Mật khẩu xác nhận không khớp.");
+          setLoginError(tPage("passwordMismatch"));
           return;
         }
         if (
@@ -198,38 +220,32 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
           !/[a-z]/.test(password) ||
           !/\d/.test(password)
         ) {
-          setLoginError(
-            "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường và số.",
-          );
+          setLoginError(tPage("passwordWeak"));
           return;
         }
-        await authApi.register({
+        const response = await authApi.register({
           fullName: fullName.trim(),
-          email: emailOrPhone.trim(),
+          email: email.trim().toLowerCase(),
           password,
           confirmPassword,
         });
-        setSignupSuccess(
-          "Tạo tài khoản thành công! Đăng nhập để bắt đầu đấu giá.",
-        );
+        setSignupSuccess(response.message);
         setMode("login");
         return;
       }
 
-      const res = await authApi.login(emailOrPhone.trim(), password);
+      const res = await authApi.login(email.trim().toLowerCase(), password);
       const role = toFrontendRole(res.roleName);
       router.push(redirectAfterAuth ?? ROLE_HOME[role]);
     } catch (err) {
       if (err instanceof ApiError) {
         setLoginError(
           err.status === 401
-            ? "Email hoặc mật khẩu không đúng."
+            ? tPage("wrongCredentials")
             : err.message,
         );
       } else {
-        setLoginError(
-          "Không kết nối được máy chủ. Kiểm tra backend đang chạy ở port 8096.",
-        );
+        setLoginError(tPage("serverError"));
       }
     } finally {
       setSubmitting(false);
@@ -257,7 +273,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
               className="auth-back-link hidden h-10 items-center gap-2 rounded-full px-4 text-xs font-semibold sm:inline-flex sm:text-sm"
             >
               <span className="material-symbols-outlined text-base">arrow_back</span>
-              <span className="hidden sm:inline">Về trang chủ</span>
+              <span className="hidden sm:inline">{tPage("backHome")}</span>
             </Link>
             <ThemeToggle />
           </div>
@@ -267,7 +283,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
           <div className="theme-dark-content relative hidden min-h-0 overflow-hidden lg:flex">
             <Image
               src="/images/hero-auction-dark-v2.webp"
-              alt="Đồng hồ cao cấp BidZone"
+              alt={tPage("heroImageAlt")}
               fill
               priority
               sizes="(min-width: 1024px) 56vw, 100vw"
@@ -279,32 +295,31 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
             <div className="relative z-10 flex h-full w-full flex-col justify-between p-10 xl:p-14">
               <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-black/20 px-4 py-2 text-[11px] font-semibold tracking-[0.24em] text-white/70 backdrop-blur">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#f0c982]" />
-                VERIFIED AUCTION PLATFORM
+                {tPage("verifiedPlatform")}
               </div>
 
               <div className="max-w-[520px] py-12">
                 <p className="text-xs font-semibold tracking-[0.42em] text-[#f0c982]">
-                  LUXURY AUCTION HOUSE
+                  {tPage("heroBadge")}
                 </p>
                 <h1 className="mt-6 text-5xl font-bold leading-[1.02] tracking-[-0.03em] text-white xl:text-6xl">
-                  NƠI GIÁ TRỊ
+                  {heroTitle[0]}
                   <br />
-                  <span className="text-[#f0c982]">ĐƯỢC TÔN VINH</span>
+                  <span className="text-[#f0c982]">{heroTitle[1]}</span>
                 </h1>
                 <p className="mt-6 max-w-[460px] text-base leading-7 text-white/68">
-                  Tiếp cận những vật phẩm tuyển chọn, hồ sơ minh bạch và trải
-                  nghiệm đấu giá trực tuyến được thiết kế cho người sưu tầm.
+                  {tPage("heroDesc")}
                 </p>
               </div>
 
               <div className="grid grid-cols-3 gap-3 border-t border-white/15 pt-7">
-                {TRUST_ITEMS.map((item) => (
-                  <div key={item.title} className="min-w-0">
+                {TRUST_ITEMS.map((item, index) => (
+                  <div key={item.icon} className="min-w-0">
                     <span className="material-symbols-outlined text-xl text-[#f0c982]">
                       {item.icon}
                     </span>
                     <span className="mt-2 block text-[10px] font-semibold tracking-wider text-white xl:text-[11px]">
-                      {item.title}
+                      {tPage(`trust.${index}.title`)}
                     </span>
                   </div>
                 ))}
@@ -316,7 +331,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
             <div className="theme-dark-content relative mb-8 min-h-40 overflow-hidden rounded-2xl p-6 lg:hidden">
               <Image
                 src="/images/hero-auction-dark-v2.webp"
-                alt="Đồng hồ cao cấp BidZone"
+                alt={tPage("heroImageAlt")}
                 fill
                 sizes="100vw"
                 className="object-cover object-[68%_center]"
@@ -327,8 +342,8 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                   BIDZONE
                 </p>
                 <p className="mt-3 text-2xl font-bold leading-tight text-white">
-                  Giá trị thật.
-                  <br />Đấu giá minh bạch.
+                  {tPage("mobileTitle.0")}
+                  <br />{tPage("mobileTitle.1")}
                 </p>
               </div>
             </div>
@@ -340,17 +355,15 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
               }`}
             >
               <p className="text-xs font-semibold tracking-[0.26em] text-[var(--luxora-gold-dark)]">
-                TÀI KHOẢN BIDZONE
+                {tPage("accountBadge")}
               </p>
               <div className="mt-3 flex items-end justify-between gap-4">
                 <div>
                   <h2 className="text-3xl font-bold tracking-[-0.03em] text-[var(--luxora-text)] sm:text-4xl">
-                    {isSignup ? "Tạo tài khoản" : "Chào mừng trở lại"}
+                    {isSignup ? tPage("signupTitle") : tPage("loginTitle")}
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-[var(--luxora-text-muted)]">
-                    {isSignup
-                      ? "Tham gia cộng đồng đấu giá cao cấp của BidZone."
-                      : "Đăng nhập để tiếp tục hành trình sưu tầm của bạn."}
+                    {isSignup ? tPage("signupDesc") : tPage("loginDesc")}
                   </p>
                 </div>
               </div>
@@ -362,7 +375,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                     type="button"
                     onClick={() => {
                       setMode(item);
-                      setEmailOrPhone("");
+                      setEmail("");
                       setPassword("");
                       setConfirmPassword("");
                       setLoginError("");
@@ -373,7 +386,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                         : "text-[var(--luxora-text-muted)] hover:text-[var(--luxora-text)]"
                     }`}
                   >
-                    {item === "login" ? "Đăng nhập" : "Đăng ký"}
+                    {item === "login" ? t("login") : t("register")}
                   </button>
                 ))}
               </div>
@@ -394,7 +407,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                 {isSignup ? (
                   <div>
                     <label className="auth-label">
-                      HỌ VÀ TÊN
+                      {t("fullName").toUpperCase()}
                     </label>
                     <div className="auth-field">
                       <span className="material-symbols-outlined text-lg text-white/45">
@@ -405,45 +418,48 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                         required
                         value={fullName}
                         onChange={(event) => setFullName(event.target.value)}
-                        placeholder="Nhập họ và tên"
-                        className="auth-input min-w-0 flex-1 bg-transparent text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text-muted)]"
+                        placeholder={tPage("placeholderFullName")}
+                        className="auth-input min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
                       />
                     </div>
                   </div>
                 ) : null}
 
                 <div>
-                  <label className="auth-label">
-                    {isSignup ? "EMAIL" : "EMAIL HOẶC SỐ ĐIỆN THOẠI"}
+                  <label className="text-[11px] font-semibold tracking-wider text-white/75">
+                    EMAIL
                   </label>
                   <div className="auth-field">
                     <span className="material-symbols-outlined text-lg text-white/45">
                       mail
                     </span>
                     <input
-                      type={isSignup ? "email" : "text"}
+                      type="email"
                       required
-                      value={emailOrPhone}
-                      onChange={(event) => setEmailOrPhone(event.target.value)}
-                      placeholder={
-                        isSignup ? "Nhập email" : "Nhập email hoặc số điện thoại"
-                      }
-                      className="auth-input min-w-0 flex-1 bg-transparent text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text-muted)]"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder={tPage("placeholderEmail")}
+                      className="auth-input min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
                     />
                   </div>
+                  {isSignup && (
+                    <p className="mt-1.5 text-[10px] text-white/40">
+                      {tPage("emailActivationHint")}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between gap-3">
                     <label className="auth-label">
-                      MẬT KHẨU
+                      {t("password").toUpperCase()}
                     </label>
                     {!isSignup ? (
                       <button
                         type="button"
                         className="shrink-0 text-[11px] font-medium text-[#f0c982] hover:text-[#f4d79b]"
                       >
-                        Quên mật khẩu?
+                        {t("forgotPassword")}
                       </button>
                     ) : null}
                   </div>
@@ -456,14 +472,14 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                       required
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
-                      placeholder="Nhập mật khẩu"
+                      placeholder={tPage("placeholderPassword")}
                       className="auth-input min-w-0 flex-1 bg-transparent text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text-muted)]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPass((current) => !current)}
                       className="shrink-0 text-white/45 transition-colors hover:text-white"
-                      aria-label={showPass ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                      aria-label={showPass ? tPage("hidePassword") : tPage("showPassword")}
                     >
                       <span className="material-symbols-outlined text-lg">
                         {showPass ? "visibility_off" : "visibility"}
@@ -475,7 +491,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                 {isSignup ? (
                   <div>
                     <label className="auth-label">
-                      XÁC NHẬN MẬT KHẨU
+                      {t("confirmPassword").toUpperCase()}
                     </label>
                     <div className="auth-field">
                       <span className="material-symbols-outlined text-lg text-white/45">
@@ -488,7 +504,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                         onChange={(event) =>
                           setConfirmPassword(event.target.value)
                         }
-                        placeholder="Nhập lại mật khẩu"
+                        placeholder={tPage("placeholderConfirmPassword")}
                         className="auth-input min-w-0 flex-1 bg-transparent text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text-muted)]"
                       />
                       <button
@@ -498,7 +514,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                         }
                         className="shrink-0 text-white/45 transition-colors hover:text-white"
                         aria-label={
-                          showConfirmPass ? "Ẩn mật khẩu" : "Hiện mật khẩu"
+                          showConfirmPass ? tPage("hidePassword") : tPage("showPassword")
                         }
                       >
                         <span className="material-symbols-outlined text-lg">
@@ -517,8 +533,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                     required
                     className="mt-0.5 h-4 w-4 accent-[#f0c982]"
                   />
-                  Tôi đồng ý với điều khoản sử dụng và chính sách bảo mật của
-                  BidZone.
+                  {tPage("agreeTerms")}
                 </label>
               ) : null}
 
@@ -528,16 +543,27 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                 className="auth-submit mt-6 h-12 w-full rounded-xl bg-[#e2b34f] text-sm font-bold tracking-wide text-[#17130b] shadow-[0_12px_30px_rgba(194,137,38,0.2)] transition-all hover:-translate-y-0.5 hover:bg-[#efc66e] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting
-                  ? "ĐANG XỬ LÝ..."
+                  ? tCommon("loading").toUpperCase()
                   : isSignup
-                    ? "TẠO TÀI KHOẢN"
-                    : "ĐĂNG NHẬP"}
+                    ? t("register").toUpperCase()
+                    : t("login").toUpperCase()}
               </button>
 
-              <div className="auth-social-divider my-5 flex items-center gap-4">
-                <span className="auth-divider h-px flex-1" />
-                <span className="text-[10px] uppercase tracking-[0.16em] text-[var(--luxora-text-muted)]">
-                  {isSignup ? "hoặc đăng ký với" : "hoặc đăng nhập với"}
+              {!isSignup && (
+                <button
+                  type="button"
+                  onClick={() => void resendVerificationEmail()}
+                  disabled={submitting}
+                  className="mt-2 w-full text-center text-[11px] font-medium text-[#f0c982] transition hover:text-[#f4d79b] disabled:opacity-50"
+                >
+                  {tPage("resendVerification")}
+                </button>
+              )}
+
+              <div className="my-3 flex items-center gap-4">
+                <span className="h-px flex-1 bg-white/10" />
+                <span className="text-[11px] uppercase tracking-wider text-white/35">
+                  {isSignup ? tPage("orRegisterWith") : tPage("orLoginWith")}
                 </span>
                 <span className="auth-divider h-px flex-1" />
               </div>
@@ -554,15 +580,14 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
                 >
                   <FcGoogle className="mx-auto text-lg" aria-hidden="true" />
                   <span className="text-center">
-                    {isSignup ? "Đăng ký với Google" : "Tiếp tục với Google"}
+                    {isSignup ? tPage("googleRegister") : tPage("googleLogin")}
                   </span>
                   <span aria-hidden="true" />
                 </button>
               ) : null}
 
               <p className="auth-security-note mt-6 text-center text-xs leading-5 text-[var(--luxora-text-muted)]">
-                Thông tin của bạn được mã hóa và bảo vệ theo tiêu chuẩn bảo mật
-                của BidZone.
+                {tPage("securityNotice")}
               </p>
             </form>
           </div>

@@ -1,0 +1,4 @@
+{
+  "summary": "Removed dead FPT.AI integration from src/main: deleted FptAiService, FptAiHealthController, FptAiConfig, FptAiSpringConfig, stub OcrService, and unused IdentityVerificationService. Cleared app.fpt.ai.* from application.properties and FptAiHealthServlet from web.xml. Updated docs/AI_PROJECT_CONTEXT.md to Gemini for KYC OCR. mvn compile succeeded; CccdOcrService/GeminiOcrService unchanged.",
+  "current_status": "Main Spring Boot app is FPT-free for OCR; KYC uses Gemini only. Le_Phuoc_Sang/ legacy folder untouched per plan."
+}

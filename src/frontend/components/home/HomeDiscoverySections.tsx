@@ -1,36 +1,29 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 const COLLECTIONS = [
   {
-    title: "Đồng hồ danh tiếng",
-    description: "Cơ khí chính xác, provenance rõ ràng và giá trị vượt thời gian.",
+    id: "watches",
     image: "/images/backgrounds/auction-bg-watch.png",
-    eyebrow: "Fine watches",
     className: "min-h-[420px] lg:min-h-[570px]",
     imageClassName: "object-cover object-center",
   },
   {
-    title: "Công nghệ biểu tượng",
-    description: "Thiết bị được tuyển chọn theo thiết kế, hiệu năng và độ hiếm.",
+    id: "technology",
     image: "/images/backgrounds/auction-bg-phone.png",
-    eyebrow: "Technology",
     className: "min-h-[270px] sm:col-span-2",
     imageClassName: "object-cover object-center",
   },
   {
-    title: "Nhiếp ảnh & quang học",
-    description: "Những công cụ dành cho người kể chuyện bằng hình ảnh.",
+    id: "cameras",
     image: "/images/auction-products/leica-m11.png",
-    eyebrow: "Cameras",
     className: "min-h-[280px]",
     imageClassName: "object-contain object-[72%_center] p-6",
   },
   {
-    title: "Âm thanh cá nhân",
-    description: "Trải nghiệm nghe nhìn cao cấp trong một thiết kế khác biệt.",
+    id: "audio",
     image: "/images/auction-products/airpods-max.png",
-    eyebrow: "Audio",
     className: "min-h-[280px]",
     imageClassName: "object-contain object-[72%_center] p-6",
   },
@@ -38,65 +31,40 @@ const COLLECTIONS = [
 
 const STANDARDS = [
   {
+    id: "itemProfile",
     icon: "fact_check",
-    title: "Hồ sơ vật phẩm rõ ràng",
-    description:
-      "Thông tin, hình ảnh và tài liệu liên quan được trình bày tập trung trước phiên đấu giá.",
   },
   {
+    id: "controlledDeposit",
     icon: "account_balance_wallet",
-    title: "Đặt cọc có kiểm soát",
-    description:
-      "Cơ chế đặt cọc giúp tăng tính cam kết và hạn chế những lượt trả giá thiếu nghiêm túc.",
   },
   {
+    id: "history",
     icon: "history",
-    title: "Lịch sử giao dịch minh bạch",
-    description:
-      "Trạng thái phiên, mức giá và các mốc xử lý được lưu lại để người dùng dễ dàng theo dõi.",
   },
   {
+    id: "security",
     icon: "shield_lock",
-    title: "Bảo vệ tài khoản nhiều lớp",
-    description:
-      "Xác minh danh tính và kiểm soát quyền truy cập được tích hợp xuyên suốt hành trình sử dụng.",
   },
 ];
 
 const FAQ_ITEMS = [
-  {
-    question: "Tôi cần làm gì trước khi tham gia đấu giá?",
-    answer:
-      "Bạn cần tạo tài khoản, hoàn thiện thông tin cần thiết và nộp khoản đặt cọc theo yêu cầu của phiên đấu giá.",
-  },
-  {
-    question: "Làm sao để biết một phiên đang diễn ra?",
-    answer:
-      "Các phiên đang hoạt động được đánh dấu Live trên trang đấu giá. Bạn có thể mở phòng đấu giá để theo dõi giá và thời gian còn lại.",
-  },
-  {
-    question: "Khoản đặt cọc được xử lý như thế nào?",
-    answer:
-      "Khoản đặt cọc được ghi nhận trong ví BidZone và được xử lý theo kết quả cũng như điều kiện cụ thể của từng phiên.",
-  },
-  {
-    question: "Tôi có thể theo dõi những vật phẩm quan tâm không?",
-    answer:
-      "Có. Hãy thêm vật phẩm vào Watchlist để truy cập nhanh và theo dõi trạng thái phiên từ khu vực tài khoản.",
-  },
-  {
-    question: "Người bán đăng vật phẩm bằng cách nào?",
-    answer:
-      "Tài khoản người bán có thể tạo hồ sơ vật phẩm, tải ảnh và gửi duyệt trước khi vật phẩm được đưa vào lịch đấu giá.",
-  },
-  {
-    question: "Tôi cần hỗ trợ trong quá trình giao dịch?",
-    answer:
-      "Bạn có thể sử dụng khu vực tin nhắn hoặc hỗ trợ trong tài khoản để gửi yêu cầu và theo dõi phản hồi từ BidZone.",
-  },
-];
+  "beforeBidding",
+  "liveAuction",
+  "deposit",
+  "watchlist",
+  "selling",
+  "support",
+] as const;
 
-export default function HomeDiscoverySections() {
+export default async function HomeDiscoverySections() {
+  const t = await getTranslations("homeDiscovery");
+  const collections = COLLECTIONS.map((item) => ({
+    ...item,
+    title: t(`collections.${item.id}.title` as Parameters<typeof t>[0]),
+    description: t(`collections.${item.id}.description` as Parameters<typeof t>[0]),
+    eyebrow: t(`collections.${item.id}.eyebrow` as Parameters<typeof t>[0]),
+  }));
   return (
     <>
       <section id="collections" className="border-b border-white/10">
@@ -104,33 +72,32 @@ export default function HomeDiscoverySections() {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-[var(--luxora-gold)]">
-                Khám phá theo sở thích
+                {t("collectionsBadge")}
               </p>
               <h2 className="mt-4 text-3xl font-bold tracking-[-0.03em] text-white sm:text-4xl lg:text-5xl">
-                Mỗi bộ sưu tập,
-                <br className="hidden sm:block" /> một câu chuyện riêng.
+                {t("collectionsTitle.0")}
+                <br className="hidden sm:block" /> {t("collectionsTitle.1")}
               </h2>
             </div>
             <div className="max-w-xl">
               <p className="text-sm leading-7 text-white/60 sm:text-base">
-                Bắt đầu từ lĩnh vực bạn yêu thích và khám phá những vật phẩm
-                đang được cộng đồng quan tâm.
+                {t("collectionsDesc")}
               </p>
               <Link
                 href="/categories"
                 className="mt-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--luxora-gold)] transition-colors hover:text-[var(--luxora-gold-light)]"
               >
-                Xem tất cả danh mục
+                {t("viewCategories")}
                 <span className="material-symbols-outlined text-base">arrow_forward</span>
               </Link>
             </div>
           </div>
 
           <div className="mt-12 grid gap-4 lg:grid-cols-[1.12fr_0.88fr]">
-            <CollectionCard item={COLLECTIONS[0]} priority />
+            <CollectionCard item={collections[0]} priority />
             <div className="grid gap-4 sm:grid-cols-2">
-              {COLLECTIONS.slice(1).map((item) => (
-                <CollectionCard key={item.title} item={item} />
+              {collections.slice(1).map((item) => (
+                <CollectionCard key={item.id} item={item} />
               ))}
             </div>
           </div>
@@ -142,21 +109,19 @@ export default function HomeDiscoverySections() {
         <div className="relative mx-auto grid max-w-[1600px] gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[0.82fr_1.18fr] lg:px-12 lg:py-24">
           <div className="lg:sticky lg:top-28 lg:self-start">
             <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-[var(--luxora-gold)]">
-              Tiêu chuẩn BidZone
+              {t("standardsBadge")}
             </p>
             <h2 className="mt-4 text-3xl font-bold tracking-[-0.03em] text-white sm:text-4xl lg:text-5xl">
-              Niềm tin được xây dựng từ chi tiết.
+              {t("standardsTitle")}
             </h2>
             <p className="mt-6 max-w-xl text-sm leading-7 text-white/60 sm:text-base">
-              Một phiên đấu giá tốt không chỉ nằm ở vật phẩm. Nó còn đến từ
-              thông tin dễ kiểm chứng, quy trình dễ theo dõi và trách nhiệm rõ
-              ràng ở từng bước.
+              {t("standardsDesc")}
             </p>
             <Link
               href="/about"
               className="mt-8 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#d7aa63]/45 px-6 text-xs font-semibold uppercase tracking-[0.13em] text-white transition-colors hover:bg-[#f0c982] hover:text-black"
             >
-              Hiểu thêm về BidZone
+              {t("aboutLink")}
               <span className="material-symbols-outlined text-base">north_east</span>
             </Link>
           </div>
@@ -164,7 +129,7 @@ export default function HomeDiscoverySections() {
           <div className="overflow-hidden rounded-[28px] border border-white/10 bg-[var(--luxora-bg-elevated)]">
             {STANDARDS.map((item, index) => (
               <article
-                key={item.title}
+                key={item.id}
                 className="group grid gap-5 border-b border-white/10 p-6 last:border-0 sm:grid-cols-[72px_1fr_auto] sm:items-center sm:p-8"
               >
                 <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#d7aa63]/30 bg-[#f0c982]/10 text-[var(--luxora-gold)] transition-transform duration-300 group-hover:scale-105">
@@ -172,10 +137,10 @@ export default function HomeDiscoverySections() {
                 </span>
                 <div>
                   <h3 className="text-base font-bold text-white sm:text-lg">
-                    {item.title}
+                    {t(`standards.${item.id}.title` as Parameters<typeof t>[0])}
                   </h3>
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">
-                    {item.description}
+                    {t(`standards.${item.id}.description` as Parameters<typeof t>[0])}
                   </p>
                 </div>
                 <span className="hidden font-serif text-3xl text-white/10 sm:block">
@@ -191,21 +156,20 @@ export default function HomeDiscoverySections() {
         <div className="mx-auto grid max-w-[1600px] gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[0.65fr_1.35fr] lg:px-12 lg:py-24">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-[var(--luxora-gold)]">
-              Cần biết trước khi bắt đầu
+              {t("faqBadge")}
             </p>
             <h2 className="mt-4 text-3xl font-bold tracking-[-0.03em] text-white sm:text-4xl">
-              Câu hỏi thường gặp
+              {t("faqTitle")}
             </h2>
             <p className="mt-5 max-w-md text-sm leading-7 text-white/60">
-              Những thông tin cơ bản giúp bạn tự tin hơn khi tham gia mua bán
-              và đấu giá trên BidZone.
+              {t("faqDesc")}
             </p>
           </div>
 
           <div className="grid gap-3">
             {FAQ_ITEMS.map((item, index) => (
               <details
-                key={item.question}
+                key={item}
                 className="group rounded-2xl border border-white/10 bg-[var(--luxora-bg-elevated)] px-5 py-1 open:border-[#d7aa63]/35 sm:px-7"
               >
                 <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-4 text-sm font-semibold text-white marker:hidden sm:text-base">
@@ -213,14 +177,14 @@ export default function HomeDiscoverySections() {
                     <span className="text-xs font-semibold text-[var(--luxora-gold)]">
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    {item.question}
+                    {t(`faq.${item}.question` as Parameters<typeof t>[0])}
                   </span>
                   <span className="material-symbols-outlined shrink-0 text-xl text-white/40 transition-transform group-open:rotate-45 group-open:text-[var(--luxora-gold)]">
                     add
                   </span>
                 </summary>
                 <p className="border-t border-white/10 py-5 pl-9 text-sm leading-7 text-white/55 sm:pl-12">
-                  {item.answer}
+                  {t(`faq.${item}.answer` as Parameters<typeof t>[0])}
                 </p>
               </details>
             ))}
@@ -235,7 +199,11 @@ function CollectionCard({
   item,
   priority = false,
 }: {
-  item: (typeof COLLECTIONS)[number];
+  item: (typeof COLLECTIONS)[number] & {
+    title: string;
+    description: string;
+    eyebrow: string;
+  };
   priority?: boolean;
 }) {
   return (

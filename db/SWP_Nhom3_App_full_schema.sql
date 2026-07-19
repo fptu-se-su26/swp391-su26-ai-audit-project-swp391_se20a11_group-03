@@ -47,6 +47,7 @@ IF OBJECT_ID('dbo.Wallets', 'U') IS NOT NULL DROP TABLE dbo.Wallets;
 IF OBJECT_ID('dbo.KycProfiles', 'U') IS NOT NULL DROP TABLE dbo.KycProfiles;
 IF OBJECT_ID('dbo.IdentityDocuments', 'U') IS NOT NULL DROP TABLE dbo.IdentityDocuments;
 IF OBJECT_ID('dbo.UserVerificationTokens', 'U') IS NOT NULL DROP TABLE dbo.UserVerificationTokens;
+IF OBJECT_ID('dbo.PendingEmailVerifications', 'U') IS NOT NULL DROP TABLE dbo.PendingEmailVerifications;
 IF OBJECT_ID('dbo.PasswordResetTokens', 'U') IS NOT NULL DROP TABLE dbo.PasswordResetTokens;
 IF OBJECT_ID('dbo.Products', 'U') IS NOT NULL DROP TABLE dbo.Products;
 IF OBJECT_ID('dbo.Categories', 'U') IS NOT NULL DROP TABLE dbo.Categories;
@@ -74,13 +75,15 @@ BEGIN
         Username                NVARCHAR(255)        NULL,
         FullName                NVARCHAR(150)        NOT NULL,
         Email                   NVARCHAR(255)        NOT NULL UNIQUE,
-        Phone                   NVARCHAR(20)         NOT NULL UNIQUE,
+        Phone                   NVARCHAR(20)         NULL,
         IdentityNumber          NVARCHAR(20)         NULL,
         PasswordHash            NVARCHAR(128)        NOT NULL,
         Salt                    NVARCHAR(32)         NOT NULL,
         PasswordIterations      INT                  NOT NULL,
         EmailVerified           BIT                  NOT NULL DEFAULT 0,
         EmailVerifiedAt         DATETIME2            NULL,
+        PhoneVerified           BIT                  NOT NULL DEFAULT 0,
+        PhoneVerifiedAt         DATETIME2            NULL,
         IdentityVerified        BIT                  NOT NULL DEFAULT 0,
         IdentityVerifiedAt      DATETIME2            NULL,
         VerificationLevel       TINYINT              NOT NULL DEFAULT 0,
@@ -90,9 +93,27 @@ BEGIN
         Status                  NVARCHAR(30)         NOT NULL DEFAULT 'ACTIVE',
         PaymentStrikeCount      INT                  NOT NULL DEFAULT 0,
         LockedByPaymentStrikes  BIT                  NOT NULL DEFAULT 0,
+        BidRestrictedUntil      DATETIME2            NULL,
+        SuspendedAt             DATETIME2            NULL,
+        SuspensionReason        NVARCHAR(500)        NULL,
+        BannedAt                DATETIME2            NULL,
+        BannedBy                BIGINT               NULL,
         CreatedAt               DATETIME2            NOT NULL DEFAULT SYSDATETIME(),
-        CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES dbo.Roles(RoleId)
+        CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES dbo.Roles(RoleId),
+        CONSTRAINT FK_Users_BannedBy FOREIGN KEY (BannedBy) REFERENCES dbo.Users(UserId)
     );
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = 'UX_Users_Phone_NotNull'
+      AND object_id = OBJECT_ID('dbo.Users')
+)
+BEGIN
+    CREATE UNIQUE INDEX UX_Users_Phone_NotNull
+        ON dbo.Users(Phone)
+        WHERE Phone IS NOT NULL;
 END;
 GO
 
@@ -158,6 +179,28 @@ BEGIN
         CreatedAt           DATETIME2            NOT NULL DEFAULT SYSDATETIME(),
         CONSTRAINT FK_UserVerificationTokens_Users FOREIGN KEY (UserID) REFERENCES dbo.Users(UserId)
     );
+END;
+GO
+
+IF OBJECT_ID('dbo.PendingEmailVerifications', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.PendingEmailVerifications (
+        VerificationId         BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        Email                  NVARCHAR(255) NOT NULL,
+        OtpSalt                NVARCHAR(64)  NOT NULL,
+        OtpHash                NVARCHAR(64)  NOT NULL,
+        RegistrationTokenHash  NVARCHAR(64)  NULL,
+        AttemptCount           INT           NOT NULL DEFAULT 0,
+        ExpiresAt              DATETIME2     NOT NULL,
+        VerifiedAt             DATETIME2     NULL,
+        ConsumedAt             DATETIME2     NULL,
+        CreatedAt              DATETIME2     NOT NULL DEFAULT SYSDATETIME()
+    );
+    CREATE INDEX IX_PendingEmailVerifications_Email_CreatedAt
+        ON dbo.PendingEmailVerifications(Email, CreatedAt DESC);
+    CREATE UNIQUE INDEX UX_PendingEmailVerifications_RegistrationToken
+        ON dbo.PendingEmailVerifications(RegistrationTokenHash)
+        WHERE RegistrationTokenHash IS NOT NULL;
 END;
 GO
 
@@ -452,9 +495,73 @@ BEGIN
         UserId     BIGINT               NOT NULL,
         BidAmount  BIGINT               NOT NULL,
         BidTime    DATETIME2            NOT NULL DEFAULT SYSDATETIME(),
+        IpAddress  NVARCHAR(64)         NULL,
+        DeviceHash NVARCHAR(64)         NULL,
         CONSTRAINT FK_Bids_Auctions FOREIGN KEY (AuctionId) REFERENCES dbo.Auctions(AuctionId),
         CONSTRAINT FK_Bids_Users FOREIGN KEY (UserId) REFERENCES dbo.Users(UserId)
     );
+    CREATE INDEX IX_Bids_Auction_Time ON dbo.Bids(AuctionId, BidTime DESC);
+    CREATE INDEX IX_Bids_Auction_Ip_Time ON dbo.Bids(AuctionId, IpAddress, BidTime DESC);
+    CREATE INDEX IX_Bids_Auction_Device ON dbo.Bids(AuctionId, DeviceHash);
+    CREATE INDEX IX_Bids_User_Time ON dbo.Bids(UserId, BidTime DESC);
+END;
+GO
+
+IF OBJECT_ID('dbo.SystemSettings', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.SystemSettings (
+        SettingId BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        SettingKey NVARCHAR(100) NOT NULL UNIQUE,
+        SettingValue NVARCHAR(255) NOT NULL,
+        UpdatedBy BIGINT NULL,
+        UpdatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+        CONSTRAINT FK_SystemSettings_Users FOREIGN KEY (UpdatedBy) REFERENCES dbo.Users(UserId)
+    );
+END;
+GO
+
+IF OBJECT_ID('dbo.SystemSettingAuditLogs', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.SystemSettingAuditLogs (
+        SettingAuditId BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        SettingKey NVARCHAR(100) NOT NULL,
+        OldValue NVARCHAR(255) NULL,
+        NewValue NVARCHAR(255) NOT NULL,
+        ChangedBy BIGINT NOT NULL,
+        Reason NVARCHAR(500) NULL,
+        ChangedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+        CONSTRAINT FK_SystemSettingAuditLogs_Users FOREIGN KEY (ChangedBy) REFERENCES dbo.Users(UserId)
+    );
+END;
+GO
+
+IF OBJECT_ID('dbo.FraudAlerts', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.FraudAlerts (
+        FraudAlertId BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+        AuctionId BIGINT NOT NULL,
+        SuspectedUserId BIGINT NOT NULL,
+        TriggerBidId BIGINT NULL,
+        FraudType NVARCHAR(100) NOT NULL,
+        Signals NVARCHAR(1000) NOT NULL,
+        RiskScore INT NOT NULL,
+        RiskLevel NVARCHAR(20) NOT NULL,
+        Description NVARCHAR(2000) NOT NULL,
+        Status NVARCHAR(20) NOT NULL DEFAULT 'PENDING',
+        AutomaticAction NVARCHAR(50) NOT NULL DEFAULT 'WARN_ADMIN',
+        OccurrenceCount INT NOT NULL DEFAULT 1,
+        FirstDetectedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+        LastDetectedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+        ReviewedBy BIGINT NULL,
+        ReviewedAt DATETIME2 NULL,
+        AdminNote NVARCHAR(1000) NULL,
+        CONSTRAINT FK_FraudAlerts_Auctions FOREIGN KEY (AuctionId) REFERENCES dbo.Auctions(AuctionId),
+        CONSTRAINT FK_FraudAlerts_SuspectedUser FOREIGN KEY (SuspectedUserId) REFERENCES dbo.Users(UserId),
+        CONSTRAINT FK_FraudAlerts_TriggerBid FOREIGN KEY (TriggerBidId) REFERENCES dbo.Bids(BidId),
+        CONSTRAINT FK_FraudAlerts_Reviewer FOREIGN KEY (ReviewedBy) REFERENCES dbo.Users(UserId)
+    );
+    CREATE INDEX IX_FraudAlerts_Status_Risk_Time ON dbo.FraudAlerts(Status, RiskLevel, LastDetectedAt DESC);
+    CREATE INDEX IX_FraudAlerts_Auction_User ON dbo.FraudAlerts(AuctionId, SuspectedUserId);
 END;
 GO
 
@@ -559,6 +666,16 @@ ON target.RoleName = source.RoleName
 WHEN NOT MATCHED THEN INSERT (RoleName) VALUES (source.RoleName);
 GO
 
+MERGE dbo.SystemSettings AS target
+USING (VALUES
+    (N'FRAUD_DETECTION_ENABLED', N'true'),
+    (N'AUTO_RESTRICTION_ENABLED', N'false'),
+    (N'FRAUD_ALERT_ENABLED', N'true')
+) AS source(SettingKey, SettingValue)
+ON target.SettingKey = source.SettingKey
+WHEN NOT MATCHED THEN INSERT (SettingKey, SettingValue) VALUES (source.SettingKey, source.SettingValue);
+GO
+
 MERGE dbo.Categories AS target
 USING (VALUES
     (N'Art', N'Artwork and paintings'),
@@ -584,5 +701,6 @@ PRINT 'Tables: Roles, Users, AuditLogs, IdentityDocuments, UserVerificationToken
 PRINT '        KycProfiles, Categories, Products, ProductImages, ProductApprovals, Contracts,';
 PRINT '        CategoryAttributes, ProductAttributeValues, attribute_options, watchlist,';
 PRINT '        Wallets, Transactions, WithdrawalRequests, Auctions, Auction_Deposits, Bids,';
-PRINT '        Auction_Chat_Messages, Conversations, Messages, Notifications, FeaturedProducts';
+PRINT '        SystemSettings, SystemSettingAuditLogs, FraudAlerts, Auction_Chat_Messages,';
+PRINT '        Conversations, Messages, Notifications, FeaturedProducts';
 GO

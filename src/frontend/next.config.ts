@@ -1,4 +1,7 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const apiBaseUrl =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8096/api";
@@ -43,7 +46,10 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
+            value:
+              process.env.NODE_ENV === "development"
+                ? "no-store, max-age=0"
+                : "public, max-age=31536000, immutable",
           },
         ],
       },
@@ -51,4 +57,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

@@ -1,0 +1,4 @@
+{
+  "summary": "Implemented split Gemini API keys per user request: Key 1 (AIzaSyCSj...) wired to gemini.ocr.api.key for CCCD OCR via GeminiOcrService; Key 2 (AIzaSyAKK...) wired to gemini.valuation.api.key for AI valuation via GeminiValuationService. Updated application.properties with env fallbacks (GEMINI_OCR_API_KEY, GEMINI_VALUATION_API_KEY), application-local.properties with both keys, example template, and docs/AI_PROJECT_CONTEXT.md. mvn compile succeeded. User should restart backend on port 8096 to pick up config.",
+  "current_status": "Gemini multi-key split is complete (1 key per feature, not full pool/failover). Post-item AI valuation, KYC OCR, win announcements, and notification badge fixes are in place. Backend restart needed to test /api/kyc/ocr and /api/ai/valuation with separate quotas."
+}

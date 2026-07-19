@@ -1,0 +1,4 @@
+{
+  "summary": "Started Next.js frontend dev server via start-frontend.ps1; app available at http://localhost:3000.",
+  "current_status": "Frontend running on port 3000. Backend may need separate start on 8096 if not already running."
+}

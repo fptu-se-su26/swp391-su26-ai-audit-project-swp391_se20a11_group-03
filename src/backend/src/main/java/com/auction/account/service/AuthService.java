@@ -5,6 +5,7 @@ import com.auction.account.entity.Role;
 import com.auction.account.entity.User;
 import com.auction.account.util.PasswordUtil;
 import org.springframework.stereotype.Service;
+import java.util.Locale;
 
 @Service
 public class AuthService {
@@ -20,15 +21,16 @@ public class AuthService {
         this.authValidator = authValidator;
     }
 
-    public AuthResult register(String fullName, String email, String phone, String password, String confirmPassword) {
+    public AuthResult register(String fullName, String email, String password, String confirmPassword) {
         String normalizedFullName = normalize(fullName);
         String normalizedEmail = normalize(email);
-        String normalizedPhone = normalize(phone);
+        if (normalizedEmail != null) {
+            normalizedEmail = normalizedEmail.toLowerCase(Locale.ROOT);
+        }
 
         String validationError = authValidator.validateRegistration(
                 normalizedFullName,
                 normalizedEmail,
-                normalizedPhone,
                 password,
                 confirmPassword
         );
@@ -39,19 +41,12 @@ public class AuthService {
         if (userDAO.existsByEmail(normalizedEmail)) {
             return AuthResult.failure("Email đã tồn tại. Vui lòng dùng email khác.");
         }
-        if (!isBlank(normalizedPhone) && userDAO.existsByPhone(normalizedPhone)) {
-            return AuthResult.failure("Số điện thoại đã tồn tại. Vui lòng dùng số khác.");
-        }
-
-        String storedPhone = isBlank(normalizedPhone)
-                ? generatePlaceholderPhone()
-                : normalizedPhone;
-
         String salt = PasswordUtil.generateSalt();
         int iterations = PasswordUtil.getIterations();
         String passwordHash = PasswordUtil.hashPassword(password, salt, iterations);
-        User user = new User(normalizedFullName, normalizedEmail, storedPhone, null, passwordHash, salt, iterations);
+        User user = new User(normalizedFullName, normalizedEmail, null, null, passwordHash, salt, iterations);
         user.setVerificationLevel((byte) 0);
+        user.setProfileStatus("PENDING_EMAIL_VERIFY");
 
         try {
             Role userRole = userDAO.findRoleByName("User");
@@ -60,7 +55,7 @@ public class AuthService {
             }
             user.setRole(userRole);
             userDAO.register(user);
-            return AuthResult.success("Đăng ký thành công.", user);
+            return AuthResult.success("Đăng ký thành công. Vui lòng xác minh email trước khi đăng nhập.", user);
         } catch (RuntimeException ex) {
             return AuthResult.failure("Không thể tạo tài khoản. Vui lòng thử lại sau.");
         }
@@ -80,6 +75,9 @@ public class AuthService {
 
         if (!PasswordUtil.matches(password, user.getSalt(), user.getPasswordHash(), user.getPasswordIterations())) {
             return AuthResult.failure("Thông tin đăng nhập không chính xác hoặc tài khoản chưa được kích hoạt.");
+        }
+        if (!user.isEmailVerified()) {
+            return AuthResult.failure("Email chưa được xác minh. Vui lòng kiểm tra hộp thư trước khi đăng nhập.");
         }
 
         return AuthResult.success("Đăng nhập thành công.", user);

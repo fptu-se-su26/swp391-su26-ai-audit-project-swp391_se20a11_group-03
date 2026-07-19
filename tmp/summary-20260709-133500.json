@@ -1,0 +1,4 @@
+{
+  "summary": "Diagnosed staff/admin 403 errors: duplicate username 'admin' (admin@example.com + admin@gmail.com) broke JWT user lookup. Fixed JWT to use email as subject, improved UserDetailsServiceImpl resolution, added SecurityConfig rules for admin products and KYC staff routes. User must restart backend and re-login.",
+  "current_status": "Backend code fixed and compiles. After restart: login with admin@gmail.com or staff123@gmail.com / 123456, then staff KYC and product approval pages should load."
+}

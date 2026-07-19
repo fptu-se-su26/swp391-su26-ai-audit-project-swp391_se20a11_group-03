@@ -37,6 +37,12 @@ public class Bid {
     @Column(name = "BidTime", nullable = false)
     private LocalDateTime bidTime;
 
+    @Column(name = "IpAddress", length = 64)
+    private String ipAddress;
+
+    @Column(name = "DeviceHash", length = 64)
+    private String deviceHash;
+
     public Long getBidId() { return bidId; }
     public void setBidId(Long bidId) { this.bidId = bidId; }
     public Long getAuctionId() { return auctionId; }
@@ -49,5 +55,9 @@ public class Bid {
     public void setBidAmount(Long bidAmount) { this.bidAmount = bidAmount; }
     public LocalDateTime getBidTime() { return bidTime; }
     public void setBidTime(LocalDateTime bidTime) { this.bidTime = bidTime; }
+    public String getIpAddress() { return ipAddress; }
+    public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+    public String getDeviceHash() { return deviceHash; }
+    public void setDeviceHash(String deviceHash) { this.deviceHash = deviceHash; }
 }
 

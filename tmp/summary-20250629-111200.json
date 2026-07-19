@@ -1,0 +1,4 @@
+{
+  "summary": "Backend start on port 8096 completed successfully after freeing the port. Spring Boot reached Started AuctionApplication state.",
+  "current_status": "Backend was running on http://localhost:8096. If IntelliJ fails with port in use, run npm run backend:kill first — only one backend instance at a time."
+}

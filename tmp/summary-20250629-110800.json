@@ -1,0 +1,4 @@
+{
+  "summary": "Freed port 8096 (stopped java PID 20320) so user can start backend from IntelliJ. Did not start a second instance to avoid repeat conflict.",
+  "current_status": "Port 8096 is free. User should run backend from only one place: IntelliJ OR npm run backend, not both."
+}

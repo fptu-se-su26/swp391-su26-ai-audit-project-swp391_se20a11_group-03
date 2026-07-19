@@ -1,0 +1,4 @@
+﻿{
+  "summary": "Freed port 8096 (stopped Java PID 33608) and restarted backend via start-backend.ps1.",
+  "current_status": "Backend starting on 8096. User should avoid running backend from both IDE and script simultaneously."
+}

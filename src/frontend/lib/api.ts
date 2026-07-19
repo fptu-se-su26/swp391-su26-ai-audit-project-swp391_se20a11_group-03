@@ -4,10 +4,44 @@ import type { TrustStat } from "@/lib/home-data";
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8096/api";
 
+export type ShippingAddress = {
+  receiverName: string;
+  receiverPhone: string;
+  addressLine: string;
+  ward: string;
+  district: string;
+  province: string;
+  note?: string;
+};
+
+export type OrderHistory = { fromStatus: string | null; toStatus: string; changedBy: string; note: string | null; createdAt: string };
+export type DeliveryOrder = ShippingAddress & {
+  orderId: number; auctionId: number; productId: number; productName: string;
+  buyerId: number; sellerId: number; shipperId: number | null;
+  buyerName: string; sellerName: string; shipperName: string | null;
+  finalPrice: number; shippingFee: number; status: string;
+  assignedAt: string | null; deliveredAt: string | null; payoutReleasedAt: string | null;
+  createdAt: string; updatedAt: string; history: OrderHistory[];
+};
+
+export const orderApi = {
+  mine: () => apiFetch<DeliveryOrder[]>("/orders"),
+  one: (id: number) => apiFetch<DeliveryOrder>(`/orders/${id}`),
+  confirmReceived: (id: number) => apiFetch<DeliveryOrder>(`/orders/${id}/confirm-received`, { method: "POST" }),
+  shippingFee: () => apiFetch<{ shippingFee: number }>("/orders/shipping-fee"),
+  staffOrders: (status?: string) => apiFetch<DeliveryOrder[]>(`/staff/orders${status ? `?status=${encodeURIComponent(status)}` : ""}`),
+  shippers: () => apiFetch<{ id: number; username: string; email: string }[]>("/staff/shippers"),
+  assign: (id: number, shipperId: number, note?: string) => apiFetch<DeliveryOrder>(`/staff/orders/${id}/assign`, { method: "POST", body: JSON.stringify({ shipperId, note }) }),
+  failedAction: (id: number, action: "REASSIGN" | "REFUND", shipperId?: number, note?: string) => apiFetch<DeliveryOrder>(`/staff/orders/${id}/failed-action`, { method: "POST", body: JSON.stringify({ action, shipperId, note }) }),
+  shipperMine: () => apiFetch<DeliveryOrder[]>("/shipper/orders"),
+  shipperStatus: (id: number, status: string, note?: string) => apiFetch<DeliveryOrder>(`/shipper/orders/${id}/status`, { method: "POST", body: JSON.stringify({ status, note }) }),
+};
+
 // ---------------------------------------------------------------------------
 // Core fetch helper — tự gắn JWT (lưu ở localStorage sau khi login)
 // ---------------------------------------------------------------------------
 const TOKEN_KEY = "bidzone_token";
+const DEVICE_ID_KEY = "bidzone_device_id";
 const AUTH_ROLE_COOKIE = "bidzone_role";
 export const AUTH_STATE_EVENT = "bidzone-auth-change";
 
@@ -21,6 +55,16 @@ export function setToken(token: string | null) {
   if (token) window.localStorage.setItem(TOKEN_KEY, token);
   else window.localStorage.removeItem(TOKEN_KEY);
   window.dispatchEvent(new Event(AUTH_STATE_EVENT));
+}
+
+export function getOrCreateDeviceId(): string | null {
+  if (typeof window === "undefined") return null;
+  let deviceId = window.localStorage.getItem(DEVICE_ID_KEY);
+  if (!deviceId) {
+    deviceId = window.crypto.randomUUID();
+    window.localStorage.setItem(DEVICE_ID_KEY, deviceId);
+  }
+  return deviceId;
 }
 
 function setAuthRoleCookie(role: ReturnType<typeof toFrontendRole> | null) {
@@ -52,6 +96,7 @@ async function apiFetch<T>(
 ): Promise<T> {
   const { auth = true, headers, ...rest } = options;
   const token = auth ? getToken() : null;
+  const deviceId = auth ? getOrCreateDeviceId() : null;
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
     headers: {
@@ -59,6 +104,7 @@ async function apiFetch<T>(
         ? { "Content-Type": "application/json" }
         : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(deviceId ? { "X-Device-Id": deviceId } : {}),
       ...headers,
     },
   });
@@ -66,7 +112,7 @@ async function apiFetch<T>(
     let message = `HTTP ${res.status}`;
     try {
       const body = await res.json();
-      message = body.message ?? body.error ?? message;
+      message = body.message ?? body.detail ?? body.error ?? message;
     } catch {
       /* body không phải JSON */
     }
@@ -91,7 +137,7 @@ async function postMultipart<T>(path: string, form: FormData): Promise<T> {
     let message = `HTTP ${res.status}`;
     try {
       const body = await res.json();
-      message = body.message ?? body.error ?? message;
+      message = body.message ?? body.detail ?? body.error ?? message;
     } catch {
       /* body không phải JSON */
     }
@@ -170,6 +216,7 @@ export type LoginResponse = {
   roleName: string | null;
   status: string | null;
   identityVerified: boolean;
+  phoneVerified: boolean;
   profileStatus: string | null;
   newUser: boolean;
 };
@@ -257,7 +304,10 @@ export type UserProfile = {
   userId: number;
   fullName: string;
   email: string;
-  phone: string;
+  emailVerified: boolean;
+  phone: string | null;
+  phoneVerified: boolean;
+  phoneVerifiedAt: string | null;
   identityNumber: string | null;
   roleName: string;
   status: string;
@@ -555,7 +605,7 @@ type PublicStatsResponse = {
 /** Map role backend (Admin/Staff/Seller/User) sang role FE dùng trong cookie/proxy. */
 export function toFrontendRole(
   roleName: string | null,
-): "admin" | "staff" | "seller" | "collector" {
+): "admin" | "staff" | "seller" | "collector" | "shipper" {
   switch ((roleName ?? "").toLowerCase()) {
     case "admin":
       return "admin";
@@ -563,6 +613,8 @@ export function toFrontendRole(
       return "staff";
     case "seller":
       return "seller";
+    case "shipper":
+      return "shipper";
     default:
       return "collector";
   }
@@ -584,15 +636,51 @@ export const authApi = {
   register(data: {
     fullName: string;
     email: string;
-    phone?: string;
     password: string;
     confirmPassword: string;
   }) {
-    return apiFetch("/auth/register", {
+    return apiFetch<{ success: boolean; message: string }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(data),
       auth: false,
     });
+  },
+  sendRegistrationEmailCode(email: string) {
+    return apiFetch<{ success: boolean; message: string }>(
+      "/auth/register/email/send-code",
+      {
+        method: "POST",
+        body: JSON.stringify({ email }),
+        auth: false,
+      },
+    );
+  },
+  verifyRegistrationEmailCode(email: string, code: string) {
+    return apiFetch<{
+      success: boolean;
+      message: string;
+      registrationToken: string;
+    }>("/auth/register/email/verify-code", {
+      method: "POST",
+      body: JSON.stringify({ email, code }),
+      auth: false,
+    });
+  },
+  verifyEmail(token: string) {
+    return apiFetch<{ success: boolean; message: string }>(
+      `/auth/verify-email?token=${encodeURIComponent(token)}`,
+      { auth: false },
+    );
+  },
+  resendEmailVerification(email: string) {
+    return apiFetch<{ success: boolean; message: string }>(
+      "/auth/email-verification/resend",
+      {
+        method: "POST",
+        body: JSON.stringify({ email }),
+        auth: false,
+      },
+    );
   },
   async googleLogin(credential: string) {
     const res = await apiFetch<LoginResponse>("/auth/google", {
@@ -726,7 +814,6 @@ export type CccdOcrResult = {
 
 export type KycSubmitPayload = {
   fullName: string;
-  phone: string;
   cccdNumber: string;
   dob: string; // yyyy-MM-dd
   gender: string;
@@ -748,7 +835,6 @@ export const kycApi = {
   submit(payload: KycSubmitPayload) {
     const form = new FormData();
     form.append("fullName", payload.fullName);
-    form.append("phone", payload.phone);
     form.append("cccdNumber", payload.cccdNumber);
     form.append("dob", payload.dob);
     form.append("gender", payload.gender);
@@ -787,6 +873,15 @@ export const sellerContractApi = {
     if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
     return res.blob();
   },
+  /** Fetch the persisted signed agreement PDF. */
+  async signedPdf(): Promise<Blob> {
+    const token = getToken();
+    const res = await fetch(`${API_BASE_URL}/seller-contract/me/pdf`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
+    return res.blob();
+  },
   /**
    * Sign the seller agreement and upgrade User -> Seller immediately.
    * Requires an APPROVED KYC (identityVerified) — enforced server-side.
@@ -814,6 +909,29 @@ export function updateRoleCookie(roleName: string | null) {
     window.dispatchEvent(new Event(AUTH_STATE_EVENT));
   }
 }
+
+export type PremiumStatus = {
+  premium: boolean;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  yearlySaving: number;
+  remainingBalance: number;
+  expiresAt: string | null;
+  accountType: "USER" | "SELLER";
+  message: string;
+};
+
+export const premiumApi = {
+  status() {
+    return apiFetch<PremiumStatus>("/premium/status");
+  },
+  purchase(plan: "MONTHLY" | "YEARLY") {
+    return apiFetch<PremiumStatus>("/premium/purchase", {
+      method: "POST",
+      body: JSON.stringify({ plan }),
+    });
+  },
+};
 
 // ---------------------------------------------------------------------------
 // AUCTIONS & BIDDING — /api/auctions/*, /api/bidding/*
@@ -844,9 +962,10 @@ export const auctionApi = {
       body: JSON.stringify({ bidAmount }),
     });
   },
-  pay(auctionId: number) {
+  pay(auctionId: number, address: ShippingAddress) {
     return apiFetch<Record<string, unknown>>(`/auctions/${auctionId}/pay`, {
       method: "POST",
+      body: JSON.stringify(address),
     });
   },
   purchaseContract(auctionId: number) {
@@ -946,10 +1065,10 @@ export const userApi = {
   profile() {
     return apiFetch<ApiEnvelope<UserProfile>>("/users/me/profile");
   },
-  updateProfile(fullName: string, phone: string) {
+  updateProfile(fullName: string) {
     return apiFetch<ApiEnvelope<UserProfile>>("/users/me/profile", {
       method: "PUT",
-      body: JSON.stringify({ fullName, phone }),
+      body: JSON.stringify({ fullName }),
     });
   },
   changePassword(data: {
@@ -997,10 +1116,9 @@ export const userApi = {
     return apiFetch<Conversation[]>("/v1/conversations/my");
   },
   createConversation(data: {
-    type: "BUYER_STAFF" | "SELLER_STAFF" | "BUYER_SELLER";
+    type: "BUYER_STAFF" | "SELLER_STAFF";
     subject: string;
     firstMessage: string;
-    sellerEmail?: string;
     productId?: number;
   }) {
     return apiFetch<Conversation>("/v1/conversations", {
@@ -1060,10 +1178,10 @@ export async function fetchPublicStats(): Promise<TrustStat[]> {
     if (!response.ok) return [];
     const stats = (await response.json()) as PublicStatsResponse;
     return [
-      { id: "products", value: stats.totalProducts.toLocaleString("vi-VN"), label: "Sản phẩm" },
-      { id: "members", value: stats.totalUsers.toLocaleString("vi-VN"), label: "Thành viên" },
-      { id: "active-auctions", value: stats.activeAuctions.toLocaleString("vi-VN"), label: "Phiên đang chạy" },
-      { id: "completed-auctions", value: stats.completedAuctions.toLocaleString("vi-VN"), label: "Phiên hoàn tất" },
+      { id: "products", value: stats.totalProducts.toLocaleString("vi-VN") },
+      { id: "members", value: stats.totalUsers.toLocaleString("vi-VN") },
+      { id: "active-auctions", value: stats.activeAuctions.toLocaleString("vi-VN") },
+      { id: "completed-auctions", value: stats.completedAuctions.toLocaleString("vi-VN") },
     ];
   } catch {
     return [];
@@ -1187,6 +1305,79 @@ export const adminApi = {
     const qs = q.toString() ? `?${q}` : "";
     return apiFetch<ApiEnvelope<WalletTransaction[]>>(`/admin/dashboard/balance-ledger${qs}`);
   },
+  fraudSettings() {
+    return apiFetch<ApiEnvelope<FraudSettings>>("/admin/settings/fraud-detection");
+  },
+  updateFraudSettings(payload: FraudSettingsUpdate) {
+    return apiFetch<ApiEnvelope<FraudSettings>>("/admin/settings/fraud-detection", {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  },
+  fraudAlerts(params: FraudAlertFilters = {}) {
+    const q = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== "") q.set(key, String(value));
+    }
+    const qs = q.toString() ? `?${q}` : "";
+    return apiFetch<ApiEnvelope<FraudAlert[]>>(`/admin/fraud-alerts${qs}`);
+  },
+  reviewFraudAlert(id: number, note = "") {
+    return fraudAlertAction(id, "review", note);
+  },
+  confirmFraudAlert(id: number, note = "") {
+    return fraudAlertAction(id, "confirm", note);
+  },
+  dismissFraudAlert(id: number, note = "") {
+    return fraudAlertAction(id, "dismiss", note);
+  },
+  restoreFraudUser(id: number, note = "") {
+    return fraudAlertAction(id, "restore-user", note);
+  },
+};
+
+function fraudAlertAction(id: number, action: string, note: string) {
+  return apiFetch<ApiEnvelope<FraudAlert>>(`/admin/fraud-alerts/${id}/${action}`, {
+    method: "POST",
+    body: JSON.stringify({ note }),
+  });
+}
+
+export type FraudSettings = {
+  detectionEnabled: boolean;
+  autoRestrictionEnabled: boolean;
+  alertEnabled: boolean;
+  updatedAt: string | null;
+};
+
+export type FraudSettingsUpdate = Omit<FraudSettings, "updatedAt"> & { reason: string };
+
+export type FraudAlertFilters = {
+  status?: string;
+  riskLevel?: string;
+  fraudType?: string;
+  auctionId?: number;
+  userId?: number;
+};
+
+export type FraudAlert = {
+  id: number;
+  auctionId: number;
+  suspectedUserId: number;
+  triggerBidId: number | null;
+  fraudType: string;
+  signals: string[];
+  riskScore: number;
+  riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  description: string;
+  status: "PENDING" | "REVIEWING" | "CONFIRMED" | "DISMISSED";
+  automaticAction: string;
+  occurrenceCount: number;
+  firstDetectedAt: string;
+  lastDetectedAt: string;
+  reviewedBy: number | null;
+  reviewedAt: string | null;
+  adminNote: string | null;
 };
 
 export type AdminUser = {
@@ -1246,7 +1437,7 @@ function toLiveAuctionItem(p: ProductSummary): LiveAuctionItem {
     title: p.productName,
     subtitle: p.categoryName ?? "",
     currentPrice: `${VND.format(price)} ₫`,
-    estimatedPrice: `Giá khởi điểm ${VND.format(p.startingPrice)} ₫`,
+    estimatedPrice: `${VND.format(p.startingPrice)} ₫`,
     bidCount: p.totalBids ?? 0,
     endsAt: p.auctionEndTime ? new Date(p.auctionEndTime).getTime() : Date.now(),
     imageSrc: toImageSrc(p.imageUrl),
@@ -1340,7 +1531,7 @@ const CATEGORY_IMAGES: Record<string, string> = {
 function formatTimeLeft(endTime: string | null): string {
   if (!endTime) return "—";
   const ms = new Date(endTime).getTime() - Date.now();
-  if (ms <= 0) return "Đã kết thúc";
+  if (ms <= 0) return "00:00:00";
   const totalSec = Math.floor(ms / 1000);
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
@@ -1354,7 +1545,7 @@ function toStorefrontLot(p: ProductSummary): StorefrontLot {
     lotNumber: `LOT ${String(p.productId).padStart(3, "0")}`,
     title: p.productName,
     categoryId: slugify(p.categoryName ?? "khac"),
-    categoryLabel: p.categoryName ?? "Khác",
+    categoryLabel: p.categoryName ?? "",
     currentBid:
       p.currentBid && p.currentBid > 0 ? p.currentBid : p.startingPrice,
     timeLeft: formatTimeLeft(p.auctionEndTime),

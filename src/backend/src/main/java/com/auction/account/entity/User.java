@@ -27,8 +27,14 @@ public class User {
     @Column(name = "Email", nullable = false, unique = true, length = 255)
     private String email;
 
-    @Column(name = "Phone", nullable = false, unique = true, length = 20)
+    @Column(name = "Phone", unique = true, length = 20)
     private String phone;
+
+    @Column(name = "PhoneVerified", nullable = false)
+    private boolean phoneVerified;
+
+    @Column(name = "PhoneVerifiedAt")
+    private LocalDateTime phoneVerifiedAt;
 
     @Column(name = "IdentityNumber", length = 20)
     private String identityNumber;
@@ -78,6 +84,21 @@ public class User {
     @Column(name = "LockedByPaymentStrikes", nullable = false)
     private boolean lockedByPaymentStrikes = false;
 
+    @Column(name = "BidRestrictedUntil")
+    private LocalDateTime bidRestrictedUntil;
+
+    @Column(name = "SuspendedAt")
+    private LocalDateTime suspendedAt;
+
+    @Column(name = "SuspensionReason", length = 500)
+    private String suspensionReason;
+
+    @Column(name = "BannedAt")
+    private LocalDateTime bannedAt;
+
+    @Column(name = "BannedBy")
+    private Long bannedBy;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "RoleId")
     private Role role;
@@ -94,6 +115,7 @@ public class User {
         this.salt = salt;
         this.passwordIterations = passwordIterations;
         this.emailVerified = false;
+        this.phoneVerified = false;
         this.identityVerified = false;
         this.verificationLevel = 0;
         this.profileStatus = "PENDING_PROFILE";
@@ -133,6 +155,22 @@ public class User {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public boolean isPhoneVerified() {
+        return phoneVerified;
+    }
+
+    public void setPhoneVerified(boolean phoneVerified) {
+        this.phoneVerified = phoneVerified;
+    }
+
+    public LocalDateTime getPhoneVerifiedAt() {
+        return phoneVerifiedAt;
+    }
+
+    public void setPhoneVerifiedAt(LocalDateTime phoneVerifiedAt) {
+        this.phoneVerifiedAt = phoneVerifiedAt;
     }
 
     public String getIdentityNumber() {
@@ -278,6 +316,17 @@ public class User {
     public void setLockedByPaymentStrikes(boolean lockedByPaymentStrikes) {
         this.lockedByPaymentStrikes = lockedByPaymentStrikes;
     }
+
+    public LocalDateTime getBidRestrictedUntil() { return bidRestrictedUntil; }
+    public void setBidRestrictedUntil(LocalDateTime bidRestrictedUntil) { this.bidRestrictedUntil = bidRestrictedUntil; }
+    public LocalDateTime getSuspendedAt() { return suspendedAt; }
+    public void setSuspendedAt(LocalDateTime suspendedAt) { this.suspendedAt = suspendedAt; }
+    public String getSuspensionReason() { return suspensionReason; }
+    public void setSuspensionReason(String suspensionReason) { this.suspensionReason = suspensionReason; }
+    public LocalDateTime getBannedAt() { return bannedAt; }
+    public void setBannedAt(LocalDateTime bannedAt) { this.bannedAt = bannedAt; }
+    public Long getBannedBy() { return bannedBy; }
+    public void setBannedBy(Long bannedBy) { this.bannedBy = bannedBy; }
 }
 
 

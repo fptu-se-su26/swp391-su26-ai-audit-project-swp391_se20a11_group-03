@@ -30,6 +30,7 @@
 ```text
 src/
 docs/
+sql/
 .github/
 README.md
 ```
@@ -103,15 +104,96 @@ feat, fix, docs, test, refactor, style, chore
 
 ---
 
-## 8. How to Run
+## 8. SQL Server Setup
+
+The application uses Microsoft SQL Server. For local development, create the database first:
+
+```sql
+IF DB_ID(N'SWP_Nhom3') IS NULL
+BEGIN
+    CREATE DATABASE SWP_Nhom3;
+END;
+GO
+```
+
+The same script is available at:
 
 ```text
-Students write project running instructions here.
+src/main/resources/db/create-database.sql
+```
+
+Default JDBC settings are in `src/main/resources/application.properties`:
+
+```properties
+spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=SWP_Nhom3;encrypt=true;trustServerCertificate=true
+spring.datasource.username=sa
+spring.datasource.password=123
+server.port=8096
+app.seed.enabled=true
+```
+
+On first backend startup, `DataSeeder` creates the required development tables when they are missing and seeds demo roles, users, wallets, products, auctions, KYC support tables, watchlist, notifications, chat tables, and wallet/payment tables.
+
+### Demo Accounts
+
+```text
+Admin: admin@example.com / password
+Staff: staff@example.com / password
+User:  user@example.com / password
+Seller: seller1@example.com / password
 ```
 
 ---
 
-## 9. AI Usage Rule
+## 9. How to Run
+
+### Backend
+
+From the repository root:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+Backend runs on:
+
+```text
+http://localhost:8096
+```
+
+### Frontend
+
+From the repository root:
+
+```powershell
+cd src/frontend
+npm install
+npm run dev
+```
+
+Frontend runs on:
+
+```text
+http://localhost:3000
+```
+
+### SePay Webhook Development
+
+Expose the backend with ngrok:
+
+```powershell
+ngrok http 8096
+```
+
+Use this webhook path on the SePay dashboard:
+
+```text
+https://<your-ngrok-domain>/api/wallet/sepay-webhook
+```
+
+---
+
+## 10. AI Usage Rule
 
 Students are allowed to use AI tools such as ChatGPT, Gemini, Claude, GitHub Copilot, Cursor, Antigravity, or similar tools.
 

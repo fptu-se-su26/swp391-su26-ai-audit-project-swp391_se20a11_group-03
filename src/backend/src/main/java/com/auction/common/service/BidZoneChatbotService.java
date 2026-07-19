@@ -73,7 +73,9 @@ public class BidZoneChatbotService {
                         "content", SYSTEM_PROMPT.formatted(message)
                 )),
                 "temperature", 0.3,
-                "max_completion_tokens", 300
+                "max_completion_tokens", 300,
+                "reasoning_effort", "none",
+                "reasoning_format", "hidden"
         );
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

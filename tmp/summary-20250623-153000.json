@@ -1,0 +1,4 @@
+{
+  "summary": "Fixed Hibernate LazyInitializationException on purchase contract popup (Product#29 no Session). ContractServiceImpl now loads product via AuctionSession+productRepository instead of auction.getProduct(). Same fix in ContractPdfAccessService for PDF generation.",
+  "current_status": "Contract read/sign modal should work after backend restart. Only ContractServiceImpl and ContractPdfAccessService touched for this bug."
+}

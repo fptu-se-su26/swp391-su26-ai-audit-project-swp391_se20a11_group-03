@@ -10,7 +10,4 @@ public class UpdateProfileRequest {
     @Size(min = 2, max = 100)
     private String fullName;
 
-    @NotBlank
-    @Size(min = 9, max = 15)
-    private String phone;
 }

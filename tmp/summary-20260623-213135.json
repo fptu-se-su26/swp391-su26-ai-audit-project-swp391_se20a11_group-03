@@ -1,0 +1,4 @@
+{
+  "summary": "Diagnosed localhost:3000 not working — frontend dev server was not running, and npm run dev from repo root failed because no root package.json existed. Started Next.js dev server in src/frontend (Ready, all key routes return 200). Verified npm run build succeeds and backend on :8096 is up. Added root package.json with dev/build/start/lint scripts that proxy to src/frontend so npm run dev works from project root.",
+  "current_status": "Frontend dev server running at http://localhost:3000; backend at http://localhost:8096. User can start frontend with npm run dev from repo root or src/frontend. Admin dashboard, contracts, sales-history, purchase contract flow, and Google login all implemented; restart backend if new API endpoints needed."
+}

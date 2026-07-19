@@ -8,6 +8,7 @@ import com.auction.account.entity.User;
 import com.auction.account.service.UserPaymentStrikeService;
 import com.auction.common.dto.ApiResponse;
 import com.auction.common.exception.ResourceNotFoundException;
+import com.auction.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -69,6 +70,11 @@ public class AdminUserController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
         boolean active = Boolean.TRUE.equals(body.get("active"));
+        if (active && ("BANNED".equalsIgnoreCase(user.getStatus())
+                || "TEMPORARILY_SUSPENDED".equalsIgnoreCase(user.getStatus())
+                || "BID_RESTRICTED".equalsIgnoreCase(user.getStatus()))) {
+            throw new BusinessException("Use the fraud alert workflow to restore a fraud-restricted account");
+        }
         if (active) {
             userPaymentStrikeService.applyAdminUnlock(user);
         }

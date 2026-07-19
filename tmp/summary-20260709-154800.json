@@ -1,0 +1,4 @@
+﻿{
+  "summary": "Implemented Luxora home fix: LuxeNav with auth sync, LuxeProductFeed from searchProducts API, shared luxuryLotMapper, Header subscribeStoredUser, luxe CTAs to /browse and /dashboard. Cleared .next; /dashboard /luxe /browse all return 200.",
+  "current_status": "Frontend running on 3000. User should hard-refresh /luxe to see real products and avatar when logged in. Run seed_demo_catalog.sql if no lots appear."
+}

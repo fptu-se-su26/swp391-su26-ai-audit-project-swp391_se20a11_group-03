@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import CollectorShell from "@/components/shells/CollectorShell";
-import { ApiError, auctionApi, type PurchaseContractPreview, type WonAuction } from "@/lib/api";
+import { ApiError, auctionApi, type PurchaseContractPreview, type ShippingAddress, type WonAuction } from "@/lib/api";
 import { useApiData } from "@/lib/use-api-data";
 
 async function loadWonItems(): Promise<WonAuction[]> {
@@ -15,8 +16,11 @@ function formatDate(value: string) {
 }
 
 const VND = new Intl.NumberFormat("vi-VN");
+const SHIPPING_FEE = 30_000;
+const EMPTY_ADDRESS: ShippingAddress = { receiverName: "", receiverPhone: "", addressLine: "", ward: "", district: "", province: "", note: "" };
 
 export default function WonItemsPage() {
+  const t = useTranslations("wonItems");
   const { data: wonItems, setData, loading, error } = useApiData(
     loadWonItems,
     [],
@@ -30,6 +34,7 @@ export default function WonItemsPage() {
   const [contractError, setContractError] = useState("");
   const [acceptedContract, setAcceptedContract] = useState(false);
   const [signingContract, setSigningContract] = useState(false);
+  const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS);
 
   async function openContract(item: WonAuction) {
     setContractItem(item);
@@ -43,7 +48,7 @@ export default function WonItemsPage() {
       setContractError(
         cause instanceof ApiError
           ? cause.message
-          : "Không thể tải hợp đồng mua bán.",
+          : t("contractLoadError"),
       );
     } finally {
       setContractLoading(false);
@@ -62,7 +67,7 @@ export default function WonItemsPage() {
       setContractError(
         cause instanceof ApiError
           ? cause.message
-          : "Không thể ký hợp đồng. Vui lòng thử lại.",
+          : t("contractSignError"),
       );
     } finally {
       setSigningContract(false);
@@ -81,7 +86,7 @@ export default function WonItemsPage() {
       setContractError(
         cause instanceof ApiError
           ? cause.message
-          : "Không thể mở file PDF hợp đồng.",
+          : t("contractPdfError"),
       );
     }
   }
@@ -91,7 +96,7 @@ export default function WonItemsPage() {
     setPaySuccess("");
     setPayingId(item.auctionId);
     try {
-      await auctionApi.pay(item.auctionId);
+      await auctionApi.pay(item.auctionId, address);
       setPaySuccess(
         `Đã thanh toán "${item.productName}" thành công từ ví BidZone.`,
       );
@@ -102,7 +107,7 @@ export default function WonItemsPage() {
       setPayError(
         cause instanceof ApiError
           ? cause.message
-          : "Không thể thanh toán. Vui lòng thử lại.",
+          : t("payError"),
       );
     } finally {
       setPayingId(null);
@@ -112,7 +117,7 @@ export default function WonItemsPage() {
   return (
     <CollectorShell>
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <h1 className="font-display-lg text-3xl">Vật phẩm đã thắng</h1>
+        <h1 className="font-display-lg text-3xl">{t("title")}</h1>
 
         {payError ? (
           <p className="mt-4 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
@@ -129,11 +134,11 @@ export default function WonItemsPage() {
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
               <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-white/40">
-                <th className="px-5 py-3 font-medium">Ngày</th>
-                <th className="px-5 py-3 font-medium">Lot &amp; Sản phẩm</th>
-                <th className="px-5 py-3 font-medium">Giá thắng</th>
-                <th className="px-5 py-3 font-medium">Trạng thái thanh toán</th>
-                <th className="px-5 py-3 font-medium">Hành động</th>
+                <th className="px-5 py-3 font-medium">{t("colDate")}</th>
+                <th className="px-5 py-3 font-medium">{t("colLotProduct")}</th>
+                <th className="px-5 py-3 font-medium">{t("colWinPrice")}</th>
+                <th className="px-5 py-3 font-medium">{t("colPayStatus")}</th>
+                <th className="px-5 py-3 font-medium">{t("colAction")}</th>
               </tr>
             </thead>
             <tbody>
@@ -160,10 +165,10 @@ export default function WonItemsPage() {
                       }`}
                     >
                       {item.status === "paid"
-                        ? "Đã thanh toán"
+                        ? t("statusPaid")
                         : item.status === "forfeited"
-                          ? "Đã quá hạn"
-                          : "Đang chờ"}
+                          ? t("statusForfeited")
+                          : t("statusPending")}
                     </span>
                   </td>
                   <td className="px-5 py-4">
@@ -176,15 +181,15 @@ export default function WonItemsPage() {
                           className="gradient-cta rounded-full px-3 py-1.5 text-xs font-semibold text-black disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {payingId === item.auctionId
-                            ? "Đang thanh toán..."
-                            : "Xem hợp đồng"}
+                            ? t("payingBtn")
+                            : t("viewContractBtn")}
                         </button>
                       ) : null}
                       <Link
                         href={`/auctions/${item.auctionId}`}
                         className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium hover:border-[var(--luxora-gold)]"
                       >
-                        Xem phiên đấu giá
+                        {t("viewAuctionBtn")}
                       </Link>
                     </div>
                   </td>
@@ -193,7 +198,7 @@ export default function WonItemsPage() {
               {!loading && wonItems.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-5 py-10 text-center text-white/45">
-                    {error ?? "Bạn chưa thắng phiên đấu giá nào."}
+                    {error ?? t("empty")}
                   </td>
                 </tr>
               )}
@@ -207,7 +212,7 @@ export default function WonItemsPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-[0.25em] text-[var(--luxora-gold)]">
-                    Hợp đồng mua bán
+                    {t("contractTitle")}
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold">{contractItem.productName}</h2>
                 </div>
@@ -220,62 +225,69 @@ export default function WonItemsPage() {
                   }}
                   className="rounded-full border border-white/15 px-3 py-1 text-sm text-white/70 hover:border-white/40 hover:text-white"
                 >
-                  Đóng
+                  {t("contractClose")}
                 </button>
               </div>
 
               {contractLoading ? (
-                <p className="mt-6 text-sm text-white/50">Đang tải hợp đồng...</p>
+                <p className="mt-6 text-sm text-white/50">{t("contractLoading")}</p>
               ) : contract ? (
                 <div className="mt-6 space-y-5">
                   <div className="grid gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm md:grid-cols-2">
                     <div>
-                      <p className="text-white/40">Người bán</p>
+                      <p className="text-white/40">{t("contractSeller")}</p>
                       <p className="mt-1 font-medium">{contract.sellerName}</p>
-                      <p className="text-xs text-white/45">{contract.sellerEmail ?? "Chưa có email"}</p>
+                      <p className="text-xs text-white/45">{contract.sellerEmail ?? t("contractNoEmail")}</p>
                     </div>
                     <div>
-                      <p className="text-white/40">Người mua</p>
+                      <p className="text-white/40">{t("contractBuyer")}</p>
                       <p className="mt-1 font-medium">{contract.buyerName}</p>
-                      <p className="text-xs text-white/45">{contract.buyerEmail ?? "Chưa có email"}</p>
+                      <p className="text-xs text-white/45">{contract.buyerEmail ?? t("contractNoEmail")}</p>
                     </div>
                   </div>
 
                   <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
                     <div className="grid gap-3 text-sm md:grid-cols-3">
                       <div>
-                        <p className="text-white/40">Giá thắng</p>
+                        <p className="text-white/40">{t("contractWinPrice")}</p>
                         <p className="mt-1 font-semibold text-[var(--luxora-gold-light)]">
                           {VND.format(contract.finalPrice)} ₫
                         </p>
                       </div>
                       <div>
-                        <p className="text-white/40">Cọc đang giữ</p>
+                        <p className="text-white/40">{t("contractDeposit")}</p>
                         <p className="mt-1 font-semibold">
                           {VND.format(contract.depositAmount ?? 0)} ₫
                         </p>
                       </div>
                       <div>
-                        <p className="text-white/40">Còn thanh toán</p>
+                        <p className="text-white/40">{t("contractRemaining")}</p>
                         <p className="mt-1 font-semibold text-green-300">
                           {VND.format(contract.remainingAmount ?? contract.finalPrice)} ₫
                         </p>
                       </div>
                     </div>
                     <p className="mt-3 text-xs leading-5 text-white/45">
-                      Khoản cọc đã được giữ trong ví. Khi thanh toán, hệ thống nhả phần cọc đó và chỉ làm giảm số dư khả dụng thêm phần còn lại.
+                      {t("contractDepositNote")}
                     </p>
                   </div>
 
                   <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm leading-6 text-white/70">
                     <p>
-                      Tôi xác nhận mua lot {contractItem.lotNumber} - {contract.productName} với giá thắng{" "}
-                      <span className="font-semibold text-white">{VND.format(contract.finalPrice)} ₫</span>.
-                      Hợp đồng được ký điện tử giữa người bán, người mua và BidZone làm đơn vị vận hành.
+                      {t.rich("contractConfirmText", {
+                        lot: contractItem.lotNumber,
+                        product: contract.productName,
+                        price: `${VND.format(contract.finalPrice)} ₫`,
+                        strong: (chunks) => (
+                          <span className="font-semibold text-white">{chunks}</span>
+                        ),
+                      })}
                     </p>
                     {contract.signed ? (
                       <p className="mt-3 rounded-lg bg-green-500/10 px-3 py-2 text-xs text-green-300">
-                        Đã ký hợp đồng{contract.signedAt ? ` lúc ${formatDate(contract.signedAt)}` : ""}.
+                        {contract.signedAt
+                          ? t("contractSignedAt", { date: formatDate(contract.signedAt) })
+                          : t("contractSigned")}
                       </p>
                     ) : (
                       <label className="mt-4 flex items-start gap-3 text-xs text-white/65">
@@ -285,10 +297,22 @@ export default function WonItemsPage() {
                           onChange={(event) => setAcceptedContract(event.target.checked)}
                           className="mt-1"
                         />
-                        <span>Tôi đã đọc, hiểu và đồng ý ký hợp đồng mua bán điện tử cho vật phẩm này.</span>
+                        <span>{t("contractAgree")}</span>
                       </label>
                     )}
                   </div>
+                  {contract.signed ? (
+                    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                      <h3 className="text-sm font-semibold">Địa chỉ nhận hàng</h3>
+                      <div className="mt-3 grid gap-3 md:grid-cols-2">
+                        {([['receiverName','Người nhận'],['receiverPhone','Số điện thoại'],['addressLine','Số nhà, đường'],['ward','Phường/xã'],['district','Quận/huyện'],['province','Tỉnh/thành phố']] as const).map(([key, label]) => (
+                          <label key={key} className="text-xs text-white/50">{label}<input required value={address[key] ?? ''} onChange={(e) => setAddress((old) => ({ ...old, [key]: e.target.value }))} className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-[var(--luxora-gold)]" /></label>
+                        ))}
+                      </div>
+                      <label className="mt-3 block text-xs text-white/50">Ghi chú<textarea value={address.note} onChange={(e) => setAddress((old) => ({ ...old, note: e.target.value }))} className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" /></label>
+                      <div className="mt-4 border-t border-white/10 pt-3 text-sm"><p className="flex justify-between"><span>Phí giao hàng</span><span>{VND.format(SHIPPING_FEE)} ₫</span></p><p className="mt-2 flex justify-between font-semibold text-[var(--luxora-gold-light)]"><span>Tổng thanh toán</span><span>{VND.format(contract.finalPrice + SHIPPING_FEE)} ₫</span></p></div>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -306,7 +330,7 @@ export default function WonItemsPage() {
                       onClick={() => void viewContractPdf()}
                       className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold hover:border-[var(--luxora-gold)]"
                     >
-                      Xem PDF
+                      {t("contractViewPdf")}
                     </button>
                   ) : null}
                   {!contract.signed ? (
@@ -316,16 +340,16 @@ export default function WonItemsPage() {
                       disabled={!acceptedContract || signingContract}
                       className="gradient-cta rounded-full px-4 py-2 text-xs font-semibold text-black disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {signingContract ? "Đang ký..." : "Ký hợp đồng"}
+                      {signingContract ? t("contractSigning") : t("contractSignBtn")}
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={() => void handlePay(contractItem)}
-                      disabled={payingId !== null}
+                      disabled={payingId !== null || !address.receiverName || !address.receiverPhone || !address.addressLine || !address.ward || !address.district || !address.province}
                       className="gradient-cta rounded-full px-4 py-2 text-xs font-semibold text-black disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {payingId === contractItem.auctionId ? "Đang thanh toán..." : "Thanh toán"}
+                      {payingId === contractItem.auctionId ? t("contractPaying") : t("contractPayBtn")}
                     </button>
                   )}
                 </div>

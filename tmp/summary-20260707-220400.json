@@ -1,0 +1,4 @@
+{
+  "summary": "User rebooted machine; started frontend. Next.js 14.2.5 ready at http://localhost:3000. Root redirects to /luxe (Duc landing merged earlier).",
+  "current_status": "Frontend running on 3000. Backend (8096) not started this turn; needed for login/API/OCR features."
+}

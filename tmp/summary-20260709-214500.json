@@ -1,0 +1,4 @@
+{
+  "summary": "Split collector sidebar from seller menu: Sidebar.tsx now shows 5 collector items under 'yourSpace' for all users; seller/admin users get a second 'sellerPortal' section with Post new item and My auctions. DashboardLayout mobile drawer mirrors the same role-based split. npm run build passes.",
+  "current_status": "Seller sidebar split complete. Collectors no longer see /inventory or /post-item in nav; sellers see dedicated seller portal section. Ready for manual UI check with collector vs seller test accounts."
+}

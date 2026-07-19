@@ -9,14 +9,16 @@ import com.auction.account.entity.UserVerificationToken;
 import com.auction.account.entity.VerificationStatus;
 import com.auction.account.entity.VerificationType;
 import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Service
+@RequiredArgsConstructor
 public class ProfileService {
-    private final UserDAO userDAO = new UserDAO();
-    private final UserVerificationTokenDAO tokenDAO = new UserVerificationTokenDAO();
-    private final IdentityDocumentDAO identityDocumentDAO = new IdentityDocumentDAO();
+    private final UserDAO userDAO;
+    private final UserVerificationTokenDAO tokenDAO;
+    private final IdentityDocumentDAO identityDocumentDAO;
 
     public User getUserById(int userId) {
         return userDAO.findById(userId);
@@ -57,7 +59,9 @@ public class ProfileService {
         user.setEmailVerified(true);
         user.setEmailVerifiedAt(LocalDateTime.now());
         user.setVerificationLevel((byte) Math.max(user.getVerificationLevel(), 1));
-        user.setProfileStatus(VerificationStatus.PENDING_IDENTITY_VERIFY.name());
+        user.setProfileStatus(user.isIdentityVerified()
+                ? VerificationStatus.VERIFIED.name()
+                : VerificationStatus.PENDING_IDENTITY_VERIFY.name());
         userDAO.update(user);
         return true;
     }

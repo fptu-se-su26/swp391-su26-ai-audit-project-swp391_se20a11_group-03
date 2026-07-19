@@ -49,7 +49,6 @@ public class UserProfileController {
         User user = userRepository.findById(Math.toIntExact(principal.getId()))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setFullName(request.getFullName().trim());
-        user.setPhone(request.getPhone().trim());
         user = userRepository.save(user);
         return ResponseEntity.ok(ApiResponse.success("Profile updated", toResponse(user)));
     }
@@ -111,7 +110,10 @@ public class UserProfileController {
                 .userId((long) u.getId())
                 .fullName(u.getFullName())
                 .email(u.getEmail())
+                .emailVerified(u.isEmailVerified())
                 .phone(u.getPhone())
+                .phoneVerified(u.isPhoneVerified())
+                .phoneVerifiedAt(u.getPhoneVerifiedAt())
                 .identityNumber(com.auction.common.util.SensitiveDataMasker.maskCccd(u.getIdentityNumber()))
                 .roleName(u.getRole() != null ? u.getRole().getRoleName() : "User")
                 .status(u.getStatus())

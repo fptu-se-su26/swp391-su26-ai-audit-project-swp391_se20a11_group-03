@@ -38,7 +38,7 @@ public class EmailVerificationController {
         if (user.isEmailVerified() && user.isIdentityVerified()) {
             user.setProfileStatus("VERIFIED");
         } else if (user.isEmailVerified()) {
-            user.setProfileStatus("EMAIL_VERIFIED");
+            user.setProfileStatus("PENDING_IDENTITY_VERIFY");
         }
     }
 }

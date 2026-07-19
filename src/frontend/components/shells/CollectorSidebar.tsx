@@ -3,49 +3,54 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { authApi, fetchAccountSummary, toFrontendRole, userApi, type AccountSummary } from "@/lib/api";
 import { useApiData } from "@/lib/use-api-data";
 
 const STORAGE_KEY = "bidzone-sidebar-collapsed";
 
-/** Sự kiện toàn cục để trang Tin nhắn báo sidebar cập nhật lại số tin chưa đọc. */
+/** Global event used by Messages to refresh the unread badge in the sidebar. */
 export const UNREAD_REFRESH_EVENT = "bidzone:unread-refresh";
 
-type NavItem = { label: string; href: string; icon: string; badge?: string };
-type NavGroup = { title: string; items: NavItem[]; sellerOnly?: boolean };
+type NavItem = { labelKey: string; href: string; icon: string; badge?: string };
+type NavGroup = { titleKey: string; items: NavItem[]; sellerOnly?: boolean };
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    title: "Sàn đấu giá",
+    titleKey: "auction",
     items: [
       { label: "Tổng quan", href: "/dashboard", icon: "dashboard" },
       { label: "Theo dõi", href: "/watchlist", icon: "visibility" },
       { label: "Đã thắng", href: "/won-items", icon: "emoji_events" },
+      { label: "Đơn hàng", href: "/orders", icon: "local_shipping" },
       { label: "Tin nhắn", href: "/messages", icon: "chat" },
     ],
   },
   {
-    title: "Tài khoản",
+    titleKey: "account",
     items: [
       { label: "Ví BidZone", href: "/wallet", icon: "account_balance_wallet" },
       { label: "Xác minh KYC", href: "/kyc", icon: "verified_user" },
       { label: "Hồ sơ", href: "/profile", icon: "person" },
       { label: "Bảo mật", href: "/security", icon: "lock" },
+      { label: "Gói Premium", href: "/premium", icon: "workspace_premium", badge: "VIP" },
     ],
   },
   {
-    title: "Ký gửi",
+    titleKey: "consignment",
     sellerOnly: true,
     items: [
-      { label: "Kho vật phẩm", href: "/inventory", icon: "inventory_2" },
-      { label: "Đăng vật phẩm", href: "/post-item", icon: "add_box" },
-      { label: "Doanh thu", href: "/earnings", icon: "payments" },
+      { labelKey: "inventory", href: "/inventory", icon: "inventory_2" },
+      { labelKey: "postItem", href: "/post-item", icon: "add_box" },
+      { labelKey: "earnings", href: "/earnings", icon: "payments" },
     ],
   },
 ];
 
 export default function CollectorSidebar() {
+  const t = useTranslations("sidebar.collector");
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const { data: account } = useApiData<AccountSummary | null>(fetchAccountSummary, null);
@@ -82,7 +87,7 @@ export default function CollectorSidebar() {
           );
         }
       } catch {
-        /* chưa đăng nhập hoặc backend chưa chạy — bỏ qua */
+        /* No signed-in user or backend is unavailable. */
       }
     }
 
@@ -127,7 +132,7 @@ export default function CollectorSidebar() {
         <button
           type="button"
           onClick={toggleCollapsed}
-          aria-label={collapsed ? "Mở rộng menu" : "Thu nhỏ menu"}
+          aria-label={collapsed ? t("expandMenu") : t("collapseMenu")}
           className="text-white/40 hover:text-white"
         >
           <span className="material-symbols-outlined text-lg">
@@ -144,7 +149,7 @@ export default function CollectorSidebar() {
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">
-                {account?.profile.fullName ?? "Đang tải..."}
+                {account?.profile.fullName ?? t("loading")}
               </p>
               <p className="text-[11px] capitalize text-white/40">
                 {account?.profile.roleName ?? ""}
@@ -153,13 +158,13 @@ export default function CollectorSidebar() {
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div className="rounded-lg bg-white/5 px-2.5 py-2">
-              <p className="text-[10px] text-white/40">Số dư</p>
+              <p className="text-[10px] text-white/40">{t("balance")}</p>
               <p className="text-xs font-semibold text-[var(--luxora-gold-light)]">
                 {(account?.wallet.availableBalance ?? 0).toLocaleString("vi-VN")} ₫
               </p>
             </div>
             <div className="rounded-lg bg-white/5 px-2.5 py-2">
-              <p className="text-[10px] text-white/40">Đặt cọc</p>
+              <p className="text-[10px] text-white/40">{t("deposit")}</p>
               <p className="text-xs font-semibold">
                 {(account?.wallet.holdBalance ?? 0).toLocaleString("vi-VN")} ₫
               </p>
@@ -170,10 +175,10 @@ export default function CollectorSidebar() {
 
       <nav className="custom-scrollbar flex-1 overflow-y-auto px-3 pb-4">
         {navGroups.map((group) => (
-          <div key={group.title} className="mb-5">
+          <div key={group.titleKey} className="mb-5">
             {!collapsed && (
               <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">
-                {group.title}
+                {t(`groups.${group.titleKey}`)}
               </p>
             )}
             <div className="flex flex-col gap-0.5">
@@ -204,7 +209,7 @@ export default function CollectorSidebar() {
                       )}
                     </span>
                     {!collapsed && (
-                      <span className="flex-1 truncate">{item.label}</span>
+                      <span className="flex-1 truncate">{t(`items.${item.labelKey}`)}</span>
                     )}
                     {!collapsed && badge && (
                       <span className="rounded-full bg-[var(--luxora-gold)] px-1.5 py-0.5 text-[10px] font-semibold text-black">
@@ -220,6 +225,7 @@ export default function CollectorSidebar() {
       </nav>
 
       <div className="flex flex-col gap-1 border-t border-white/10 px-3 py-4">
+        {!collapsed && <div className="px-3 pb-2"><LanguageSwitcher /></div>}
         <Link
           href="/wallet"
           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/60 hover:bg-white/5 hover:text-white"
@@ -227,7 +233,7 @@ export default function CollectorSidebar() {
           <span className="material-symbols-outlined text-xl">
             add_circle
           </span>
-          {!collapsed && <span>Nạp quỹ</span>}
+          {!collapsed && <span>{t("topUp")}</span>}
         </Link>
         <Link
           href="/auth"
@@ -235,7 +241,7 @@ export default function CollectorSidebar() {
           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/60 hover:bg-white/5 hover:text-white"
         >
           <span className="material-symbols-outlined text-xl">logout</span>
-          {!collapsed && <span>Đăng xuất</span>}
+          {!collapsed && <span>{t("logout")}</span>}
         </Link>
       </div>
     </aside>
