@@ -1,0 +1,4 @@
+{
+  "summary": "Created full SQL Server schema scripts synced with current codebase: SWP_Nhom3_App_full_schema.sql (26 tables, indexes, roles/categories seed) and SWP_Nhom3_App_drop_all.sql for wiping before recreate. Explained that app already connects to real SQL Server, not in-memory mock data.",
+  "current_status": "User can create fresh DB by running drop script then full schema script in SSMS/sqlcmd. Backend app.seed.enabled=true will add demo users on first start if desired."
+}

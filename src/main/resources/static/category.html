@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Category Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Category Management</h1>
+    <div id="alert-container"></div>
+
+    <!-- Create Category Form -->
+    <div class="card">
+        <h2>Create Category</h2>
+        <form id="create-category-form">
+            <input type="text" name="categoryName" placeholder="Category Name" required>
+            <input type="text" name="description" placeholder="Description">
+            <button type="submit" class="btn-primary">Create Category</button>
+        </form>
+    </div>
+
+    <!-- Category List -->
+    <div class="card">
+        <h2>Categories</h2>
+        <div id="categories-container">
+            <p class="loading">Loading categories...</p>
+        </div>
+    </div>
+
+    <a href="admin.html" style="margin-top: 1rem; display: inline-block;">← Back to Admin</a>
+
+    <script src="api.js"></script>
+    <script>
+        let categories = [];
+
+        function showAlert(message, type = "success") {
+            const container = document.getElementById("alert-container");
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                container.innerHTML = "";
+            }, 3000);
+        }
+
+        async function loadCategories() {
+            const container = document.getElementById("categories-container");
+            container.innerHTML = `<p class="loading">Loading categories...</p>`;
+            try {
+                const result = await getCategories();
+                categories = result.data;
+                renderCategories();
+            } catch (error) {
+                showAlert(error.message, "error");
+            }
+        }
+
+        function renderCategories() {
+            const container = document.getElementById("categories-container");
+            if (!categories.length) {
+                container.innerHTML = "<p>No categories found</p>";
+                return;
+            }
+
+            let html = "<table><thead><tr><th>ID</th><th>Name</th><th>Description</th><th>Is Active</th></tr></thead><tbody>";
+            categories.forEach(category => {
+                html += `<tr><td>${category.categoryId}</td><td>${category.categoryName}</td><td>${category.description || "-"}</td><td>${category.isActive ? "Yes" : "No"}</td></tr>`;
+            });
+            html += "</tbody></table>";
+            container.innerHTML = html;
+        }
+
+        async function handleCategorySubmit(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const categoryData = Object.fromEntries(formData.entries());
+            try {
+                await createCategory(categoryData);
+                event.target.reset();
+                showAlert("Category created successfully!");
+                loadCategories();
+            } catch (error) {
+                showAlert(error.message, "error");
+            }
+        }
+
+        // Initialize
+        document.getElementById("create-category-form").addEventListener("submit", handleCategorySubmit);
+        loadCategories();
+    </script>
+</body>
+</html>

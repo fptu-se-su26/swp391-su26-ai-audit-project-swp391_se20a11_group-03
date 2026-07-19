@@ -30,10 +30,11 @@ const NAV_GROUPS: NavGroup[] = [
   {
     titleKey: "account",
     items: [
-      { labelKey: "wallet", href: "/wallet", icon: "account_balance_wallet" },
-      { labelKey: "kyc", href: "/kyc", icon: "verified_user" },
-      { labelKey: "profile", href: "/profile", icon: "person" },
-      { labelKey: "security", href: "/security", icon: "lock" },
+      { label: "Ví BidZone", href: "/wallet", icon: "account_balance_wallet" },
+      { label: "Xác minh KYC", href: "/kyc", icon: "verified_user" },
+      { label: "Hồ sơ", href: "/profile", icon: "person" },
+      { label: "Bảo mật", href: "/security", icon: "lock" },
+      { label: "Gói Premium", href: "/premium", icon: "workspace_premium", badge: "VIP" },
     ],
   },
   {

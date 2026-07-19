@@ -1,0 +1,4 @@
+﻿{
+  "summary": "Fixed seller contract flow: POST /sign only acknowledges, new POST /submit persists contract and upgrades role after KYC; updated become-seller two-step UI and KYC seller agreement; user1@gmail.com submit creates contract and product API no longer returns contract error.",
+  "current_status": "Stuck user nguyenngocbaolong (userId 16) should visit /become-seller, acknowledge, then Gửi đăng ký Seller. Backend running on 8096."
+}

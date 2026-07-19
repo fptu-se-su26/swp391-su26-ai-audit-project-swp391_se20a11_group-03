@@ -1,0 +1,4 @@
+{
+  "summary": "User asked to run localhost:3000 after turning on PC. Started frontend via start-frontend.ps1 — Next.js Ready at http://localhost:3000. Also started backend on 8096; backend hit 'Error creating' during startup (likely DB/SQL Server). Frontend is up; backend needs check if user needs API.",
+  "current_status": "Frontend running on http://localhost:3000. Backend startup may have failed — verify SQL Server and restart backend if login/API needed."
+}

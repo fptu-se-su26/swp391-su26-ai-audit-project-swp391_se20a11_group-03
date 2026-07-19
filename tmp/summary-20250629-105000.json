@@ -1,0 +1,4 @@
+{
+  "summary": "Created demo won auction 'Demo Contract Test Lot' (auctionId 12) for user123@gmail.com via DataSeeder.seedDemoWonAuctionForContractTest — AWAITING_PAYMENT, 2.6M VND, 3-day deadline, contract reset on each backend restart. Fixed AuctionStatus enum missing AWAITING_PAYMENT/PAID/FORFEITED which caused /api/bids/won to return empty. Backend restarted and API verified.",
+  "current_status": "User can login user123@gmail.com/123456, open /won-items or /auctions/12 to test electronic purchase contract signing and payment."
+}

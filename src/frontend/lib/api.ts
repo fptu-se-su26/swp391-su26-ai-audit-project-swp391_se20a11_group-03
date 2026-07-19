@@ -838,6 +838,15 @@ export const sellerContractApi = {
     if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
     return res.blob();
   },
+  /** Fetch the persisted signed agreement PDF. */
+  async signedPdf(): Promise<Blob> {
+    const token = getToken();
+    const res = await fetch(`${API_BASE_URL}/seller-contract/me/pdf`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
+    return res.blob();
+  },
   /**
    * Sign the seller agreement and upgrade User -> Seller immediately.
    * Requires an APPROVED KYC (identityVerified) — enforced server-side.
@@ -865,6 +874,29 @@ export function updateRoleCookie(roleName: string | null) {
     window.dispatchEvent(new Event(AUTH_STATE_EVENT));
   }
 }
+
+export type PremiumStatus = {
+  premium: boolean;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  yearlySaving: number;
+  remainingBalance: number;
+  expiresAt: string | null;
+  accountType: "USER" | "SELLER";
+  message: string;
+};
+
+export const premiumApi = {
+  status() {
+    return apiFetch<PremiumStatus>("/premium/status");
+  },
+  purchase(plan: "MONTHLY" | "YEARLY") {
+    return apiFetch<PremiumStatus>("/premium/purchase", {
+      method: "POST",
+      body: JSON.stringify({ plan }),
+    });
+  },
+};
 
 // ---------------------------------------------------------------------------
 // AUCTIONS & BIDDING — /api/auctions/*, /api/bidding/*

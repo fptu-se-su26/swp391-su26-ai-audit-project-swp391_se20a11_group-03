@@ -1,0 +1,4 @@
+{
+  "summary": "User hit port 8096 already in use again. Freed port (stopped java PID 28316) and restarted backend via npm run backend.",
+  "current_status": "Port 8096 freed; backend starting. User should run only one backend instance (IDE or terminal, not both)."
+}

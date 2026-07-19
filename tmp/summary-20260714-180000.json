@@ -1,0 +1,4 @@
+{
+  "summary": "Diagnosed backend crash without code changes: NPE/Hibernate dialect errors are secondary. Root cause is SQL login failure for user sa with password 123456 from application.properties; Windows auth to localhost works and SWP_Nhom3_App exists. Spring cannot open JDBC connection so EntityManagerFactory fails and Tomcat aborts.",
+  "current_status": "Frontend localhost:3000 up if previously started. Backend down until sa password (or SQL auth) is corrected outside code, or app datasource credentials updated."
+}

@@ -1,0 +1,4 @@
+{
+  "summary": "User could not access localhost:3000 after reboot. Diagnosed: no server was running. Started frontend via npm run frontend; Next.js 14.2.5 ready on http://localhost:3000.",
+  "current_status": "Frontend dev server running in background. User can open localhost:3000. Backend (8096) not started unless they need API."
+}

@@ -1,0 +1,4 @@
+﻿{
+  "summary": "Implemented admin revenue chart date range (from/to pickers, 7/30/90 day presets, zero-filled buckets), new /api/admin/dashboard/auction-sessions API with PAID/UNPAID/ALL filter, rebuilt /admin/auction-history page with payment tabs and date filters, and seeded seller1@gmail.com/123456 with KYC verified, wallet, and seller contract.",
+  "current_status": "Admin dashboard revenue chart supports date range; auction history shows paid vs unpaid sessions; seller1@gmail.com ready for post-item after backend restart to run DataSeeder."
+}

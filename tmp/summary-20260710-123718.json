@@ -1,0 +1,4 @@
+﻿{
+    "summary":  "Started Next.js frontend via scripts/start-frontend.ps1 -Clean. Server is ready at http://localhost:3000.",
+    "current_status":  "Frontend running on localhost:3000. Backend not started in this turn; user only asked for frontend."
+}

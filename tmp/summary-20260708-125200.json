@@ -1,0 +1,4 @@
+{
+  "summary": "Sau khi người dùng bật máy mới, đã kiểm tra cổng 3000 (trống) và khởi động frontend bằng npm run frontend. Next.js 14.2.5 đã sẵn sàng tại http://localhost:3000 trong khoảng 2 giây.",
+  "current_status": "Frontend đang chạy tại localhost:3000. Backend chưa được khởi động trong lượt này — cần chạy thêm nếu muốn đăng nhập/API hoạt động."
+}
