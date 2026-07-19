@@ -141,7 +141,7 @@ export default function StorefrontLotBrowser({
 
   return (
     <div className="min-w-0">
-      <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+      <div className="storefront-toolbar mb-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
         <div className="grid gap-3 xl:grid-cols-[minmax(320px,1fr)_auto] xl:items-center">
           <label className="storefront-control flex h-10 min-w-0 items-center gap-2 rounded-xl border border-white/10 bg-[var(--luxora-bg-elevated)] px-3 focus-within:border-[var(--luxora-gold)]">
             <span className="material-symbols-outlined text-base text-white/35">
@@ -268,9 +268,9 @@ export default function StorefrontLotBrowser({
             <Link
               key={lot.id}
               href={`/auctions/${lot.id}`}
-              className="glass-card group flex h-full flex-col overflow-hidden rounded-2xl"
+              className="storefront-lot-card glass-card group flex h-full flex-col overflow-hidden rounded-2xl"
             >
-              <div className="theme-dark-content relative aspect-[4/3] w-full overflow-hidden bg-[#030303]">
+              <div className="storefront-lot-media theme-dark-content relative aspect-[4/3] w-full overflow-hidden bg-[#030303]">
                 <Image
                   src={lot.image}
                   alt={lot.title}
@@ -278,7 +278,6 @@ export default function StorefrontLotBrowser({
                   sizes="(min-width: 1536px) 20vw, (min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
                   className="object-contain p-4 transition-transform duration-300 group-hover:scale-[1.03] sm:p-6"
                 />
-                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
                 {lot.isLive && (
                   <span className="pulse-live absolute left-3 top-3 rounded-full bg-red-500/90 px-2.5 py-1 text-[10px] font-semibold text-white">
                     LIVE

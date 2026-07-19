@@ -41,7 +41,7 @@ export default function StorefrontCategoryFilter({
   }, [categories, query]);
 
   return (
-    <aside className="glass-panel h-fit rounded-2xl border border-white/10 bg-white/[0.03] p-4 lg:sticky lg:top-24">
+    <aside className="storefront-category-panel glass-panel h-fit rounded-2xl border border-white/10 bg-white/[0.03] p-4 lg:sticky lg:top-24">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-white/40">

@@ -8,7 +8,7 @@ import StorefrontDataFallback from "./StorefrontDataFallback";
 
 export default function StorefrontPage() {
   return (
-    <div className="luxora-app flex min-h-screen flex-col bg-black text-white">
+    <div className="storefront-page luxora-app flex min-h-screen flex-col bg-black text-white">
       <Header />
       <main className="flex-1">
         <div className="w-full px-4 py-8 sm:px-6 lg:px-8 xl:px-10">
@@ -33,7 +33,7 @@ export default function StorefrontPage() {
               className="storefront-hero__overlay absolute inset-0"
               aria-hidden="true"
             />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_45%,rgba(240,201,130,0.12),transparent_34%)]" />
+            <div className="storefront-hero__radial absolute inset-0 bg-[radial-gradient(circle_at_72%_45%,rgba(240,201,130,0.12),transparent_34%)]" />
             <div className="relative z-10 flex max-w-2xl flex-col gap-5 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
               <span className="text-xs font-semibold tracking-[0.3em] text-[var(--luxora-gold)]">
                 BIDZONE STOREFRONT
