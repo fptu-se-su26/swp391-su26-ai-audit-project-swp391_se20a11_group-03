@@ -43,20 +43,12 @@ public class TwilioVerifyService {
     }
 
     public String normalizePhone(String value) {
-        if (value == null) {
-            throw new IllegalArgumentException("Vui lòng nhập số điện thoại.");
-        }
-        String compact = value.trim().replaceAll("[\\s().-]", "");
-        if (compact.startsWith("0")) {
-            compact = "+84" + compact.substring(1);
-        } else if (compact.startsWith("84")) {
-            compact = "+" + compact;
-        }
-        if (!compact.matches("^\\+[1-9]\\d{7,14}$")) {
+        String localPhone = value == null ? "" : value.trim();
+        if (!localPhone.matches("^0\\d{9}$")) {
             throw new IllegalArgumentException(
-                    "Số điện thoại không hợp lệ. Hãy nhập số Việt Nam bắt đầu bằng 0 hoặc định dạng quốc tế +84.");
+                    "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 0.");
         }
-        return compact;
+        return "+84" + localPhone.substring(1);
     }
 
     public void startVerification(String phone, String channel) {

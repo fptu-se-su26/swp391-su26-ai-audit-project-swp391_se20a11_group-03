@@ -27,6 +27,14 @@ const EMPTY_PROFILE: UserProfile = {
   lockedByPaymentStrikes: false,
 };
 
+function toVietnameseLocalPhone(value: string | null): string {
+  if (!value) return "";
+  const compact = value.trim();
+  if (/^\+84\d{9}$/.test(compact)) return `0${compact.slice(3)}`;
+  if (/^84\d{9}$/.test(compact)) return `0${compact.slice(2)}`;
+  return compact;
+}
+
 export default function ProfileClient() {
   const { data: profile, setData, loading, error } = useApiData(
     loadProfile,
@@ -61,9 +69,15 @@ export default function ProfileClient() {
   }
 
   async function sendOtp() {
-    const phone = (phoneDraft ?? profile.phone ?? "").trim();
+    const phone = toVietnameseLocalPhone(phoneDraft ?? profile.phone);
     setPhoneError("");
     setPhoneMessage("");
+    if (!/^0\d{9}$/.test(phone)) {
+      setPhoneError(
+        "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 0.",
+      );
+      return;
+    }
     setPhoneBusy(true);
     try {
       const response = await userApi.sendPhoneVerification(phone, channel);
@@ -94,7 +108,7 @@ export default function ProfileClient() {
     try {
       const response = await userApi.checkPhoneVerification(otp.trim());
       setData(response.data);
-      setPhoneDraft(response.data.phone);
+      setPhoneDraft(null);
       setOtp("");
       setOtpSent(false);
       setPhoneMessage("Số điện thoại đã được xác minh thành công.");
@@ -116,7 +130,7 @@ export default function ProfileClient() {
     .map((part) => part[0])
     .join("")
     .toUpperCase();
-  const currentPhone = phoneDraft ?? profile.phone ?? "";
+  const currentPhone = toVietnameseLocalPhone(phoneDraft ?? profile.phone);
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
@@ -239,8 +253,8 @@ export default function ProfileClient() {
               Xác minh số điện thoại
             </p>
             <p className="mt-1 text-xs leading-5 text-white/40">
-              Nhận mã OTP qua SMS hoặc WhatsApp. Số Việt Nam sẽ tự chuyển sang
-              định dạng +84.
+              Nhập đúng 10 chữ số Việt Nam bắt đầu bằng 0. Hệ thống sẽ tự
+              chuyển sang định dạng +84 để gửi OTP.
             </p>
           </div>
           <span
@@ -257,7 +271,9 @@ export default function ProfileClient() {
         {profile.phoneVerified && !changingPhone ? (
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-green-500/20 bg-green-500/[0.05] px-4 py-3">
             <div>
-              <p className="text-sm font-semibold">{profile.phone}</p>
+              <p className="text-sm font-semibold">
+                {toVietnameseLocalPhone(profile.phone)}
+              </p>
               <p className="mt-0.5 text-[11px] text-green-300">
                 Số điện thoại đã được xác minh
               </p>
@@ -266,7 +282,7 @@ export default function ProfileClient() {
               type="button"
               onClick={() => {
                 setChangingPhone(true);
-                setPhoneDraft(profile.phone);
+                setPhoneDraft(toVietnameseLocalPhone(profile.phone));
                 setPhoneMessage("");
                 setPhoneError("");
               }}
@@ -280,15 +296,19 @@ export default function ProfileClient() {
         <div className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
           <input
             type="tel"
-            inputMode="tel"
+            inputMode="numeric"
+            maxLength={10}
             value={currentPhone}
             onChange={(event) => {
-              setPhoneDraft(event.target.value);
+              setPhoneDraft(
+                event.target.value.replace(/\D/g, "").slice(0, 10),
+              );
               setOtpSent(false);
               setOtp("");
               setPhoneMessage("");
+              setPhoneError("");
             }}
-            placeholder="0901234567 hoặc +84901234567"
+            placeholder="0901234567"
             className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm outline-none placeholder:text-white/25 focus:border-[var(--luxora-gold)]"
           />
           <div className="flex rounded-xl border border-white/10 bg-white/[0.03] p-1">
@@ -312,7 +332,7 @@ export default function ProfileClient() {
         <button
           type="button"
           onClick={() => void sendOtp()}
-          disabled={phoneBusy || !currentPhone.trim()}
+          disabled={phoneBusy || !/^0\d{9}$/.test(currentPhone)}
           className="mt-3 rounded-full border border-[var(--luxora-gold)]/40 px-5 py-2.5 text-xs font-semibold text-[var(--luxora-gold-light)] transition hover:bg-[var(--luxora-gold)]/10 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {phoneBusy
