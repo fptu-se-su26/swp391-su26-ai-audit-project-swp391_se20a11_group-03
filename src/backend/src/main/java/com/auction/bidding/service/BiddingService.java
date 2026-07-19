@@ -19,6 +19,9 @@ import com.auction.bidding.util.AuctionPhaseUtil;
 import com.auction.bidding.util.StepCalculator;
 import com.auction.product.repository.ProductImageRepository;
 import com.auction.product.repository.ProductRepository;
+import com.auction.account.dao.UserRepository;
+import com.auction.account.entity.User;
+import com.auction.fraud.event.BidCreatedEvent;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -32,6 +35,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Service
 public class BiddingService {
@@ -49,6 +53,8 @@ public class BiddingService {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final AuctionDepositRepository auctionDepositRepository;
+    private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final ReentrantLock auctionLock = new ReentrantLock(true);
 
     public BiddingService(
@@ -57,7 +63,9 @@ public class BiddingService {
             BidRepository bidRepository,
             ProductRepository productRepository,
             ProductImageRepository productImageRepository,
-            AuctionDepositRepository auctionDepositRepository
+            AuctionDepositRepository auctionDepositRepository,
+            UserRepository userRepository,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.auctionSessionRepository = auctionSessionRepository;
         this.auctionRepository = auctionRepository;
@@ -65,6 +73,8 @@ public class BiddingService {
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.auctionDepositRepository = auctionDepositRepository;
+        this.userRepository = userRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public List<AuctionSessionDto> getOpenRooms() {
@@ -83,6 +93,15 @@ public class BiddingService {
                     && biddingProduct.getSellerId() != null
                     && biddingProduct.getSellerId().equals(request.getUserId())) {
                 return BidResponse.fail("Người bán không thể tự đặt giá cho sản phẩm của mình");
+            }
+
+            User bidder = userRepository.findById(Math.toIntExact(request.getUserId())).orElse(null);
+            if (bidder == null) {
+                return BidResponse.fail("Bidder account does not exist");
+            }
+            String bidderStatusError = validateBidderStatus(bidder);
+            if (bidderStatusError != null) {
+                return BidResponse.fail(bidderStatusError);
             }
 
             boolean timedMode = auction.getAuctionMode() == AuctionMode.TIMED;
@@ -144,7 +163,9 @@ public class BiddingService {
             bid.setUserId(request.getUserId());
             bid.setBidAmount(request.getBidAmount());
             bid.setBidTime(now);
-            bidRepository.save(bid);
+            bid.setIpAddress(request.getIpAddress());
+            bid.setDeviceHash(request.getDeviceHash());
+            Bid savedBid = bidRepository.save(bid);
 
             auction.setCurrentHighestBid(request.getBidAmount());
             auction.setCurrentWinnerUserId(request.getUserId());
@@ -167,10 +188,35 @@ public class BiddingService {
 
             auctionSessionRepository.save(auction);
 
+            if (savedBid != null && savedBid.getBidId() != null) {
+                eventPublisher.publishEvent(new BidCreatedEvent(savedBid.getBidId()));
+            }
+
             return BidResponse.success(auction.getAuctionId(), request.getUserId(), request.getBidAmount(), auction.getCurrentHighestBid(), auction.getEndTime());
         } finally {
             auctionLock.unlock();
         }
+    }
+
+    private String validateBidderStatus(User bidder) {
+        String status = bidder.getStatus();
+        if (!bidder.isActive() || "BANNED".equalsIgnoreCase(status)) {
+            return "Account is banned or inactive";
+        }
+        if ("TEMPORARILY_SUSPENDED".equalsIgnoreCase(status)) {
+            return "Account is temporarily suspended";
+        }
+        if ("BID_RESTRICTED".equalsIgnoreCase(status)) {
+            if (bidder.getBidRestrictedUntil() != null
+                    && bidder.getBidRestrictedUntil().isAfter(LocalDateTime.now())) {
+                return "Bidding is restricted until " + bidder.getBidRestrictedUntil();
+            }
+            bidder.setStatus("ACTIVE");
+            bidder.setBidRestrictedUntil(null);
+            bidder.setSuspensionReason(null);
+            userRepository.save(bidder);
+        }
+        return null;
     }
 
     /**

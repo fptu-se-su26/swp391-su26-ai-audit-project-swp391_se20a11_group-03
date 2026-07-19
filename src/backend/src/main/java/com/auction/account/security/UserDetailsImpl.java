@@ -27,7 +27,10 @@ public class UserDetailsImpl implements UserDetails {
         this.password = "";
         this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + (user.getRole() != null ? user.getRole().getRoleName() : "User")));
         this.enabled = user.isActive();
-        this.accountNonLocked = !"LOCKED".equalsIgnoreCase(user.getStatus());
+        String status = user.getStatus();
+        this.accountNonLocked = !"LOCKED".equalsIgnoreCase(status)
+                && !"TEMPORARILY_SUSPENDED".equalsIgnoreCase(status)
+                && !"BANNED".equalsIgnoreCase(status);
     }
 
     @Override

@@ -99,11 +99,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
       try {
         const res = await authApi.googleLogin(response.credential);
         const role = toFrontendRole(res.roleName);
-        router.push(
-          res.phoneVerified
-            ? (redirectAfterAuth ?? ROLE_HOME[role])
-            : "/profile?verifyPhone=1",
-        );
+        router.push(redirectAfterAuth ?? ROLE_HOME[role]);
       } catch (err) {
         setLoginError(
           err instanceof ApiError
@@ -239,11 +235,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
 
       const res = await authApi.login(email.trim().toLowerCase(), password);
       const role = toFrontendRole(res.roleName);
-      router.push(
-        res.phoneVerified
-          ? (redirectAfterAuth ?? ROLE_HOME[role])
-          : "/profile?verifyPhone=1",
-      );
+      router.push(redirectAfterAuth ?? ROLE_HOME[role]);
     } catch (err) {
       if (err instanceof ApiError) {
         setLoginError(

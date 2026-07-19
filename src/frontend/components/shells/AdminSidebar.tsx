@@ -51,6 +51,8 @@ const NAV_GROUPS: AdminNavGroup[] = [
       { href: "/admin/users", icon: "manage_accounts", labelKey: "users" },
       { href: "/admin/categories", icon: "category", labelKey: "categories" },
       { href: "/admin/bidding-rules", icon: "gavel", labelKey: "biddingRules" },
+      { href: "/admin/fraud-alerts", icon: "shield_lock", labelKey: "fraudAlerts" },
+      { href: "/admin/fraud-settings", icon: "tune", labelKey: "fraudSettings" },
       { href: "/admin/audit-logs", icon: "fact_check", labelKey: "auditLogs" },
     ],
   },

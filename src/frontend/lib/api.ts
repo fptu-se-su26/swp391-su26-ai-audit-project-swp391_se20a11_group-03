@@ -8,6 +8,7 @@ export const API_BASE_URL =
 // Core fetch helper — tự gắn JWT (lưu ở localStorage sau khi login)
 // ---------------------------------------------------------------------------
 const TOKEN_KEY = "bidzone_token";
+const DEVICE_ID_KEY = "bidzone_device_id";
 const AUTH_ROLE_COOKIE = "bidzone_role";
 export const AUTH_STATE_EVENT = "bidzone-auth-change";
 
@@ -21,6 +22,16 @@ export function setToken(token: string | null) {
   if (token) window.localStorage.setItem(TOKEN_KEY, token);
   else window.localStorage.removeItem(TOKEN_KEY);
   window.dispatchEvent(new Event(AUTH_STATE_EVENT));
+}
+
+export function getOrCreateDeviceId(): string | null {
+  if (typeof window === "undefined") return null;
+  let deviceId = window.localStorage.getItem(DEVICE_ID_KEY);
+  if (!deviceId) {
+    deviceId = window.crypto.randomUUID();
+    window.localStorage.setItem(DEVICE_ID_KEY, deviceId);
+  }
+  return deviceId;
 }
 
 function setAuthRoleCookie(role: ReturnType<typeof toFrontendRole> | null) {
@@ -52,6 +63,7 @@ async function apiFetch<T>(
 ): Promise<T> {
   const { auth = true, headers, ...rest } = options;
   const token = auth ? getToken() : null;
+  const deviceId = auth ? getOrCreateDeviceId() : null;
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
     headers: {
@@ -59,6 +71,7 @@ async function apiFetch<T>(
         ? { "Content-Type": "application/json" }
         : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(deviceId ? { "X-Device-Id": deviceId } : {}),
       ...headers,
     },
   });
@@ -990,24 +1003,6 @@ export const userApi = {
       body: JSON.stringify({ fullName }),
     });
   },
-  sendPhoneVerification(phone: string, channel: "SMS" | "WHATSAPP") {
-    return apiFetch<ApiEnvelope<UserProfile>>(
-      "/users/me/phone-verification/send",
-      {
-        method: "POST",
-        body: JSON.stringify({ phone, channel }),
-      },
-    );
-  },
-  checkPhoneVerification(code: string) {
-    return apiFetch<ApiEnvelope<UserProfile>>(
-      "/users/me/phone-verification/check",
-      {
-        method: "POST",
-        body: JSON.stringify({ code }),
-      },
-    );
-  },
   changePassword(data: {
     currentPassword: string;
     newPassword: string;
@@ -1243,6 +1238,79 @@ export const adminApi = {
     const qs = q.toString() ? `?${q}` : "";
     return apiFetch<ApiEnvelope<WalletTransaction[]>>(`/admin/dashboard/balance-ledger${qs}`);
   },
+  fraudSettings() {
+    return apiFetch<ApiEnvelope<FraudSettings>>("/admin/settings/fraud-detection");
+  },
+  updateFraudSettings(payload: FraudSettingsUpdate) {
+    return apiFetch<ApiEnvelope<FraudSettings>>("/admin/settings/fraud-detection", {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  },
+  fraudAlerts(params: FraudAlertFilters = {}) {
+    const q = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== "") q.set(key, String(value));
+    }
+    const qs = q.toString() ? `?${q}` : "";
+    return apiFetch<ApiEnvelope<FraudAlert[]>>(`/admin/fraud-alerts${qs}`);
+  },
+  reviewFraudAlert(id: number, note = "") {
+    return fraudAlertAction(id, "review", note);
+  },
+  confirmFraudAlert(id: number, note = "") {
+    return fraudAlertAction(id, "confirm", note);
+  },
+  dismissFraudAlert(id: number, note = "") {
+    return fraudAlertAction(id, "dismiss", note);
+  },
+  restoreFraudUser(id: number, note = "") {
+    return fraudAlertAction(id, "restore-user", note);
+  },
+};
+
+function fraudAlertAction(id: number, action: string, note: string) {
+  return apiFetch<ApiEnvelope<FraudAlert>>(`/admin/fraud-alerts/${id}/${action}`, {
+    method: "POST",
+    body: JSON.stringify({ note }),
+  });
+}
+
+export type FraudSettings = {
+  detectionEnabled: boolean;
+  autoRestrictionEnabled: boolean;
+  alertEnabled: boolean;
+  updatedAt: string | null;
+};
+
+export type FraudSettingsUpdate = Omit<FraudSettings, "updatedAt"> & { reason: string };
+
+export type FraudAlertFilters = {
+  status?: string;
+  riskLevel?: string;
+  fraudType?: string;
+  auctionId?: number;
+  userId?: number;
+};
+
+export type FraudAlert = {
+  id: number;
+  auctionId: number;
+  suspectedUserId: number;
+  triggerBidId: number | null;
+  fraudType: string;
+  signals: string[];
+  riskScore: number;
+  riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  description: string;
+  status: "PENDING" | "REVIEWING" | "CONFIRMED" | "DISMISSED";
+  automaticAction: string;
+  occurrenceCount: number;
+  firstDetectedAt: string;
+  lastDetectedAt: string;
+  reviewedBy: number | null;
+  reviewedAt: string | null;
+  adminNote: string | null;
 };
 
 export type AdminUser = {

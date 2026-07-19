@@ -12,6 +12,9 @@ import com.auction.product.repository.ProductImageRepository;
 import com.auction.product.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import com.auction.account.dao.UserRepository;
+import com.auction.account.entity.User;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -31,6 +34,8 @@ class BiddingServiceAccessTest {
     private final ProductRepository productRepository = mock(ProductRepository.class);
     private final ProductImageRepository imageRepository = mock(ProductImageRepository.class);
     private final AuctionDepositRepository depositRepository = mock(AuctionDepositRepository.class);
+    private final UserRepository userRepository = mock(UserRepository.class);
+    private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
     private BiddingService service;
 
@@ -42,7 +47,9 @@ class BiddingServiceAccessTest {
                 bidRepository,
                 productRepository,
                 imageRepository,
-                depositRepository);
+                depositRepository,
+                userRepository,
+                eventPublisher);
     }
 
     @Test
@@ -66,6 +73,7 @@ class BiddingServiceAccessTest {
         Product product = product(70L, 42L);
         when(sessionRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(session));
         when(productRepository.findById(70L)).thenReturn(Optional.of(product));
+        when(userRepository.findById(99)).thenReturn(Optional.of(activeUser(99)));
         when(depositRepository.findByAuction_AuctionIdAndUser_Id(7L, 99))
                 .thenReturn(Optional.empty());
 
@@ -83,6 +91,7 @@ class BiddingServiceAccessTest {
         Product product = product(70L, 42L);
         when(sessionRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(session));
         when(productRepository.findById(70L)).thenReturn(Optional.of(product));
+        when(userRepository.findById(99)).thenReturn(Optional.of(activeUser(99)));
         when(depositRepository.findByAuction_AuctionIdAndUser_Id(7L, 99))
                 .thenReturn(Optional.empty());
 
@@ -90,6 +99,23 @@ class BiddingServiceAccessTest {
 
         assertFalse(response.isSuccess());
         assertTrue(response.getMessage().contains("phải đặt cọc"));
+        verify(bidRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void temporarilySuspendedBidderCannotBid() {
+        AuctionSession session = session(7L, 70L);
+        Product product = product(70L, 42L);
+        User user = activeUser(99);
+        user.setStatus("TEMPORARILY_SUSPENDED");
+        when(sessionRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(session));
+        when(productRepository.findById(70L)).thenReturn(Optional.of(product));
+        when(userRepository.findById(99)).thenReturn(Optional.of(user));
+
+        BidResponse response = service.placeBid(request(7L, 99L, 10_500_000L));
+
+        assertFalse(response.isSuccess());
+        assertTrue(response.getMessage().contains("temporarily suspended"));
         verify(bidRepository, never()).save(org.mockito.ArgumentMatchers.any());
     }
 
@@ -114,5 +140,13 @@ class BiddingServiceAccessTest {
         request.setUserId(userId);
         request.setBidAmount(amount);
         return request;
+    }
+
+    private static User activeUser(int id) {
+        User user = new User();
+        user.setId(id);
+        user.setActive(true);
+        user.setStatus("ACTIVE");
+        return user;
     }
 }
