@@ -65,6 +65,10 @@ public class MessageServiceImpl implements MessageService {
      * </ul>
      */
     private void validateSenderAccess(Conversation conv, User sender) {
+        if (conv.getType() == ConversationType.BUYER_SELLER) {
+            throw new AccessDeniedException(
+                    "Legacy buyer-seller conversations are read-only. Please contact staff for support.");
+        }
         String role = sender.getRole().getRoleName();
         if ("Admin".equalsIgnoreCase(role)) {
             return;

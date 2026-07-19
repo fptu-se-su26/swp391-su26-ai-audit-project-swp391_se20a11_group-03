@@ -7,6 +7,7 @@ import {
   type Conversation,
   type ConversationMessage,
 } from "@/lib/api";
+import { connectChatRealtime } from "@/lib/chat-realtime";
 
 const STATUS_CLASS: Record<string, string> = {
   OPEN: "bg-blue-500/10 text-blue-300",
@@ -34,6 +35,7 @@ export default function SupportClient() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const loadLists = useCallback(async () => {
@@ -54,12 +56,26 @@ export default function SupportClient() {
 
   useEffect(() => {
     const initialTimer = window.setTimeout(() => void loadLists(), 0);
-    const timer = setInterval(() => void loadLists(), 15000);
     return () => {
       window.clearTimeout(initialTimer);
-      clearInterval(timer);
     };
   }, [loadLists]);
+
+  useEffect(() => connectChatRealtime({
+    conversationId: selected?.conversationId,
+    staffInbox: true,
+    onConnectionChange: setRealtimeConnected,
+    onConversation: () => { void loadLists(); },
+    onMessage: (message) => {
+      setMessages((current) => current.some((item) => item.messageId === message.messageId)
+        ? current : [...current, message]);
+      setAssigned((current) => current.map((conversation) =>
+        conversation.conversationId === message.conversationId
+          ? { ...conversation, lastMessage: message.content, updatedAt: message.sentAt, unreadCount: 0 }
+          : conversation));
+      if (selected?.conversationId === message.conversationId) void userApi.markConversationRead(message.conversationId);
+    },
+  }), [selected?.conversationId, loadLists]);
 
   const loadMessages = useCallback(async (conversationId: number) => {
     try {
@@ -102,9 +118,10 @@ export default function SupportClient() {
     setBusy(true);
     setError(null);
     try {
-      await userApi.sendMessage(selected.conversationId, reply.trim());
+      const sent = await userApi.sendMessage(selected.conversationId, reply.trim());
+      setMessages((current) => current.some((item) => item.messageId === sent.messageId)
+        ? current : [...current, sent]);
       setReply("");
-      await loadMessages(selected.conversationId);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Không gửi được phản hồi.");
     } finally {
@@ -218,7 +235,7 @@ export default function SupportClient() {
                   {selected.subject || "(không có tiêu đề)"}
                 </p>
                 <p className="text-sm text-white/40">
-                  {selected.userName} · {fmt(selected.createdAt)}
+                  {selected.userName} · {fmt(selected.createdAt)} · {realtimeConnected ? "Realtime" : "Đang kết nối..."}
                   {selected.assignedStaffName ? ` · Phụ trách: ${selected.assignedStaffName}` : ""}
                 </p>
               </div>

@@ -22,6 +22,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Tổng quan", href: "/dashboard", icon: "dashboard" },
       { label: "Theo dõi", href: "/watchlist", icon: "visibility" },
       { label: "Đã thắng", href: "/won-items", icon: "emoji_events" },
+      { label: "Đơn hàng", href: "/orders", icon: "local_shipping" },
       { label: "Tin nhắn", href: "/messages", icon: "chat" },
     ],
   },

@@ -51,7 +51,8 @@ public class ConversationServiceImpl implements ConversationService {
 
             Conversation conv;
             switch (type) {
-                case BUYER_SELLER -> conv = createBuyerSeller(user, req);
+                case BUYER_SELLER -> throw new IllegalArgumentException(
+                        "Direct buyer-seller chat is disabled. Please contact staff for support.");
                 case BUYER_STAFF, SELLER_STAFF -> conv = createStaffSupport(user, type);
                 default -> throw new IllegalArgumentException("Conversation type không hỗ trợ: " + type);
             }
@@ -148,6 +149,10 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     private void validateCreatorRole(User user, ConversationType type) {
+        if (type == ConversationType.BUYER_SELLER) {
+            throw new AccessDeniedException(
+                    "Direct buyer-seller chat is disabled. Please contact staff for support.");
+        }
         String role = user.getRole().getRoleName();
         boolean isBuyer = "User".equalsIgnoreCase(role);
         boolean isSeller = "Seller".equalsIgnoreCase(role);

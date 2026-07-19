@@ -59,6 +59,7 @@ speedsms.access-token=${SPEEDSMS_ACCESS_TOKEN:}
 speedsms.sms-type=${SPEEDSMS_SMS_TYPE:2}
 speedsms.sender=${SPEEDSMS_SENDER:}
 
+
 # File upload
 app.upload.dir=${APP_UPLOAD_DIR:${user.dir}/uploads}
 app.kyc.upload-dir=${APP_KYC_UPLOAD_DIR:${user.dir}/uploads/kyc}
@@ -95,3 +96,7 @@ sepay.bank-id=${SEPAY_BANK_ID:}
 sepay.bank-account=${SEPAY_BANK_ACCOUNT:}
 sepay.account-name=${SEPAY_ACCOUNT_NAME:}
 sepay.webhook-api-key=${SEPAY_WEBHOOK_API_KEY:}
+
+# Company delivery
+bidzone.shipping.flat-fee=${BIDZONE_SHIPPING_FLAT_FEE:30000}
+bidzone.order.auto-complete-cron=${BIDZONE_ORDER_AUTO_COMPLETE_CRON:0 0 * * * *}

@@ -325,6 +325,40 @@ CREATE TABLE IF NOT EXISTS Auction_Chat_Messages (
 );
 
 -- ---------------------------------------------------------------------------
+-- ORDERS & COMPANY DELIVERY
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS Orders (
+    OrderId BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    AuctionId BIGINT NOT NULL UNIQUE REFERENCES Auctions(AuctionId),
+    BuyerId BIGINT NOT NULL REFERENCES Users(UserId),
+    SellerId BIGINT NOT NULL REFERENCES Users(UserId),
+    ShipperId BIGINT NULL REFERENCES Users(UserId),
+    ProductId BIGINT NOT NULL REFERENCES Products(ProductId),
+    FinalPrice BIGINT NOT NULL CHECK (FinalPrice >= 0),
+    ShippingFee BIGINT NOT NULL CHECK (ShippingFee >= 0),
+    ReceiverName VARCHAR(150) NOT NULL, ReceiverPhone VARCHAR(30) NOT NULL,
+    AddressLine VARCHAR(255) NOT NULL, Ward VARCHAR(120) NOT NULL,
+    District VARCHAR(120) NOT NULL, Province VARCHAR(120) NOT NULL,
+    Note VARCHAR(500) NULL, Status VARCHAR(30) NOT NULL DEFAULT 'PENDING_PICKUP',
+    AssignedAt TIMESTAMPTZ NULL, DeliveredAt TIMESTAMPTZ NULL,
+    PayoutReleasedAt TIMESTAMPTZ NULL,
+    CreatedAt TIMESTAMPTZ NOT NULL DEFAULT NOW(), UpdatedAt TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS IX_Orders_Buyer ON Orders(BuyerId, CreatedAt DESC);
+CREATE INDEX IF NOT EXISTS IX_Orders_Seller ON Orders(SellerId, CreatedAt DESC);
+CREATE INDEX IF NOT EXISTS IX_Orders_Shipper_Status ON Orders(ShipperId, Status);
+CREATE INDEX IF NOT EXISTS IX_Orders_Status ON Orders(Status, CreatedAt DESC);
+
+CREATE TABLE IF NOT EXISTS OrderStatusHistory (
+    HistoryId BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    OrderId BIGINT NOT NULL REFERENCES Orders(OrderId) ON DELETE CASCADE,
+    FromStatus VARCHAR(30) NULL, ToStatus VARCHAR(30) NOT NULL,
+    ChangedBy BIGINT NULL REFERENCES Users(UserId), Note VARCHAR(500) NULL,
+    CreatedAt TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS IX_OrderStatusHistory_Order ON OrderStatusHistory(OrderId, CreatedAt ASC);
+
+-- ---------------------------------------------------------------------------
 -- CHAT (support)
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS Conversations (
@@ -384,7 +418,7 @@ CREATE INDEX IF NOT EXISTS IX_FeaturedProducts_PeriodType
 -- MINIMAL SEED (roles + categories)
 -- ---------------------------------------------------------------------------
 INSERT INTO Roles (RoleName) VALUES
-    ('Admin'), ('Staff'), ('Seller'), ('User')
+    ('Admin'), ('Staff'), ('Seller'), ('User'), ('Shipper')
 ON CONFLICT (RoleName) DO NOTHING;
 
 INSERT INTO Categories (CategoryName, Description) VALUES

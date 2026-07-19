@@ -4,6 +4,39 @@ import type { TrustStat } from "@/lib/home-data";
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8096/api";
 
+export type ShippingAddress = {
+  receiverName: string;
+  receiverPhone: string;
+  addressLine: string;
+  ward: string;
+  district: string;
+  province: string;
+  note?: string;
+};
+
+export type OrderHistory = { fromStatus: string | null; toStatus: string; changedBy: string; note: string | null; createdAt: string };
+export type DeliveryOrder = ShippingAddress & {
+  orderId: number; auctionId: number; productId: number; productName: string;
+  buyerId: number; sellerId: number; shipperId: number | null;
+  buyerName: string; sellerName: string; shipperName: string | null;
+  finalPrice: number; shippingFee: number; status: string;
+  assignedAt: string | null; deliveredAt: string | null; payoutReleasedAt: string | null;
+  createdAt: string; updatedAt: string; history: OrderHistory[];
+};
+
+export const orderApi = {
+  mine: () => apiFetch<DeliveryOrder[]>("/orders"),
+  one: (id: number) => apiFetch<DeliveryOrder>(`/orders/${id}`),
+  confirmReceived: (id: number) => apiFetch<DeliveryOrder>(`/orders/${id}/confirm-received`, { method: "POST" }),
+  shippingFee: () => apiFetch<{ shippingFee: number }>("/orders/shipping-fee"),
+  staffOrders: (status?: string) => apiFetch<DeliveryOrder[]>(`/staff/orders${status ? `?status=${encodeURIComponent(status)}` : ""}`),
+  shippers: () => apiFetch<{ id: number; username: string; email: string }[]>("/staff/shippers"),
+  assign: (id: number, shipperId: number, note?: string) => apiFetch<DeliveryOrder>(`/staff/orders/${id}/assign`, { method: "POST", body: JSON.stringify({ shipperId, note }) }),
+  failedAction: (id: number, action: "REASSIGN" | "REFUND", shipperId?: number, note?: string) => apiFetch<DeliveryOrder>(`/staff/orders/${id}/failed-action`, { method: "POST", body: JSON.stringify({ action, shipperId, note }) }),
+  shipperMine: () => apiFetch<DeliveryOrder[]>("/shipper/orders"),
+  shipperStatus: (id: number, status: string, note?: string) => apiFetch<DeliveryOrder>(`/shipper/orders/${id}/status`, { method: "POST", body: JSON.stringify({ status, note }) }),
+};
+
 // ---------------------------------------------------------------------------
 // Core fetch helper — tự gắn JWT (lưu ở localStorage sau khi login)
 // ---------------------------------------------------------------------------
@@ -559,7 +592,7 @@ type PublicStatsResponse = {
 /** Map role backend (Admin/Staff/Seller/User) sang role FE dùng trong cookie/proxy. */
 export function toFrontendRole(
   roleName: string | null,
-): "admin" | "staff" | "seller" | "collector" {
+): "admin" | "staff" | "seller" | "collector" | "shipper" {
   switch ((roleName ?? "").toLowerCase()) {
     case "admin":
       return "admin";
@@ -567,6 +600,8 @@ export function toFrontendRole(
       return "staff";
     case "seller":
       return "seller";
+    case "shipper":
+      return "shipper";
     default:
       return "collector";
   }
@@ -882,9 +917,10 @@ export const auctionApi = {
       body: JSON.stringify({ bidAmount }),
     });
   },
-  pay(auctionId: number) {
+  pay(auctionId: number, address: ShippingAddress) {
     return apiFetch<Record<string, unknown>>(`/auctions/${auctionId}/pay`, {
       method: "POST",
+      body: JSON.stringify(address),
     });
   },
   purchaseContract(auctionId: number) {
@@ -1053,10 +1089,9 @@ export const userApi = {
     return apiFetch<Conversation[]>("/v1/conversations/my");
   },
   createConversation(data: {
-    type: "BUYER_STAFF" | "SELLER_STAFF" | "BUYER_SELLER";
+    type: "BUYER_STAFF" | "SELLER_STAFF";
     subject: string;
     firstMessage: string;
-    sellerEmail?: string;
     productId?: number;
   }) {
     return apiFetch<Conversation>("/v1/conversations", {

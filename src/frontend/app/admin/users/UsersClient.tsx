@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { adminApi, ApiError, type AdminUser } from "@/lib/api";
 
-const ROLES = ["User", "Seller", "Staff", "Admin"] as const;
+const ROLES = ["User", "Seller", "Staff", "Shipper", "Admin"] as const;
 
 const ROLE_CLASS: Record<string, string> = {
   Admin: "bg-red-500/10 text-red-300",
   Staff: "bg-blue-500/10 text-blue-300",
+  Shipper: "bg-cyan-500/10 text-cyan-300",
   Seller: "bg-[var(--luxora-gold)]/10 text-[var(--luxora-gold-light)]",
   User: "bg-white/10 text-white/60",
 };

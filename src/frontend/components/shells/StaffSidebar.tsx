@@ -6,6 +6,7 @@ import BidZoneLogo from "@/components/brand/BidZoneLogo";
 import { authApi } from "@/lib/api";
 
 const NAV_ITEMS = [
+  { label: "ÄÆ¡n giao hÃ ng", href: "/staff/orders", icon: "local_shipping" },
   { label: "Duyệt sản phẩm", href: "/staff/approvals", icon: "fact_check" },
   { label: "Duyệt hồ sơ KYC", href: "/staff/kyc-review", icon: "badge" },
   { label: "Hộp thư hỗ trợ", href: "/staff/support", icon: "inbox" },
