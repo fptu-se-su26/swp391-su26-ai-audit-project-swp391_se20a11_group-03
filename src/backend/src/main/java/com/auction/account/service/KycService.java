@@ -114,11 +114,10 @@ public class KycService {
         // separate step (seller-contract/submit) available after approval.
         User applicant = userRepository.findById(Math.toIntExact(userId))
                 .orElseThrow(() -> new IllegalArgumentException("User does not exist"));
-        if (!applicant.isPhoneVerified() || isBlank(applicant.getPhone())) {
-            throw new IllegalArgumentException(
-                    "Vui lòng xác minh số điện thoại trong Hồ sơ cá nhân trước khi gửi KYC.");
-        }
-        String phone = applicant.getPhone();
+        // Phone verification is no longer part of the account/KYC flow. Keep an
+        // empty value for compatibility with existing KycProfiles schemas where
+        // Phone is still NOT NULL.
+        String phone = applicant.getPhone() == null ? "" : applicant.getPhone();
 
         String frontUrl = saveImage(frontImage, "front");
         String backUrl = saveImage(backImage, "back");
@@ -222,14 +221,13 @@ public class KycService {
 
         if (STATUS_APPROVED.equals(newStatus)) {
             // Pull the latest KYC data so we can mirror it onto the user row.
-            // This ensures Users.FullName / Phone / IdentityNumber always reflect
+            // This ensures Users.FullName / IdentityNumber always reflect
             // the verified identity info, not whatever the user typed at signup.
             Map<String, Object> kyc = jdbcTemplate.queryForMap(
-                    "SELECT FullName, Phone, CccdNumber FROM KycProfiles WHERE KycId = ? LIMIT 1",
+                    "SELECT FullName, CccdNumber FROM KycProfiles WHERE KycId = ? LIMIT 1",
                     kycId
             );
             String verifiedFullName = (String) kyc.get("FullName");
-            String verifiedPhone = (String) kyc.get("Phone");
             String verifiedCccd = (String) kyc.get("CccdNumber");
 
             if (!cccdOcrService.findDuplicateAccounts(verifiedCccd, userId.longValue()).isEmpty()) {
@@ -243,10 +241,9 @@ public class KycService {
                     "UPDATE Users SET IdentityVerified = TRUE, IdentityVerifiedAt = ?, "
                             + "ProfileStatus = 'VERIFIED', VerificationLevel = 2, "
                             + "FullName = COALESCE(?, FullName), "
-                            + "Phone = COALESCE(?, Phone), "
                             + "IdentityNumber = COALESCE(?, IdentityNumber) "
                             + "WHERE UserId = ?",
-                    now, verifiedFullName, verifiedPhone, verifiedCccd, userId
+                    now, verifiedFullName, verifiedCccd, userId
             );
         } else if (STATUS_REJECTED.equals(newStatus)) {
             jdbcTemplate.update(

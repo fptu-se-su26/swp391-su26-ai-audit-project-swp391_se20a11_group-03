@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { StorefrontCategory } from "@/lib/api";
 
-type CategoryFilterItem = StorefrontCategory & {
-  lotCount: number;
-};
+type CategoryFilterItem = StorefrontCategory & { lotCount: number };
 
 type StorefrontCategoryFilterProps = {
   categories: CategoryFilterItem[];
@@ -26,17 +25,14 @@ export default function StorefrontCategoryFilter({
   totalLotCount,
   basePath = "/storefront",
 }: StorefrontCategoryFilterProps) {
+  const t = useTranslations("storefront");
   const [query, setQuery] = useState("");
 
   const filteredCategories = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("vi-VN");
-
-    if (!normalizedQuery) {
-      return categories;
-    }
-
-    return categories.filter((category) =>
-      category.label.toLocaleLowerCase("vi-VN").includes(normalizedQuery),
+    if (!normalizedQuery) return categories;
+    return categories.filter((c) =>
+      c.label.toLocaleLowerCase("vi-VN").includes(normalizedQuery),
     );
   }, [categories, query]);
 
@@ -45,16 +41,16 @@ export default function StorefrontCategoryFilter({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-white/40">
-            Bộ lọc
+            {t("filterLabel")}
           </p>
-          <h2 className="mt-1 text-base font-semibold text-white">Danh mục</h2>
+          <h2 className="mt-1 text-base font-semibold text-white">{t("categoryLabel")}</h2>
         </div>
         {activeCategoryId && (
           <Link
             href={basePath}
             className="rounded-full border border-white/10 px-3 py-1 text-[11px] font-medium text-white/55 transition-colors hover:border-[var(--luxora-gold)] hover:text-[var(--luxora-gold-light)]"
           >
-            Xóa lọc
+            {t("clearFilter")}
           </Link>
         )}
       </div>
@@ -66,8 +62,8 @@ export default function StorefrontCategoryFilter({
         <input
           type="search"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Tìm danh mục"
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t("searchCategory")}
           className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
         />
       </label>
@@ -85,7 +81,7 @@ export default function StorefrontCategoryFilter({
             <span className="material-symbols-outlined text-base text-[var(--luxora-gold-light)]">
               grid_view
             </span>
-            Tất cả sản phẩm
+            {t("allProducts")}
           </span>
           <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] text-white/55">
             {totalLotCount}
@@ -94,7 +90,6 @@ export default function StorefrontCategoryFilter({
 
         {filteredCategories.map((category) => {
           const isActive = activeCategoryId === category.id;
-
           return (
             <Link
               key={category.id}
@@ -106,22 +101,16 @@ export default function StorefrontCategoryFilter({
               }`}
             >
               <span className="flex min-w-0 items-center gap-2">
-                <span
-                  className={`material-symbols-outlined text-base ${
-                    isActive
-                      ? "text-[var(--luxora-gold-light)]"
-                      : "text-white/35 group-hover:text-white/60"
-                  }`}
-                >
+                <span className={`material-symbols-outlined text-base ${
+                  isActive ? "text-[var(--luxora-gold-light)]" : "text-white/35 group-hover:text-white/60"
+                }`}>
                   {category.icon}
                 </span>
                 <span className="truncate">{toSentenceCase(category.label)}</span>
               </span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-[11px] ${
-                  isActive ? "bg-black/20 text-white/75" : "bg-white/10 text-white/45"
-                }`}
-              >
+              <span className={`rounded-full px-2 py-0.5 text-[11px] ${
+                isActive ? "bg-black/20 text-white/75" : "bg-white/10 text-white/45"
+              }`}>
                 {category.lotCount}
               </span>
             </Link>
@@ -131,7 +120,7 @@ export default function StorefrontCategoryFilter({
 
       {filteredCategories.length === 0 && (
         <p className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-4 text-center text-xs text-white/45">
-          Không tìm thấy danh mục phù hợp.
+          {t("filterNotFound")}
         </p>
       )}
     </aside>

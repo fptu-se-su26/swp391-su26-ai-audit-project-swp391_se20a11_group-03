@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { FiMoon, FiSun } from "react-icons/fi";
+import { useTranslations } from "next-intl";
 
 type Theme = "light" | "dark";
 
@@ -34,6 +35,7 @@ function subscribeToTheme(onStoreChange: () => void) {
 }
 
 export default function ThemeToggle() {
+  const t = useTranslations("themeToggle");
   const theme = useSyncExternalStore(
     subscribeToTheme,
     getThemeSnapshot,
@@ -52,16 +54,16 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      aria-label={isDark ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"}
+      aria-label={isDark ? t("switchToLight") : t("switchToDark")}
       aria-pressed={isDark}
-      title={isDark ? "Giao diện sáng" : "Giao diện tối"}
+      title={isDark ? t("lightTheme") : t("darkTheme")}
       suppressHydrationWarning
       className="theme-toggle"
     >
       <FiSun className="theme-toggle__sun" aria-hidden="true" />
       <FiMoon className="theme-toggle__moon" aria-hidden="true" />
-      <span className="theme-toggle__light-label hidden sm:inline">Sáng</span>
-      <span className="theme-toggle__dark-label hidden sm:inline">Tối</span>
+      <span className="theme-toggle__light-label hidden sm:inline">{t("light")}</span>
+      <span className="theme-toggle__dark-label hidden sm:inline">{t("dark")}</span>
     </button>
   );
 }

@@ -6,6 +6,9 @@ USE SWP_Nhom3_App;
 GO
 
 IF OBJECT_ID('dbo.Auction_Chat_Messages', 'U') IS NOT NULL DROP TABLE dbo.Auction_Chat_Messages;
+IF OBJECT_ID('dbo.FraudAlerts', 'U') IS NOT NULL DROP TABLE dbo.FraudAlerts;
+IF OBJECT_ID('dbo.SystemSettingAuditLogs', 'U') IS NOT NULL DROP TABLE dbo.SystemSettingAuditLogs;
+IF OBJECT_ID('dbo.SystemSettings', 'U') IS NOT NULL DROP TABLE dbo.SystemSettings;
 IF OBJECT_ID('dbo.Bids', 'U') IS NOT NULL DROP TABLE dbo.Bids;
 IF OBJECT_ID('dbo.Auction_Deposits', 'U') IS NOT NULL DROP TABLE dbo.Auction_Deposits;
 IF OBJECT_ID('dbo.Auctions', 'U') IS NOT NULL DROP TABLE dbo.Auctions;

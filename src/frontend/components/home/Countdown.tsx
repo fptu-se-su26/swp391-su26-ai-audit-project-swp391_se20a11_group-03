@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 function splitRemaining(ms: number) {
   const total = Math.max(0, Math.floor(ms / 1000));
@@ -25,8 +26,10 @@ export default function Countdown({
   endsAt,
   prefix,
   className = "flex items-center gap-1 font-mono text-sm font-semibold text-white",
-  expiredLabel = "Đã kết thúc",
+  expiredLabel,
 }: CountdownProps) {
+  const t = useTranslations("common");
+  const expiredLabelLocal = expiredLabel ?? t("expired");
   const [remaining, setRemaining] = useState<number | null>(null);
 
   useEffect(() => {
@@ -48,7 +51,7 @@ export default function Countdown({
       : splitRemaining(remaining);
 
   if (remaining !== null && remaining <= 0) {
-    return <span className={className}>{expiredLabel}</span>;
+    return <span className={className}>{expiredLabelLocal}</span>;
   }
 
   return (

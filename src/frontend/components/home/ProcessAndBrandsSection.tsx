@@ -1,15 +1,5 @@
+import { getTranslations } from "next-intl/server";
 import { AUCTION_PROCESS_STEPS, BRAND_ITEMS } from "@/lib/home-data";
-
-const BRAND_META = [
-  "Đồng hồ",
-  "Công nghệ",
-  "Chế tác đồng hồ cao cấp",
-  "Nhà mốt thời trang",
-  "Chế tác máy ảnh",
-  "Nghe nhìn",
-  "Công nghệ sáng tạo",
-  "Phòng thu âm thanh",
-];
 
 function BrandLogo({ id, name }: { id: string; name: string }) {
   if (id === "rolex") {
@@ -132,7 +122,10 @@ function BrandLogo({ id, name }: { id: string; name: string }) {
   );
 }
 
-export default function ProcessAndBrandsSection() {
+export default async function ProcessAndBrandsSection() {
+  const t = await getTranslations("process");
+  const introTitle = t("introTitle").split("\n");
+
   return (
     <section id="how-it-works" className="relative overflow-hidden border-b border-white/10">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_8%_15%,rgba(240,201,130,0.09),transparent_25%),radial-gradient(circle_at_92%_75%,rgba(240,201,130,0.06),transparent_24%)]" />
@@ -140,21 +133,20 @@ export default function ProcessAndBrandsSection() {
         <div className="grid gap-6 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-[var(--luxora-gold)]">
-              Bắt đầu thật dễ dàng
+              {t("introBadge")}
             </p>
             <h2 className="mt-4 text-3xl font-bold tracking-[-0.03em] text-white sm:text-4xl lg:text-5xl">
-              Từ đăng ký đến
-              <br className="hidden sm:block" /> sở hữu vật phẩm.
+              {introTitle[0]}
+              <br className="hidden sm:block" /> {introTitle[1]}
             </h2>
           </div>
           <div className="max-w-2xl lg:justify-self-end">
             <p className="text-sm leading-7 text-white/60 sm:text-base">
-              Một hành trình đấu giá rõ ràng, được thiết kế để bạn luôn biết
-              bước tiếp theo và kiểm soát toàn bộ giao dịch của mình.
+              {t("introDesc")}
             </p>
             <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#d7aa63]/30 bg-[#f0c982]/8 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--luxora-gold)]">
               <span className="material-symbols-outlined text-base">verified</span>
-              Quy trình minh bạch từ đầu đến cuối
+              {t("transparentProcess")}
             </div>
           </div>
         </div>
@@ -178,13 +170,13 @@ export default function ProcessAndBrandsSection() {
 
               <div className="mt-12">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-[var(--luxora-gold)]">
-                  Bước {index + 1}
+                  {t("stepLabel", { number: index + 1 })}
                 </p>
                 <h3 className="mt-3 text-base font-bold text-white">
-                  {step.title}
+                  {t(`steps.${step.id}.title` as Parameters<typeof t>[0])}
                 </h3>
                 <p className="mt-3 text-sm leading-6 text-white/55">
-                  {step.description}
+                  {t(`steps.${step.id}.description` as Parameters<typeof t>[0])}
                 </p>
               </div>
             </article>
@@ -194,15 +186,14 @@ export default function ProcessAndBrandsSection() {
         <div className="mt-20 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-[var(--luxora-gold)]">
-              Danh mục tuyển chọn
+              {t("curatedBadge")}
             </p>
             <h2 className="mt-3 text-2xl font-bold tracking-[-0.02em] text-white sm:text-3xl">
-              Những tên tuổi định hình giá trị
+              {t("curatedTitle")}
             </h2>
           </div>
           <p className="max-w-lg text-sm leading-6 text-white/55">
-            Từ chế tác đồng hồ, nhiếp ảnh đến công nghệ và thời trang—tất cả
-            được quy tụ trong một không gian khám phá thống nhất.
+            {t("curatedDesc")}
           </p>
         </div>
 
@@ -215,7 +206,7 @@ export default function ProcessAndBrandsSection() {
               <div className="absolute inset-x-6 top-0 h-px origin-left scale-x-0 bg-[var(--luxora-gold)] transition-transform duration-300 group-hover:scale-x-100" />
               <BrandLogo id={brand.id} name={brand.name} />
               <span className="mt-5 block text-[9px] uppercase tracking-[0.12em] text-white/38">
-                {BRAND_META[index]}
+                {t(`brandMeta.${index}` as Parameters<typeof t>[0])}
               </span>
             </div>
           ))}

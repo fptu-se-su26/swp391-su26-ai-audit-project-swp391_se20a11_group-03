@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export function useApiData<T>(load: () => Promise<T>, initialValue: T) {
+  const t = useTranslations("common");
   const [data, setData] = useState<T>(initialValue);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -13,11 +15,11 @@ export function useApiData<T>(load: () => Promise<T>, initialValue: T) {
     try {
       setData(await load());
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Không thể tải dữ liệu");
+      setError(cause instanceof Error ? cause.message : t("error"));
     } finally {
       setLoading(false);
     }
-  }, [load]);
+  }, [load, t]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => void reload(), 0);

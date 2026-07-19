@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import CollectorShell from "@/components/shells/CollectorShell";
 import { auctionApi, fetchAccountSummary, toImageSrc, type AccountSummary, type UserBid, type WonAuction } from "@/lib/api";
 import { useApiData } from "@/lib/use-api-data";
@@ -27,42 +28,43 @@ const EMPTY_DATA: DashboardData = {
 
 const ACTIVE_BID_STATUSES = new Set(["leading", "outbid", "deposited", "sealed"]);
 
-function bidStatusLabel(status: string) {
-  switch (status) {
-    case "leading":
-      return "Đang dẫn đầu";
-    case "won":
-      return "Đã thắng";
-    case "lost":
-      return "Đã thua";
-    case "outbid":
-      return "Đã bị vượt giá";
-    case "deposited":
-      return "Đã đặt cọc";
-    case "sealed":
-      return "Đã đặt giá kín";
-    default:
-      return status;
-  }
-}
-
-function bidStatusClass(status: string) {
-  if (status === "leading" || status === "won") {
-    return "bg-green-500/10 text-green-300";
-  }
-  if (status === "lost" || status === "outbid") {
-    return "bg-red-500/10 text-red-300";
-  }
-  return "bg-yellow-500/10 text-yellow-300";
-}
-
 export default function DashboardPage() {
+  const t = useTranslations("dashboard");
   const { data, loading, error } = useApiData(loadDashboard, EMPTY_DATA);
   const activeBids = data.bids.filter((bid) => ACTIVE_BID_STATUSES.has(bid.status));
   const leadingLot = activeBids[0];
   const totalSpent = data.wonItems
     .filter((item) => item.status === "paid")
     .reduce((sum, item) => sum + item.finalPrice, 0);
+
+  function bidStatusLabel(status: string) {
+    switch (status) {
+      case "leading":
+        return t("bidStatus.leading");
+      case "won":
+        return t("bidStatus.won");
+      case "lost":
+        return t("bidStatus.lost");
+      case "outbid":
+        return t("bidStatus.outbid");
+      case "deposited":
+        return t("bidStatus.deposited");
+      case "sealed":
+        return t("bidStatus.sealed");
+      default:
+        return status;
+    }
+  }
+
+  function bidStatusClass(status: string) {
+    if (status === "leading" || status === "won") {
+      return "bg-green-500/10 text-green-300";
+    }
+    if (status === "lost" || status === "outbid") {
+      return "bg-red-500/10 text-red-300";
+    }
+    return "bg-yellow-500/10 text-yellow-300";
+  }
 
   return (
     <CollectorShell>
@@ -76,26 +78,26 @@ export default function DashboardPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--luxora-bg)] via-[var(--luxora-bg)]/60 to-transparent" />
           <div className="relative z-10 flex flex-col gap-6 p-10">
             <h1 className="font-display-lg text-3xl">
-              Xin chào, {data.account.profile.fullName || "bạn"}
+              {t("greeting", { name: data.account.profile.fullName || t("defaultName") })}
             </h1>
             <div className="grid grid-cols-3 gap-6">
               <div>
                 <p className="text-2xl font-bold text-[var(--luxora-gold-light)]">
                   {activeBids.length}
                 </p>
-                <p className="text-xs text-white/50">Phiên đang tham gia</p>
+                <p className="text-xs text-white/50">{t("activeSessions")}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-[var(--luxora-gold-light)]">
                   {data.wonItems.length}
                 </p>
-                <p className="text-xs text-white/50">Đã thắng</p>
+                <p className="text-xs text-white/50">{t("wonCount")}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-[var(--luxora-gold-light)]">
                   {totalSpent.toLocaleString("vi-VN")} ₫
                 </p>
-                <p className="text-xs text-white/50">Tổng chi tiêu</p>
+                <p className="text-xs text-white/50">{t("totalSpent")}</p>
               </div>
             </div>
           </div>
@@ -103,10 +105,10 @@ export default function DashboardPage() {
 
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
           <div className="flex flex-col gap-8 lg:col-span-2">
-            {/* Aside: phiên ưu tiên */}
+            {/* Priority session */}
             <div className="glass-panel rounded-2xl p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-white/40">
-                Phiên ưu tiên
+                {t("prioritySession")}
               </p>
               {leadingLot ? <div className="mt-4 flex items-center gap-4">
                 <div
@@ -116,27 +118,27 @@ export default function DashboardPage() {
                 <div className="flex-1">
                   <p className="text-sm font-semibold">{leadingLot.productName}</p>
                   <p className="text-xs text-white/40">
-                    {leadingLot.lotNumber} · Còn {leadingLot.timeLeft}
+                    {leadingLot.lotNumber} · {t("timeLeft", { time: leadingLot.timeLeft })}
                   </p>
                 </div>
                 <Link
                   href={`/auctions/${leadingLot.auctionId}`}
                   className="gradient-cta rounded-full px-4 py-2 text-xs font-semibold text-black"
                 >
-                  Vào phòng đấu
+                  {t("enterRoom")}
                 </Link>
-              </div> : <p className="mt-4 text-sm text-white/45">{loading ? "Đang tải dữ liệu..." : error ?? "Bạn chưa tham gia phiên đấu giá nào."}</p>}
+              </div> : <p className="mt-4 text-sm text-white/45">{loading ? t("loading") : error ?? t("noSessions")}</p>}
               {leadingLot?.status === "outbid" && (
                 <p className="mt-3 rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300">
-                  Bạn đã bị vượt giá cho lot này.
+                  {t("outbidWarning")}
                 </p>
               )}
             </div>
 
-            {/* Các lot của bạn */}
+            {/* Your lots */}
             <div>
               <h2 className="font-headline-md mb-4 text-lg">
-                Các lot của bạn
+                {t("yourLots")}
               </h2>
               <div className="flex flex-col gap-3">
                 {data.bids.map((bid) => (
@@ -168,11 +170,11 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Cột phải */}
+          {/* Right column */}
           <div className="flex flex-col gap-6">
             <div className="glass-panel rounded-2xl p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-white/40">
-                Ví BidZone
+                {t("walletTitle")}
               </p>
               <p className="mt-2 text-2xl font-bold text-[var(--luxora-gold-light)]">
                 {data.account.wallet.availableBalance.toLocaleString("vi-VN")} ₫
@@ -182,20 +184,20 @@ export default function DashboardPage() {
                   href="/wallet"
                   className="rounded-xl border border-white/10 py-2 text-center text-[11px] font-semibold hover:border-[var(--luxora-gold)]"
                 >
-                  Nạp tiền
+                  {t("depositLink")}
                 </Link>
                 <Link
                   href="/wallet"
                   className="rounded-xl border border-white/10 py-2 text-center text-[11px] font-semibold hover:border-[var(--luxora-gold)]"
                 >
-                  Lịch sử giao dịch
+                  {t("historyLink")}
                 </Link>
               </div>
             </div>
 
             <div className="glass-panel rounded-2xl p-6">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/40">
-                Lối tắt
+                {t("shortcutsTitle")}
               </p>
               <div className="flex flex-col gap-1">
                 {[

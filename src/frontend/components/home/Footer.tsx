@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   FaFacebookF,
   FaInstagram,
@@ -6,21 +9,6 @@ import {
   FaYoutube,
 } from "react-icons/fa6";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
-
-const footerColumns = [
-  {
-    title: "THÔNG TIN",
-    links: ["Về chúng tôi", "Liên hệ", "Điều khoản sử dụng", "Chính sách bảo mật"],
-  },
-  {
-    title: "HỖ TRỢ",
-    links: ["Trung tâm trợ giúp", "Hướng dẫn đấu giá", "Thanh toán", "Vận chuyển & giao nhận"],
-  },
-  {
-    title: "DANH MỤC",
-    links: ["Đồng hồ", "Điện thoại", "Laptop", "Máy ảnh", "Xem tất cả"],
-  },
-];
 
 const socialItems = [
   { label: "Facebook", href: "https://www.facebook.com", icon: FaFacebookF },
@@ -30,6 +18,22 @@ const socialItems = [
 ];
 
 export default function Footer() {
+  const t = useTranslations("footer");
+  const year = new Date().getFullYear();
+  const footerColumns = [
+    {
+      title: t("infoTitle"),
+      links: [t("about"), t("contact"), t("terms"), t("privacy")],
+    },
+    {
+      title: t("supportTitle"),
+      links: [t("helpCenter"), t("biddingGuide"), t("payments"), t("shipping")],
+    },
+    {
+      title: t("categoriesTitle"),
+      links: [t("watches"), t("phones"), t("laptops"), t("cameras"), t("seeAll")],
+    },
+  ];
   return (
     <footer className="bg-black">
       <div className="mx-auto max-w-[1600px] px-4 py-10 sm:px-6 lg:px-12">
@@ -43,8 +47,7 @@ export default function Footer() {
               <BidZoneLogo className="h-14 w-auto" />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/55">
-              Nền tảng đấu giá trực tuyến các sản phẩm cao cấp, uy tín hàng đầu
-              Châu Á. Nơi giá trị được tôn vinh.
+              {t("tagline")}
             </p>
             <div className="mt-5 flex gap-3">
               {socialItems.map(({ label, href, icon: Icon }) => (
@@ -87,18 +90,18 @@ export default function Footer() {
 
           <div>
             <h3 className="text-xs font-semibold tracking-[0.2em] text-[#f0c982]">
-              LIÊN HỆ
+              {t("infoTitle")}
             </h3>
             <div className="mt-4 space-y-2 text-sm leading-relaxed text-white/55">
-              <p>Hotline: 1900 8888</p>
-              <p>Email: support@bidzone.com</p>
-              <p>Địa chỉ: 123 Lê Lợi, Quận 1, TP. Hồ Chí Minh</p>
+              <p>{t("contactPhone", { phone: "1900 8888" })}</p>
+              <p>{t("contactEmail", { email: "support@bidzone.com" })}</p>
+              <p>{t("contactAddress", { address: "123 Lê Lợi, Quận 1, TP. Hồ Chí Minh" })}</p>
             </div>
           </div>
         </div>
 
         <div className="flex flex-col gap-4 pt-6 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2024 BidZone. Bảo lưu mọi quyền.</p>
+          <p>{t("copyright", { year })}</p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold text-white/75">
             <span>VISA</span>
             <span>Mastercard</span>
