@@ -12,6 +12,7 @@ import com.auction.bidding.repository.AuctionDepositRepository;
 import com.auction.bidding.repository.AuctionRepository;
 import com.auction.bidding.repository.BidRepository;
 import com.auction.bidding.service.AuctionSettlementService;
+import com.auction.bidding.util.AuctionTimingPolicy;
 import com.auction.notification.entity.Notification;
 import com.auction.notification.service.NotificationService;
 import com.auction.product.entity.Product;
@@ -38,7 +39,7 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
     private static final Logger log = LoggerFactory.getLogger(AuctionSettlementServiceImpl.class);
 
     /** How long the winner has to pay after the auction ends (3 days). */
-    public static final long PAYMENT_WINDOW_HOURS = 72L;
+    public static final long PAYMENT_WINDOW_HOURS = AuctionTimingPolicy.PAYMENT_WINDOW.toHours();
 
     private enum RescheduleReason {
         NO_BIDS,
@@ -63,7 +64,7 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
     public int settleEndedAuctions() {
         LocalDateTime now = LocalDateTime.now();
         int count = 0;
-        for (Auction auction : auctionRepository.findAll()) {
+        for (Auction auction : auctionRepository.findEndedUnsettledForUpdate(now)) {
             // Key off settledAt (not status) so we still settle auctions that the
             // AuctionStatusSyncScheduler may have already flipped to ENDED.
             if (auction.getSettledAt() != null) {
@@ -88,13 +89,14 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
                 refundAllDeposits(auction, now);
                 notifyDepositorsRefunded(auction, true);
                 queueProductForReschedule(auction, RescheduleReason.NO_BIDS);
+                broadcastAuctionEndedWithoutWinner(auction);
                 count++;
                 continue;
             }
             // We have a winner — move to AWAITING_PAYMENT
             auction.setStatus("AWAITING_PAYMENT");
             auction.setPaymentStatus("AWAITING_PAYMENT");
-            auction.setPaymentDeadline(auction.getEndTime().plusHours(PAYMENT_WINDOW_HOURS));
+            auction.setPaymentDeadline(AuctionTimingPolicy.paymentDeadline(auction.getEndTime()));
             auction.setSettledAt(now);
             auctionRepository.save(auction);
 
@@ -120,7 +122,7 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
     public int forfeitExpiredAuctions() {
         LocalDateTime now = LocalDateTime.now();
         int count = 0;
-        for (Auction auction : auctionRepository.findAll()) {
+        for (Auction auction : auctionRepository.findExpiredAwaitingPaymentForUpdate(now)) {
             if (!"AWAITING_PAYMENT".equalsIgnoreCase(auction.getStatus())
                     && !"AWAITING_PAYMENT".equalsIgnoreCase(auction.getPaymentStatus())) {
                 continue;
@@ -333,17 +335,37 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
         try {
             Long productId = product != null ? product.getProductId() : null;
             String winnerUsername = auction.getCurrentWinnerUser().getUsername();
-            AuctionWinAnnouncementDto payload = AuctionWinAnnouncementDto.of(
+            AuctionWinAnnouncementDto payload = AuctionWinAnnouncementDto.won(
                     auction.getAuctionId(),
                     productId,
                     (long) auction.getCurrentWinnerUser().getId(),
                     winnerUsername != null ? winnerUsername : "Người thắng",
                     productName,
                     finalPrice,
-                    auction.getSettledAt());
+                    auction.getSettledAt(),
+                    auction.getPaymentDeadline());
             messagingTemplate.convertAndSend(WebSocketConfig.AUCTION_STATUS_TOPIC, payload);
         } catch (Exception ex) {
             log.warn("Failed to broadcast auction win for auction {}: {}", auction.getAuctionId(), ex.getMessage());
+        }
+    }
+
+    private void broadcastAuctionEndedWithoutWinner(Auction auction) {
+        try {
+            Product product = auction.getProduct();
+            Long productId = product != null ? product.getProductId() : null;
+            String productName = product != null ? product.getProductName() : "sản phẩm";
+            long finalPrice = auction.getCurrentHighestBid() != null ? auction.getCurrentHighestBid() : 0L;
+            AuctionWinAnnouncementDto payload = AuctionWinAnnouncementDto.noWinner(
+                    auction.getAuctionId(),
+                    productId,
+                    productName,
+                    finalPrice,
+                    auction.getSettledAt());
+            messagingTemplate.convertAndSend(WebSocketConfig.AUCTION_STATUS_TOPIC, payload);
+        } catch (Exception ex) {
+            log.warn("Failed to broadcast no-winner result for auction {}: {}",
+                    auction.getAuctionId(), ex.getMessage());
         }
     }
 

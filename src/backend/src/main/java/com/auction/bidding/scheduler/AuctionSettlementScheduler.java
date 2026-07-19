@@ -15,8 +15,9 @@ public class AuctionSettlementScheduler {
 
     private final AuctionSettlementService auctionSettlementService;
 
-    /** Every 30 seconds, settle auctions whose endTime has passed. */
-    @Scheduled(fixedRate = 30_000L, initialDelay = 15_000L)
+    /** Short LIVE auctions are settled promptly so all viewers receive the result event. */
+    @Scheduled(fixedRateString = "${auction.settlement.fixed-rate-ms:2000}",
+            initialDelayString = "${auction.settlement.initial-delay-ms:2000}")
     public void settleEnded() {
         try {
             int n = auctionSettlementService.settleEndedAuctions();
@@ -26,8 +27,9 @@ public class AuctionSettlementScheduler {
         }
     }
 
-    /** Every 5 minutes, forfeit any AWAITING_PAYMENT auction whose 3-day deadline has passed. */
-    @Scheduled(fixedRate = 300_000L, initialDelay = 60_000L)
+    /** Enforce the 72-hour payment deadline with a short, configurable reconciliation delay. */
+    @Scheduled(fixedRateString = "${auction.payment-expiry.fixed-rate-ms:30000}",
+            initialDelayString = "${auction.payment-expiry.initial-delay-ms:30000}")
     public void forfeitExpired() {
         try {
             int n = auctionSettlementService.forfeitExpiredAuctions();

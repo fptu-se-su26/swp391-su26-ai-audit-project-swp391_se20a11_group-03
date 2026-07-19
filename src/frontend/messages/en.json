@@ -736,11 +736,13 @@
         "dashboard": "Overview",
         "watchlist": "Watchlist",
         "wonItems": "Won items",
+        "orders": "Orders",
         "messages": "Messages",
         "wallet": "BidZone Wallet",
         "kyc": "KYC Verification",
         "profile": "Profile",
         "security": "Security",
+        "premium": "Premium plan",
         "inventory": "Inventory",
         "postItem": "Post item",
         "earnings": "Earnings"
@@ -788,6 +790,7 @@
       "staff": "Staff",
       "online": "Online",
       "items": {
+        "orders": "Delivery orders",
         "approvals": "Product approvals",
         "kycReview": "KYC profile review",
         "supportInbox": "Support inbox"
@@ -903,7 +906,18 @@
     "previousImage": "Previous image",
     "nextImage": "Next image",
     "imageAlt": "{name} - image {number}",
-    "keyboardHint": "{current} / {total} · Use ← → keys to switch images"
+    "keyboardHint": "{current} / {total} · Use ← → keys to switch images",
+    "resultFinished": "Auction ended",
+    "resultWinnerTitle": "We have a winner",
+    "resultNoWinnerTitle": "No winner",
+    "resultWinnerLabel": "Winning bidder",
+    "resultWinnerFallback": "Highest bidder",
+    "resultFinalPrice": "Final price",
+    "resultPaymentDeadline": "Payment deadline",
+    "resultPaymentNotice": "The winner has 72 hours to complete payment. Missing the deadline will result in a payment strike.",
+    "resultNoWinnerDescription": "The auction ended without a valid bid. The product will return to the Admin/Staff review queue for possible relisting.",
+    "resultPayNow": "CONTINUE TO PAYMENT",
+    "resultClose": "Close"
   },
   "liveBidding": {
     "ended": "Ended",
@@ -917,6 +931,10 @@
     "minBid": "Minimum bid is {amount} ₫.",
     "hiddenStartingPrice": "Starting price",
     "currentPrice": "Current price",
+    "timerStartsLabel": "Countdown to start",
+    "timerEndsLabel": "Time remaining",
+    "timerEndedLabel": "Auction status",
+    "extensionNotice": "Every successful bid adds 10 seconds",
     "endsIn": "Ends in {time}",
     "startsIn": "Starts in {time}",
     "startingSoon": "Starting soon...",

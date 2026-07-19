@@ -4,6 +4,7 @@ import com.auction.account.dao.UserRepository;
 import com.auction.account.entity.User;
 import com.auction.bidding.entity.Auction;
 import com.auction.bidding.dto.AuctionEligibilityResponse;
+import com.auction.bidding.util.AuctionTimingPolicy;
 import com.auction.bidding.util.DepositCalculator;
 import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.bidding.repository.AuctionDepositRepository;
@@ -29,8 +30,8 @@ public class AuctionServiceImpl implements AuctionService {
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + auctionId));
 
-        LocalDateTime deadline = auction.getStartTime().minusMinutes(3);
-        boolean allowed = LocalDateTime.now().isBefore(deadline);
+        LocalDateTime deadline = AuctionTimingPolicy.depositDeadline(auction.getStartTime());
+        boolean allowed = AuctionTimingPolicy.isDepositOpen(auction.getStartTime(), LocalDateTime.now());
         long depositAmount = DepositCalculator.calculate(auction.getProduct().getStartingPrice());
         boolean alreadyDeposited = userId != null && auctionDepositRepository
                 .findByAuction_AuctionIdAndUser_Id(auctionId, Math.toIntExact(userId))
@@ -59,9 +60,9 @@ public class AuctionServiceImpl implements AuctionService {
             allowed = false;
             message = "User already deposited for this auction.";
         } else if (!allowed) {
-            message = "Deposit/registration is locked because the 3-minute cutoff has passed.";
+            message = "Deposit/registration is locked because the 1-minute cutoff has passed.";
         } else {
-            message = "User can still deposit before the 3-minute cutoff.";
+            message = "User can still deposit before the 1-minute cutoff.";
         }
 
         return AuctionEligibilityResponse.builder()

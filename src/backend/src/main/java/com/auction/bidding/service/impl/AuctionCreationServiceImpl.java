@@ -7,6 +7,7 @@ import com.auction.bidding.entity.AuctionStatus;
 import com.auction.bidding.repository.AuctionRepository;
 import com.auction.bidding.repository.AuctionSessionRepository;
 import com.auction.bidding.service.AuctionCreationService;
+import com.auction.bidding.util.AuctionTimingPolicy;
 import com.auction.common.exception.BusinessException;
 import com.auction.product.entity.Product;
 import com.auction.product.repository.ProductRepository;
@@ -22,7 +23,7 @@ import java.util.Optional;
 public class AuctionCreationServiceImpl implements AuctionCreationService {
 
     /** LIVE: 3 minutes countdown once opened. */
-    public static final long LIVE_DURATION_SECONDS = 180L;
+    public static final long LIVE_DURATION_SECONDS = AuctionTimingPolicy.LIVE_DURATION.toSeconds();
     /** TIMED: minimum 6 hours. */
     public static final long MIN_TIMED_DURATION_SECONDS = 6L * 60L * 60L;
     /** TIMED: maximum 12 hours. */
@@ -53,7 +54,9 @@ public class AuctionCreationServiceImpl implements AuctionCreationService {
                 .orElseThrow(() -> new BusinessException("Product not found with id: " + productId));
 
         long durationSeconds = resolveDurationSeconds(mode, scheduledDurationSeconds);
-        LocalDateTime endTime = startTime.plusSeconds(durationSeconds);
+        LocalDateTime endTime = mode == AuctionMode.LIVE
+                ? AuctionTimingPolicy.liveEndAt(startTime)
+                : startTime.plusSeconds(durationSeconds);
 
         Optional<Auction> existingOpt = auctionRepository.findByProduct_ProductId(productId);
         if (existingOpt.isPresent()) {

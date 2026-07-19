@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   ApiError,
@@ -16,45 +16,44 @@ type LiveBiddingPanelProps = {
   state: AuctionState;
   sellerId: number;
   onBidPlaced: () => Promise<void> | void;
+  onTimeBoundary: () => Promise<void> | void;
 };
 
 type ViewerMode = "checking" | "anonymous" | "owner" | "buyer" | "error";
 
 const VND = new Intl.NumberFormat("vi-VN");
 
-function formatRemaining(endTime: string, endedText: string): string {
-  const ms = new Date(endTime).getTime() - Date.now();
-  if (ms <= 0) return endedText;
-  const totalSec = Math.floor(ms / 1000);
+type ClientAuctionPhase = "UPCOMING" | "ACTIVE" | "ENDED";
+
+function formatRemaining(targetTime: string, nowMs: number): string {
+  const ms = Math.max(0, new Date(targetTime).getTime() - nowMs);
+  const totalSec = Math.ceil(ms / 1000);
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-/** Countdown to a future instant, or null once it has passed. */
-function formatUntil(time: string): string | null {
-  const ms = new Date(time).getTime() - Date.now();
-  if (ms <= 0) return null;
-  const totalSec = Math.floor(ms / 1000);
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const s = totalSec % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+function resolveClientPhase(state: AuctionState, nowMs: number | null): ClientAuctionPhase {
+  if (!new Set(["UPCOMING", "ACTIVE"]).has(state.status)) return "ENDED";
+  if (nowMs === null) return state.status === "UPCOMING" ? "UPCOMING" : "ACTIVE";
+  if (nowMs < new Date(state.startTime).getTime()) return "UPCOMING";
+  if (nowMs < new Date(state.endTime).getTime()) return "ACTIVE";
+  return "ENDED";
 }
 
 export default function LiveBiddingPanel({
   state,
   sellerId,
   onBidPlaced,
+  onTimeBoundary,
 }: LiveBiddingPanelProps) {
   const t = useTranslations("liveBidding");
   const [customAmount, setCustomAmount] = useState("");
-  // Countdown texts start as null and are only computed on the client (in the
-  // effect below) — computing them during SSR causes a hydration mismatch
-  // because the server and client clocks differ by a second.
-  const [remaining, setRemaining] = useState<string | null>(null);
-  const [untilStart, setUntilStart] = useState<string | null>(null);
+  // The clock starts after hydration; computing Date.now() during SSR would
+  // create a one-second hydration mismatch.
+  const [clockNowMs, setClockNowMs] = useState<number | null>(null);
+  const notifiedBoundaryRef = useRef<string | null>(null);
   const [message, setMessage] = useState<{
     kind: "error" | "success";
     text: string;
@@ -105,17 +104,41 @@ export default function LiveBiddingPanel({
   }, [sellerId, state.auctionId]);
 
   useEffect(() => {
+    const serverOffsetMs = new Date(state.serverNow).getTime() - Date.now();
     const tick = () => {
-      setRemaining(formatRemaining(state.endTime, t("ended")));
-      setUntilStart(formatUntil(state.startTime));
+      const nowMs = Date.now() + serverOffsetMs;
+      setClockNowMs(nowMs);
+
+      const startMs = new Date(state.startTime).getTime();
+      const endMs = new Date(state.endTime).getTime();
+      const boundaryKey = nowMs >= endMs
+        ? `end:${state.endTime}`
+        : nowMs >= startMs
+          ? `start:${state.startTime}`
+          : null;
+      if (boundaryKey && notifiedBoundaryRef.current !== boundaryKey) {
+        notifiedBoundaryRef.current = boundaryKey;
+        void onTimeBoundary();
+      }
     };
     tick();
-    const timer = setInterval(tick, 1000);
-    return () => clearInterval(timer);
-  }, [state.endTime, state.startTime, t]);
+    const timer = window.setInterval(tick, 1_000);
+    return () => window.clearInterval(timer);
+  }, [onTimeBoundary, state.endTime, state.serverNow, state.startTime]);
 
-  const isActive = state.status === "ACTIVE";
-  const isUpcoming = state.status === "UPCOMING";
+  const phase = resolveClientPhase(state, clockNowMs);
+  const isActive = phase === "ACTIVE";
+  const isUpcoming = phase === "UPCOMING";
+  const isEnded = phase === "ENDED";
+  const countdown = clockNowMs === null
+    ? "--:--:--"
+    : formatRemaining(isUpcoming ? state.startTime : state.endTime, clockNowMs);
+  const depositWindowOpen = Boolean(
+    eligibility?.depositAllowed
+      && eligibility.depositDeadline
+      && clockNowMs !== null
+      && clockNowMs < new Date(eligibility.depositDeadline).getTime(),
+  );
   const canBid =
     isActive &&
     viewerMode === "buyer" &&
@@ -197,7 +220,7 @@ export default function LiveBiddingPanel({
   }
 
   return (
-    <div className="glass-panel sticky top-24 flex flex-col gap-6 rounded-2xl p-6">
+    <div className="glass-panel custom-scrollbar sticky top-24 flex flex-col gap-4 rounded-2xl p-5 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:overscroll-contain xl:gap-6 xl:p-6">
       <div>
         <p className="text-xs text-white/50">
           {state.priceHidden ? t("hiddenStartingPrice") : t("currentPrice")}
@@ -205,15 +228,27 @@ export default function LiveBiddingPanel({
         <p className="font-display-lg mt-1 text-3xl text-[var(--luxora-gold-light)]">
           {VND.format(state.currentHighestBid)} ₫
         </p>
-        <p className="mt-1 text-xs text-white/40">
-          {isActive
-            ? t("endsIn", { time: remaining ?? "--:--:--" })
-            : isUpcoming
-              ? untilStart
-                ? t("startsIn", { time: untilStart })
-                : t("startingSoon")
-              : t("closed")}
-        </p>
+        <div className={`mt-4 rounded-xl border px-4 py-3 text-center ${
+          isEnded
+            ? "border-white/10 bg-white/[0.03]"
+            : "border-[var(--luxora-gold)]/35 bg-[var(--luxora-gold)]/10"
+        }`}>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45">
+            {isUpcoming
+              ? t("timerStartsLabel")
+              : isActive
+                ? t("timerEndsLabel")
+                : t("timerEndedLabel")}
+          </p>
+          <p className={`mt-1 font-mono text-3xl font-bold tabular-nums ${
+            isEnded ? "text-white/55" : "text-[var(--luxora-gold-light)]"
+          }`}>
+            {isEnded ? t("ended") : countdown}
+          </p>
+          {isActive && state.auctionMode === "LIVE" ? (
+            <p className="mt-1 text-[10px] text-white/35">{t("extensionNotice")}</p>
+          ) : null}
+        </div>
         {!state.priceHidden && state.winnerUsername ? (
           <p className="mt-1 text-xs text-white/40">
             {t("leading", { username: state.winnerUsername })}
@@ -299,7 +334,7 @@ export default function LiveBiddingPanel({
                 </p>
               ) : null}
             </div>
-          ) : eligibility.depositAllowed ? (
+          ) : depositWindowOpen ? (
             <>
               <p className="text-xs leading-5 text-white/55">
                 {t("depositInfo")}

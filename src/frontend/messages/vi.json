@@ -668,11 +668,13 @@
         "dashboard": "Tổng quan",
         "watchlist": "Theo dõi",
         "wonItems": "Đã thắng",
+        "orders": "Đơn hàng",
         "messages": "Tin nhắn",
         "wallet": "Ví BidZone",
         "kyc": "Xác minh KYC",
         "profile": "Hồ sơ",
         "security": "Bảo mật",
+        "premium": "Gói Premium",
         "inventory": "Kho vật phẩm",
         "postItem": "Đăng vật phẩm",
         "earnings": "Doanh thu"
@@ -720,6 +722,7 @@
       "staff": "Nhân viên",
       "online": "Đang trực",
       "items": {
+        "orders": "Đơn giao hàng",
         "approvals": "Duyệt sản phẩm",
         "kycReview": "Duyệt hồ sơ KYC",
         "supportInbox": "Hộp thư hỗ trợ"
@@ -835,7 +838,18 @@
     "previousImage": "Ảnh trước",
     "nextImage": "Ảnh tiếp theo",
     "imageAlt": "{name} - ảnh {number}",
-    "keyboardHint": "{current} / {total} · Dùng phím ← → để chuyển ảnh"
+    "keyboardHint": "{current} / {total} · Dùng phím ← → để chuyển ảnh",
+    "resultFinished": "Phiên đấu giá đã kết thúc",
+    "resultWinnerTitle": "Đã có người chiến thắng",
+    "resultNoWinnerTitle": "Không có người chiến thắng",
+    "resultWinnerLabel": "Người chiến thắng",
+    "resultWinnerFallback": "Người trả giá cao nhất",
+    "resultFinalPrice": "Giá chốt cuối cùng",
+    "resultPaymentDeadline": "Hạn thanh toán",
+    "resultPaymentNotice": "Người chiến thắng có 72 giờ để hoàn tất thanh toán. Quá hạn sẽ bị ghi nhận vi phạm.",
+    "resultNoWinnerDescription": "Phiên đấu giá kết thúc mà không có lượt đặt giá hợp lệ. Sản phẩm sẽ được chuyển về hàng chờ để Admin/Staff xem xét lên sàn lại.",
+    "resultPayNow": "ĐI TỚI THANH TOÁN",
+    "resultClose": "Đóng"
   },
   "liveBidding": {
     "ended": "Đã kết thúc",
@@ -849,6 +863,10 @@
     "minBid": "Giá tối thiểu là {amount} ₫.",
     "hiddenStartingPrice": "Giá khởi điểm",
     "currentPrice": "Giá hiện tại",
+    "timerStartsLabel": "Đếm ngược đến khi bắt đầu",
+    "timerEndsLabel": "Thời gian còn lại",
+    "timerEndedLabel": "Trạng thái phiên",
+    "extensionNotice": "Mỗi lượt đặt giá thành công cộng thêm 10 giây",
     "endsIn": "Kết thúc sau {time}",
     "startsIn": "Bắt đầu sau {time}",
     "startingSoon": "Sắp bắt đầu...",

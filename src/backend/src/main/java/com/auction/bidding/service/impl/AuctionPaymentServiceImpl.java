@@ -9,6 +9,7 @@ import com.auction.account.service.UserPaymentStrikeService;
 import com.auction.account.dao.UserRepository;
 import com.auction.account.entity.User;
 import com.auction.bidding.service.AuctionPaymentService;
+import com.auction.bidding.util.AuctionTimingPolicy;
 import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.product.service.ContractService;
 import com.auction.wallet.entity.Transaction;
@@ -39,14 +40,27 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
     @Override
     @Transactional
     public AuctionPaymentResponse payAuction(Long auctionId, Long userId, ShippingAddressRequest address) {
-        Auction auction = auctionRepository.findById(auctionId)
+        LocalDateTime now = LocalDateTime.now();
+        Auction auction = auctionRepository.findByIdForUpdate(auctionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + auctionId));
 
-        if (auction.getEndTime() == null || auction.getEndTime().isAfter(LocalDateTime.now())) {
+        if (auction.getEndTime() == null || now.isBefore(auction.getEndTime())) {
             throw new IllegalStateException("Auction has not ended yet");
         }
         if (auction.getCurrentWinnerUser() == null || auction.getCurrentWinnerUser().getId() != userId.intValue()) {
             throw new IllegalStateException("Only the winning bidder can pay for this auction");
+        }
+        if ("PAID".equalsIgnoreCase(auction.getPaymentStatus()) || "PAID".equalsIgnoreCase(auction.getStatus())) {
+            throw new IllegalStateException("Auction is already paid");
+        }
+        if ("FORFEITED".equalsIgnoreCase(auction.getPaymentStatus()) || "FORFEITED".equalsIgnoreCase(auction.getStatus())) {
+            throw new IllegalStateException("Payment window has expired for this auction");
+        }
+        LocalDateTime paymentDeadline = auction.getPaymentDeadline() != null
+                ? auction.getPaymentDeadline()
+                : AuctionTimingPolicy.paymentDeadline(auction.getEndTime());
+        if (AuctionTimingPolicy.isPaymentExpired(paymentDeadline, now)) {
+            throw new IllegalStateException("Payment window has expired for this auction");
         }
         if (!contractService.hasPurchaseContract(auctionId)) {
             if (!contractService.hasPurchaseContractAcknowledgment(auctionId, userId)) {
@@ -54,12 +68,6 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
                         "Bạn cần ký hợp đồng mua bán điện tử trước khi hoàn tất thanh toán.");
             }
             contractService.signPurchaseContract(auctionId, userId);
-        }
-        if ("PAID".equalsIgnoreCase(auction.getPaymentStatus()) || "PAID".equalsIgnoreCase(auction.getStatus())) {
-            throw new IllegalStateException("Auction is already paid");
-        }
-        if ("FORFEITED".equalsIgnoreCase(auction.getPaymentStatus()) || "FORFEITED".equalsIgnoreCase(auction.getStatus())) {
-            throw new IllegalStateException("Payment window has expired for this auction");
         }
 
         Wallet buyerWallet = walletRepository.findByUser_Id(Math.toIntExact(userId))
@@ -81,7 +89,6 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
             throw new IllegalStateException("Insufficient wallet balance to complete auction payment");
         }
 
-        LocalDateTime now = LocalDateTime.now();
         buyerWallet.setBalance(currentBalance - totalCharge);
         buyerWallet.setHoldBalance(Math.max(0L, currentHold - depositAmount));
         buyerWallet.setUpdatedAt(now);

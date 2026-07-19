@@ -12,6 +12,7 @@ import com.auction.bidding.repository.AuctionDepositRepository;
 import com.auction.bidding.entity.*;
 import com.auction.bidding.dto.DepositResponse;
 import com.auction.bidding.util.DepositCalculator;
+import com.auction.bidding.util.AuctionTimingPolicy;
 import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.bidding.repository.*;
 import com.auction.bidding.service.DepositService;
@@ -51,9 +52,9 @@ public class DepositServiceImpl implements DepositService {
             throw new IllegalStateException("Deposit is only allowed for upcoming or active auctions");
         }
 
-        LocalDateTime deadline = auction.getStartTime().minusMinutes(3);
-        if (LocalDateTime.now().isAfter(deadline)) {
-            throw new IllegalStateException("Deposit closed 3 minutes before auction starts");
+        LocalDateTime now = LocalDateTime.now();
+        if (!AuctionTimingPolicy.isDepositOpen(auction.getStartTime(), now)) {
+            throw new IllegalStateException("Deposit closed 1 minute before auction starts");
         }
 
         long depositAmount = DepositCalculator.calculate(auction.getProduct().getStartingPrice());
@@ -69,7 +70,7 @@ public class DepositServiceImpl implements DepositService {
         }
 
         wallet.setHoldBalance(currentHold + depositAmount);
-        wallet.setUpdatedAt(LocalDateTime.now());
+        wallet.setUpdatedAt(now);
         walletRepository.save(wallet);
 
         Transaction transaction = new Transaction();
@@ -80,7 +81,7 @@ public class DepositServiceImpl implements DepositService {
         transaction.setReferenceCode("DEPOSIT-HOLD-" + auctionId + "-" + userId);
         transaction.setDescription("Lock " + DepositCalculator.describeTier(auction.getProduct().getStartingPrice())
                 + " deposit for auction " + auctionId);
-        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setCreatedAt(now);
         transactionRepository.save(transaction);
 
         AuctionDeposit deposit = new AuctionDeposit();
@@ -88,7 +89,7 @@ public class DepositServiceImpl implements DepositService {
         deposit.setUser(user);
         deposit.setDepositAmount(depositAmount);
         deposit.setStatus("LOCKED");
-        deposit.setCreatedAt(LocalDateTime.now());
+        deposit.setCreatedAt(now);
         deposit = auctionDepositRepository.save(deposit);
 
         return DepositResponse.builder()

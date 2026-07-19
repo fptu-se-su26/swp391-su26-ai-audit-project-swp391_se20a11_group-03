@@ -26,6 +26,12 @@ spring.jpa.open-in-view=false
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 
+# Auction lifecycle reconciliation
+auction.settlement.fixed-rate-ms=${AUCTION_SETTLEMENT_FIXED_RATE_MS:2000}
+auction.settlement.initial-delay-ms=${AUCTION_SETTLEMENT_INITIAL_DELAY_MS:2000}
+auction.payment-expiry.fixed-rate-ms=${AUCTION_PAYMENT_EXPIRY_FIXED_RATE_MS:30000}
+auction.payment-expiry.initial-delay-ms=${AUCTION_PAYMENT_EXPIRY_INITIAL_DELAY_MS:30000}
+
 # JWT
 app.jwt.secret=${APP_JWT_SECRET}
 app.jwt.expiration-ms=86400000

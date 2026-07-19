@@ -21,21 +21,21 @@ const NAV_GROUPS: NavGroup[] = [
   {
     titleKey: "auction",
     items: [
-      { label: "Tổng quan", href: "/dashboard", icon: "dashboard" },
-      { label: "Theo dõi", href: "/watchlist", icon: "visibility" },
-      { label: "Đã thắng", href: "/won-items", icon: "emoji_events" },
-      { label: "Đơn hàng", href: "/orders", icon: "local_shipping" },
-      { label: "Tin nhắn", href: "/messages", icon: "chat" },
+      { labelKey: "dashboard", href: "/dashboard", icon: "dashboard" },
+      { labelKey: "watchlist", href: "/watchlist", icon: "visibility" },
+      { labelKey: "wonItems", href: "/won-items", icon: "emoji_events" },
+      { labelKey: "orders", href: "/orders", icon: "local_shipping" },
+      { labelKey: "messages", href: "/messages", icon: "chat" },
     ],
   },
   {
     titleKey: "account",
     items: [
-      { label: "Ví BidZone", href: "/wallet", icon: "account_balance_wallet" },
-      { label: "Xác minh KYC", href: "/kyc", icon: "verified_user" },
-      { label: "Hồ sơ", href: "/profile", icon: "person" },
-      { label: "Bảo mật", href: "/security", icon: "lock" },
-      { label: "Gói Premium", href: "/premium", icon: "workspace_premium", badge: "VIP" },
+      { labelKey: "wallet", href: "/wallet", icon: "account_balance_wallet" },
+      { labelKey: "kyc", href: "/kyc", icon: "verified_user" },
+      { labelKey: "profile", href: "/profile", icon: "person" },
+      { labelKey: "security", href: "/security", icon: "lock" },
+      { labelKey: "premium", href: "/premium", icon: "workspace_premium", badge: "VIP" },
     ],
   },
   {

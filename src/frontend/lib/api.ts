@@ -272,9 +272,11 @@ export type ProductDetail = {
 export type BidResult = {
   success: boolean;
   message: string | null;
-  auctionId: number;
+  auctionId: number | null;
+  userId: number | null;
   bidAmount: number | null;
-  [key: string]: unknown;
+  currentHighestBid: number | null;
+  endTime: string | null;
 };
 
 export type AuctionEligibility = {

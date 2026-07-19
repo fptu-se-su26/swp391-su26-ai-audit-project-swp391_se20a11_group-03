@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Auction Backend (free port 8096)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" />
+    <module name="vnec-auth" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.auction.AuctionApplication" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/backend" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

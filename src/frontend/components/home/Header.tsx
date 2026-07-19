@@ -34,14 +34,6 @@ const ROLE_HOME = {
   shipper: "/shipper/orders",
 } as const;
 
-const ROLE_LABEL = {
-  collector: "Người mua",
-  seller: "Người bán",
-  staff: "Nhân viên",
-  admin: "Quản trị viên",
-  shipper: "Nhân viên giao hàng",
-} as const;
-
 function subscribeToAuthState(onStoreChange: () => void) {
   window.addEventListener(AUTH_STATE_EVENT, onStoreChange);
   window.addEventListener("storage", onStoreChange);

@@ -32,8 +32,8 @@ const NAV_GROUPS: AdminNavGroup[] = [
   {
     titleKey: "auctions",
     items: [
-      { href: "/admin/auction-history", icon: "live_tv", label: "Tất cả phiên" },
-      { href: "/admin/sales-history", icon: "receipt_long", label: "Lịch sử mua bán" },
+      { href: "/admin/auction-history", icon: "live_tv", labelKey: "allSessions" },
+      { href: "/admin/sales-history", icon: "receipt_long", labelKey: "salesHistory" },
     ],
   },
   {

@@ -1,8 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import LiveBiddingPanel from "@/components/feature/LiveBiddingPanel";
+import {
+  connectAuctionRealtime,
+  type AuctionResultEvent,
+} from "@/lib/auction-realtime";
 import {
   ApiError,
   auctionApi,
@@ -28,10 +33,15 @@ export default function AuctionDetailClient({
   initialBids,
 }: AuctionDetailClientProps) {
   const t = useTranslations("auctionDetail");
+  const locale = useLocale();
   const [state, setState] = useState(initialState);
   const [bids, setBids] = useState(initialBids);
   const [activeImage, setActiveImage] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [viewerUserId, setViewerUserId] = useState<number | null>(null);
+  const [resultEvent, setResultEvent] = useState<AuctionResultEvent | null>(null);
+  const [resultOpen, setResultOpen] = useState(false);
+  const resultPresentedRef = useRef(false);
   const [isWatched, setIsWatched] = useState(false);
   const [watchlistBusy, setWatchlistBusy] = useState(false);
   const [watchlistMessage, setWatchlistMessage] = useState<{
@@ -66,10 +76,69 @@ export default function AuctionDetailClient({
   }, [state.auctionId]);
 
   useEffect(() => {
-    if (state.status !== "ACTIVE") return;
-    const timer = setInterval(refresh, 5000);
-    return () => clearInterval(timer);
-  }, [refresh, state.status]);
+    const shouldPoll = state.status === "UPCOMING"
+      || state.status === "ACTIVE"
+      || (state.auctionMode === "LIVE" && state.paymentStatus === null);
+    if (!shouldPoll) return;
+    const timer = window.setInterval(() => void refresh(), 2_000);
+    return () => window.clearInterval(timer);
+  }, [refresh, state.auctionMode, state.paymentStatus, state.status]);
+
+  useEffect(() => connectAuctionRealtime({
+    auctionId: state.auctionId,
+    onBid: (event) => {
+      if (!event.success) return;
+      setState((current) => ({
+        ...current,
+        endTime: event.endTime ?? current.endTime,
+        currentHighestBid: event.currentHighestBid ?? current.currentHighestBid,
+        currentWinnerUserId: event.userId ?? current.currentWinnerUserId,
+        totalBids: current.totalBids + 1,
+      }));
+      void refresh();
+    },
+    onResult: (event) => {
+      const shouldOpen = !resultPresentedRef.current;
+      resultPresentedRef.current = true;
+      setResultEvent(event);
+      if (shouldOpen) setResultOpen(true);
+      void refresh();
+    },
+  }), [refresh, state.auctionId]);
+
+  useEffect(() => {
+    if (!getToken()) return;
+    let cancelled = false;
+    userApi.profile()
+      .then((response) => {
+        if (!cancelled) setViewerUserId(response.data.userId);
+      })
+      .catch(() => {
+        if (!cancelled) setViewerUserId(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const ended = !new Set(["UPCOMING", "ACTIVE"]).has(state.status);
+    if (state.auctionMode !== "LIVE" || !ended || resultPresentedRef.current) return;
+    resultPresentedRef.current = true;
+    const hasWinner = state.totalBids > 0 && state.currentWinnerUserId !== null;
+    setResultEvent({
+      type: hasWinner ? "AUCTION_WON" : "AUCTION_ENDED_NO_WINNER",
+      auctionId: state.auctionId,
+      productId: state.productId,
+      winnerUserId: hasWinner ? state.currentWinnerUserId : null,
+      winnerUsername: hasWinner ? state.winnerUsername : null,
+      productName: product.productName,
+      finalPriceVnd: state.currentHighestBid,
+      settledAt: new Date().toISOString(),
+      paymentDeadline: state.paymentDeadline,
+    });
+    setResultOpen(true);
+  }, [product.productName, state]);
 
   useEffect(() => {
     let cancelled = false;
@@ -157,7 +226,11 @@ export default function AuctionDetailClient({
             {t("viewAllImages")}
           </span>
           {isActive ? (
-            <span className="pulse-live absolute left-4 top-4 rounded-full bg-red-500/90 px-3 py-1.5 text-xs font-semibold text-white">
+            <span className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-red-500/90 px-3 py-1.5 text-xs font-semibold text-white">
+              <span
+                aria-hidden="true"
+                className="pulse-live h-1.5 w-1.5 rounded-full bg-white"
+              />
               {t("liveStatus")}
             </span>
           ) : (
@@ -288,8 +361,98 @@ export default function AuctionDetailClient({
           state={state}
           sellerId={product.sellerId}
           onBidPlaced={refresh}
+          onTimeBoundary={refresh}
         />
       </div>
+
+      {resultOpen && resultEvent ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="auction-result-title"
+          className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm"
+          onClick={() => setResultOpen(false)}
+        >
+          <div
+            className="w-full max-w-lg overflow-hidden rounded-3xl border border-[var(--luxora-gold)]/35 bg-[var(--luxora-bg,#090806)] shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="bg-gradient-to-br from-[#2b210f] via-[#15110a] to-black px-7 py-8 text-center">
+              <span className="material-symbols-outlined text-6xl text-[var(--luxora-gold-light)]">
+                {resultEvent.type === "AUCTION_WON" ? "emoji_events" : "gavel"}
+              </span>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.28em] text-[var(--luxora-gold)]">
+                {t("resultFinished")}
+              </p>
+              <h2 id="auction-result-title" className="font-display-lg mt-2 text-3xl text-white">
+                {resultEvent.type === "AUCTION_WON"
+                  ? t("resultWinnerTitle")
+                  : t("resultNoWinnerTitle")}
+              </h2>
+            </div>
+
+            <div className="space-y-4 px-7 py-6">
+              {resultEvent.type === "AUCTION_WON" ? (
+                <>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                    <p className="text-xs text-white/45">{t("resultWinnerLabel")}</p>
+                    <p className="mt-1 text-xl font-semibold text-white">
+                      {resultEvent.winnerUsername ?? t("resultWinnerFallback")}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                      <p className="text-xs text-white/45">{t("resultFinalPrice")}</p>
+                      <p className="mt-1 text-lg font-bold text-[var(--luxora-gold-light)]">
+                        {VND.format(resultEvent.finalPriceVnd)} ₫
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                      <p className="text-xs text-white/45">{t("resultPaymentDeadline")}</p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-US", {
+                          dateStyle: "short",
+                          timeStyle: "medium",
+                        }).format(new Date(
+                          resultEvent.paymentDeadline
+                            ?? state.paymentDeadline
+                            ?? new Date(new Date(state.endTime).getTime() + 72 * 60 * 60 * 1_000).toISOString(),
+                        ))}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-center text-xs leading-5 text-white/45">
+                    {t("resultPaymentNotice")}
+                  </p>
+                </>
+              ) : (
+                <p className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 text-center text-sm leading-6 text-white/60">
+                  {t("resultNoWinnerDescription")}
+                </p>
+              )}
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                {resultEvent.type === "AUCTION_WON"
+                    && viewerUserId === resultEvent.winnerUserId ? (
+                  <Link
+                    href="/won-items"
+                    className="gradient-cta flex-1 rounded-xl px-4 py-3 text-center text-sm font-bold text-black"
+                  >
+                    {t("resultPayNow")}
+                  </Link>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setResultOpen(false)}
+                  className="flex-1 rounded-xl border border-white/15 px-4 py-3 text-sm font-semibold text-white/75 hover:border-[var(--luxora-gold)] hover:text-white"
+                >
+                  {t("resultClose")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {lightboxOpen ? (
         <div
