@@ -82,14 +82,12 @@ groq.api.keys=${GROQ_API_KEYS:}
 groq.ocr.api.key=${GROQ_OCR_API_KEY:${groq.api.key:}}
 groq.valuation.api.key=${GROQ_VALUATION_API_KEY:${groq.api.key:}}
 groq.chat.api.key=${GROQ_CHAT_API_KEY:${groq.api.key:}}
-
-# Optional task-specific pools. They fall back to GROQ_API_KEYS.
-groq.ocr.api.keys=${GROQ_OCR_API_KEYS:${groq.api.keys}}
-groq.valuation.api.keys=${GROQ_VALUATION_API_KEYS:${groq.api.keys}}
-groq.chat.api.keys=${GROQ_CHAT_API_KEYS:${groq.api.keys}}
+groq.ocr.api.keys=${GROQ_OCR_API_KEYS:${groq.api.keys:}}
+groq.valuation.api.keys=${GROQ_VALUATION_API_KEYS:${groq.api.keys:}}
+groq.chat.api.keys=${GROQ_CHAT_API_KEYS:${groq.api.keys:}}
 groq.api.base-url=${GROQ_API_BASE_URL:https://api.groq.com/openai/v1}
 groq.api.model=${GROQ_API_MODEL:qwen/qwen3.6-27b}
-groq.vision.model=${GROQ_VISION_MODEL:${groq.api.model}}
+groq.vision.model=${GROQ_VISION_MODEL:${groq.api.model:qwen/qwen3.6-27b}}
 
 # SePay
 sepay.bank-id=${SEPAY_BANK_ID:}
