@@ -1,7 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Auction Backend (free port 8096)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
-    <option name="ACTIVE_PROFILES" />
-    <module name="vnec-auth" />
+    <module name="vnec-auth (1)" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.auction.AuctionApplication" />
     <method v="2">
       <option name="Make" enabled="true" />
