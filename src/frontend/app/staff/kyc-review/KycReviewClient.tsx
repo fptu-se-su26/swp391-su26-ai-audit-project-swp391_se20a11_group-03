@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { adminApi, ApiError, kycApi, type KycReview } from "@/lib/api";
 
 const STATUS_CLASS: Record<string, string> = {
@@ -16,11 +17,13 @@ const SEVERITY_CLASS: Record<string, string> = {
   LOW: "text-white/50",
 };
 
-function fmt(date: string | null) {
-  return date ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(date)) : "—";
+function fmt(date: string | null, locale: string) {
+  return date ? new Intl.DateTimeFormat(locale, { dateStyle: "short", timeStyle: "short" }).format(new Date(date)) : "—";
 }
 
 export default function KycReviewClient() {
+  const t = useTranslations("staffKycReviewPage");
+  const locale = useLocale();
   const [items, setItems] = useState<KycReview[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [note, setNote] = useState("");
@@ -37,11 +40,11 @@ export default function KycReviewClient() {
       setItems(list);
       setSelectedId((prev) => (prev && list.some((k) => k.kycId === prev) ? prev : list[0]?.kycId ?? null));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Không thể tải hàng đợi KYC.");
+      setError(err instanceof ApiError ? err.message : t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void load(), 0);
@@ -53,7 +56,7 @@ export default function KycReviewClient() {
   async function act(kind: "approve" | "reject" | "info") {
     if (!current) return;
     if ((kind === "reject" || kind === "info") && !note.trim()) {
-      setError("Vui lòng nhập lý do / ghi chú trước khi từ chối hoặc yêu cầu bổ sung.");
+      setError(t("noteRequired"));
       return;
     }
     setBusy(true);
@@ -65,15 +68,15 @@ export default function KycReviewClient() {
       else await adminApi.requestInfoKyc(current.kycId, note.trim());
       setNotice(
         kind === "approve"
-          ? `Đã duyệt KYC của ${current.fullName ?? current.email}.`
+          ? t("approveNotice", { name: current.fullName ?? current.email ?? `KYC #${current.kycId}` })
           : kind === "reject"
-            ? "Đã từ chối hồ sơ."
-            : "Đã yêu cầu bổ sung.",
+            ? t("rejectNotice")
+            : t("infoNotice"),
       );
       setNote("");
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Thao tác thất bại.");
+      setError(err instanceof ApiError ? err.message : t("actionError"));
     } finally {
       setBusy(false);
     }
@@ -85,12 +88,12 @@ export default function KycReviewClient() {
       <aside className="w-72 shrink-0 overflow-y-auto border-r border-white/10">
         <div className="border-b border-white/10 p-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-white/40">
-            Hàng đợi KYC ({items.length})
+            {t("queueTitle", { count: items.length })}
           </p>
         </div>
-        {loading && <p className="p-4 text-sm text-white/40">Đang tải...</p>}
+        {loading && <p className="p-4 text-sm text-white/40">{t("loading")}</p>}
         {!loading && items.length === 0 && (
-          <p className="p-4 text-sm text-white/40">Không có hồ sơ chờ duyệt.</p>
+          <p className="p-4 text-sm text-white/40">{t("emptyQueue")}</p>
         )}
         {items.map((s) => (
           <button
@@ -112,7 +115,7 @@ export default function KycReviewClient() {
                 {s.status}
               </span>
             </div>
-            <p className="text-[11px] text-white/40">{fmt(s.submittedAt)}</p>
+            <p className="text-[11px] text-white/40">{fmt(s.submittedAt, locale)}</p>
           </button>
         ))}
       </aside>
@@ -121,14 +124,14 @@ export default function KycReviewClient() {
       <div className="flex flex-1 flex-col overflow-y-auto p-6">
         {!current ? (
           <div className="flex flex-1 items-center justify-center text-sm text-white/40">
-            {error ?? "Chọn một hồ sơ để xem chi tiết."}
+            {error ?? t("chooseProfile")}
           </div>
         ) : (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5">
               <div>
                 <p className="text-lg font-semibold">{current.fullName ?? "—"}</p>
-                <p className="text-sm text-white/40">{current.email} · {fmt(current.submittedAt)}</p>
+                <p className="text-sm text-white/40">{current.email} · {fmt(current.submittedAt, locale)}</p>
               </div>
               <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${STATUS_CLASS[current.status] ?? "bg-white/10 text-white/50"}`}>
                 {current.status}
@@ -137,34 +140,34 @@ export default function KycReviewClient() {
 
             {current.cccdDuplicate && (
               <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                ⚠ Số CCCD này trùng với tài khoản khác trong hệ thống.
+                {t("duplicateWarning")}
               </div>
             )}
 
             <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Info label="Số CCCD" value={current.cccdNumber} />
-              <Info label="Số điện thoại" value={current.phone} />
-              <Info label="Ngày sinh" value={current.dob} />
-              <Info label="Giới tính" value={current.gender} />
-              <Info label="Ngày cấp" value={current.issueDate} />
-              <Info label="Nơi cấp" value={current.issuePlace} />
+              <Info label={t("identityNumber")} value={current.cccdNumber} />
+              <Info label={t("phone")} value={current.phone} />
+              <Info label={t("dob")} value={current.dob} />
+              <Info label={t("gender")} value={current.gender} />
+              <Info label={t("issueDate")} value={current.issueDate} />
+              <Info label={t("issuePlace")} value={current.issuePlace} />
             </div>
 
             <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <DocCard title="CCCD trước" kycId={current.kycId} which="front" exists={!!current.frontImageUrl} analysis={current.frontImageAnalysis} />
-              <DocCard title="CCCD sau" kycId={current.kycId} which="back" exists={!!current.backImageUrl} analysis={current.backImageAnalysis} />
-              <DocCard title="Chân dung" kycId={current.kycId} which="selfie" exists={!!current.selfieImageUrl} analysis={current.selfieImageAnalysis} />
+              <DocCard title={t("frontDoc")} kycId={current.kycId} which="front" exists={!!current.frontImageUrl} analysis={current.frontImageAnalysis} />
+              <DocCard title={t("backDoc")} kycId={current.kycId} which="back" exists={!!current.backImageUrl} analysis={current.backImageAnalysis} />
+              <DocCard title={t("selfieDoc")} kycId={current.kycId} which="selfie" exists={!!current.selfieImageUrl} analysis={current.selfieImageAnalysis} />
             </div>
 
             <div className="mt-6">
               <label className="mb-1.5 block text-xs font-medium text-white/50">
-                Ghi chú / Lý do (bắt buộc khi từ chối hoặc yêu cầu bổ sung)
+                {t("noteLabel")}
               </label>
               <textarea
                 rows={3}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Nhập lý do..."
+                placeholder={t("notePlaceholder")}
                 className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
               />
             </div>
@@ -179,15 +182,15 @@ export default function KycReviewClient() {
             <div className="mt-4 flex flex-wrap gap-3">
               <button type="button" disabled={busy} onClick={() => act("approve")}
                 className="rounded-full bg-green-500/10 px-5 py-2.5 text-sm font-semibold text-green-300 hover:bg-green-500/20 disabled:opacity-50">
-                {busy ? "..." : "Duyệt KYC"}
+                {busy ? "..." : t("approve")}
               </button>
               <button type="button" disabled={busy} onClick={() => act("info")}
                 className="rounded-full bg-blue-500/10 px-5 py-2.5 text-sm font-semibold text-blue-300 hover:bg-blue-500/20 disabled:opacity-50">
-                Yêu cầu bổ sung
+                {t("requestInfo")}
               </button>
               <button type="button" disabled={busy} onClick={() => act("reject")}
                 className="rounded-full bg-red-500/10 px-5 py-2.5 text-sm font-semibold text-red-300 hover:bg-red-500/20 disabled:opacity-50">
-                Từ chối
+                {t("reject")}
               </button>
             </div>
           </>
@@ -219,6 +222,7 @@ function DocCard({
   exists: boolean;
   analysis?: { riskScore: number; severity: string; signals: Array<{ severity: string; message: string }> } | null;
 }) {
+  const t = useTranslations("staffKycReviewPage");
   const [src, setSrc] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -246,7 +250,7 @@ function DocCard({
         <p className="text-sm font-semibold">{title}</p>
         {analysis && (
           <span className={`text-[11px] font-semibold ${SEVERITY_CLASS[analysis.severity] ?? "text-white/50"}`}>
-            Rủi ro {analysis.riskScore}
+            {t("risk", { score: analysis.riskScore })}
           </span>
         )}
       </div>
@@ -257,7 +261,7 @@ function DocCard({
         </a>
       ) : (
         <div className="flex h-36 items-center justify-center rounded-xl border border-dashed border-white/10 text-xs text-white/30">
-          {!exists ? "Chưa có ảnh" : failed ? "Không tải được ảnh" : "Đang tải..."}
+          {!exists ? t("noImage") : failed ? t("imageError") : t("imageLoading")}
         </div>
       )}
       {analysis?.signals?.length ? (

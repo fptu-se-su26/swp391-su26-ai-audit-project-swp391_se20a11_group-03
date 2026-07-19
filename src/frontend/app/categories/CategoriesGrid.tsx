@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { FiArrowRight } from "react-icons/fi";
 import {
   fetchStorefrontCategories,
@@ -12,6 +13,7 @@ import {
 } from "@/lib/api";
 
 export default function CategoriesGrid() {
+  const t = useTranslations("categoriesGrid");
   const [lots, setLots] = useState<StorefrontLot[]>([]);
   const [categories, setCategories] = useState<StorefrontCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,17 +61,17 @@ export default function CategoriesGrid() {
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-sm font-semibold tracking-[0.25em] text-[#f0c982]">
-            DANH MỤC NỔI BẬT
+            {t("badge")}
           </p>
           <h2 className="mt-3 text-3xl font-bold">
-            Bộ lọc dành cho người mua nghiêm túc
+            {t("title")}
           </h2>
         </div>
         <Link
           href="/storefront"
           className="inline-flex w-fit items-center gap-2 rounded-full border border-[#d7aa63]/45 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
         >
-          Xem toàn bộ lot
+          {t("viewAll")}
           <FiArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       </div>
@@ -134,7 +136,7 @@ export default function CategoriesGrid() {
 
                   <div className="absolute inset-x-0 bottom-0 z-10 p-5 sm:p-6">
                     <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-[#f0c982]">
-                      Danh mục tuyển chọn
+                      {t("curated")}
                     </p>
                     <div className="flex items-end justify-between gap-4">
                       <div>
@@ -143,7 +145,7 @@ export default function CategoriesGrid() {
                         </h3>
                         <p className="mt-2 line-clamp-2 max-w-[28ch] text-sm leading-relaxed text-white/68">
                           {category.description ||
-                            "Khám phá những vật phẩm nổi bật đang được tuyển chọn."}
+                            t("fallbackDesc")}
                         </p>
                       </div>
                       <span className="flex h-11 w-11 shrink-0 translate-y-2 items-center justify-center rounded-full border border-white/25 bg-white/10 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">

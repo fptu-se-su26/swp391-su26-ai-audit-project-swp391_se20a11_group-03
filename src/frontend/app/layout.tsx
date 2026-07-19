@@ -1,20 +1,29 @@
 import type { Metadata } from "next";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import MaterialSymbolsLoader from "@/components/performance/MaterialSymbolsLoader";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "BidZone | Sàn đấu giá cao cấp",
-  description: "Sàn đấu giá cao cấp: đồng hồ, công nghệ, túi xách, đồ sưu tầm giới hạn.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata");
 
-export default function RootLayout({
+  return {
+    title: t("title"),
+    description: t("description"),
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <html
-      lang="vi"
+      lang={locale}
       data-theme="light"
       className="h-full antialiased"
       suppressHydrationWarning
@@ -28,8 +37,10 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        {children}
-        <MaterialSymbolsLoader />
+        <NextIntlClientProvider messages={messages}>
+          {children}
+          <MaterialSymbolsLoader />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

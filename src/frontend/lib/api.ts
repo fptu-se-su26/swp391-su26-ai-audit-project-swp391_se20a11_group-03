@@ -1116,10 +1116,10 @@ export async function fetchPublicStats(): Promise<TrustStat[]> {
     if (!response.ok) return [];
     const stats = (await response.json()) as PublicStatsResponse;
     return [
-      { id: "products", value: stats.totalProducts.toLocaleString("vi-VN"), label: "Sản phẩm" },
-      { id: "members", value: stats.totalUsers.toLocaleString("vi-VN"), label: "Thành viên" },
-      { id: "active-auctions", value: stats.activeAuctions.toLocaleString("vi-VN"), label: "Phiên đang chạy" },
-      { id: "completed-auctions", value: stats.completedAuctions.toLocaleString("vi-VN"), label: "Phiên hoàn tất" },
+      { id: "products", value: stats.totalProducts.toLocaleString("vi-VN") },
+      { id: "members", value: stats.totalUsers.toLocaleString("vi-VN") },
+      { id: "active-auctions", value: stats.activeAuctions.toLocaleString("vi-VN") },
+      { id: "completed-auctions", value: stats.completedAuctions.toLocaleString("vi-VN") },
     ];
   } catch {
     return [];
@@ -1302,7 +1302,7 @@ function toLiveAuctionItem(p: ProductSummary): LiveAuctionItem {
     title: p.productName,
     subtitle: p.categoryName ?? "",
     currentPrice: `${VND.format(price)} ₫`,
-    estimatedPrice: `Giá khởi điểm ${VND.format(p.startingPrice)} ₫`,
+    estimatedPrice: `${VND.format(p.startingPrice)} ₫`,
     bidCount: p.totalBids ?? 0,
     endsAt: p.auctionEndTime ? new Date(p.auctionEndTime).getTime() : Date.now(),
     imageSrc: toImageSrc(p.imageUrl),
@@ -1396,7 +1396,7 @@ const CATEGORY_IMAGES: Record<string, string> = {
 function formatTimeLeft(endTime: string | null): string {
   if (!endTime) return "—";
   const ms = new Date(endTime).getTime() - Date.now();
-  if (ms <= 0) return "Đã kết thúc";
+  if (ms <= 0) return "00:00:00";
   const totalSec = Math.floor(ms / 1000);
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
@@ -1410,7 +1410,7 @@ function toStorefrontLot(p: ProductSummary): StorefrontLot {
     lotNumber: `LOT ${String(p.productId).padStart(3, "0")}`,
     title: p.productName,
     categoryId: slugify(p.categoryName ?? "khac"),
-    categoryLabel: p.categoryName ?? "Khác",
+    categoryLabel: p.categoryName ?? "",
     currentBid:
       p.currentBid && p.currentBid > 0 ? p.currentBid : p.startingPrice,
     timeLeft: formatTimeLeft(p.auctionEndTime),

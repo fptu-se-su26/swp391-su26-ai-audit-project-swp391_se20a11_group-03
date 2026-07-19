@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { ApiError, userApi, type UserProfile } from "@/lib/api";
 import { useApiData } from "@/lib/use-api-data";
 
@@ -36,6 +37,7 @@ function toVietnameseLocalPhone(value: string | null): string {
 }
 
 export default function ProfileClient() {
+  const t = useTranslations("profilePage");
   const { data: profile, setData, loading, error } = useApiData(
     loadProfile,
     EMPTY_PROFILE,
@@ -73,9 +75,7 @@ export default function ProfileClient() {
     setPhoneError("");
     setPhoneMessage("");
     if (!/^0\d{9}$/.test(phone)) {
-      setPhoneError(
-        "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 0.",
-      );
+      setPhoneError(t("phoneInvalid"));
       return;
     }
     setPhoneBusy(true);
@@ -87,14 +87,14 @@ export default function ProfileClient() {
       setOtpSent(true);
       setPhoneMessage(
         channel === "WHATSAPP"
-          ? "Đã gửi mã OTP qua WhatsApp."
-          : "Đã gửi mã OTP qua SMS.",
+          ? t("otpSentWhatsapp")
+          : t("otpSentSms"),
       );
     } catch (err) {
       setPhoneError(
         err instanceof ApiError
           ? err.message
-          : "Không thể gửi mã OTP. Vui lòng thử lại.",
+          : t("otpSendError"),
       );
     } finally {
       setPhoneBusy(false);
@@ -111,12 +111,12 @@ export default function ProfileClient() {
       setPhoneDraft(null);
       setOtp("");
       setOtpSent(false);
-      setPhoneMessage("Số điện thoại đã được xác minh thành công.");
+      setPhoneMessage(t("phoneVerifiedSuccess"));
     } catch (err) {
       setPhoneError(
         err instanceof ApiError
           ? err.message
-          : "Không thể xác minh mã OTP. Vui lòng thử lại.",
+          : t("otpVerifyError"),
       );
     } finally {
       setPhoneBusy(false);
@@ -135,7 +135,7 @@ export default function ProfileClient() {
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
       <div className="flex items-center justify-between">
-        <h1 className="font-display-lg text-3xl">Hồ sơ cá nhân</h1>
+        <h1 className="font-display-lg text-3xl">{t("title")}</h1>
         <button
           type="button"
           onClick={toggleEditing}
@@ -146,7 +146,7 @@ export default function ProfileClient() {
               : "gradient-cta rounded-full px-5 py-2.5 text-xs font-semibold text-black"
           }
         >
-          {editing ? "Hủy" : "Chỉnh sửa hồ sơ"}
+          {editing ? t("cancelBtn") : t("editBtn")}
         </button>
       </div>
 
@@ -159,11 +159,10 @@ export default function ProfileClient() {
           </span>
           <div>
             <p className="text-sm font-semibold text-[var(--luxora-gold-light)]">
-              Cần xác minh số điện thoại
+              {t("phoneRequiredTitle")}
             </p>
             <p className="mt-1 text-xs leading-5 text-white/50">
-              Đây là bước bắt buộc sau khi đăng nhập để bảo vệ tài khoản và sử
-              dụng các chức năng xác minh danh tính.
+              {t("phoneRequiredDesc")}
             </p>
           </div>
         </div>
@@ -175,7 +174,7 @@ export default function ProfileClient() {
         </div>
         <div>
           <p className="text-lg font-semibold">
-            {profile.fullName || "Đang tải..."}
+            {profile.fullName || t("loading")}
           </p>
           <p className="text-sm capitalize text-white/40">{profile.roleName}</p>
           <span
@@ -187,20 +186,20 @@ export default function ProfileClient() {
           >
             <span className="material-symbols-outlined text-sm">verified</span>
             {profile.identityVerified
-              ? "Đã xác minh danh tính"
-              : "Chưa xác minh danh tính"}
+              ? t("verifiedBadge")
+              : t("notVerifiedBadge")}
           </span>
         </div>
       </div>
 
       <div className="glass-panel mt-6 rounded-2xl p-6">
         <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-white/40">
-          Thông tin tài khoản
+          {t("accountInfoTitle")}
         </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-[11px] text-white/40">
-              Họ và tên
+              {t("fullNameLabel")}
             </label>
             {editing ? (
               <input
@@ -214,23 +213,23 @@ export default function ProfileClient() {
           </div>
           <div>
             <label className="mb-1 block text-[11px] text-white/40">
-              Email
+              {t("emailLabel")}
             </label>
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-sm font-medium">{profile.email || "—"}</p>
               {profile.emailVerified && (
                 <span className="rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-semibold text-green-300">
-                  Đã xác minh
+                  {t("verifiedBadge")}
                 </span>
               )}
             </div>
           </div>
           <div>
             <label className="mb-1 block text-[11px] text-white/40">
-              Số giấy tờ
+              {t("idNumberLabel")}
             </label>
             <p className="text-sm font-medium">
-              {profile.identityNumber || "Chưa cập nhật"}
+              {profile.identityNumber || t("noIdNumber")}
             </p>
           </div>
         </div>
@@ -241,7 +240,7 @@ export default function ProfileClient() {
             disabled={saving}
             className="gradient-cta mt-6 rounded-full px-6 py-3 text-sm font-semibold text-black disabled:opacity-50"
           >
-            {saving ? "Đang lưu..." : "Lưu thay đổi"}
+            {saving ? t("saving") : t("saveBtn")}
           </button>
         )}
       </div>
@@ -250,11 +249,10 @@ export default function ProfileClient() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-white/40">
-              Xác minh số điện thoại
+              {t("phoneVerificationTitle")}
             </p>
             <p className="mt-1 text-xs leading-5 text-white/40">
-              Nhập đúng 10 chữ số Việt Nam bắt đầu bằng 0. Hệ thống sẽ tự
-              chuyển sang định dạng +84 để gửi OTP.
+              {t("phoneVerificationDesc")}
             </p>
           </div>
           <span
@@ -264,7 +262,7 @@ export default function ProfileClient() {
                 : "bg-yellow-500/10 text-yellow-300"
             }`}
           >
-            {profile.phoneVerified ? "Đã xác minh" : "Bắt buộc xác minh"}
+            {profile.phoneVerified ? t("verifiedBadge") : t("verificationRequired")}
           </span>
         </div>
 
@@ -275,7 +273,7 @@ export default function ProfileClient() {
                 {toVietnameseLocalPhone(profile.phone)}
               </p>
               <p className="mt-0.5 text-[11px] text-green-300">
-                Số điện thoại đã được xác minh
+                {t("phoneVerifiedLabel")}
               </p>
             </div>
             <button
@@ -288,7 +286,7 @@ export default function ProfileClient() {
               }}
               className="rounded-full border border-white/15 px-4 py-2 text-[11px] font-semibold text-white/60 transition hover:border-white/30 hover:text-white"
             >
-              Đổi số điện thoại
+              {t("changePhone")}
             </button>
           </div>
         ) : (
@@ -336,8 +334,8 @@ export default function ProfileClient() {
           className="mt-3 rounded-full border border-[var(--luxora-gold)]/40 px-5 py-2.5 text-xs font-semibold text-[var(--luxora-gold-light)] transition hover:bg-[var(--luxora-gold)]/10 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {phoneBusy
-            ? "Đang gửi..."
-            : "Gửi mã OTP"}
+            ? t("sendingOtp")
+            : t("sendOtp")}
         </button>
 
         {otpSent && (
@@ -351,7 +349,7 @@ export default function ProfileClient() {
               onChange={(event) =>
                 setOtp(event.target.value.replace(/\D/g, "").slice(0, 10))
               }
-              placeholder="Nhập mã OTP"
+              placeholder={t("otpPlaceholder")}
               className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm tracking-[0.25em] outline-none placeholder:tracking-normal placeholder:text-white/25 focus:border-[var(--luxora-gold)]"
             />
             <button
@@ -360,7 +358,7 @@ export default function ProfileClient() {
               disabled={phoneBusy || otp.length < 4}
               className="gradient-cta rounded-full px-6 py-2.5 text-xs font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {phoneBusy ? "Đang kiểm tra..." : "Xác nhận OTP"}
+              {phoneBusy ? t("checkingOtp") : t("confirmOtp")}
             </button>
           </div>
         )}

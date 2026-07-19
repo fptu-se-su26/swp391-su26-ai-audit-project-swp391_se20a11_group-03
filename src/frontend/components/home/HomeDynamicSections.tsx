@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import LiveAuctionGrid from "@/components/home/LiveAuctionGrid";
 import PublicProductSection from "@/components/home/PublicProductSection";
 import {
@@ -14,6 +15,7 @@ import {
 import type { LiveAuctionItem } from "@/lib/home-data";
 
 export default function HomeDynamicSections() {
+  const t = useTranslations("home");
   const [liveItems, setLiveItems] = useState<LiveAuctionItem[]>([]);
   const [lots, setLots] = useState<StorefrontLot[]>([]);
   const [categories, setCategories] = useState<StorefrontCategory[]>([]);
@@ -54,13 +56,13 @@ export default function HomeDynamicSections() {
           <div className="mb-6 flex items-center justify-between gap-4 sm:mb-8">
             <h2 className="flex min-w-0 items-center gap-3 text-xs font-semibold tracking-[0.18em] text-white sm:text-sm sm:tracking-[0.25em]">
               <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />
-              <span className="truncate">PHIÊN ĐẤU GIÁ LIVE</span>
+              <span className="truncate">{t("liveSection")}</span>
             </h2>
             <Link
               href="/auctions"
               className="flex shrink-0 items-center gap-2 text-[11px] font-medium tracking-wider text-white/60 transition-colors hover:text-white sm:text-xs"
             >
-              XEM TẤT CẢ
+              {t("seeAll")}
               <span className="material-symbols-outlined text-sm">
                 arrow_forward
               </span>
@@ -71,7 +73,7 @@ export default function HomeDynamicSections() {
             <LiveAuctionGrid items={liveItems} />
           ) : (
             <p className="rounded-lg border border-white/10 bg-white/[0.02] px-6 py-10 text-center text-sm text-white/50">
-              Chưa có phiên đấu giá nào đang diễn ra. Quay lại sau nhé!
+              {t("noLiveAuctions")}
             </p>
           )}
         </div>

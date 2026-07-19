@@ -1,11 +1,13 @@
 import CollectorShell from "@/components/shells/CollectorShell";
 import PostItemForm from "@/app/post-item/PostItemForm";
+import { getTranslations } from "next-intl/server";
 
 type PostItemPageProps = {
   searchParams: Promise<{ edit?: string | string[] }>;
 };
 
 export default async function PostItemPage({ searchParams }: PostItemPageProps) {
+  const t = await getTranslations("postItem");
   const params = await searchParams;
   const rawEditId = Array.isArray(params.edit) ? params.edit[0] : params.edit;
   const parsedEditId = rawEditId ? Number(rawEditId) : undefined;
@@ -18,7 +20,7 @@ export default async function PostItemPage({ searchParams }: PostItemPageProps) 
     <CollectorShell>
       <div className="mx-auto max-w-7xl px-6 py-10">
         <h1 className="font-display-lg text-3xl">
-          {editProductId ? "Chỉnh sửa vật phẩm" : "Đăng vật phẩm"}
+          {editProductId ? t("editTitle") : t("createTitle")}
         </h1>
         <div className="mt-8">
           <PostItemForm editProductId={editProductId} />
