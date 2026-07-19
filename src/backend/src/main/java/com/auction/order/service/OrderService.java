@@ -31,8 +31,8 @@ public class OrderService {
     public static final double PLATFORM_COMMISSION_RATE = 0.20d;
     private static final Map<OrderStatus, Set<OrderStatus>> EDGES = Map.of(
             OrderStatus.PENDING_PICKUP, Set.of(OrderStatus.ASSIGNED),
-            OrderStatus.ASSIGNED, Set.of(OrderStatus.PICKED_UP),
-            OrderStatus.PICKED_UP, Set.of(OrderStatus.IN_TRANSIT),
+            OrderStatus.ASSIGNED, Set.of(OrderStatus.PICKED_UP, OrderStatus.DELIVERY_FAILED),
+            OrderStatus.PICKED_UP, Set.of(OrderStatus.IN_TRANSIT, OrderStatus.DELIVERY_FAILED),
             OrderStatus.IN_TRANSIT, Set.of(OrderStatus.DELIVERED, OrderStatus.DELIVERY_FAILED),
             OrderStatus.DELIVERED, Set.of(OrderStatus.COMPLETED),
             OrderStatus.DELIVERY_FAILED, Set.of(OrderStatus.ASSIGNED, OrderStatus.REFUNDED)
@@ -139,11 +139,12 @@ public class OrderService {
         long refund = order.getFinalPrice() + order.getShippingFee();
         credit(buyerWallet, refund, "ORDER_REFUND", "ORDER-REFUND-" + orderId, "Refund for failed delivery", now);
         User admin = userRepository.findFirstByRole_RoleNameOrderByIdAsc("Admin").orElse(null);
-        if (admin != null) {
+        if (admin != null && order.getShippingFee() > 0) {
             Wallet adminWallet = wallet(admin, now);
             adminWallet.setBalance(Math.max(0L, value(adminWallet.getBalance()) - order.getShippingFee()));
+            adminWallet.setUpdatedAt(now);
             walletRepository.save(adminWallet);
-            transactionRepository.save(new Transaction(adminWallet, -order.getShippingFee(), "SHIPPING_FEE_REFUND", "COMPLETED", "SHIP-REFUND-" + orderId, "Shipping fee refunded", now));
+            transactionRepository.save(new Transaction(adminWallet, order.getShippingFee(), "SHIPPING_FEE_REFUND", "COMPLETED", "SHIP-REFUND-" + orderId, "Shipping fee refunded", now));
         }
         notify(order.getBuyer(), "Order refunded", "The order price and shipping fee were returned to your wallet.", Notification.NotificationType.ORDER_STATUS_UPDATED, order);
         return toResponse(order);

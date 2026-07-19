@@ -104,11 +104,6 @@ export default function MessagesClient() {
     event.preventDefault();
     setCreateError("");
 
-    if (false) {
-      setCreateError("Vui lòng nhập email người bán.");
-      return;
-    }
-
     const isSeller = data.profile.roleName?.toLowerCase() === "seller";
     setCreating(true);
     try {
@@ -195,8 +190,8 @@ export default function MessagesClient() {
           </p>
         ) : null}
         <div className="flex items-center gap-3 border-t border-white/10 p-4">
-          <input type="text" value={input} disabled={!active} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => event.key === "Enter" && void sendMessage()} placeholder={active ? "Nhập tin nhắn..." : "Tạo hội thoại mới để bắt đầu nhắn tin"} className="flex-1 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)] disabled:opacity-50" />
-          <button type="button" onClick={() => void sendMessage()} disabled={!active || !input.trim()} aria-label="Gửi tin nhắn" className="gradient-cta flex h-11 w-11 items-center justify-center rounded-full text-black disabled:opacity-40"><span className="material-symbols-outlined">send</span></button>
+          <input type="text" value={input} disabled={!active || active.status === "CLOSED"} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => event.key === "Enter" && void sendMessage()} placeholder={!active ? "Tạo hội thoại mới để bắt đầu nhắn tin" : active.status === "CLOSED" ? "Hội thoại đã đóng — chỉ xem lại" : "Nhập tin nhắn..."} className="flex-1 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)] disabled:opacity-50" />
+          <button type="button" onClick={() => void sendMessage()} disabled={!active || active.status === "CLOSED" || !input.trim()} aria-label="Gửi tin nhắn" className="gradient-cta flex h-11 w-11 items-center justify-center rounded-full text-black disabled:opacity-40"><span className="material-symbols-outlined">send</span></button>
         </div>
       </div>
 
@@ -225,46 +220,9 @@ export default function MessagesClient() {
             </h2>
 
             <form onSubmit={createConversation} className="mt-5 flex flex-col gap-4">
-              <div className="hidden">
-                <button
-                  type="button"
-                  onClick={() => undefined}
-                  className={`h-10 rounded-lg border text-xs font-semibold ${
-                    true
-                      ? "border-[var(--luxora-gold)] bg-[var(--luxora-gold)]/10 text-[var(--luxora-gold-light)]"
-                      : "border-white/10 text-white/65 hover:border-white/25"
-                  }`}
-                >
-                  Hỗ trợ từ BidZone
-                </button>
-                <button
-                  type="button"
-                  onClick={() => undefined}
-                  className={`h-10 rounded-lg border text-xs font-semibold ${
-                    false
-                      ? "border-[var(--luxora-gold)] bg-[var(--luxora-gold)]/10 text-[var(--luxora-gold-light)]"
-                      : "border-white/10 text-white/65 hover:border-white/25"
-                  }`}
-                >
-                  Nhắn người bán
-                </button>
-              </div>
-
-              {false ? (
-                <label className="block">
-                  <span className="mb-1.5 block text-xs text-white/50">
-                    Email người bán
-                  </span>
-                  <input
-                    type="email"
-                    required
-                    value=""
-                    onChange={() => undefined}
-                    placeholder="seller@example.com"
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
-                  />
-                </label>
-              ) : null}
+              <p className="text-xs text-white/50">
+                Hội thoại sẽ được gửi đến đội ngũ hỗ trợ BidZone.
+              </p>
 
               <label className="block">
                 <span className="mb-1.5 block text-xs text-white/50">

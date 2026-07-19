@@ -98,7 +98,8 @@ public class TransactionLedgerServiceImpl implements TransactionLedgerService {
         }
         return switch (type.toUpperCase(Locale.ROOT)) {
             case "DEPOSIT", "REFUND_DEPOSIT", "AUCTION_PAYOUT",
-                 "PLATFORM_COMMISSION", "ADMIN_AUCTION_REVENUE", "FORFEIT_DEPOSIT" -> true;
+                 "PLATFORM_COMMISSION", "ADMIN_AUCTION_REVENUE", "FORFEIT_DEPOSIT",
+                 "SHIPPING_FEE_REVENUE", "ORDER_REFUND" -> true;
             default -> false;
         };
     }
@@ -117,6 +118,10 @@ public class TransactionLedgerServiceImpl implements TransactionLedgerService {
             case "ADMIN_AUCTION_REVENUE" -> "Doanh thu đấu giá (admin)";
             case "REFUND_DEPOSIT" -> "Hoàn tiền cọc";
             case "FORFEIT_DEPOSIT" -> "Thu cọc quá hạn";
+            case "SHIPPING_FEE" -> "Phí vận chuyển";
+            case "SHIPPING_FEE_REVENUE" -> "Doanh thu phí vận chuyển";
+            case "SHIPPING_FEE_REFUND" -> "Hoàn phí vận chuyển";
+            case "ORDER_REFUND" -> "Hoàn tiền đơn hàng";
             default -> type;
         };
     }

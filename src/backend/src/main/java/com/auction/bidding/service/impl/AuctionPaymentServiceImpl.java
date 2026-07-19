@@ -101,13 +101,17 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
             ));
         }
 
+        if (shippingFee > 0) {
+            transactionRepository.save(new Transaction(buyerWallet, shippingFee, "SHIPPING_FEE", "COMPLETED",
+                    "SHIP-FEE-" + auctionId, "Flat shipping fee for auction " + auctionId, now));
+        }
         Wallet adminShippingWallet = getAdminWallet(now);
         if (adminShippingWallet != null && shippingFee > 0) {
             adminShippingWallet.setBalance((adminShippingWallet.getBalance() == null ? 0L : adminShippingWallet.getBalance()) + shippingFee);
             adminShippingWallet.setUpdatedAt(now);
             walletRepository.save(adminShippingWallet);
-            transactionRepository.save(new Transaction(adminShippingWallet, shippingFee, "SHIPPING_FEE", "COMPLETED",
-                    "SHIP-FEE-" + auctionId, "Flat shipping fee for auction " + auctionId, now));
+            transactionRepository.save(new Transaction(adminShippingWallet, shippingFee, "SHIPPING_FEE_REVENUE", "COMPLETED",
+                    "SHIP-FEE-REV-" + auctionId, "Flat shipping fee for auction " + auctionId, now));
         }
 
         if (deposit != null) {

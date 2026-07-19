@@ -31,8 +31,6 @@ const NAV_GROUPS: AdminNavGroup[] = [
     title: "Đấu giá",
     items: [
       { href: "/admin/auction-history", icon: "live_tv", label: "Tất cả phiên" },
-      { href: "/admin/auction-history?payment=PAID", icon: "check_circle", label: "Đã thanh toán" },
-      { href: "/admin/auction-history?payment=UNPAID", icon: "schedule", label: "Chưa thanh toán" },
       { href: "/admin/sales-history", icon: "receipt_long", label: "Lịch sử mua bán" },
     ],
   },

@@ -294,14 +294,14 @@ export default function WonItemsPage() {
                   </div>
                   {contract.signed ? (
                     <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                      <h3 className="text-sm font-semibold">Äá»‹a chá»‰ nháº­n hÃ ng</h3>
+                      <h3 className="text-sm font-semibold">Địa chỉ nhận hàng</h3>
                       <div className="mt-3 grid gap-3 md:grid-cols-2">
-                        {([['receiverName','NgÆ°á»i nháº­n'],['receiverPhone','Sá»‘ Ä‘iá»‡n thoáº¡i'],['addressLine','Sá»‘ nhÃ , Ä‘Æ°á»ng'],['ward','PhÆ°á»ng/xÃ£'],['district','Quáº­n/huyá»‡n'],['province','Tá»‰nh/thÃ nh phá»‘']] as const).map(([key, label]) => (
+                        {([['receiverName','Người nhận'],['receiverPhone','Số điện thoại'],['addressLine','Số nhà, đường'],['ward','Phường/xã'],['district','Quận/huyện'],['province','Tỉnh/thành phố']] as const).map(([key, label]) => (
                           <label key={key} className="text-xs text-white/50">{label}<input required value={address[key] ?? ''} onChange={(e) => setAddress((old) => ({ ...old, [key]: e.target.value }))} className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-[var(--luxora-gold)]" /></label>
                         ))}
                       </div>
-                      <label className="mt-3 block text-xs text-white/50">Ghi chÃº<textarea value={address.note} onChange={(e) => setAddress((old) => ({ ...old, note: e.target.value }))} className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" /></label>
-                      <div className="mt-4 border-t border-white/10 pt-3 text-sm"><p className="flex justify-between"><span>PhÃ­ giao hÃ ng</span><span>{VND.format(SHIPPING_FEE)} â‚«</span></p><p className="mt-2 flex justify-between font-semibold text-[var(--luxora-gold-light)]"><span>Tá»•ng thanh toÃ¡n</span><span>{VND.format(contract.finalPrice + SHIPPING_FEE)} â‚«</span></p></div>
+                      <label className="mt-3 block text-xs text-white/50">Ghi chú<textarea value={address.note} onChange={(e) => setAddress((old) => ({ ...old, note: e.target.value }))} className="mt-1 w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-white" /></label>
+                      <div className="mt-4 border-t border-white/10 pt-3 text-sm"><p className="flex justify-between"><span>Phí giao hàng</span><span>{VND.format(SHIPPING_FEE)} ₫</span></p><p className="mt-2 flex justify-between font-semibold text-[var(--luxora-gold-light)]"><span>Tổng thanh toán</span><span>{VND.format(contract.finalPrice + SHIPPING_FEE)} ₫</span></p></div>
                     </div>
                   ) : null}
                 </div>
