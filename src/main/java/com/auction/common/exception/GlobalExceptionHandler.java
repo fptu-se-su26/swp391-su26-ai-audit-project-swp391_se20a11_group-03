@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -67,6 +68,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(400).body(Map.of(
                 "status", 400,
                 "message", errors,
+                "timestamp", LocalDateTime.now().toString()));
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException ex) {
+        int status = ex.getStatusCode().value();
+        return ResponseEntity.status(ex.getStatusCode()).body(Map.of(
+                "status", status,
+                "message", ex.getReason() != null ? ex.getReason() : "Request failed",
                 "timestamp", LocalDateTime.now().toString()));
     }
 

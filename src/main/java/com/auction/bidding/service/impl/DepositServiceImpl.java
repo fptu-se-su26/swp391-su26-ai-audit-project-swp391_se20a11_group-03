@@ -50,7 +50,11 @@ public class DepositServiceImpl implements DepositService {
             throw new IllegalStateException("Deposit closed 3 minutes before auction starts");
         }
 
-        long depositAmount = DepositCalculator.calculate(auction.getProduct().getStartingPrice());
+        long standardDeposit = DepositCalculator.calculate(auction.getProduct().getStartingPrice());
+        long startingPrice = auction.getProduct().getStartingPrice();
+        // Premium: waive below 1M; otherwise charge exactly 50% (integer VND, rounded down).
+        long depositAmount = com.auction.premium.service.PremiumPolicy.deposit(
+                startingPrice, standardDeposit, user.isPremium());
         if (wallet.getBalance() == null || wallet.getBalance() < depositAmount) {
             throw new IllegalStateException("Insufficient wallet balance");
         }

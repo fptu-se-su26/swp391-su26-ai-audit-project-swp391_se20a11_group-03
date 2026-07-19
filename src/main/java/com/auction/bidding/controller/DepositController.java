@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/deposits")
@@ -21,6 +22,7 @@ public class DepositController {
     private final UserRepository userRepository;
 
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<DepositResponse> createDeposit(
             @RequestParam(name = "auctionId") Long auctionId,
             @AuthenticationPrincipal UserDetailsImpl user

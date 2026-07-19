@@ -800,7 +800,7 @@
     "acknowledgeContract": "Xác nhận đồng ý hợp đồng",
     "acknowledging": "Đang xác nhận...",
     "acknowledgedPendingSubmit": "Đã xác nhận. Nhấn Gửi đăng ký Seller để hoàn tất.",
-    "submitSellerRegistration": "Gửi đăng ký Seller",
+    "submitSellerRegistration": "Gửi hợp đồng đăng ký Seller",
     "submitting": "Đang gửi...",
     "submitFailed": "Không thể hoàn tất đăng ký seller. Vui lòng thử lại.",
     "acknowledgeFirst": "Vui lòng xác nhận đồng ý hợp đồng trước.",

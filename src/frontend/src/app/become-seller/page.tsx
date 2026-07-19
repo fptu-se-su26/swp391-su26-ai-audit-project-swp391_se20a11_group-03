@@ -113,11 +113,12 @@ export default function BecomeSellerPage() {
       <div className="mx-auto max-w-[960px] space-y-6 px-4 py-10 sm:px-7 lg:py-14">
         <DashboardHeader eyebrow={t("eyebrow")} title={t("pageTitle")} subtitle={t("pageSubtitle")} />
 
-        <div className="rounded-2xl border border-[#e0d9ce] bg-white/90 p-6 shadow-sm">
+        <div className="rounded-3xl border border-[#d5aa45]/25 bg-gradient-to-b from-[#17140f]/95 to-[#080706]/95 p-4 shadow-[0_30px_90px_rgba(0,0,0,.45)] sm:p-6">
           {!loading && (
             <SellerContractPanel
               userId={currentUser.userId}
               identityVerified={identityVerified}
+              sellerRoleActive={isSeller(currentUser)}
               onSubmitted={handleSubmitted}
             />
           )}

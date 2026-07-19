@@ -78,6 +78,10 @@ public class User {
     @Column(name = "LockedByPaymentStrikes", nullable = false)
     private boolean lockedByPaymentStrikes = false;
 
+    /** Entitlement flag only. Purchasing/upgrading Premium is intentionally out of scope. */
+    @Column(name = "IsPremium", nullable = false)
+    private boolean premium = false;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "RoleId")
     private Role role;
@@ -278,6 +282,8 @@ public class User {
     public void setLockedByPaymentStrikes(boolean lockedByPaymentStrikes) {
         this.lockedByPaymentStrikes = lockedByPaymentStrikes;
     }
-}
 
+    public boolean isPremium() { return premium; }
+    public void setPremium(boolean premium) { this.premium = premium; }
+}
 

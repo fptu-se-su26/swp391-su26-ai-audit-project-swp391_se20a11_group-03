@@ -31,7 +31,10 @@ public class AuctionServiceImpl implements AuctionService {
 
         LocalDateTime deadline = auction.getStartTime().minusMinutes(3);
         boolean allowed = LocalDateTime.now().isBefore(deadline);
-        long depositAmount = DepositCalculator.calculate(auction.getProduct().getStartingPrice());
+        long standardDeposit = DepositCalculator.calculate(auction.getProduct().getStartingPrice());
+        User viewer = userId == null ? null : userRepository.findById(Math.toIntExact(userId)).orElse(null);
+        long depositAmount = com.auction.premium.service.PremiumPolicy.deposit(
+                auction.getProduct().getStartingPrice(), standardDeposit, viewer != null && viewer.isPremium());
         boolean alreadyDeposited = userId != null && auctionDepositRepository
                 .findByAuction_AuctionIdAndUser_Id(auctionId, Math.toIntExact(userId))
                 .isPresent();
@@ -40,7 +43,7 @@ public class AuctionServiceImpl implements AuctionService {
         boolean kycVerified = false;
         String profileStatus = null;
         if (userId != null) {
-            User u = userRepository.findById(Math.toIntExact(userId)).orElse(null);
+            User u = viewer;
             if (u != null) {
                 kycVerified = u.isIdentityVerified();
                 profileStatus = u.getProfileStatus();

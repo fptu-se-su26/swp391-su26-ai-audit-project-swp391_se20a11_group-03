@@ -173,6 +173,14 @@ public class ProductServiceImpl implements ProductService {
             // Verify seller exists AND has completed KYC (Admin bypasses KYC + seller contract).
             com.auction.account.entity.User seller = userRepository.findById(Math.toIntExact(sellerId))
                     .orElseThrow(() -> new ResourceNotFoundException("Seller not found with id: " + sellerId));
+            LocalDateTime monthStart = LocalDateTime.now().withDayOfMonth(1).toLocalDate().atStartOfDay();
+            long monthlyListings = productRepository.countBySellerIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+                    sellerId, monthStart, monthStart.plusMonths(1));
+            // Edge cases: deleted/rejected rows still count; month boundary is [start, nextStart).
+            if (!seller.isPremium() && monthlyListings >= 5) {
+                throw new com.auction.common.exception.LimitExceededException(
+                        "Tài khoản thường chỉ được đăng tối đa 5 sản phẩm/tháng");
+            }
             boolean isAdmin = seller.getRole() != null && "Admin".equalsIgnoreCase(seller.getRole().getRoleName());
             if (!isAdmin) {
                 if (!seller.isIdentityVerified()) {

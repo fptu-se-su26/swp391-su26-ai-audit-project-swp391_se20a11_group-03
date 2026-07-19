@@ -27,6 +27,7 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
 
     /** Platform commission rate taken from the final price on a paid auction. */
     public static final double PLATFORM_COMMISSION_RATE = 0.20d;
+    public static final double PREMIUM_COMMISSION_RATE = 0.05d;
 
     private final AuctionRepository auctionRepository;
     private final AuctionDepositRepository auctionDepositRepository;
@@ -126,7 +127,10 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
                 ));
             }
         } else {
-            long commission = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
+            User seller = userRepository.findById(Math.toIntExact(auction.getProduct().getSellerId()))
+                    .orElseThrow(() -> new ResourceNotFoundException("Seller not found for auction: " + auctionId));
+            double commissionRate = seller.isPremium() ? PREMIUM_COMMISSION_RATE : PLATFORM_COMMISSION_RATE;
+            long commission = com.auction.premium.service.PremiumPolicy.commission(finalPrice, seller.isPremium());
             long sellerAmount = Math.max(0L, finalPrice - commission);
 
             Wallet sellerWallet = null;
@@ -144,7 +148,7 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
                         "AUCTION_PAYOUT",
                         "COMPLETED",
                         "AUC-PAYOUT-" + auctionId,
-                        "Payout (80%) for auction " + auctionId,
+                        "Seller payout after " + Math.round(commissionRate * 100) + "% commission for auction " + auctionId,
                         now
                 ));
             }
@@ -161,7 +165,7 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
                         "PLATFORM_COMMISSION",
                         "COMPLETED",
                         "AUC-COMMISSION-" + auctionId,
-                        "Platform commission (20%) for auction " + auctionId,
+                        "Platform commission (" + Math.round(commissionRate * 100) + "%) for auction " + auctionId,
                         now
                 ));
             }

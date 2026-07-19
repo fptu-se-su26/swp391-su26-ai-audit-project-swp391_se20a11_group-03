@@ -18,6 +18,7 @@ import {
 type Props = {
   userId?: number;
   identityVerified?: boolean;
+  sellerRoleActive?: boolean;
   onSubmitted?: (contract: SellerContract) => void;
   showSteps?: boolean;
 };
@@ -25,6 +26,7 @@ type Props = {
 export default function SellerContractPanel({
   userId,
   identityVerified = false,
+  sellerRoleActive = false,
   onSubmitted,
   showSteps = true,
 }: Props) {
@@ -167,7 +169,7 @@ export default function SellerContractPanel({
   }
 
   return (
-    <div className="space-y-md">
+    <div className="space-y-6 text-[#f8f2e7]">
       {showSteps && (
         <ol className="grid gap-3 sm:grid-cols-3">
           {[
@@ -177,30 +179,30 @@ export default function SellerContractPanel({
           ].map((label, index) => (
             <li
               key={label}
-              className={`rounded-xl border px-4 py-3 text-sm ${
+              className={`rounded-xl border px-4 py-3 text-sm transition-colors ${
                 index === 0 || acknowledged || contractPersisted
-                  ? "border-[#d7c9a8] bg-[#fffdf8]"
-                  : "border-outline-variant bg-surface-container-low"
+                  ? "border-[#d5aa45]/60 bg-[#d5aa45]/10"
+                  : "border-white/10 bg-white/[0.03]"
               }`}
             >
               <span className="font-mono text-xs font-bold text-[#a17b2c]">
                 {String(index + 1).padStart(2, "0")}
               </span>
-              <p className="mt-1 font-label-md text-label-md text-primary">{label}</p>
+              <p className="mt-1 font-label-md text-label-md text-[#f8f2e7]">{label}</p>
             </li>
           ))}
         </ol>
       )}
 
-      <div className="rounded-2xl border border-secondary/40 bg-secondary-container/10 p-md sm:p-lg">
+      <div className="rounded-2xl border border-[#d5aa45]/35 bg-[#0b0a08]/95 p-md shadow-[0_24px_70px_rgba(0,0,0,.35)] sm:p-lg">
         <div className="flex items-center gap-xs">
           <span className="material-symbols-outlined text-secondary">contract</span>
-          <h2 className="font-headline-sm text-headline-sm text-primary">{t("title")}</h2>
+          <h2 className="font-headline-sm text-headline-sm text-[#f8f2e7]">{t("title")}</h2>
         </div>
-        <p className="mt-xs font-body-sm text-body-sm text-on-surface-variant">{t("subtitle")}</p>
+        <p className="mt-xs font-body-sm text-body-sm text-[#b9b1a5]">{t("subtitle")}</p>
 
-        <div className="mt-md max-h-44 overflow-y-auto rounded-lg border border-outline-variant bg-surface-container-lowest p-md text-sm text-on-surface-variant">
-          <p className="font-label-md text-label-md text-primary">{t("termsTitle")}</p>
+        <div className="mt-md max-h-44 overflow-y-auto rounded-xl border border-white/10 bg-black/40 p-md text-sm leading-6 text-[#c8c0b4] [scrollbar-color:#b9974f_#17130d]">
+          <p className="font-label-md text-label-md text-[#e2c171]">{t("termsTitle")}</p>
           <p className="mt-2">{t("term1")}</p>
           <p className="mt-1">{t("term2")}</p>
           <p className="mt-1">{t("term3")}</p>
@@ -211,14 +213,14 @@ export default function SellerContractPanel({
         <div className="mt-md">
           <p className="mb-2 font-label-md text-label-md text-on-surface-variant">{tReg("pdfPreviewTitle")}</p>
           {contractPersisted && signedPdfUrl ? (
-            <div className="overflow-hidden rounded-lg border border-outline-variant bg-surface">
-              <iframe title="Seller contract PDF" src={signedPdfUrl} className="h-[min(70vh,520px)] w-full" />
+            <div className="overflow-hidden rounded-xl border border-[#d5aa45]/25 bg-[#17130d]">
+              <iframe title="Seller contract PDF" src={signedPdfUrl} className="h-[360px] w-full sm:h-[400px]" />
             </div>
           ) : previewLoading ? (
             <p className="text-sm text-on-surface-variant">{tReg("previewLoading")}</p>
           ) : previewUrl ? (
-            <div className="overflow-hidden rounded-lg border border-outline-variant bg-surface">
-              <iframe title="Seller contract preview" src={previewUrl} className="h-[min(70vh,520px)] w-full" />
+            <div className="overflow-hidden rounded-xl border border-[#d5aa45]/25 bg-[#17130d]">
+              <iframe title="Seller contract preview" src={previewUrl} className="h-[360px] w-full sm:h-[400px]" />
             </div>
           ) : (
             <p className="text-sm text-error">{tReg("previewError")}</p>
@@ -242,7 +244,8 @@ export default function SellerContractPanel({
         )}
 
         {contractPersisted ? (
-          <div className="mt-md flex flex-wrap items-center gap-sm">
+          <div className="mt-md rounded-xl border border-[#d5aa45]/25 bg-[#d5aa45]/[0.07] p-4">
+            <div className="flex flex-wrap items-center gap-sm">
             <span className="flex items-center gap-xs text-on-tertiary-container">
               <span
                 className="material-symbols-outlined text-[18px]"
@@ -256,11 +259,27 @@ export default function SellerContractPanel({
               <button
                 type="button"
                 onClick={() => openSellerContractPdf().catch(() => setError(tReg("previewError")))}
-                className="inline-flex items-center gap-xs rounded-lg border border-secondary/50 bg-surface px-3 py-1.5 font-label-md text-label-md text-secondary hover:bg-secondary-container/30"
+                className="inline-flex items-center gap-xs rounded-lg border border-[#d5aa45]/50 bg-black/30 px-3 py-1.5 font-label-md text-label-md text-[#e2c171] hover:bg-[#d5aa45]/10"
               >
                 <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
                 {t("viewPdf")}
               </button>
+            )}
+            </div>
+            {!sellerRoleActive && (
+              <div className="mt-4 border-t border-white/10 pt-4">
+                <p className="mb-3 text-sm text-[#c8c0b4]">{tReg("acknowledgedPendingSubmit")}</p>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={submitting || !identityVerified}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#c89418] to-[#f0d787] px-6 py-3.5 font-bold text-[#171008] shadow-[0_10px_30px_rgba(201,148,24,.2)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                >
+                  <span className="material-symbols-outlined text-[19px]">send</span>
+                  {submitting ? tReg("submitting") : tReg("submitSellerRegistration")}
+                </button>
+                {!identityVerified && <p className="mt-2 text-sm text-[#d9a7a0]">{tReg("kycRequiredBeforeSubmit")}</p>}
+              </div>
             )}
           </div>
         ) : (

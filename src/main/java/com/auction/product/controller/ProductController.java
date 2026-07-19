@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
+    @PreAuthorize("hasRole('Seller') or hasRole('Admin')")
     public ResponseEntity<ApiResponse<ProductResponseDTO>> createProduct(
             @AuthenticationPrincipal UserDetailsImpl user,
             @Valid @RequestBody CreateProductRequestDTO request) {
@@ -69,4 +71,3 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Product updated successfully", updated));
     }
 }
-

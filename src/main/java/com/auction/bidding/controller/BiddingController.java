@@ -15,6 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.auction.account.security.UserDetailsImpl;
+import com.auction.account.dao.UserRepository;
+import java.security.Principal;
 
 import java.util.List;
 
@@ -24,15 +29,18 @@ public class BiddingController {
     private final BiddingService biddingService;
     private final SimpMessagingTemplate messagingTemplate;
     private final AuctionSessionRepository auctionSessionRepository;
+    private final UserRepository userRepository;
 
     public BiddingController(
             BiddingService biddingService,
             SimpMessagingTemplate messagingTemplate,
-            AuctionSessionRepository auctionSessionRepository
+            AuctionSessionRepository auctionSessionRepository,
+            UserRepository userRepository
     ) {
         this.biddingService = biddingService;
         this.messagingTemplate = messagingTemplate;
         this.auctionSessionRepository = auctionSessionRepository;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/rooms")
@@ -41,14 +49,21 @@ public class BiddingController {
     }
 
     @PostMapping("/bid")
-    public BidResponse bid(@RequestBody BidRequest request) {
+    @PreAuthorize("isAuthenticated()")
+    public BidResponse bid(@RequestBody BidRequest request, @AuthenticationPrincipal UserDetailsImpl user) {
+        request.setUserId(user.getId()); // Never trust a client-supplied buyer id.
         BidResponse response = biddingService.placeBid(request);
         broadcastBid(response);
         return response;
     }
 
     @MessageMapping("/bid")
-    public BidResponse bidRealtime(BidRequest request) {
+    @PreAuthorize("isAuthenticated()")
+    public BidResponse bidRealtime(BidRequest request, Principal principal) {
+        Long authenticatedId = userRepository.findByUsername(principal.getName())
+                .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("Authenticated user not found"))
+                .getUserId();
+        request.setUserId(authenticatedId); // Prevent WebSocket payload identity spoofing.
         BidResponse response = biddingService.placeBid(request);
         broadcastBid(response);
         return response;

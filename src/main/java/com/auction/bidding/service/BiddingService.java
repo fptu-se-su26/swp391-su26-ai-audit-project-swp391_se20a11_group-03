@@ -17,6 +17,9 @@ import com.auction.bidding.repository.BidRepository;
 import com.auction.bidding.util.AuctionPhaseUtil;
 import com.auction.product.repository.ProductImageRepository;
 import com.auction.product.repository.ProductRepository;
+import com.auction.premium.entity.AutoBidConfig;
+import com.auction.premium.repository.AutoBidConfigRepository;
+import com.auction.account.dao.UserRepository;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -47,6 +50,8 @@ public class BiddingService {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final AuctionDepositRepository auctionDepositRepository;
+    private final AutoBidConfigRepository autoBidConfigRepository;
+    private final UserRepository userRepository;
     private final ReentrantLock auctionLock = new ReentrantLock(true);
 
     public BiddingService(
@@ -55,7 +60,9 @@ public class BiddingService {
             BidRepository bidRepository,
             ProductRepository productRepository,
             ProductImageRepository productImageRepository,
-            AuctionDepositRepository auctionDepositRepository
+            AuctionDepositRepository auctionDepositRepository,
+            AutoBidConfigRepository autoBidConfigRepository,
+            UserRepository userRepository
     ) {
         this.auctionSessionRepository = auctionSessionRepository;
         this.auctionRepository = auctionRepository;
@@ -63,6 +70,8 @@ public class BiddingService {
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.auctionDepositRepository = auctionDepositRepository;
+        this.autoBidConfigRepository = autoBidConfigRepository;
+        this.userRepository = userRepository;
     }
 
     public List<AuctionSessionDto> getOpenRooms() {
@@ -132,6 +141,7 @@ public class BiddingService {
 
             auction.setCurrentHighestBid(request.getBidAmount());
             auction.setCurrentWinnerUserId(request.getUserId());
+            applyAutoBid(auction, biddingProduct, request.getUserId(), request.getBidAmount(), now);
             // The first valid bid moves the row to ACTIVE. We set status on the
             // SAME entity (AuctionSession) instead of loading/saving the legacy
             // Auction entity, which maps the same table and would otherwise clobber
@@ -151,10 +161,42 @@ public class BiddingService {
             if (timedBlind) {
                 return BidResponse.successTimedBlind(auction.getAuctionId(), auction.getEndTime());
             }
-            return BidResponse.success(auction.getAuctionId(), request.getUserId(), request.getBidAmount(), auction.getCurrentHighestBid(), auction.getEndTime());
+            return BidResponse.success(auction.getAuctionId(), auction.getCurrentWinnerUserId(),
+                    auction.getCurrentHighestBid(), auction.getCurrentHighestBid(), auction.getEndTime());
         } finally {
             auctionLock.unlock();
         }
+    }
+
+    /**
+     * Resolves all auto bidders in one calculation and writes at most one bid.
+     * Edge cases handled: revoked Premium/inactive configs are ignored; the manual bidder is excluded;
+     * two competing configs jump to min(winnerMax, lowerMax + step), preventing recursive ping-pong.
+     */
+    private void applyAutoBid(AuctionSession auction, Product product, Long manualBuyerId,
+                              long manualAmount, LocalDateTime now) {
+        if (product == null || product.getStartingPrice() == null) return;
+        long step = com.auction.bidding.util.StepCalculator.calculate(product.getStartingPrice());
+        List<AutoBidConfig> eligible = autoBidConfigRepository
+                .findByAuctionIdAndActiveTrueOrderByMaxPriceDesc(auction.getAuctionId()).stream()
+                .filter(c -> !c.getBuyerId().equals(manualBuyerId))
+                .filter(c -> c.getMaxPrice() >= manualAmount + step)
+                .filter(c -> userRepository.findById(Math.toIntExact(c.getBuyerId()))
+                        .map(u -> u.isPremium() && u.isActive()).orElse(false))
+                .toList();
+        if (eligible.isEmpty()) return;
+
+        AutoBidConfig winner = eligible.get(0);
+        long opponentCeiling = eligible.size() > 1 ? eligible.get(1).getMaxPrice() : manualAmount;
+        long automaticAmount = com.auction.premium.service.PremiumPolicy.autoBidPrice(
+                manualAmount, winner.getMaxPrice(), opponentCeiling, product.getStartingPrice(), step);
+        if (automaticAmount <= manualAmount) return;
+
+        Bid automaticBid = new Bid();
+        automaticBid.setAuctionId(auction.getAuctionId()); automaticBid.setUserId(winner.getBuyerId());
+        automaticBid.setBidAmount(automaticAmount); automaticBid.setBidTime(now);
+        bidRepository.save(automaticBid);
+        auction.setCurrentHighestBid(automaticAmount); auction.setCurrentWinnerUserId(winner.getBuyerId());
     }
 
     /**

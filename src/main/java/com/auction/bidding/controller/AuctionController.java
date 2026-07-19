@@ -183,6 +183,7 @@ public class AuctionController {
 
     /** Place a bid. Authenticated + KYC-verified user only. */
     @PostMapping("/{auctionId}/bid")
+    @org.springframework.security.access.prepost.PreAuthorize("isAuthenticated()")
     public ResponseEntity<BidResponse> placeBid(
             @PathVariable("auctionId") Long auctionId,
             @RequestBody BidRequest request,

@@ -825,6 +825,15 @@ export const sellerContractApi = {
     if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
     return res.blob();
   },
+  /** Fetch the persisted signed agreement PDF. */
+  async signedPdf(): Promise<Blob> {
+    const token = getToken();
+    const res = await fetch(`${API_BASE_URL}/seller-contract/me/pdf`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
+    return res.blob();
+  },
   /**
    * Sign the seller agreement and upgrade User -> Seller immediately.
    * Requires an APPROVED KYC (identityVerified) — enforced server-side.
