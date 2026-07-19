@@ -32,6 +32,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "Xác minh KYC", href: "/kyc", icon: "verified_user" },
       { label: "Hồ sơ", href: "/profile", icon: "person" },
       { label: "Bảo mật", href: "/security", icon: "lock" },
+      { label: "Gói Premium", href: "/premium", icon: "workspace_premium", badge: "VIP" },
     ],
   },
   {

@@ -14,6 +14,18 @@ import org.springframework.web.bind.annotation.*;
 public class PremiumController {
     private final AppraisalService appraisalService;
     private final AutoBidConfigService autoBidConfigService;
+    private final PremiumPurchaseService premiumPurchaseService;
+
+    @GetMapping("/status") @PreAuthorize("hasAnyRole('User','Seller')")
+    public PremiumPurchaseResponse status(@AuthenticationPrincipal UserDetailsImpl user) {
+        return premiumPurchaseService.status(user.getId());
+    }
+
+    @PostMapping("/purchase") @PreAuthorize("hasAnyRole('User','Seller')")
+    public PremiumPurchaseResponse purchase(@AuthenticationPrincipal UserDetailsImpl user,
+                                            @Valid @RequestBody PremiumPurchaseRequest request) {
+        return premiumPurchaseService.purchase(user.getId(), request.plan());
+    }
 
     @PostMapping("/appraisals") @PreAuthorize("hasRole('Seller')")
     public AppraisalRequest createAppraisal(@AuthenticationPrincipal UserDetailsImpl user,

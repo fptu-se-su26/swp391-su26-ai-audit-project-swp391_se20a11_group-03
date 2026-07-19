@@ -21,6 +21,7 @@ const COLLECTOR_PATHS = [
   "/wallet",
   "/watchlist",
   "/won-items",
+  "/premium",
 ];
 
 const ROLE_PATHS: Record<UserRole, string[]> = {
@@ -93,6 +94,7 @@ export const config = {
     "/kyc/:path*",
     "/messages/:path*",
     "/post-item/:path*",
+    "/premium/:path*",
     "/profile/:path*",
     "/security/:path*",
     "/wallet/:path*",

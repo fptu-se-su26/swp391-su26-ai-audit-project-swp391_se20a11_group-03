@@ -182,7 +182,7 @@ public class BiddingService {
                 .filter(c -> !c.getBuyerId().equals(manualBuyerId))
                 .filter(c -> c.getMaxPrice() >= manualAmount + step)
                 .filter(c -> userRepository.findById(Math.toIntExact(c.getBuyerId()))
-                        .map(u -> u.isPremium() && u.isActive()).orElse(false))
+                        .map(u -> u.hasActivePremium() && u.isActive()).orElse(false))
                 .toList();
         if (eligible.isEmpty()) return;
 

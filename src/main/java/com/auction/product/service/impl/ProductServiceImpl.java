@@ -177,7 +177,7 @@ public class ProductServiceImpl implements ProductService {
             long monthlyListings = productRepository.countBySellerIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
                     sellerId, monthStart, monthStart.plusMonths(1));
             // Edge cases: deleted/rejected rows still count; month boundary is [start, nextStart).
-            if (!seller.isPremium() && monthlyListings >= 5) {
+            if (!seller.hasActivePremium() && monthlyListings >= 5) {
                 throw new com.auction.common.exception.LimitExceededException(
                         "Tài khoản thường chỉ được đăng tối đa 5 sản phẩm/tháng");
             }

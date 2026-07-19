@@ -34,7 +34,7 @@ public class AuctionServiceImpl implements AuctionService {
         long standardDeposit = DepositCalculator.calculate(auction.getProduct().getStartingPrice());
         User viewer = userId == null ? null : userRepository.findById(Math.toIntExact(userId)).orElse(null);
         long depositAmount = com.auction.premium.service.PremiumPolicy.deposit(
-                auction.getProduct().getStartingPrice(), standardDeposit, viewer != null && viewer.isPremium());
+                auction.getProduct().getStartingPrice(), standardDeposit, viewer != null && viewer.hasActivePremium());
         boolean alreadyDeposited = userId != null && auctionDepositRepository
                 .findByAuction_AuctionIdAndUser_Id(auctionId, Math.toIntExact(userId))
                 .isPresent();

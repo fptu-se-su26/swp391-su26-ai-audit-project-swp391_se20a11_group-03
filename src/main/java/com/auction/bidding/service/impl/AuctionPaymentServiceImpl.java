@@ -129,8 +129,8 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
         } else {
             User seller = userRepository.findById(Math.toIntExact(auction.getProduct().getSellerId()))
                     .orElseThrow(() -> new ResourceNotFoundException("Seller not found for auction: " + auctionId));
-            double commissionRate = seller.isPremium() ? PREMIUM_COMMISSION_RATE : PLATFORM_COMMISSION_RATE;
-            long commission = com.auction.premium.service.PremiumPolicy.commission(finalPrice, seller.isPremium());
+            double commissionRate = seller.hasActivePremium() ? PREMIUM_COMMISSION_RATE : PLATFORM_COMMISSION_RATE;
+            long commission = com.auction.premium.service.PremiumPolicy.commission(finalPrice, seller.hasActivePremium());
             long sellerAmount = Math.max(0L, finalPrice - commission);
 
             Wallet sellerWallet = null;

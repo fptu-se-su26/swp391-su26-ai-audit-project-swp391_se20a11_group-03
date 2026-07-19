@@ -82,6 +82,9 @@ public class User {
     @Column(name = "IsPremium", nullable = false)
     private boolean premium = false;
 
+    @Column(name = "PremiumExpiresAt")
+    private LocalDateTime premiumExpiresAt;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "RoleId")
     private Role role;
@@ -285,5 +288,12 @@ public class User {
 
     public boolean isPremium() { return premium; }
     public void setPremium(boolean premium) { this.premium = premium; }
+    public LocalDateTime getPremiumExpiresAt() { return premiumExpiresAt; }
+    public void setPremiumExpiresAt(LocalDateTime premiumExpiresAt) { this.premiumExpiresAt = premiumExpiresAt; }
+
+    @Transient
+    public boolean hasActivePremium() {
+        return premium && premiumExpiresAt != null && premiumExpiresAt.isAfter(LocalDateTime.now());
+    }
 }
 

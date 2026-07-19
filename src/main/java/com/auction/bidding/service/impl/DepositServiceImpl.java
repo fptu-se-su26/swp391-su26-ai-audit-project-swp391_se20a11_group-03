@@ -54,7 +54,7 @@ public class DepositServiceImpl implements DepositService {
         long startingPrice = auction.getProduct().getStartingPrice();
         // Premium: waive below 1M; otherwise charge exactly 50% (integer VND, rounded down).
         long depositAmount = com.auction.premium.service.PremiumPolicy.deposit(
-                startingPrice, standardDeposit, user.isPremium());
+                startingPrice, standardDeposit, user.hasActivePremium());
         if (wallet.getBalance() == null || wallet.getBalance() < depositAmount) {
             throw new IllegalStateException("Insufficient wallet balance");
         }

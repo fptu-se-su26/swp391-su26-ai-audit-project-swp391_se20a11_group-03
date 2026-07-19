@@ -862,6 +862,29 @@ export function updateRoleCookie(roleName: string | null) {
   }
 }
 
+export type PremiumStatus = {
+  premium: boolean;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  yearlySaving: number;
+  remainingBalance: number;
+  expiresAt: string | null;
+  accountType: "USER" | "SELLER";
+  message: string;
+};
+
+export const premiumApi = {
+  status() {
+    return apiFetch<PremiumStatus>("/premium/status");
+  },
+  purchase(plan: "MONTHLY" | "YEARLY") {
+    return apiFetch<PremiumStatus>("/premium/purchase", {
+      method: "POST",
+      body: JSON.stringify({ plan }),
+    });
+  },
+};
+
 // ---------------------------------------------------------------------------
 // AUCTIONS & BIDDING — /api/auctions/*, /api/bidding/*
 // ---------------------------------------------------------------------------

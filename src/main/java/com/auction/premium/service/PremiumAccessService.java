@@ -13,7 +13,7 @@ public class PremiumAccessService {
     public User requirePremium(Long userId) {
         User user = userRepository.findById(Math.toIntExact(userId))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
-        if (!user.isPremium()) throw new AccessDeniedException("Tính năng này chỉ dành cho tài khoản Premium");
+        if (!user.hasActivePremium()) throw new AccessDeniedException("Tính năng này yêu cầu gói Premium còn hạn");
         return user;
     }
 }

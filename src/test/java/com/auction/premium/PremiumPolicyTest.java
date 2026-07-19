@@ -1,6 +1,7 @@
 package com.auction.premium;
 
 import com.auction.premium.service.PremiumPolicy;
+import com.auction.premium.service.PremiumPurchaseService;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -10,6 +11,16 @@ class PremiumPolicyTest {
     @Test void premiumAtThresholdPaysHalfDeposit() { assertEquals(100_000L, PremiumPolicy.deposit(1_000_000L, 200_000L, true)); }
     @Test void regularCommissionIsTwentyPercent() { assertEquals(200_000L, PremiumPolicy.commission(1_000_000L, false)); }
     @Test void premiumCommissionIsFivePercent() { assertEquals(50_000L, PremiumPolicy.commission(1_000_000L, true)); }
+    @Test void userPremiumPricesMatchPolicy() {
+        assertEquals(10_000_000L, PremiumPurchaseService.USER_MONTHLY_PRICE);
+        assertEquals(100_000_000L, PremiumPurchaseService.USER_YEARLY_PRICE);
+        assertEquals(20_000_000L,
+                PremiumPurchaseService.USER_MONTHLY_PRICE * 12 - PremiumPurchaseService.USER_YEARLY_PRICE);
+    }
+    @Test void sellerPremiumPricesRemainUnchanged() {
+        assertEquals(30_000_000L, PremiumPurchaseService.SELLER_MONTHLY_PRICE);
+        assertEquals(300_000_000L, PremiumPurchaseService.SELLER_YEARLY_PRICE);
+    }
     @Test void twoAutoBiddersJumpPastLowerMaximumWithoutLooping() {
         assertEquals(95_000_000L, PremiumPolicy.autoBidPrice(10_000_000L, 100_000_000L,
                 90_000_000L, 5_000_000L, 5_000_000L));
