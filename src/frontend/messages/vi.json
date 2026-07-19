@@ -554,7 +554,7 @@
     "heroTitle": "NƠI GIÁ TRỊ\nĐƯỢC TÔN VINH",
     "heroDesc": "Khám phá những sản phẩm đẳng cấp, công nghệ, hiếm có từ các thương hiệu hàng đầu thế giới. Đấu giá live mỗi ngày với mức giá tốt nhất.",
     "googleCredError": "Không nhận được thông tin đăng nhập từ Google.",
-    "serverError": "Không kết nối được máy chủ. Kiểm tra backend đang chạy ở port 8096.",
+    "serverError": "Không kết nối được máy chủ. Vui lòng thử lại sau.",
     "wrongCredentials": "Email hoặc mật khẩu không đúng.",
     "passwordMismatch": "Mật khẩu xác nhận không khớp.",
     "passwordWeak": "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường và số.",
