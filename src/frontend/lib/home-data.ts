@@ -14,28 +14,23 @@ export type LiveAuctionItem = {
 export type FeatureItem = {
   id: string;
   icon: string;
-  title: string;
-  description: string;
 };
 
 export type TrustStat = {
   id: string;
   value: string;
-  label: string;
 };
 
 export const DEFAULT_PUBLIC_STATS: TrustStat[] = [
-  { id: "products", value: "500+", label: "Sản phẩm" },
-  { id: "members", value: "2K+", label: "Thành viên" },
-  { id: "active-auctions", value: "24/7", label: "Phiên đang chạy" },
-  { id: "completed-auctions", value: "1K+", label: "Phiên hoàn tất" },
+  { id: "products", value: "500+" },
+  { id: "members", value: "2K+" },
+  { id: "active-auctions", value: "24/7" },
+  { id: "completed-auctions", value: "1K+" },
 ];
 
 export type AuctionProcessStep = {
   id: string;
   icon: string;
-  title: string;
-  description: string;
 };
 
 export type BrandItem = {
@@ -45,10 +40,10 @@ export type BrandItem = {
 };
 
 export const NAV_LINKS = [
-  { label: "TRANG CHỦ", href: "/" },
-  { label: "SẢN PHẨM", href: "/storefront" },
-  { label: "THƯƠNG HIỆU", href: "/brands" },
-  { label: "VỀ CHÚNG TÔI", href: "/about" },
+  { key: "home", href: "/" },
+  { key: "products", href: "/storefront" },
+  { key: "brands", href: "/brands" },
+  { key: "about", href: "/about" },
 ];
 
 
@@ -59,26 +54,18 @@ export const WHY_CHOOSE_FEATURES: FeatureItem[] = [
   {
     id: "verified-sellers",
     icon: "verified_user",
-    title: "HÀNG THẬT 100%",
-    description: "Cam kết hàng chính hãng, đầy đủ giấy tờ và kiểm định.",
   },
   {
     id: "transparent",
     icon: "workspace_premium",
-    title: "Đấu giá minh bạch",
-    description: "Quy trình đấu giá công khai, rõ ràng, công bằng.",
   },
   {
     id: "secure-payment",
     icon: "encrypted",
-    title: "Thanh toán an toàn",
-    description: "Hệ thống thanh toán bảo mật, ký quỹ an toàn.",
   },
   {
     id: "support",
     icon: "diamond",
-    title: "Hỗ trợ chuyên nghiệp",
-    description: "Đội ngũ hỗ trợ 24/7, tư vấn tận tâm trước và sau đấu giá.",
   },
 ];
 
@@ -86,26 +73,18 @@ export const AUCTION_PROCESS_STEPS: AuctionProcessStep[] = [
   {
     id: "verify",
     icon: "person_check",
-    title: "Xác minh tài khoản",
-    description: "Đăng ký và xác minh để bảo mật tài khoản.",
   },
   {
     id: "deposit",
     icon: "inventory_2",
-    title: "Nộp tiền đặt cọc",
-    description: "Nạp tiền đặt cọc để tham gia phiên đấu giá.",
   },
   {
     id: "bid",
     icon: "computer",
-    title: "Tham gia phiên live",
-    description: "Theo dõi và trả giá trực tiếp trong phiên live.",
   },
   {
     id: "payment",
     icon: "local_shipping",
-    title: "THANH TOÁN & NHẬN HÀNG",
-    description: "Thanh toán an toàn và nhận hàng đúng cam kết.",
   },
 ];
 

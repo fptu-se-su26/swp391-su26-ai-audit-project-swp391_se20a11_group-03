@@ -28,6 +28,8 @@ import com.auction.product.entity.Product;
 import com.auction.product.repository.ProductRepository;
 import com.auction.product.service.ContractPdfAccessService;
 import com.auction.product.service.ContractService;
+import com.auction.fraud.service.BidMetadataService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -66,6 +68,7 @@ public class AuctionController {
     private final ContractService contractService;
     private final ContractPdfAccessService contractPdfAccessService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final BidMetadataService bidMetadataService;
 
     @GetMapping("/{auctionId}/eligibility")
     public ResponseEntity<AuctionEligibilityResponse> getEligibility(
@@ -216,7 +219,8 @@ public class AuctionController {
     public ResponseEntity<BidResponse> placeBid(
             @PathVariable("auctionId") Long auctionId,
             @RequestBody BidRequest request,
-            @AuthenticationPrincipal UserDetailsImpl user
+            @AuthenticationPrincipal UserDetailsImpl user,
+            HttpServletRequest httpRequest
     ) {
         if (user == null) {
             return ResponseEntity.status(401).body(BidResponse.fail("Authentication required"));
@@ -228,6 +232,8 @@ public class AuctionController {
         }
         request.setAuctionId(auctionId);
         request.setUserId(user.getId());
+        request.setIpAddress(bidMetadataService.resolveIpAddress(httpRequest));
+        request.setDeviceHash(bidMetadataService.resolveDeviceHash(httpRequest));
         BidResponse response = biddingService.placeBid(request);
         if (response.isSuccess()) {
             AuctionSession session = auctionSessionRepository.findById(auctionId).orElse(null);

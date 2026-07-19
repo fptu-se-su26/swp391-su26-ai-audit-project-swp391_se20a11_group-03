@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { chatbotApi } from "@/lib/api";
 
 type ChatMessage = {
@@ -10,14 +11,13 @@ type ChatMessage = {
   text: string;
 };
 
-const INITIAL_MESSAGES: ChatMessage[] = [
-  { id: "1", from: "agent", text: "Xin chào! BidZone có thể hỗ trợ gì cho bạn?" },
-];
-
 export default function LiveChat() {
+  const t = useTranslations("liveChat");
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
+    { id: "1", from: "agent", text: t("hello") },
+  ]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -26,7 +26,7 @@ export default function LiveChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, sending]);
 
-  // Trang Tin nhắn đã có kênh chat riêng; nút nổi ở đây đè lên ô nhập tin.
+  // Messages has its own chat surface, so the floating button is hidden there.
   if (pathname === "/messages" || pathname.startsWith("/messages/")) {
     return null;
   }
@@ -49,7 +49,7 @@ export default function LiveChat() {
         {
           id: crypto.randomUUID(),
           from: "agent",
-          text: "Hệ thống hỗ trợ đang tạm gián đoạn. Bạn vui lòng thử lại sau hoặc mở mục Tin nhắn để liên hệ nhân viên.",
+          text: t("fallback"),
         },
       ]);
     } finally {
@@ -62,7 +62,7 @@ export default function LiveChat() {
       {open && (
         <div className="glass-panel mb-3 flex h-96 w-80 flex-col overflow-hidden rounded-2xl">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-            <span className="text-sm font-semibold">Hỗ trợ trực tuyến</span>
+            <span className="text-sm font-semibold">{t("title")}</span>
             <button
               type="button"
               onClick={() => setOpen(false)}
@@ -87,7 +87,7 @@ export default function LiveChat() {
             ))}
             {sending && (
               <div className="max-w-[85%] rounded-2xl bg-white/10 px-3.5 py-2 text-xs text-white/60">
-                Đang trả lời...
+                {t("replying")}
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -100,14 +100,14 @@ export default function LiveChat() {
               disabled={sending}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && void sendMessage()}
-              placeholder="Nhập tin nhắn..."
+              placeholder={t("placeholder")}
               className="flex-1 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
             />
             <button
               type="button"
               onClick={() => void sendMessage()}
               disabled={sending || !input.trim()}
-              aria-label="Gửi tin nhắn"
+              aria-label={t("send")}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--luxora-gold)] text-black disabled:cursor-not-allowed disabled:opacity-40"
             >
               <span className="material-symbols-outlined text-base">

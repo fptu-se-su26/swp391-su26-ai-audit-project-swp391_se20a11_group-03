@@ -1,0 +1,4 @@
+{
+  "summary": "Fixed React hydration error in AdminSidebar: server rendered 'C' (Collector default) while client read localStorage during render and showed 'A' (Admin). Applied same useState(null)+useEffect pattern as CollectorSidebar to load user only after mount.",
+  "current_status": "Admin pages should load without hydration mismatch. User can hard-refresh /admin to verify."
+}

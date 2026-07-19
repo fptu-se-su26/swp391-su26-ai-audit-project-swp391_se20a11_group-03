@@ -17,6 +17,8 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -46,9 +48,11 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                         if (jwtService.isTokenValid(token, userDetails)) {
                             // Use userId as principal name to match convertAndSendToUser calls
-                            final String userId = String.valueOf(
-                                    ((UserDetailsImpl) userDetails).getId());
-                            accessor.setUser((Principal) () -> userId);
+                            UserDetailsImpl details = (UserDetailsImpl) userDetails;
+                            UsernamePasswordAuthenticationToken authentication =
+                                    new UsernamePasswordAuthenticationToken(
+                                            String.valueOf(details.getId()), null, details.getAuthorities());
+                            accessor.setUser(authentication);
                         }
                     }
                 } catch (Exception ignored) {

@@ -1,0 +1,4 @@
+{
+  "summary": "Notified user: backend start task (905595) ended with BUILD FAILURE — SQL Server reachable but sa/123456 login failed so Hibernate could not create EntityManager. Frontend already up on localhost:3000.",
+  "current_status": "Frontend http://localhost:3000 is running. Backend 8096 down until sa password or datasource is fixed."
+}

@@ -52,6 +52,11 @@ CREATE TABLE IF NOT EXISTS Users (
     Status                  VARCHAR(30)   NOT NULL DEFAULT 'ACTIVE',
     PaymentStrikeCount      INT           NOT NULL DEFAULT 0,
     LockedByPaymentStrikes  BOOLEAN       NOT NULL DEFAULT FALSE,
+    BidRestrictedUntil      TIMESTAMPTZ   NULL,
+    SuspendedAt             TIMESTAMPTZ   NULL,
+    SuspensionReason        VARCHAR(500)  NULL,
+    BannedAt                TIMESTAMPTZ   NULL,
+    BannedBy                BIGINT        NULL REFERENCES Users(UserId),
     CreatedAt               TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 
@@ -313,8 +318,56 @@ CREATE TABLE IF NOT EXISTS Bids (
     AuctionId  BIGINT       NOT NULL REFERENCES Auctions(AuctionId),
     UserId     BIGINT       NOT NULL REFERENCES Users(UserId),
     BidAmount  BIGINT       NOT NULL,
-    BidTime    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    BidTime    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    IpAddress  VARCHAR(64)  NULL,
+    DeviceHash VARCHAR(64)  NULL
 );
+
+CREATE INDEX IF NOT EXISTS IX_Bids_Auction_Time ON Bids(AuctionId, BidTime DESC);
+CREATE INDEX IF NOT EXISTS IX_Bids_Auction_Ip_Time ON Bids(AuctionId, IpAddress, BidTime DESC);
+CREATE INDEX IF NOT EXISTS IX_Bids_Auction_Device ON Bids(AuctionId, DeviceHash);
+CREATE INDEX IF NOT EXISTS IX_Bids_User_Time ON Bids(UserId, BidTime DESC);
+
+CREATE TABLE IF NOT EXISTS SystemSettings (
+    SettingId BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    SettingKey VARCHAR(100) NOT NULL UNIQUE,
+    SettingValue VARCHAR(255) NOT NULL,
+    UpdatedBy BIGINT NULL REFERENCES Users(UserId),
+    UpdatedAt TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS SystemSettingAuditLogs (
+    SettingAuditId BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    SettingKey VARCHAR(100) NOT NULL,
+    OldValue VARCHAR(255) NULL,
+    NewValue VARCHAR(255) NOT NULL,
+    ChangedBy BIGINT NOT NULL REFERENCES Users(UserId),
+    Reason VARCHAR(500) NULL,
+    ChangedAt TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS FraudAlerts (
+    FraudAlertId BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    AuctionId BIGINT NOT NULL REFERENCES Auctions(AuctionId),
+    SuspectedUserId BIGINT NOT NULL REFERENCES Users(UserId),
+    TriggerBidId BIGINT NULL REFERENCES Bids(BidId),
+    FraudType VARCHAR(100) NOT NULL,
+    Signals VARCHAR(1000) NOT NULL,
+    RiskScore INT NOT NULL,
+    RiskLevel VARCHAR(20) NOT NULL,
+    Description VARCHAR(2000) NOT NULL,
+    Status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    AutomaticAction VARCHAR(50) NOT NULL DEFAULT 'WARN_ADMIN',
+    OccurrenceCount INT NOT NULL DEFAULT 1,
+    FirstDetectedAt TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    LastDetectedAt TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ReviewedBy BIGINT NULL REFERENCES Users(UserId),
+    ReviewedAt TIMESTAMPTZ NULL,
+    AdminNote VARCHAR(1000) NULL
+);
+
+CREATE INDEX IF NOT EXISTS IX_FraudAlerts_Status_Risk_Time ON FraudAlerts(Status, RiskLevel, LastDetectedAt DESC);
+CREATE INDEX IF NOT EXISTS IX_FraudAlerts_Auction_User ON FraudAlerts(AuctionId, SuspectedUserId);
 
 CREATE TABLE IF NOT EXISTS Auction_Chat_Messages (
     MessageId  BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -421,6 +474,12 @@ INSERT INTO Roles (RoleName) VALUES
     ('Admin'), ('Staff'), ('Seller'), ('User'), ('Shipper')
 ON CONFLICT (RoleName) DO NOTHING;
 
+INSERT INTO SystemSettings (SettingKey, SettingValue) VALUES
+    ('FRAUD_DETECTION_ENABLED', 'true'),
+    ('AUTO_RESTRICTION_ENABLED', 'false'),
+    ('FRAUD_ALERT_ENABLED', 'true')
+ON CONFLICT (SettingKey) DO NOTHING;
+
 INSERT INTO Categories (CategoryName, Description) VALUES
     ('Art',              'Artwork and paintings'),
     ('Luxury Watch',     'Premium watches'),
@@ -439,5 +498,6 @@ ON CONFLICT (CategoryName) DO NOTHING;
 -- PasswordResetTokens, KycProfiles, Categories, Products, ProductImages,
 -- ProductApprovals, Contracts, CategoryAttributes, ProductAttributeValues,
 -- attribute_options, watchlist, Wallets, Transactions, WithdrawalRequests,
--- Auctions, Auction_Deposits, Bids, Auction_Chat_Messages, Conversations,
--- Messages, Notifications, FeaturedProducts
+-- Auctions, Auction_Deposits, Bids, SystemSettings, SystemSettingAuditLogs,
+-- FraudAlerts, Auction_Chat_Messages, Conversations, Messages, Notifications,
+-- FeaturedProducts

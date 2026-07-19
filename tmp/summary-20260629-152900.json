@@ -1,0 +1,4 @@
+{
+  "summary": "User báo localhost:3000 không chạy sau khi bật máy. Đã kiểm tra port 3000 trống, chạy npm run frontend — Next.js 14.2.5 đã sẵn sàng tại http://localhost:3000.",
+  "current_status": "Frontend đang chạy nền. Backend (:8096) chưa được khởi động trong lượt này — cần npm run backend nếu gọi API."
+}

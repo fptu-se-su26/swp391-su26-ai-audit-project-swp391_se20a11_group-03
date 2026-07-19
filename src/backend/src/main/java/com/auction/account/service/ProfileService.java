@@ -59,9 +59,9 @@ public class ProfileService {
         user.setEmailVerified(true);
         user.setEmailVerifiedAt(LocalDateTime.now());
         user.setVerificationLevel((byte) Math.max(user.getVerificationLevel(), 1));
-        user.setProfileStatus(user.isPhoneVerified()
-                ? VerificationStatus.PENDING_IDENTITY_VERIFY.name()
-                : VerificationStatus.PENDING_PHONE_VERIFY.name());
+        user.setProfileStatus(user.isIdentityVerified()
+                ? VerificationStatus.VERIFIED.name()
+                : VerificationStatus.PENDING_IDENTITY_VERIFY.name());
         userDAO.update(user);
         return true;
     }
@@ -94,9 +94,6 @@ public class ProfileService {
         }
         if (!user.isEmailVerified()) {
             return VerificationStatus.PENDING_EMAIL_VERIFY;
-        }
-        if (!user.isPhoneVerified()) {
-            return VerificationStatus.PENDING_PHONE_VERIFY;
         }
         if (!user.isIdentityVerified()) {
             return VerificationStatus.PENDING_IDENTITY_VERIFY;

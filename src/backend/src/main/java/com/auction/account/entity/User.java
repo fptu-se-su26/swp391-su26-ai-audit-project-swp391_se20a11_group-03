@@ -84,6 +84,21 @@ public class User {
     @Column(name = "LockedByPaymentStrikes", nullable = false)
     private boolean lockedByPaymentStrikes = false;
 
+    @Column(name = "BidRestrictedUntil")
+    private LocalDateTime bidRestrictedUntil;
+
+    @Column(name = "SuspendedAt")
+    private LocalDateTime suspendedAt;
+
+    @Column(name = "SuspensionReason", length = 500)
+    private String suspensionReason;
+
+    @Column(name = "BannedAt")
+    private LocalDateTime bannedAt;
+
+    @Column(name = "BannedBy")
+    private Long bannedBy;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "RoleId")
     private Role role;
@@ -301,6 +316,17 @@ public class User {
     public void setLockedByPaymentStrikes(boolean lockedByPaymentStrikes) {
         this.lockedByPaymentStrikes = lockedByPaymentStrikes;
     }
+
+    public LocalDateTime getBidRestrictedUntil() { return bidRestrictedUntil; }
+    public void setBidRestrictedUntil(LocalDateTime bidRestrictedUntil) { this.bidRestrictedUntil = bidRestrictedUntil; }
+    public LocalDateTime getSuspendedAt() { return suspendedAt; }
+    public void setSuspendedAt(LocalDateTime suspendedAt) { this.suspendedAt = suspendedAt; }
+    public String getSuspensionReason() { return suspensionReason; }
+    public void setSuspensionReason(String suspensionReason) { this.suspensionReason = suspensionReason; }
+    public LocalDateTime getBannedAt() { return bannedAt; }
+    public void setBannedAt(LocalDateTime bannedAt) { this.bannedAt = bannedAt; }
+    public Long getBannedBy() { return bannedBy; }
+    public void setBannedBy(Long bannedBy) { this.bannedBy = bannedBy; }
 }
 
 

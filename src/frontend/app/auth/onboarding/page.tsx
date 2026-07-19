@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 
 type RoleId = "collector" | "seller";
 
@@ -11,30 +13,24 @@ const AUTH_COOKIE = "bidzone_role";
 
 const ROLES: {
   id: RoleId;
-  title: string;
-  description: string;
   icon: string;
   href: string;
 }[] = [
   {
     id: "collector",
-    title: "Nhà sưu tầm",
-    description:
-      "Tham gia đấu giá, theo dõi các lot yêu thích và xây dựng bộ sưu tập của riêng bạn.",
     icon: "storefront",
     href: "/dashboard",
   },
   {
     id: "seller",
-    title: "Người ký gửi",
-    description:
-      "Đăng bán vật phẩm cao cấp, nhận định giá AI và quản lý doanh thu ký gửi.",
     icon: "sell",
     href: "/inventory",
   },
 ];
 
 export default function OnboardingPage() {
+  const t = useTranslations("onboarding");
+  const tAuth = useTranslations("auth");
   const router = useRouter();
   const [selected, setSelected] = useState<RoleId | null>(null);
   const [loading, setLoading] = useState(false);
@@ -59,24 +55,25 @@ export default function OnboardingPage() {
           href="/auth"
           className="rounded-full border border-white/20 px-5 py-2 text-xs font-semibold hover:bg-white/5"
         >
-          Đăng nhập
+          {tAuth("login")}
         </Link>
+        <LanguageSwitcher />
       </header>
 
       <main className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 items-center gap-14 px-6 py-10 lg:grid-cols-2 lg:px-12">
         <div>
           <span className="text-xs font-semibold tracking-[0.35em] text-[var(--luxora-gold)]">
-            HÀNH TRÌNH CỦA BẠN
+            {t("badge")}
           </span>
           <h1 className="font-display-lg mt-5 text-4xl leading-tight sm:text-5xl">
-            Chọn vai trò để bắt đầu
+            {t("title")}
           </h1>
 
           <dl className="mt-10 grid grid-cols-3 gap-6">
             {[
-              { value: "100%", label: "Thẩm định" },
-              { value: "24/7", label: "Hỗ trợ" },
-              { value: "72h", label: "Bàn giao" },
+              { value: "100%", label: t("stats.0") },
+              { value: "24/7", label: t("stats.1") },
+              { value: "72h", label: t("stats.2") },
             ].map((stat) => (
               <div key={stat.label}>
                 <dd className="text-2xl font-bold text-[var(--luxora-gold-light)]">
@@ -112,9 +109,11 @@ export default function OnboardingPage() {
                 </span>
               </span>
               <div>
-                <h3 className="font-headline-md text-lg">{role.title}</h3>
+                <h3 className="font-headline-md text-lg">
+                  {t(`roles.${role.id}.title`)}
+                </h3>
                 <p className="mt-1.5 text-sm text-white/50">
-                  {role.description}
+                  {t(`roles.${role.id}.description`)}
                 </p>
               </div>
             </button>
@@ -126,7 +125,7 @@ export default function OnboardingPage() {
             onClick={handleContinue}
             className="gradient-cta mt-2 rounded-full py-4 text-sm font-semibold text-black transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {loading ? "Đang xử lý..." : "Tiếp tục"}
+            {loading ? t("processing") : t("continue")}
           </button>
         </div>
       </main>

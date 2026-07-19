@@ -1,0 +1,4 @@
+{
+  "summary": "Confirmed frontend dev server started successfully via npm run frontend; Next.js ready at http://localhost:3000. User informed of one-liner commands for future starts.",
+  "current_status": "Frontend running on port 3000. Backend not started unless user runs npm run backend or npm run dev:all."
+}

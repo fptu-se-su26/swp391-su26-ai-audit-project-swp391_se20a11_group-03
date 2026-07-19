@@ -1,0 +1,4 @@
+﻿{
+  "summary": "Freed port 8096 by stopping Java PID 36708, then restarted Spring Boot backend successfully. Verified /api/alive returns OK.",
+  "current_status": "Backend running on localhost:8096. If port conflict happens again, run scripts/free-port.ps1 before starting backend."
+}

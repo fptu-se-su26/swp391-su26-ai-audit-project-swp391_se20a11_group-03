@@ -1,0 +1,4 @@
+{
+  "summary": "Configured user-provided Gemini API key in gitignored application-local.properties and spring.config.import. User only needs to restart backend to test CCCD OCR.",
+  "current_status": "Gemini OCR ready with local API key. Warned user about key exposure in chat; application-local.properties not committed."
+}

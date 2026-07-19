@@ -98,6 +98,7 @@ export const config = {
     "/kyc/:path*",
     "/messages/:path*",
     "/post-item/:path*",
+    "/premium/:path*",
     "/profile/:path*",
     "/security/:path*",
     "/wallet/:path*",

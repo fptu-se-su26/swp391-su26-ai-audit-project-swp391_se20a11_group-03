@@ -1,0 +1,4 @@
+{
+  "summary": "Freed port 8096 by stopping Java process PID 2140 that was holding the port from a previous backend start.",
+  "current_status": "Port 8096 is free. User can run AuctionApplication from IDE again; avoid running IDE + start-backend.ps1 at the same time."
+}

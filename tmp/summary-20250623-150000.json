@@ -1,0 +1,4 @@
+{
+  "summary": "Implemented purchase contract read-and-sign flow: preview API for winners, popup modal with full contract text, sign generates PDF. Fixed winner validation using userId/session fallback. Won-items history shows PDF download after signing. PurchaseContractPanel now opens modal via 'Đọc và ký hợp đồng' button.",
+  "current_status": "Payment flow requires read+sign contract in modal before pay. Signed PDF available in won-items (lịch sử mua hàng). Backend restart recommended."
+}

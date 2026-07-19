@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
 import { ApiError, authApi } from "@/lib/api";
 
@@ -10,15 +11,16 @@ type VerifyEmailPageProps = {
 };
 
 export default function VerifyEmailPage({ searchParams }: VerifyEmailPageProps) {
+  const t = useTranslations("verifyEmail");
   const { token } = use(searchParams);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  const [message, setMessage] = useState("Đang xác minh địa chỉ email...");
+  const [message, setMessage] = useState(t("loadingMessage"));
 
   useEffect(() => {
     if (!token) {
       Promise.resolve().then(() => {
         setStatus("error");
-        setMessage("Liên kết xác minh không hợp lệ.");
+        setMessage(t("invalidLink"));
       });
       return;
     }
@@ -37,13 +39,13 @@ export default function VerifyEmailPage({ searchParams }: VerifyEmailPageProps) 
         setMessage(
           error instanceof ApiError
             ? error.message
-            : "Không thể xác minh email. Vui lòng thử lại.",
+            : t("verifyError"),
         );
       });
     return () => {
       active = false;
     };
-  }, [token]);
+  }, [t, token]);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-black px-6 text-white">
@@ -68,14 +70,14 @@ export default function VerifyEmailPage({ searchParams }: VerifyEmailPageProps) 
                 : "hourglass_top"}
           </span>
         </div>
-        <h1 className="mt-5 text-2xl font-bold">Xác minh email</h1>
+        <h1 className="mt-5 text-2xl font-bold">{t("title")}</h1>
         <p className="mt-3 text-sm leading-6 text-white/55">{message}</p>
         {status !== "loading" && (
           <Link
             href="/auth"
             className="mt-7 inline-flex w-full justify-center rounded-full bg-[#f0c982] px-6 py-3 text-sm font-semibold text-black transition hover:bg-[#f4d79b]"
           >
-            {status === "success" ? "Đăng nhập" : "Quay lại đăng ký"}
+            {status === "success" ? t("login") : t("backToRegister")}
           </Link>
         )}
       </div>

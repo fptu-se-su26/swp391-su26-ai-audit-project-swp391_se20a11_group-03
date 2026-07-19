@@ -1,0 +1,4 @@
+﻿{
+  "summary": "Implemented SQL migration fix plan: explicit @PathVariable names across controllers, maven.compiler.parameters + .idea/compiler.xml, DB health verified and duplicate admin username fixed, backend restarted with all staff APIs returning 200 including KYC approve.",
+  "current_status": "Backend on 8096 healthy. KYC approve/reject binding fixed. User should re-login for fresh JWT. KycId 7 was approved during e2e test."
+}

@@ -1,0 +1,4 @@
+﻿{
+    "summary":  "Admin contracts page failed because GET /api/admin/dashboard/contracts used unnamed @RequestParam (cccd) and Spring could not resolve parameter names without -parameters. Fixed by adding explicit value= names on all RequestParams in AdminDashboardController. API now returns successfully; empty list is valid if DB has no contracts.",
+    "current_status":  "Contracts load error fixed and backend restarted. User can refresh /admin/contracts."
+}

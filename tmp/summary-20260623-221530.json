@@ -1,0 +1,4 @@
+{
+  "summary": "Fixed bid step logic and realtime auction timer updates. Backend now exposes startingPrice, bidStep, and minNextBid in /api/auctions/{id}/state; step is fixed from starting price via StepCalculator (5M/10M/50M tiers, no change during bidding). Frontend BidPanel, dashboard quick bid, and auction pages now use the same min-next-bid formula as backend instead of hardcoded 50k/1M increments. CountdownTimer on auction detail and auction-room pages now reads liveState.endTime so anti-sniper extensions propagate to all viewers without reload; polling interval reduced to 1s.",
+  "current_status": "Bid step and realtime timer fixes are implemented; backend compiles successfully. User should restart backend and refresh frontend to test two-browser LIVE bidding with correct min bid messages and synchronized countdown."
+}

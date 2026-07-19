@@ -1,0 +1,4 @@
+{
+  "summary": "Implemented wallet DB-only mode: set app.seed.enabled=false in application.properties with comments pointing to gitignored application-local.properties; added application-local.properties.example. Extended verify_db_health.sql with wallet balance, transaction ledger, and auction payment queries (fixed column names TransactionType and CurrentHighestBid to match schema). Smoke-tested by setting user1@gmail.com balance to 48,500,000 VND, restarting backend twice — balance persisted and DataSeeder did not run.",
+  "current_status": "Wallet/payment DB-only plan complete. Backend runs with seed disabled; balances persist across restarts. user1@gmail.com test balance is 48.5M (simulated post-payment). verify_db_health.sql runs cleanly. Backend is running on port 8096."
+}

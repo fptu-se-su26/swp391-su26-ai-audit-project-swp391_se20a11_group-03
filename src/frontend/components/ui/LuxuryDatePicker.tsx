@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 
 type LuxuryDatePickerProps = {
   value: string;
@@ -10,22 +11,6 @@ type LuxuryDatePickerProps = {
   placeholder?: string;
   ariaLabel: string;
 };
-
-const WEEKDAYS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
-const MONTHS = [
-  "Tháng 1",
-  "Tháng 2",
-  "Tháng 3",
-  "Tháng 4",
-  "Tháng 5",
-  "Tháng 6",
-  "Tháng 7",
-  "Tháng 8",
-  "Tháng 9",
-  "Tháng 10",
-  "Tháng 11",
-  "Tháng 12",
-];
 
 function parseDate(value?: string) {
   if (!value) return null;
@@ -41,10 +26,10 @@ function formatValue(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function formatDisplay(value: string) {
+function formatDisplay(value: string, locale: string) {
   const date = parseDate(value);
   return date
-    ? new Intl.DateTimeFormat("vi-VN", {
+    ? new Intl.DateTimeFormat(locale, {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -73,9 +58,25 @@ export default function LuxuryDatePicker({
   onChange,
   max,
   min,
-  placeholder = "Chọn ngày",
+  placeholder,
   ariaLabel,
 }: LuxuryDatePickerProps) {
+  const t = useTranslations("datePicker");
+  const locale = useLocale();
+  const localeTag = locale === "vi" ? "vi-VN" : "en-US";
+  const months = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, month) => {
+        const label = new Intl.DateTimeFormat(localeTag, { month: "long" }).format(
+          new Date(2024, month, 1),
+        );
+        return label.charAt(0).toUpperCase() + label.slice(1);
+      }),
+    [localeTag],
+  );
+  const weekdays = locale === "vi"
+    ? ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
+    : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const rootRef = useRef<HTMLDivElement>(null);
   const dialogId = useId();
   const selectedDate = parseDate(value);
@@ -192,7 +193,7 @@ export default function LuxuryDatePicker({
         }`}
       >
         <span className={value ? "text-white" : "text-white/30"}>
-          {formatDisplay(value) || placeholder}
+          {formatDisplay(value, localeTag) || placeholder || t("selectDate")}
         </span>
         <svg
           aria-hidden="true"
@@ -214,7 +215,7 @@ export default function LuxuryDatePicker({
           id={dialogId}
           role="dialog"
           aria-modal="false"
-          aria-label={`Lịch chọn ${ariaLabel.toLocaleLowerCase("vi-VN")}`}
+          aria-label={t("calendarLabel", { label: ariaLabel.toLocaleLowerCase(localeTag) })}
           className="absolute left-0 top-[calc(100%+0.4rem)] z-50 w-[min(15rem,calc(100vw-3rem))] overflow-hidden rounded-xl border border-[var(--luxora-gold)]/25 bg-[#0c0d0f] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.03)]"
         >
           <div className="flex items-center gap-1">
@@ -223,7 +224,7 @@ export default function LuxuryDatePicker({
               onClick={() => setViewDate(previousMonth)}
               disabled={previousDisabled}
               className="grid size-7 shrink-0 place-items-center rounded-md text-white/55 transition hover:bg-white/5 hover:text-[var(--luxora-gold-light)] disabled:cursor-not-allowed disabled:opacity-20"
-              aria-label="Tháng trước"
+              aria-label={t("previousMonth")}
             >
               <svg
                 aria-hidden="true"
@@ -239,7 +240,7 @@ export default function LuxuryDatePicker({
 
             <div className="flex min-w-0 flex-1 gap-1">
               <select
-                aria-label="Chọn tháng"
+                aria-label={t("selectMonth")}
                 value={viewDate.getMonth()}
                 onChange={(event) =>
                   setViewDate(
@@ -248,7 +249,7 @@ export default function LuxuryDatePicker({
                 }
                 className="min-w-0 flex-1 cursor-pointer rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-1 text-[10px] font-semibold text-white outline-none transition hover:border-[var(--luxora-gold)]/40 focus:border-[var(--luxora-gold)]"
               >
-                {MONTHS.map((month, index) => (
+                {months.map((month, index) => (
                   <option
                     key={month}
                     value={index}
@@ -260,7 +261,7 @@ export default function LuxuryDatePicker({
                 ))}
               </select>
               <select
-                aria-label="Chọn năm"
+                aria-label={t("selectYear")}
                 value={viewDate.getFullYear()}
                 onChange={(event) => changeYear(Number(event.target.value))}
                 className="w-16 cursor-pointer rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-1 text-[10px] font-semibold text-white outline-none transition hover:border-[var(--luxora-gold)]/40 focus:border-[var(--luxora-gold)]"
@@ -278,7 +279,7 @@ export default function LuxuryDatePicker({
               onClick={() => setViewDate(nextMonth)}
               disabled={nextDisabled}
               className="grid size-7 shrink-0 place-items-center rounded-md text-white/55 transition hover:bg-white/5 hover:text-[var(--luxora-gold-light)] disabled:cursor-not-allowed disabled:opacity-20"
-              aria-label="Tháng sau"
+              aria-label={t("nextMonth")}
             >
               <svg
                 aria-hidden="true"
@@ -294,7 +295,7 @@ export default function LuxuryDatePicker({
           </div>
 
           <div className="mt-2 grid grid-cols-7 border-b border-white/[0.07] pb-1">
-            {WEEKDAYS.map((weekday, index) => (
+            {weekdays.map((weekday, index) => (
               <span
                 key={weekday}
                 className={`text-center text-[9px] font-semibold uppercase tracking-wide ${
@@ -322,7 +323,7 @@ export default function LuxuryDatePicker({
                   onClick={() => selectDate(item.date)}
                   aria-current={isToday ? "date" : undefined}
                   aria-pressed={isSelected}
-                  aria-label={new Intl.DateTimeFormat("vi-VN", {
+                  aria-label={new Intl.DateTimeFormat(localeTag, {
                     dateStyle: "full",
                   }).format(item.date)}
                   className={`mx-auto grid size-7 place-items-center rounded-full text-[10px] transition ${
@@ -348,7 +349,7 @@ export default function LuxuryDatePicker({
               onClick={() => selectDate(today)}
               className="rounded-md px-1.5 py-1 text-[10px] font-semibold text-[var(--luxora-gold-light)] transition hover:bg-[var(--luxora-gold)]/10 disabled:cursor-not-allowed disabled:opacity-30"
             >
-              Hôm nay
+              {t("today")}
             </button>
             {value && (
               <button
@@ -359,7 +360,7 @@ export default function LuxuryDatePicker({
                 }}
                 className="rounded-md px-1.5 py-1 text-[10px] text-white/40 transition hover:bg-white/5 hover:text-white/70"
               >
-                Xóa ngày
+                {t("clearDate")}
               </button>
             )}
           </div>

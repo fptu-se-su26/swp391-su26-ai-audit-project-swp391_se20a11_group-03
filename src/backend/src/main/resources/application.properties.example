@@ -40,6 +40,9 @@ app.google.client-id=${GOOGLE_CLIENT_ID:}
 # Frontend links used in verification emails
 app.frontend.base-url=${APP_FRONTEND_BASE_URL:http://localhost:3000}
 
+# Fraud detection (use a stable environment-specific salt; never expose it to the frontend)
+app.fraud.device-hash-salt=${APP_FRAUD_DEVICE_HASH_SALT:bidzone-device-v1}
+
 # SMTP email verification
 vnec.mail.smtp.auth=${MAIL_SMTP_AUTH:true}
 vnec.mail.smtp.starttls=${MAIL_SMTP_STARTTLS:true}

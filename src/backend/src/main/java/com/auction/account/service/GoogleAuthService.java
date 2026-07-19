@@ -154,7 +154,7 @@ public class GoogleAuthService {
         user.setEmailVerified(true);
         user.setEmailVerifiedAt(LocalDateTime.now());
         user.setVerificationLevel((byte) 0);
-        user.setProfileStatus("PENDING_PHONE_VERIFY");
+        user.setProfileStatus("PENDING_IDENTITY_VERIFY");
         user.setRole(userRole);
 
         return userRepository.save(user);

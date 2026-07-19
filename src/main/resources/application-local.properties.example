@@ -1,0 +1,11 @@
+# Copy to application-local.properties (gitignored) for local overrides.
+# app.seed.enabled=true
+#
+# Google Gemini — round-robin pools (comma-separated keys per feature).
+# Keys from different Gmail accounts multiply free-tier RPM; same account shares quota.
+# gemini.ocr.api.keys=KEY_OCR_1,KEY_OCR_2,KEY_OCR_3
+# gemini.valuation.api.keys=KEY_VAL_1,KEY_VAL_2
+# Optional single-key fallback if pools are empty:
+# gemini.ocr.api.key=YOUR_GEMINI_OCR_KEY_HERE
+# gemini.valuation.api.key=YOUR_GEMINI_VALUATION_KEY_HERE
+# gemini.api.key=YOUR_GEMINI_API_KEY_HERE

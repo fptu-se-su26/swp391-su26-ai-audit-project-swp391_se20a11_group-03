@@ -1,0 +1,37 @@
+==> Freeing port 3000...
+Port 3000 is free.
+==> Starting Next.js at http://localhost:3000 ...
+    Press Ctrl+C to stop.
+
+> luxeauction-frontend@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.3s
+ ○ Compiling / ...
+ ✓ Compiled / in 3.3s (737 modules)
+ GET / 307 in 3462ms
+ ○ Compiling /luxe ...
+ ✓ Compiled /luxe in 1307ms (760 modules)
+ GET /luxe 200 in 1319ms
+ GET / 307 in 141ms
+ GET /luxe 200 in 57ms
+ ✓ Compiled /dashboard in 411ms (804 modules)
+ ✓ Compiled /profile in 170ms (810 modules)
+ ✓ Compiled /watchlist in 252ms (816 modules)
+ ✓ Compiled /auth in 175ms (824 modules)
+ GET /auth 200 in 94ms
+ GET /auth 200 in 85ms
+ ✓ Compiled /wallet in 368ms (828 modules)
+ ✓ Compiled /messages in 460ms (842 modules)
+ ✓ Compiled /become-seller in 285ms (852 modules)
+ ✓ Compiled / in 71ms (472 modules)
+ ✓ Compiled in 735ms (847 modules)
+ GET /become-seller 200 in 101ms
+ ✓ Compiled in 209ms (833 modules)
+ GET /become-seller 200 in 95ms
+ GET /become-seller 200 in 35ms

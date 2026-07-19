@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { adminApi, ApiError, type AdminUser } from "@/lib/api";
 
 const ROLES = ["User", "Seller", "Staff", "Shipper", "Admin"] as const;
@@ -14,6 +15,7 @@ const ROLE_CLASS: Record<string, string> = {
 };
 
 export default function UsersClient() {
+  const t = useTranslations("adminUsersPage");
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [stats, setStats] = useState<Record<string, number>>({});
   const [query, setQuery] = useState("");
@@ -33,11 +35,11 @@ export default function UsersClient() {
       setUsers(usersRes.data ?? []);
       setStats(statsRes.data ?? {});
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Không thể tải danh sách người dùng.");
+      setError(err instanceof ApiError ? err.message : t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void load(), 0);
@@ -51,16 +53,16 @@ export default function UsersClient() {
 
   async function changeRole(user: AdminUser, roleName: string) {
     if (roleName === user.roleName) return;
-    if (!window.confirm(`Đổi vai trò của ${user.email} thành ${roleName}?`)) return;
+    if (!window.confirm(t("changeRoleConfirm", { email: user.email, role: roleName }))) return;
     setBusyId(user.userId);
     setNotice(null);
     setError(null);
     try {
       const res = await adminApi.updateUserRole(user.userId, roleName);
       setUsers((prev) => prev.map((u) => (u.userId === user.userId ? res.data : u)));
-      setNotice(`Đã đổi vai trò của ${user.email} thành ${roleName}.`);
+      setNotice(t("changeRoleNotice", { email: user.email, role: roleName }));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Không thể đổi vai trò.");
+      setError(err instanceof ApiError ? err.message : t("changeRoleError"));
     } finally {
       setBusyId(null);
     }
@@ -68,16 +70,16 @@ export default function UsersClient() {
 
   async function toggleActive(user: AdminUser) {
     const next = !user.active;
-    if (!window.confirm(`${next ? "Mở khóa" : "Khóa"} tài khoản ${user.email}?`)) return;
+    if (!window.confirm(t("toggleConfirm", { action: next ? t("unlockAction") : t("lockAction"), email: user.email }))) return;
     setBusyId(user.userId);
     setNotice(null);
     setError(null);
     try {
       const res = await adminApi.updateUserStatus(user.userId, next);
       setUsers((prev) => prev.map((u) => (u.userId === user.userId ? res.data : u)));
-      setNotice(`Đã ${next ? "mở khóa" : "khóa"} tài khoản ${user.email}.`);
+      setNotice(t("toggleNotice", { action: next ? t("unlockedAction") : t("lockedAction"), email: user.email }));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Không thể cập nhật trạng thái.");
+      setError(err instanceof ApiError ? err.message : t("statusError"));
     } finally {
       setBusyId(null);
     }
@@ -86,9 +88,9 @@ export default function UsersClient() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <p className="text-xs font-semibold tracking-[0.3em] text-[var(--luxora-gold)]">
-        QUẢN TRỊ HỆ THỐNG
+        {t("badge")}
       </p>
-      <h1 className="font-display-lg mt-2 text-3xl">Người dùng &amp; vai trò</h1>
+      <h1 className="font-display-lg mt-2 text-3xl">{t("title")}</h1>
 
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         {Object.entries(stats).map(([label, value]) => (
@@ -103,14 +105,14 @@ export default function UsersClient() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Tìm theo tên, email, SĐT, CCCD..."
+          placeholder={t("searchPlaceholder")}
           className="w-full max-w-md rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
         />
         <button
           type="submit"
           className="rounded-xl bg-[var(--luxora-gold)] px-5 py-2.5 text-sm font-semibold text-black"
         >
-          Tìm
+          {t("search")}
         </button>
       </form>
 
@@ -129,13 +131,13 @@ export default function UsersClient() {
         <table className="w-full min-w-[900px] text-sm">
           <thead>
             <tr className="border-b border-white/10 text-left text-[11px] uppercase tracking-wider text-white/40">
-              <th className="px-4 py-3">Người dùng</th>
-              <th className="px-4 py-3">SĐT</th>
+              <th className="px-4 py-3">{t("user")}</th>
+              <th className="px-4 py-3">{t("phone")}</th>
               <th className="px-4 py-3">KYC</th>
-              <th className="px-4 py-3">Vai trò</th>
-              <th className="px-4 py-3">Trạng thái</th>
+              <th className="px-4 py-3">{t("role")}</th>
+              <th className="px-4 py-3">{t("status")}</th>
               <th className="px-4 py-3">Strike</th>
-              <th className="px-4 py-3 text-right">Thao tác</th>
+              <th className="px-4 py-3 text-right">{t("actions")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -151,11 +153,11 @@ export default function UsersClient() {
                   <td className="px-4 py-3">
                     {u.identityVerified ? (
                       <span className="rounded-full bg-green-500/10 px-2.5 py-1 text-[11px] font-semibold text-green-300">
-                        Đã xác thực
+                        {t("verified")}
                       </span>
                     ) : (
                       <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-white/50">
-                        Chưa
+                        {t("notYet")}
                       </span>
                     )}
                   </td>
@@ -179,7 +181,7 @@ export default function UsersClient() {
                         u.active ? "bg-green-500/10 text-green-300" : "bg-red-500/10 text-red-300"
                       }`}
                     >
-                      {u.active ? "Hoạt động" : "Đã khóa"}
+                      {u.active ? t("active") : t("locked")}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-white/60">
@@ -197,7 +199,7 @@ export default function UsersClient() {
                           : "bg-green-500/10 text-green-300 hover:bg-green-500/20"
                       }`}
                     >
-                      {busy ? "..." : u.active ? "Khóa" : "Mở khóa"}
+                      {busy ? "..." : u.active ? t("lockAction") : t("unlockAction")}
                     </button>
                   </td>
                 </tr>
@@ -205,9 +207,9 @@ export default function UsersClient() {
             })}
           </tbody>
         </table>
-        {loading && <p className="p-6 text-center text-sm text-white/40">Đang tải...</p>}
+        {loading && <p className="p-6 text-center text-sm text-white/40">{t("loading")}</p>}
         {!loading && users.length === 0 && (
-          <p className="p-6 text-center text-sm text-white/40">Không tìm thấy người dùng nào.</p>
+          <p className="p-6 text-center text-sm text-white/40">{t("empty")}</p>
         )}
       </div>
     </div>

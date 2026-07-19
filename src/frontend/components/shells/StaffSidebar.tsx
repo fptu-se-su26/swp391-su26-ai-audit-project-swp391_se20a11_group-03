@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { authApi } from "@/lib/api";
 
 const NAV_ITEMS = [
@@ -13,6 +15,7 @@ const NAV_ITEMS = [
 ];
 
 export default function StaffSidebar() {
+  const t = useTranslations("sidebar.staff");
   const pathname = usePathname();
 
   return (
@@ -21,7 +24,7 @@ export default function StaffSidebar() {
         <Link href="/" className="inline-flex items-center" aria-label="BidZone">
           <BidZoneLogo className="h-9 w-auto" />
         </Link>
-        <p className="text-xs text-white/40">Khu vực nghiệp vụ nhân viên</p>
+        <p className="text-xs text-white/40">{t("workspace")}</p>
       </div>
 
       <div className="mx-4 mt-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
@@ -29,8 +32,8 @@ export default function StaffSidebar() {
           <span className="material-symbols-outlined">support_agent</span>
         </span>
         <div>
-          <p className="text-sm font-semibold">Nhân viên</p>
-          <p className="text-[11px] text-green-300">Đang trực</p>
+          <p className="text-sm font-semibold">{t("staff")}</p>
+          <p className="text-[11px] text-green-300">{t("online")}</p>
         </div>
       </div>
 
@@ -50,20 +53,21 @@ export default function StaffSidebar() {
               <span className="material-symbols-outlined text-xl">
                 {item.icon}
               </span>
-              {item.label}
+              {t(`items.${item.labelKey}`)}
             </Link>
           );
         })}
       </nav>
 
       <div className="border-t border-white/10 px-4 py-4">
+        <div className="mb-3 px-3"><LanguageSwitcher /></div>
         <Link
           href="/auth"
           onClick={() => authApi.logout()}
           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/60 hover:bg-white/5 hover:text-white"
         >
           <span className="material-symbols-outlined text-xl">logout</span>
-          Đăng xuất
+          {t("logout")}
         </Link>
       </div>
     </aside>

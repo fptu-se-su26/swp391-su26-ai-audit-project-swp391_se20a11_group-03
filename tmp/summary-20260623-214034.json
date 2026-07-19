@@ -1,0 +1,4 @@
+{
+  "summary": "Background task 'Restart backend to run DataSeeder' ended with exit code 1 because the Maven spring-boot:run process (PID 16472) was stopped to free port 8096 for IDE startup. Before termination, backend had started successfully, DataSeeder ran, and user1@gmail.com / user2@gmail.com were verified (50M VND, KYC verified). Port 8096 is currently free.",
+  "current_status": "Backend not running; port 8096 free. User should start AuctionApplication from IDE. Test accounts ready in DB."
+}

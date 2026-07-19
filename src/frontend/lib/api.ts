@@ -41,6 +41,7 @@ export const orderApi = {
 // Core fetch helper — tự gắn JWT (lưu ở localStorage sau khi login)
 // ---------------------------------------------------------------------------
 const TOKEN_KEY = "bidzone_token";
+const DEVICE_ID_KEY = "bidzone_device_id";
 const AUTH_ROLE_COOKIE = "bidzone_role";
 export const AUTH_STATE_EVENT = "bidzone-auth-change";
 
@@ -54,6 +55,16 @@ export function setToken(token: string | null) {
   if (token) window.localStorage.setItem(TOKEN_KEY, token);
   else window.localStorage.removeItem(TOKEN_KEY);
   window.dispatchEvent(new Event(AUTH_STATE_EVENT));
+}
+
+export function getOrCreateDeviceId(): string | null {
+  if (typeof window === "undefined") return null;
+  let deviceId = window.localStorage.getItem(DEVICE_ID_KEY);
+  if (!deviceId) {
+    deviceId = window.crypto.randomUUID();
+    window.localStorage.setItem(DEVICE_ID_KEY, deviceId);
+  }
+  return deviceId;
 }
 
 function setAuthRoleCookie(role: ReturnType<typeof toFrontendRole> | null) {
@@ -85,6 +96,7 @@ async function apiFetch<T>(
 ): Promise<T> {
   const { auth = true, headers, ...rest } = options;
   const token = auth ? getToken() : null;
+  const deviceId = auth ? getOrCreateDeviceId() : null;
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
     headers: {
@@ -92,6 +104,7 @@ async function apiFetch<T>(
         ? { "Content-Type": "application/json" }
         : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(deviceId ? { "X-Device-Id": deviceId } : {}),
       ...headers,
     },
   });
@@ -860,6 +873,15 @@ export const sellerContractApi = {
     if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
     return res.blob();
   },
+  /** Fetch the persisted signed agreement PDF. */
+  async signedPdf(): Promise<Blob> {
+    const token = getToken();
+    const res = await fetch(`${API_BASE_URL}/seller-contract/me/pdf`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
+    return res.blob();
+  },
   /**
    * Sign the seller agreement and upgrade User -> Seller immediately.
    * Requires an APPROVED KYC (identityVerified) — enforced server-side.
@@ -887,6 +909,29 @@ export function updateRoleCookie(roleName: string | null) {
     window.dispatchEvent(new Event(AUTH_STATE_EVENT));
   }
 }
+
+export type PremiumStatus = {
+  premium: boolean;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  yearlySaving: number;
+  remainingBalance: number;
+  expiresAt: string | null;
+  accountType: "USER" | "SELLER";
+  message: string;
+};
+
+export const premiumApi = {
+  status() {
+    return apiFetch<PremiumStatus>("/premium/status");
+  },
+  purchase(plan: "MONTHLY" | "YEARLY") {
+    return apiFetch<PremiumStatus>("/premium/purchase", {
+      method: "POST",
+      body: JSON.stringify({ plan }),
+    });
+  },
+};
 
 // ---------------------------------------------------------------------------
 // AUCTIONS & BIDDING — /api/auctions/*, /api/bidding/*
@@ -1026,24 +1071,6 @@ export const userApi = {
       body: JSON.stringify({ fullName }),
     });
   },
-  sendPhoneVerification(phone: string, channel: "SMS" | "WHATSAPP") {
-    return apiFetch<ApiEnvelope<UserProfile>>(
-      "/users/me/phone-verification/send",
-      {
-        method: "POST",
-        body: JSON.stringify({ phone, channel }),
-      },
-    );
-  },
-  checkPhoneVerification(code: string) {
-    return apiFetch<ApiEnvelope<UserProfile>>(
-      "/users/me/phone-verification/check",
-      {
-        method: "POST",
-        body: JSON.stringify({ code }),
-      },
-    );
-  },
   changePassword(data: {
     currentPassword: string;
     newPassword: string;
@@ -1151,10 +1178,10 @@ export async function fetchPublicStats(): Promise<TrustStat[]> {
     if (!response.ok) return [];
     const stats = (await response.json()) as PublicStatsResponse;
     return [
-      { id: "products", value: stats.totalProducts.toLocaleString("vi-VN"), label: "Sản phẩm" },
-      { id: "members", value: stats.totalUsers.toLocaleString("vi-VN"), label: "Thành viên" },
-      { id: "active-auctions", value: stats.activeAuctions.toLocaleString("vi-VN"), label: "Phiên đang chạy" },
-      { id: "completed-auctions", value: stats.completedAuctions.toLocaleString("vi-VN"), label: "Phiên hoàn tất" },
+      { id: "products", value: stats.totalProducts.toLocaleString("vi-VN") },
+      { id: "members", value: stats.totalUsers.toLocaleString("vi-VN") },
+      { id: "active-auctions", value: stats.activeAuctions.toLocaleString("vi-VN") },
+      { id: "completed-auctions", value: stats.completedAuctions.toLocaleString("vi-VN") },
     ];
   } catch {
     return [];
@@ -1278,6 +1305,79 @@ export const adminApi = {
     const qs = q.toString() ? `?${q}` : "";
     return apiFetch<ApiEnvelope<WalletTransaction[]>>(`/admin/dashboard/balance-ledger${qs}`);
   },
+  fraudSettings() {
+    return apiFetch<ApiEnvelope<FraudSettings>>("/admin/settings/fraud-detection");
+  },
+  updateFraudSettings(payload: FraudSettingsUpdate) {
+    return apiFetch<ApiEnvelope<FraudSettings>>("/admin/settings/fraud-detection", {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  },
+  fraudAlerts(params: FraudAlertFilters = {}) {
+    const q = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== "") q.set(key, String(value));
+    }
+    const qs = q.toString() ? `?${q}` : "";
+    return apiFetch<ApiEnvelope<FraudAlert[]>>(`/admin/fraud-alerts${qs}`);
+  },
+  reviewFraudAlert(id: number, note = "") {
+    return fraudAlertAction(id, "review", note);
+  },
+  confirmFraudAlert(id: number, note = "") {
+    return fraudAlertAction(id, "confirm", note);
+  },
+  dismissFraudAlert(id: number, note = "") {
+    return fraudAlertAction(id, "dismiss", note);
+  },
+  restoreFraudUser(id: number, note = "") {
+    return fraudAlertAction(id, "restore-user", note);
+  },
+};
+
+function fraudAlertAction(id: number, action: string, note: string) {
+  return apiFetch<ApiEnvelope<FraudAlert>>(`/admin/fraud-alerts/${id}/${action}`, {
+    method: "POST",
+    body: JSON.stringify({ note }),
+  });
+}
+
+export type FraudSettings = {
+  detectionEnabled: boolean;
+  autoRestrictionEnabled: boolean;
+  alertEnabled: boolean;
+  updatedAt: string | null;
+};
+
+export type FraudSettingsUpdate = Omit<FraudSettings, "updatedAt"> & { reason: string };
+
+export type FraudAlertFilters = {
+  status?: string;
+  riskLevel?: string;
+  fraudType?: string;
+  auctionId?: number;
+  userId?: number;
+};
+
+export type FraudAlert = {
+  id: number;
+  auctionId: number;
+  suspectedUserId: number;
+  triggerBidId: number | null;
+  fraudType: string;
+  signals: string[];
+  riskScore: number;
+  riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  description: string;
+  status: "PENDING" | "REVIEWING" | "CONFIRMED" | "DISMISSED";
+  automaticAction: string;
+  occurrenceCount: number;
+  firstDetectedAt: string;
+  lastDetectedAt: string;
+  reviewedBy: number | null;
+  reviewedAt: string | null;
+  adminNote: string | null;
 };
 
 export type AdminUser = {
@@ -1337,7 +1437,7 @@ function toLiveAuctionItem(p: ProductSummary): LiveAuctionItem {
     title: p.productName,
     subtitle: p.categoryName ?? "",
     currentPrice: `${VND.format(price)} ₫`,
-    estimatedPrice: `Giá khởi điểm ${VND.format(p.startingPrice)} ₫`,
+    estimatedPrice: `${VND.format(p.startingPrice)} ₫`,
     bidCount: p.totalBids ?? 0,
     endsAt: p.auctionEndTime ? new Date(p.auctionEndTime).getTime() : Date.now(),
     imageSrc: toImageSrc(p.imageUrl),
@@ -1431,7 +1531,7 @@ const CATEGORY_IMAGES: Record<string, string> = {
 function formatTimeLeft(endTime: string | null): string {
   if (!endTime) return "—";
   const ms = new Date(endTime).getTime() - Date.now();
-  if (ms <= 0) return "Đã kết thúc";
+  if (ms <= 0) return "00:00:00";
   const totalSec = Math.floor(ms / 1000);
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
@@ -1445,7 +1545,7 @@ function toStorefrontLot(p: ProductSummary): StorefrontLot {
     lotNumber: `LOT ${String(p.productId).padStart(3, "0")}`,
     title: p.productName,
     categoryId: slugify(p.categoryName ?? "khac"),
-    categoryLabel: p.categoryName ?? "Khác",
+    categoryLabel: p.categoryName ?? "",
     currentBid:
       p.currentBid && p.currentBid > 0 ? p.currentBid : p.startingPrice,
     timeLeft: formatTimeLeft(p.auctionEndTime),
