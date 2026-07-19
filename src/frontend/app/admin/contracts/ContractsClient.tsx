@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { adminApi, ApiError, type ContractRow } from "@/lib/api";
 
 const TYPE_CLASS: Record<string, string> = {
@@ -9,13 +10,15 @@ const TYPE_CLASS: Record<string, string> = {
   PURCHASE_AGREEMENT: "bg-green-500/10 text-green-300",
 };
 
-function fmt(date: string | null) {
+function fmt(date: string | null, locale: string) {
   return date
-    ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(date))
+    ? new Intl.DateTimeFormat(locale, { dateStyle: "short", timeStyle: "short" }).format(new Date(date))
     : "—";
 }
 
 export default function ContractsClient() {
+  const t = useTranslations("adminContractsPage");
+  const locale = useLocale();
   const [rows, setRows] = useState<ContractRow[]>([]);
   const [cccd, setCccd] = useState("");
   const [loading, setLoading] = useState(true);
@@ -29,14 +32,20 @@ export default function ContractsClient() {
       const res = await adminApi.contracts(filter);
       setRows(res.data ?? []);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Không thể tải danh sách hợp đồng.");
+      setError(err instanceof ApiError ? err.message : t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
-    void load();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void load();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   async function openPdf(row: ContractRow) {
@@ -48,7 +57,7 @@ export default function ContractsClient() {
       window.open(url, "_blank", "noopener,noreferrer");
       setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch {
-      setError("Không mở được PDF của hợp đồng #" + row.contractId + ".");
+      setError(t("openPdfError", { id: row.contractId }));
     } finally {
       setBusyId(null);
     }
@@ -57,9 +66,9 @@ export default function ContractsClient() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <p className="text-xs font-semibold tracking-[0.3em] text-[var(--luxora-gold)]">
-        TÀI CHÍNH &amp; PHÁP LÝ
+        {t("badge")}
       </p>
-      <h1 className="font-display-lg mt-2 text-3xl">Hợp đồng điện tử</h1>
+      <h1 className="font-display-lg mt-2 text-3xl">{t("title")}</h1>
 
       <form
         onSubmit={(e) => {
@@ -71,14 +80,14 @@ export default function ContractsClient() {
         <input
           value={cccd}
           onChange={(e) => setCccd(e.target.value)}
-          placeholder="Lọc theo số CCCD..."
+          placeholder={t("filterPlaceholder")}
           className="w-full max-w-md rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
         />
         <button
           type="submit"
           className="rounded-xl bg-[var(--luxora-gold)] px-5 py-2.5 text-sm font-semibold text-black"
         >
-          Lọc
+          {t("filter")}
         </button>
       </form>
 
@@ -92,11 +101,11 @@ export default function ContractsClient() {
         <table className="w-full min-w-[860px] text-sm">
           <thead>
             <tr className="border-b border-white/10 text-left text-[11px] uppercase tracking-wider text-white/40">
-              <th className="px-4 py-3">Mã</th>
-              <th className="px-4 py-3">Loại hợp đồng</th>
-              <th className="px-4 py-3">Đối tượng</th>
+              <th className="px-4 py-3">{t("code")}</th>
+              <th className="px-4 py-3">{t("type")}</th>
+              <th className="px-4 py-3">{t("subject")}</th>
               <th className="px-4 py-3">CCCD</th>
-              <th className="px-4 py-3">Ngày tạo</th>
+              <th className="px-4 py-3">{t("createdAt")}</th>
               <th className="px-4 py-3 text-right">PDF</th>
             </tr>
           </thead>
@@ -113,7 +122,7 @@ export default function ContractsClient() {
                 </td>
                 <td className="px-4 py-3">{r.referenceName ?? "—"}</td>
                 <td className="px-4 py-3 text-white/60">{r.identityNumber ?? "—"}</td>
-                <td className="px-4 py-3 text-white/50">{fmt(r.createdAt)}</td>
+                <td className="px-4 py-3 text-white/50">{fmt(r.createdAt, locale)}</td>
                 <td className="px-4 py-3 text-right">
                   <button
                     type="button"
@@ -122,16 +131,16 @@ export default function ContractsClient() {
                     className="inline-flex items-center gap-1 rounded-full bg-white/5 px-4 py-1.5 text-[11px] font-semibold text-white/70 hover:bg-white/10 disabled:opacity-50"
                   >
                     <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
-                    {busyId === r.contractId ? "Đang mở..." : "Xem"}
+                    {busyId === r.contractId ? t("opening") : t("view")}
                   </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {loading && <p className="p-6 text-center text-sm text-white/40">Đang tải...</p>}
+        {loading && <p className="p-6 text-center text-sm text-white/40">{t("loading")}</p>}
         {!loading && rows.length === 0 && (
-          <p className="p-6 text-center text-sm text-white/40">Chưa có hợp đồng nào.</p>
+          <p className="p-6 text-center text-sm text-white/40">{t("empty")}</p>
         )}
       </div>
     </div>

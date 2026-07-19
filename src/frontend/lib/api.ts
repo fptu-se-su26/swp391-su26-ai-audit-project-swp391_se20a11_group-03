@@ -1060,10 +1060,10 @@ export async function fetchPublicStats(): Promise<TrustStat[]> {
     if (!response.ok) return [];
     const stats = (await response.json()) as PublicStatsResponse;
     return [
-      { id: "products", value: stats.totalProducts.toLocaleString("vi-VN"), label: "Sản phẩm" },
-      { id: "members", value: stats.totalUsers.toLocaleString("vi-VN"), label: "Thành viên" },
-      { id: "active-auctions", value: stats.activeAuctions.toLocaleString("vi-VN"), label: "Phiên đang chạy" },
-      { id: "completed-auctions", value: stats.completedAuctions.toLocaleString("vi-VN"), label: "Phiên hoàn tất" },
+      { id: "products", value: stats.totalProducts.toLocaleString("vi-VN"), label: "Products" },
+      { id: "members", value: stats.totalUsers.toLocaleString("vi-VN"), label: "Members" },
+      { id: "active-auctions", value: stats.activeAuctions.toLocaleString("vi-VN"), label: "Live sessions" },
+      { id: "completed-auctions", value: stats.completedAuctions.toLocaleString("vi-VN"), label: "Completed" },
     ];
   } catch {
     return [];

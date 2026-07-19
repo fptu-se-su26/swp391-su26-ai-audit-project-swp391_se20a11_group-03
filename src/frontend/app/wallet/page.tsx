@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import CollectorShell from "@/components/shells/CollectorShell";
 import {
   ApiError,
@@ -41,6 +42,7 @@ function formatVnd(value: number) {
 }
 
 export default function WalletPage() {
+  const t = useTranslations("walletPage");
   const { data, setData, loading, error } = useApiData(
     loadWallet,
     EMPTY_WALLET,
@@ -86,7 +88,7 @@ export default function WalletPage() {
   async function createDepositQr(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!Number.isSafeInteger(numericAmount) || numericAmount < 1_000) {
-      setActionError("Số tiền nạp tối thiểu là 1.000 ₫.");
+      setActionError(t("depositMinError"));
       return;
     }
 
@@ -102,7 +104,7 @@ export default function WalletPage() {
       setActionError(
         cause instanceof ApiError
           ? cause.message
-          : "Không thể tạo mã nạp tiền. Vui lòng thử lại.",
+          : t("depositError"),
       );
     } finally {
       setSubmitting(false);
@@ -123,11 +125,11 @@ export default function WalletPage() {
     setWithdrawSuccess("");
 
     if (!Number.isSafeInteger(numericWithdrawAmount) || numericWithdrawAmount < 10_000) {
-      setWithdrawError("Số tiền rút tối thiểu là 10.000 ₫.");
+      setWithdrawError(t("withdrawMinError"));
       return;
     }
     if (numericWithdrawAmount > data.wallet.availableBalance) {
-      setWithdrawError("Số tiền rút vượt quá số dư khả dụng.");
+      setWithdrawError(t("withdrawExceedError"));
       return;
     }
 
@@ -139,9 +141,7 @@ export default function WalletPage() {
         accountNumber: accountNumber.trim(),
         accountName: accountName.trim(),
       });
-      setWithdrawSuccess(
-        "Đã gửi yêu cầu rút tiền. Nhân viên sẽ xử lý trong thời gian sớm nhất.",
-      );
+      setWithdrawSuccess(t("withdrawSuccess"));
       setWithdrawAmount("");
       const nextData = await loadWallet();
       setData(nextData);
@@ -149,7 +149,7 @@ export default function WalletPage() {
       setWithdrawError(
         cause instanceof ApiError
           ? cause.message
-          : "Không thể gửi yêu cầu rút tiền. Vui lòng thử lại.",
+          : t("withdrawError"),
       );
     } finally {
       setWithdrawing(false);
@@ -162,7 +162,7 @@ export default function WalletPage() {
       setCopiedField(field);
       window.setTimeout(() => setCopiedField(""), 1500);
     } catch {
-      setActionError("Không thể sao chép tự động trên trình duyệt này.");
+      setActionError(t("depositCopyError"));
     }
   }
 
@@ -174,18 +174,16 @@ export default function WalletPage() {
       setData(nextData);
       if (nextData.wallet.balance > balanceBeforeDeposit) {
         setDepositStatus(
-          `Đã nhận ${formatVnd(nextData.wallet.balance - balanceBeforeDeposit)} vào ví.`,
+          t("depositReceived", { amount: formatVnd(nextData.wallet.balance - balanceBeforeDeposit) }),
         );
       } else {
-        setDepositStatus(
-          "Chưa nhận được giao dịch. Ngân hàng có thể cần vài phút để xử lý.",
-        );
+        setDepositStatus(t("depositPending"));
       }
     } catch (cause) {
       setActionError(
         cause instanceof Error
           ? cause.message
-          : "Không thể kiểm tra số dư ví.",
+          : t("depositCheckError"),
       );
     } finally {
       setChecking(false);
@@ -195,11 +193,11 @@ export default function WalletPage() {
   return (
     <CollectorShell>
       <div className="mx-auto max-w-7xl px-6 py-10">
-        <h1 className="font-display-lg text-3xl">Ví BidZone</h1>
+        <h1 className="font-display-lg text-3xl">{t("title")}</h1>
 
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-3">
           <div className="glass-panel rounded-2xl p-6">
-            <p className="text-xs text-white/40">Số dư khả dụng</p>
+            <p className="text-xs text-white/40">{t("availableBalance")}</p>
             <p className="mt-2 text-2xl font-bold text-[var(--luxora-gold-light)]">
               {data.wallet.availableBalance.toLocaleString("vi-VN")} ₫
             </p>
@@ -208,11 +206,11 @@ export default function WalletPage() {
               onClick={openDeposit}
               className="gradient-cta mt-4 w-full rounded-full py-2.5 text-xs font-semibold text-black"
             >
-              Nạp tiền
+              {t("depositBtn")}
             </button>
           </div>
           <div className="glass-panel rounded-2xl p-6">
-            <p className="text-xs text-white/40">Tiền cọc đang khóa</p>
+            <p className="text-xs text-white/40">{t("holdBalance")}</p>
             <p className="mt-2 text-2xl font-bold">
               {data.wallet.holdBalance.toLocaleString("vi-VN")} ₫
             </p>
@@ -221,11 +219,11 @@ export default function WalletPage() {
               onClick={openWithdraw}
               className="mt-4 w-full rounded-full border border-white/15 py-2.5 text-xs font-semibold hover:border-[var(--luxora-gold)]"
             >
-              Rút tiền
+              {t("withdrawBtn")}
             </button>
           </div>
           <div className="glass-panel rounded-2xl p-6">
-            <p className="text-xs text-white/40">Tổng giá trị tài sản</p>
+            <p className="text-xs text-white/40">{t("totalAssets")}</p>
             <p className="mt-2 text-2xl font-bold">
               {data.wallet.balance.toLocaleString("vi-VN")} ₫
             </p>
@@ -233,17 +231,17 @@ export default function WalletPage() {
         </div>
 
         <h2 className="font-headline-md mt-10 mb-4 text-lg">
-          Lịch sử giao dịch
+          {t("transactionHistory")}
         </h2>
         <div className="overflow-x-auto rounded-2xl border border-white/10">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
               <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-white/40">
-                <th className="px-5 py-3 font-medium">Ngày</th>
-                <th className="px-5 py-3 font-medium">Loại</th>
-                <th className="px-5 py-3 font-medium">Mô tả</th>
-                <th className="px-5 py-3 font-medium">Số tiền</th>
-                <th className="px-5 py-3 font-medium">Trạng thái</th>
+                <th className="px-5 py-3 font-medium">{t("colDate")}</th>
+                <th className="px-5 py-3 font-medium">{t("colType")}</th>
+                <th className="px-5 py-3 font-medium">{t("colDesc")}</th>
+                <th className="px-5 py-3 font-medium">{t("colAmount")}</th>
+                <th className="px-5 py-3 font-medium">{t("colStatus")}</th>
               </tr>
             </thead>
             <tbody>
@@ -280,7 +278,7 @@ export default function WalletPage() {
               {!loading && data.transactions.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-5 py-10 text-center text-white/45">
-                    {error ?? "Chưa có giao dịch nào."}
+                    {error ?? t("noTransactions")}
                   </td>
                 </tr>
               )}
@@ -303,18 +301,18 @@ export default function WalletPage() {
             <button
               type="button"
               onClick={closeDeposit}
-              title="Đóng"
-              aria-label="Đóng"
+              title={t("closeBtn")}
+              aria-label={t("closeBtn")}
               className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
 
             <h2 id="deposit-title" className="font-headline-md pr-12 text-xl">
-              Nạp tiền vào ví
+              {t("depositModalTitle")}
             </h2>
             <p className="mt-1 text-sm text-white/50">
-              Quét VietQR hoặc chuyển khoản đúng nội dung để hệ thống nhận diện.
+              {t("depositModalSubtitle")}
             </p>
 
             {!depositQr ? (
@@ -323,7 +321,7 @@ export default function WalletPage() {
                   htmlFor="deposit-amount"
                   className="text-xs font-semibold uppercase tracking-wider text-white/60"
                 >
-                  Số tiền nạp
+                  {t("depositAmountLabel")}
                 </label>
                 <div className="mt-2 flex h-12 items-center rounded-lg border border-white/15 bg-black/40 px-4 focus-within:border-[var(--luxora-gold)]">
                   <input
@@ -335,7 +333,7 @@ export default function WalletPage() {
                     onChange={(event) =>
                       setAmount(event.target.value.replace(/\D/g, ""))
                     }
-                    placeholder="Tối thiểu 1.000"
+                    placeholder={t("depositMinPlaceholder")}
                     className="min-w-0 flex-1 bg-transparent text-lg font-semibold outline-none"
                   />
                   <span className="text-sm text-white/45">₫</span>
@@ -367,7 +365,7 @@ export default function WalletPage() {
                   disabled={submitting}
                   className="gradient-cta mt-6 h-11 w-full rounded-full text-sm font-bold text-black disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {submitting ? "ĐANG TẠO MÃ..." : "TẠO MÃ VIETQR"}
+                  {submitting ? t("depositCreatingBtn") : t("depositCreateBtn")}
                 </button>
               </form>
             ) : (
@@ -375,7 +373,7 @@ export default function WalletPage() {
                 <div className="mx-auto w-fit overflow-hidden rounded-lg bg-white p-2">
                   <Image
                     src={depositQr.qrUrl}
-                    alt={`Mã VietQR nạp ${formatVnd(depositQr.amount)}`}
+                    alt={`VietQR ${formatVnd(depositQr.amount)}`}
                     width={280}
                     height={280}
                     unoptimized
@@ -387,39 +385,45 @@ export default function WalletPage() {
 
                 {qrImageError ? (
                   <div className="mt-3 rounded-lg border border-yellow-400/25 bg-yellow-500/10 px-3 py-2 text-sm text-yellow-100">
-                    Không tải được ảnh QR trong trang này. Bạn vẫn có thể{" "}
-                    <a
-                      href={depositQr.qrUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-semibold text-[var(--luxora-gold-light)] underline"
-                    >
-                      mở mã QR ở tab mới
-                    </a>{" "}
-                    hoặc chuyển khoản thủ công theo thông tin bên dưới.
+                    {t.rich("depositQrError", {
+                      link: (chunks) => (
+                        <a
+                          href={depositQr.qrUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-semibold text-[var(--luxora-gold-light)] underline"
+                        >
+                          {chunks}
+                        </a>
+                      ),
+                    })}
                   </div>
                 ) : null}
 
                 <dl className="mt-5 divide-y divide-white/10 border-y border-white/10 text-sm">
-                  <DepositDetail label="Số tiền" value={formatVnd(depositQr.amount)} />
+                  <DepositDetail label={t("depositDetailAmount")} value={formatVnd(depositQr.amount)} />
                   <DepositDetail
-                    label="Số tài khoản"
+                    label={t("depositDetailAccount")}
                     value={depositQr.bankAccount}
                     onCopy={() =>
                       void copyValue("account", depositQr.bankAccount)
                     }
                     copied={copiedField === "account"}
+                    copiedLabel={t("copiedBtn")}
+                    copyLabel={t("copyBtn", { label: t("depositDetailAccount").toLowerCase() })}
                   />
                   <DepositDetail
-                    label="Chủ tài khoản"
+                    label={t("depositDetailHolder")}
                     value={depositQr.accountName}
                   />
                   <DepositDetail
-                    label="Nội dung"
+                    label={t("depositDetailContent")}
                     value={depositQr.content}
                     emphasize
                     onCopy={() => void copyValue("content", depositQr.content)}
                     copied={copiedField === "content"}
+                    copiedLabel={t("copiedBtn")}
+                    copyLabel={t("copyBtn", { label: t("depositDetailContent").toLowerCase() })}
                   />
                 </dl>
 
@@ -429,7 +433,7 @@ export default function WalletPage() {
                 {depositStatus ? (
                   <p
                     className={`mt-4 text-sm ${
-                      depositStatus.startsWith("Đã nhận")
+                      depositStatus.startsWith(t("depositReceived", { amount: "" }).slice(0, 5))
                         ? "text-green-300"
                         : "text-yellow-200"
                     }`}
@@ -448,7 +452,7 @@ export default function WalletPage() {
                     }}
                     className="h-11 flex-1 rounded-full border border-white/15 text-sm font-semibold hover:border-white/30"
                   >
-                    Đổi số tiền
+                    {t("depositChangeAmount")}
                   </button>
                   <button
                     type="button"
@@ -456,7 +460,7 @@ export default function WalletPage() {
                     disabled={checking}
                     className="gradient-cta h-11 flex-1 rounded-full text-sm font-bold text-black disabled:opacity-50"
                   >
-                    {checking ? "ĐANG KIỂM TRA..." : "KIỂM TRA SỐ DƯ"}
+                    {checking ? t("depositChecking") : t("depositCheckBalance")}
                   </button>
                 </div>
               </div>
@@ -478,25 +482,24 @@ export default function WalletPage() {
             <button
               type="button"
               onClick={() => setShowWithdraw(false)}
-              title="Đóng"
-              aria-label="Đóng"
+              title={t("closeBtn")}
+              aria-label={t("closeBtn")}
               className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
 
             <h2 id="withdraw-title" className="font-headline-md pr-12 text-xl">
-              Rút tiền về tài khoản ngân hàng
+              {t("withdrawModalTitle")}
             </h2>
             <p className="mt-1 text-sm text-white/50">
-              Số dư khả dụng: {formatVnd(data.wallet.availableBalance)}. Yêu cầu
-              sẽ được nhân viên duyệt trước khi chuyển khoản.
+              {t("withdrawModalSubtitle", { balance: formatVnd(data.wallet.availableBalance) })}
             </p>
 
             <form onSubmit={submitWithdraw} className="mt-6 flex flex-col gap-4">
               <label className="block">
                 <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
-                  Số tiền rút
+                  {t("withdrawAmountLabel")}
                 </span>
                 <div className="mt-2 flex h-12 items-center rounded-lg border border-white/15 bg-black/40 px-4 focus-within:border-[var(--luxora-gold)]">
                   <input
@@ -511,7 +514,7 @@ export default function WalletPage() {
                     onChange={(event) =>
                       setWithdrawAmount(event.target.value.replace(/\D/g, ""))
                     }
-                    placeholder="Tối thiểu 10.000"
+                    placeholder={t("withdrawMinPlaceholder")}
                     className="min-w-0 flex-1 bg-transparent text-lg font-semibold outline-none"
                   />
                   <span className="text-sm text-white/45">₫</span>
@@ -520,21 +523,21 @@ export default function WalletPage() {
 
               <label className="block">
                 <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
-                  Ngân hàng
+                  {t("withdrawBankLabel")}
                 </span>
                 <input
                   type="text"
                   required
                   value={bankName}
                   onChange={(event) => setBankName(event.target.value)}
-                  placeholder="VD: Vietcombank"
+                  placeholder={t("withdrawBankPlaceholder")}
                   className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-black/40 px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
                 />
               </label>
 
               <label className="block">
                 <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
-                  Số tài khoản
+                  {t("withdrawAccountLabel")}
                 </span>
                 <input
                   type="text"
@@ -544,21 +547,21 @@ export default function WalletPage() {
                   onChange={(event) =>
                     setAccountNumber(event.target.value.replace(/\D/g, ""))
                   }
-                  placeholder="Nhập số tài khoản nhận tiền"
+                  placeholder={t("withdrawAccountPlaceholder")}
                   className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-black/40 px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
                 />
               </label>
 
               <label className="block">
                 <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
-                  Chủ tài khoản
+                  {t("withdrawHolderLabel")}
                 </span>
                 <input
                   type="text"
                   required
                   value={accountName}
                   onChange={(event) => setAccountName(event.target.value)}
-                  placeholder="Tên chủ tài khoản (không dấu)"
+                  placeholder={t("withdrawHolderPlaceholder")}
                   className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-black/40 px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
                 />
               </label>
@@ -575,7 +578,7 @@ export default function WalletPage() {
                 disabled={withdrawing}
                 className="gradient-cta h-11 w-full rounded-full text-sm font-bold text-black disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {withdrawing ? "ĐANG GỬI YÊU CẦU..." : "GỬI YÊU CẦU RÚT TIỀN"}
+                {withdrawing ? t("withdrawSubmitting") : t("withdrawSubmitBtn")}
               </button>
             </form>
           </div>
@@ -591,12 +594,16 @@ function DepositDetail({
   emphasize = false,
   onCopy,
   copied = false,
+  copyLabel,
+  copiedLabel,
 }: {
   label: string;
   value: string;
   emphasize?: boolean;
   onCopy?: () => void;
   copied?: boolean;
+  copyLabel?: string;
+  copiedLabel?: string;
 }) {
   return (
     <div className="flex min-h-12 items-center justify-between gap-4 py-2.5">
@@ -613,8 +620,8 @@ function DepositDetail({
           <button
             type="button"
             onClick={onCopy}
-            title={copied ? "Đã sao chép" : `Sao chép ${label.toLowerCase()}`}
-            aria-label={copied ? "Đã sao chép" : `Sao chép ${label.toLowerCase()}`}
+            title={copied ? copiedLabel : copyLabel}
+            aria-label={copied ? copiedLabel : copyLabel}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/50 hover:bg-white/10 hover:text-white"
           >
             <span className="material-symbols-outlined text-lg">

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   ApiError,
   auctionApi,
@@ -21,9 +22,9 @@ type ViewerMode = "checking" | "anonymous" | "owner" | "buyer" | "error";
 
 const VND = new Intl.NumberFormat("vi-VN");
 
-function formatRemaining(endTime: string): string {
+function formatRemaining(endTime: string, endedText: string): string {
   const ms = new Date(endTime).getTime() - Date.now();
-  if (ms <= 0) return "Đã kết thúc";
+  if (ms <= 0) return endedText;
   const totalSec = Math.floor(ms / 1000);
   const h = Math.floor(totalSec / 3600);
   const m = Math.floor((totalSec % 3600) / 60);
@@ -47,6 +48,7 @@ export default function LiveBiddingPanel({
   sellerId,
   onBidPlaced,
 }: LiveBiddingPanelProps) {
+  const t = useTranslations("liveBidding");
   const [customAmount, setCustomAmount] = useState("");
   // Countdown texts start as null and are only computed on the client (in the
   // effect below) — computing them during SSR causes a hydration mismatch
@@ -94,7 +96,7 @@ export default function LiveBiddingPanel({
         if (!cancelled && mine.hasBid) setMyBidAmount(mine.bidAmount);
       })
       .catch(() => {
-        /* chưa có bid hoặc chưa đăng nhập — bỏ qua */
+        /* No bid yet or no signed-in user. */
       });
 
     return () => {
@@ -104,13 +106,13 @@ export default function LiveBiddingPanel({
 
   useEffect(() => {
     const tick = () => {
-      setRemaining(formatRemaining(state.endTime));
+      setRemaining(formatRemaining(state.endTime, t("ended")));
       setUntilStart(formatUntil(state.startTime));
     };
     tick();
     const timer = setInterval(tick, 1000);
     return () => clearInterval(timer);
-  }, [state.endTime, state.startTime]);
+  }, [state.endTime, state.startTime, t]);
 
   const isActive = state.status === "ACTIVE";
   const isUpcoming = state.status === "UPCOMING";
@@ -128,7 +130,7 @@ export default function LiveBiddingPanel({
       setEligibility(nextEligibility);
       setMessage({
         kind: "success",
-        text: `Đã khóa ${VND.format(result.depositAmount)} ₫ tiền đặt cọc.`,
+        text: t("depositLocked", { amount: VND.format(result.depositAmount) }),
       });
     } catch (err) {
       setMessage({
@@ -136,7 +138,7 @@ export default function LiveBiddingPanel({
         text:
           err instanceof ApiError
             ? err.message
-            : "Không thể đặt cọc. Vui lòng kiểm tra số dư ví và thử lại.",
+            : t("depositError"),
       });
     } finally {
       setDepositing(false);
@@ -151,7 +153,7 @@ export default function LiveBiddingPanel({
       if (res.success) {
         setMessage({
           kind: "success",
-          text: `Đặt giá ${VND.format(amount)} ₫ thành công!`,
+          text: t("bidSuccess", { amount: VND.format(amount) }),
         });
         setCustomAmount("");
         setMyBidAmount((prev) => (prev === null ? amount : Math.max(prev, amount)));
@@ -159,19 +161,19 @@ export default function LiveBiddingPanel({
       } else {
         setMessage({
           kind: "error",
-          text: res.message ?? "Đặt giá không thành công.",
+          text: res.message ?? t("bidError"),
         });
       }
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setMessage({
           kind: "error",
-          text: "Bạn cần đăng nhập để đấu giá.",
+          text: t("loginToBid"),
         });
       } else if (err instanceof ApiError) {
         setMessage({ kind: "error", text: err.message });
       } else {
-        setMessage({ kind: "error", text: "Không kết nối được máy chủ." });
+        setMessage({ kind: "error", text: t("serverError") });
       }
     } finally {
       setPlacing(false);
@@ -181,13 +183,13 @@ export default function LiveBiddingPanel({
   function handleCustomBid() {
     const parsed = Number(customAmount);
     if (!customAmount || Number.isNaN(parsed)) {
-      setMessage({ kind: "error", text: "Nhập số tiền hợp lệ." });
+      setMessage({ kind: "error", text: t("invalidAmount") });
       return;
     }
     if (parsed < state.minNextBid) {
       setMessage({
         kind: "error",
-        text: `Giá tối thiểu là ${VND.format(state.minNextBid)} ₫.`,
+        text: t("minBid", { amount: VND.format(state.minNextBid) }),
       });
       return;
     }
@@ -198,23 +200,23 @@ export default function LiveBiddingPanel({
     <div className="glass-panel sticky top-24 flex flex-col gap-6 rounded-2xl p-6">
       <div>
         <p className="text-xs text-white/50">
-          {state.priceHidden ? "Giá khởi điểm" : "Giá hiện tại"}
+          {state.priceHidden ? t("hiddenStartingPrice") : t("currentPrice")}
         </p>
         <p className="font-display-lg mt-1 text-3xl text-[var(--luxora-gold-light)]">
           {VND.format(state.currentHighestBid)} ₫
         </p>
         <p className="mt-1 text-xs text-white/40">
           {isActive
-            ? `Kết thúc sau ${remaining ?? "--:--:--"}`
+            ? t("endsIn", { time: remaining ?? "--:--:--" })
             : isUpcoming
               ? untilStart
-                ? `Bắt đầu sau ${untilStart}`
-                : "Sắp bắt đầu..."
-              : "Phiên đã đóng"}
+                ? t("startsIn", { time: untilStart })
+                : t("startingSoon")
+              : t("closed")}
         </p>
         {!state.priceHidden && state.winnerUsername ? (
           <p className="mt-1 text-xs text-white/40">
-            Dẫn đầu: {state.winnerUsername}
+            {t("leading", { username: state.winnerUsername })}
           </p>
         ) : null}
       </div>
@@ -233,20 +235,20 @@ export default function LiveBiddingPanel({
 
       {viewerMode === "checking" ? (
         <p className="text-center text-xs text-white/40">
-          Đang kiểm tra điều kiện tham gia...
+          {t("checkingEligibility")}
         </p>
       ) : null}
 
       {viewerMode === "owner" ? (
         <div className="rounded-xl border border-blue-400/20 bg-blue-500/10 p-4 text-sm text-blue-100">
-          <p className="font-semibold">Đây là phiên đấu giá của bạn</p>
+          <p className="font-semibold">{t("ownerTitle")}</p>
           <p className="mt-1 text-xs leading-5 text-blue-100/65">
             {state.priceHidden
-              ? "Phiên này áp dụng trả giá kín: mức giá và người dẫn đầu được giữ kín với tất cả mọi người (kể cả bạn) cho đến khi phiên kết thúc, để đảm bảo công bằng."
-              : "Bạn có thể theo dõi giá và lượt đấu, nhưng không thể đặt cọc hoặc tự đặt giá cho sản phẩm của mình."}
+              ? t("ownerSealedDesc")
+              : t("ownerOpenDesc")}
           </p>
           <p className="mt-2 text-xs font-semibold text-blue-100/85">
-            Đã có {state.totalBids} lượt bid.
+            {t("totalBids", { count: state.totalBids })}
           </p>
         </div>
       ) : null}
@@ -258,18 +260,16 @@ export default function LiveBiddingPanel({
               href="/kyc"
               className="block rounded-xl border border-yellow-400/30 bg-yellow-500/10 py-2.5 text-center text-xs font-semibold text-yellow-200"
             >
-              Xác thực KYC để tham gia đấu giá
+              {t("kycToJoin")}
             </Link>
           ) : (
             <>
               <p className="text-xs leading-5 text-white/55">
-                Phiên đấu giá dài hạn: không cần đặt cọc. Khi bạn đặt giá, số tiền
-                tương ứng sẽ bị <b>khóa trong ví</b> và tự hoàn lại ngay nếu bạn bị
-                vượt giá. Nếu thắng, tiền khóa được dùng để thanh toán.
+                {t("timedPolicyBefore")}<b>{t("timedPolicyStrong")}</b>{t("timedPolicyAfter")}
               </p>
               {myBidAmount !== null ? (
                 <p className="mt-2 text-xs text-white/70">
-                  Giá cao nhất của bạn (đang khóa):{" "}
+                  {t("yourLockedBid")}{" "}
                   <span className="font-semibold text-[var(--luxora-gold-light)]">
                     {VND.format(myBidAmount ?? 0)} ₫
                   </span>
@@ -287,12 +287,12 @@ export default function LiveBiddingPanel({
               <div className="flex items-center gap-2 text-sm text-green-300">
                 <span className="material-symbols-outlined text-lg">verified</span>
                 <span className="font-semibold">
-                  Đã đặt cọc {VND.format(eligibility.depositAmount ?? 0)} ₫
+                  {t("alreadyDeposited", { amount: VND.format(eligibility.depositAmount ?? 0) })}
                 </span>
               </div>
               {myBidAmount !== null ? (
                 <p className="mt-2 text-xs text-white/70">
-                  {state.priceHidden ? "Giá kín của bạn: " : "Giá cao nhất bạn đã đặt: "}
+                  {state.priceHidden ? t("yourSealedBid") : t("yourHighestBid")}
                   <span className="font-semibold text-[var(--luxora-gold-light)]">
                     {VND.format(myBidAmount ?? 0)} ₫
                   </span>
@@ -302,14 +302,14 @@ export default function LiveBiddingPanel({
           ) : eligibility.depositAllowed ? (
             <>
               <p className="text-xs leading-5 text-white/55">
-                Đặt cọc 10% giá mở để được tham gia phiên. Tiền được khóa trong ví và hoàn lại nếu bạn không thắng.
+                {t("depositInfo")}
               </p>
               {!eligibility.kycVerified ? (
                 <Link
                   href="/kyc"
                   className="mt-3 block rounded-xl border border-yellow-400/30 bg-yellow-500/10 py-2.5 text-center text-xs font-semibold text-yellow-200"
                 >
-                  Xác thực KYC để đặt cọc
+                  {t("kycToDeposit")}
                 </Link>
               ) : (
                 <button
@@ -321,14 +321,14 @@ export default function LiveBiddingPanel({
                   className="mt-3 w-full rounded-xl bg-[var(--luxora-gold,#f0c982)] py-2.5 text-xs font-bold text-black disabled:opacity-60"
                 >
                   {depositing
-                    ? "ĐANG ĐẶT CỌC..."
-                    : `ĐẶT CỌC ${VND.format(eligibility.depositAmount ?? 0)} ₫`}
+                    ? t("depositing")
+                    : t("depositNow", { amount: VND.format(eligibility.depositAmount ?? 0) })}
                 </button>
               )}
             </>
           ) : (
             <p className="text-xs leading-5 text-yellow-200/80">
-              {eligibility.message || "Đã hết thời hạn đặt cọc cho phiên này."}
+              {eligibility.message || t("depositClosed")}
             </p>
           )}
         </div>
@@ -338,7 +338,7 @@ export default function LiveBiddingPanel({
         <>
           <div>
             <p className="mb-2 text-xs font-medium text-white/50">
-              {state.priceHidden ? "Nhập mức giá kín" : "Đặt giá nhanh"}
+              {state.priceHidden ? t("sealedBidLabel") : t("quickBidLabel")}
             </p>
             {!state.priceHidden ? (
               <div className="grid grid-cols-3 gap-2">
@@ -365,7 +365,7 @@ export default function LiveBiddingPanel({
               type="number"
               value={customAmount}
               onChange={(e) => setCustomAmount(e.target.value)}
-              placeholder={`Tối thiểu ${VND.format(state.minNextBid)} ₫`}
+              placeholder={t("minPlaceholder", { amount: VND.format(state.minNextBid) })}
               className={`${state.priceHidden ? "" : "mt-3"} w-full rounded-xl border border-white/10 bg-black/40 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]`}
             />
           </div>
@@ -376,13 +376,13 @@ export default function LiveBiddingPanel({
             onClick={handleCustomBid}
             className="rounded-xl bg-[var(--luxora-gold,#f0c982)] py-3 text-sm font-bold text-black transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {placing ? "ĐANG ĐẶT GIÁ..." : "ĐẶT GIÁ NGAY"}
+            {placing ? t("placing") : t("placeBidNow")}
           </button>
 
           <p className="text-center text-[11px] text-white/35">
             {state.priceHidden
-              ? `Giá của người khác được giữ kín · ${state.totalBids} lượt bid`
-              : `Bước giá ${VND.format(state.bidStep)} ₫ · ${state.totalBids} lượt bid`}
+              ? t("sealedBidCount", { count: state.totalBids })
+              : t("bidStepCount", { amount: VND.format(state.bidStep), count: state.totalBids })}
           </p>
         </>
       ) : null}
@@ -392,19 +392,19 @@ export default function LiveBiddingPanel({
           href={`/auth?next=/auctions/${state.auctionId}`}
           className="rounded-xl bg-[var(--luxora-gold,#f0c982)] py-3 text-center text-sm font-bold text-black transition-colors hover:opacity-90"
         >
-          ĐĂNG NHẬP ĐỂ ĐẶT CỌC
+          {t("loginToDeposit")}
         </Link>
       ) : null}
 
       {viewerMode === "error" ? (
         <p className="rounded-xl border border-red-400/20 bg-red-500/10 px-3 py-2 text-center text-xs text-red-200">
-          Không kiểm tra được điều kiện tham gia. Vui lòng tải lại trang.
+          {t("eligibilityError")}
         </p>
       ) : null}
 
       {!isActive && !isUpcoming ? (
         <p className="text-center text-xs text-white/40">
-          Phiên đấu giá đã kết thúc.
+          {t("auctionEnded")}
         </p>
       ) : null}
     </div>

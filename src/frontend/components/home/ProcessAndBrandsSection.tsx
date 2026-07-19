@@ -1,15 +1,5 @@
+import { getTranslations } from "next-intl/server";
 import { AUCTION_PROCESS_STEPS, BRAND_ITEMS } from "@/lib/home-data";
-
-const BRAND_META = [
-  "Đồng hồ",
-  "Công nghệ",
-  "Chế tác đồng hồ cao cấp",
-  "Nhà mốt thời trang",
-  "Chế tác máy ảnh",
-  "Nghe nhìn",
-  "Công nghệ sáng tạo",
-  "Phòng thu âm thanh",
-];
 
 function BrandLogo({ id, name }: { id: string; name: string }) {
   if (id === "rolex") {
@@ -132,7 +122,9 @@ function BrandLogo({ id, name }: { id: string; name: string }) {
   );
 }
 
-export default function ProcessAndBrandsSection() {
+export default async function ProcessAndBrandsSection() {
+  const t = await getTranslations("process");
+
   return (
     <section className="relative overflow-hidden border-b border-white/10">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(240,201,130,0.08),transparent_32%),radial-gradient(circle_at_85%_70%,rgba(255,255,255,0.05),transparent_28%)]" />
@@ -141,14 +133,14 @@ export default function ProcessAndBrandsSection() {
           <div className="mb-8 flex items-end justify-between gap-4">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/35">
-                Bốn bước
+                {t("stepsBadge")}
               </p>
               <h2 className="mt-2 text-sm font-semibold tracking-[0.25em] text-[#f0c982]">
-                QUY TRÌNH ĐẤU GIÁ
+                {t("stepsTitle")}
               </h2>
             </div>
             <span className="hidden rounded-full border border-[#d7aa63]/35 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#f0c982] sm:inline-flex">
-              Đã xác minh trực tiếp
+              {t("verified")}
             </span>
           </div>
 
@@ -171,10 +163,10 @@ export default function ProcessAndBrandsSection() {
                     {String(index + 1).padStart(2, "0")}
                   </p>
                   <h3 className="mt-2 text-xs font-bold tracking-wider text-white">
-                    {step.title}
+                    {t(`steps.${step.id}.title` as Parameters<typeof t>[0])}
                   </h3>
                   <p className="mt-2 text-[11px] leading-relaxed text-white/52">
-                    {step.description}
+                    {t(`steps.${step.id}.description` as Parameters<typeof t>[0])}
                   </p>
                 </div>
               </div>
@@ -185,10 +177,10 @@ export default function ProcessAndBrandsSection() {
         <div className="rounded-2xl border border-white/10 bg-black/55 p-5 sm:p-7">
           <div className="mb-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/35">
-              Kho thương hiệu
+              {t("brandsBadge")}
             </p>
             <h2 className="mt-2 text-sm font-semibold tracking-[0.25em] text-[#f0c982]">
-              BỘ SƯU TẬP THƯƠNG HIỆU
+              {t("brandsTitle")}
             </h2>
           </div>
 
@@ -203,7 +195,7 @@ export default function ProcessAndBrandsSection() {
                 <div className="relative flex h-full flex-col items-center justify-between pt-4 text-center">
                   <BrandLogo id={brand.id} name={brand.name} />
                   <span className="mt-4 block text-[10px] uppercase tracking-wider text-white/38">
-                    {BRAND_META[index]}
+                    {t(`brandMeta.${index}` as Parameters<typeof t>[0])}
                   </span>
                 </div>
               </div>

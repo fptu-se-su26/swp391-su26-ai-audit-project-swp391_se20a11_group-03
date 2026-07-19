@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Countdown from "@/components/home/Countdown";
 import type { StorefrontCategory, StorefrontLot } from "@/lib/api";
@@ -16,6 +17,7 @@ export default function PublicProductSection({
   lots,
   categories,
 }: PublicProductSectionProps) {
+  const t = useTranslations("storefront");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
   );
@@ -42,17 +44,17 @@ export default function PublicProductSection({
         <div className="mb-6 flex flex-col justify-between gap-4 sm:mb-8 md:flex-row md:items-end">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#f0c982]">
-              Sản phẩm đang bán
+              {t("featuredLabel")}
             </p>
             <h2 className="mt-3 text-2xl font-semibold text-white sm:text-3xl">
-              Xem nhanh sản phẩm và danh mục nổi bật
+              {t("subtitle")}
             </h2>
           </div>
           <Link
             href="/storefront"
             className="inline-flex w-fit items-center gap-2 rounded-full border border-[#d7aa63]/50 px-5 py-3 text-xs font-semibold tracking-wider text-white transition-colors hover:bg-[#f0c982] hover:text-black"
           >
-            Xem tất cả sản phẩm
+            {t("viewAll")}
             <span className="material-symbols-outlined text-sm">
               arrow_forward
             </span>
@@ -69,7 +71,7 @@ export default function PublicProductSection({
                 : "bg-white text-black"
             }`}
           >
-            Tất cả
+            {t("all")}
           </button>
           {usedCategories.map((category) => (
             <button
@@ -96,7 +98,7 @@ export default function PublicProductSection({
               <div className="relative aspect-square w-full overflow-hidden bg-black">
                 <Link
                   href={`/auctions/${lot.id}`}
-                  aria-label={`Xem chi tiết ${lot.title}`}
+                  aria-label={`${t("viewDetail")} ${lot.title}`}
                   className="absolute inset-0"
                 >
                   <span
@@ -133,7 +135,7 @@ export default function PublicProductSection({
                 </div>
                 <div className="mt-auto border-t border-white/10 pt-3">
                   <p className="text-[10px] tracking-wider text-white/45">
-                    Giá hiện tại
+                    {t("priceLabel")}
                   </p>
                   <p className="text-xl font-bold text-white">
                     {VND.format(lot.currentBid)} ₫
@@ -141,11 +143,11 @@ export default function PublicProductSection({
                   {lot.endsAt ? (
                     <Countdown
                       endsAt={lot.endsAt}
-                      prefix="Còn lại"
+                      prefix={t("remainingPrefix")}
                       className="mt-1 inline-flex items-center gap-1 font-mono text-xs text-white/45"
                     />
                   ) : (
-                    <p className="mt-1 text-xs text-white/45">Chưa có lịch kết thúc</p>
+                    <p className="mt-1 text-xs text-white/45">{t("noEndSchedule")}</p>
                   )}
                 </div>
               </Link>

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Countdown from "@/components/home/Countdown";
 import type { LiveAuctionItem } from "@/lib/home-data";
 
@@ -11,26 +12,15 @@ type LiveAuctionGridProps = {
 };
 
 export default function LiveAuctionGrid({ items }: LiveAuctionGridProps) {
+  const t = useTranslations("liveGrid");
   const [selectedItem, setSelectedItem] = useState<LiveAuctionItem | null>(null);
 
   useEffect(() => {
-    if (!selectedItem) {
-      return;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setSelectedItem(null);
-      }
-    };
-
+    if (!selectedItem) return;
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === "Escape") setSelectedItem(null); };
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => { document.body.style.overflow = ""; window.removeEventListener("keydown", handleKeyDown); };
   }, [selectedItem]);
 
   return (
@@ -45,7 +35,7 @@ export default function LiveAuctionGrid({ items }: LiveAuctionGridProps) {
               type="button"
               onClick={() => setSelectedItem(item)}
               className="relative aspect-[4/3] w-full overflow-hidden bg-black text-left sm:aspect-square"
-              aria-label={`Phóng to ${item.title}`}
+              aria-label={`${t("zoomIn")} ${item.title}`}
             >
               <Image
                 src={item.imageSrc}
@@ -60,46 +50,30 @@ export default function LiveAuctionGrid({ items }: LiveAuctionGridProps) {
                 LIVE
               </span>
               <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur">
-                <span className="material-symbols-outlined text-lg">
-                  favorite
-                </span>
+                <span className="material-symbols-outlined text-lg">favorite</span>
               </span>
             </button>
 
             <div className="flex flex-1 flex-col gap-3 p-4">
-              <button
-                type="button"
-                onClick={() => setSelectedItem(item)}
-                className="text-left"
-              >
-                <h3 className="text-sm font-semibold text-white">
-                  {item.title}
-                </h3>
-                <p className="mt-0.5 text-xs text-white/55">
-                  {item.subtitle}
-                </p>
+              <button type="button" onClick={() => setSelectedItem(item)} className="text-left">
+                <h3 className="text-sm font-semibold text-white">{item.title}</h3>
+                <p className="mt-0.5 text-xs text-white/55">{item.subtitle}</p>
               </button>
 
               <div>
-                <p className="text-[10px] tracking-wider text-white/45">
-                  Giá hiện tại
-                </p>
-                <p className="text-xl font-bold text-white">
-                  {item.currentPrice}
-                </p>
-                <p className="text-[11px] text-white/45">
-                  {item.estimatedPrice}
-                </p>
+                <p className="text-[10px] tracking-wider text-white/45">{t("currentPrice")}</p>
+                <p className="text-xl font-bold text-white">{item.currentPrice}</p>
+                <p className="text-[11px] text-white/45">{item.estimatedPrice}</p>
               </div>
 
               <div className="mt-auto grid grid-cols-2 gap-3 border-t border-white/12 pt-3 text-xs">
                 <div>
                   <Countdown endsAt={item.endsAt} />
-                  <p className="mt-1 text-white/45">Kết thúc</p>
+                  <p className="mt-1 text-white/45">{t("ends")}</p>
                 </div>
                 <div>
                   <p className="font-semibold text-white">{item.bidCount}</p>
-                  <p className="mt-1 text-white/45">Lượt bid</p>
+                  <p className="mt-1 text-white/45">{t("bids")}</p>
                 </div>
               </div>
 
@@ -107,10 +81,8 @@ export default function LiveAuctionGrid({ items }: LiveAuctionGridProps) {
                 href={`/auctions/${item.id}`}
                 className="mt-1 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#d7aa63]/50 px-4 py-2.5 text-xs font-semibold tracking-wider text-white transition-colors hover:bg-[#f0c982] hover:text-black"
               >
-                ĐẤU GIÁ NGAY
-                <span className="material-symbols-outlined text-sm">
-                  arrow_forward
-                </span>
+                {t("bidNow")}
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </Link>
             </div>
           </article>
@@ -122,18 +94,18 @@ export default function LiveAuctionGrid({ items }: LiveAuctionGridProps) {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 px-4 py-6 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
-          aria-label={`Phóng to ${selectedItem.title}`}
+          aria-label={`${t("zoomIn")} ${selectedItem.title}`}
           onClick={() => setSelectedItem(null)}
         >
           <div
             className="relative flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-[#d7aa63]/45 bg-[#050505] shadow-[0_30px_120px_rgba(240,201,130,0.2)]"
-            onClick={(event) => event.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               onClick={() => setSelectedItem(null)}
               className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-black/60 text-white backdrop-blur transition-colors hover:border-[#f0c982] hover:text-[#f0c982]"
-              aria-label="Đóng ảnh phóng to"
+              aria-label={t("closeZoom")}
             >
               <span className="material-symbols-outlined text-xl">close</span>
             </button>
@@ -152,23 +124,17 @@ export default function LiveAuctionGrid({ items }: LiveAuctionGridProps) {
             <div className="flex flex-col gap-4 border-t border-white/10 p-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.28em] text-[#f0c982]">
-                  Sản phẩm đang chọn
+                  {t("selectedItem")}
                 </p>
-                <h3 className="mt-2 text-xl font-bold text-white">
-                  {selectedItem.title}
-                </h3>
-                <p className="mt-1 text-sm text-white/55">
-                  {selectedItem.subtitle}
-                </p>
+                <h3 className="mt-2 text-xl font-bold text-white">{selectedItem.title}</h3>
+                <p className="mt-1 text-sm text-white/55">{selectedItem.subtitle}</p>
               </div>
               <Link
                 href={`/auctions/${selectedItem.id}`}
                 className="inline-flex w-fit items-center justify-center gap-2 rounded-full bg-[#f0c982] px-6 py-3 text-xs font-bold tracking-wider text-black transition-colors hover:bg-[#f4d79b]"
               >
-                ĐẤU GIÁ NGAY
-                <span className="material-symbols-outlined text-sm">
-                  arrow_forward
-                </span>
+                {t("bidNow")}
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </Link>
             </div>
           </div>

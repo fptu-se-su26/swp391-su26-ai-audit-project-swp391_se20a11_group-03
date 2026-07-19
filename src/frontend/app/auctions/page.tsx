@@ -1,12 +1,15 @@
 import Image from "next/image";
 import { Suspense } from "react";
+import { getTranslations } from "next-intl/server";
 import Header from "@/components/home/Header";
 import Footer from "@/components/home/Footer";
 import LiveChat from "@/components/feature/LiveChat";
 import StorefrontData from "@/app/storefront/StorefrontData";
 import StorefrontDataFallback from "@/app/storefront/StorefrontDataFallback";
 
-export default function AuctionsPage() {
+export default async function AuctionsPage() {
+  const t = await getTranslations("auctionsPage");
+
   return (
     <div className="luxora-app flex min-h-screen flex-col bg-black text-white">
       <Header />
@@ -15,7 +18,7 @@ export default function AuctionsPage() {
         <section className="glass-card relative min-h-[280px] overflow-hidden rounded-3xl border border-white/10 bg-[#030303]">
           <Image
             src="/images/luxury-watch-hero-lcp.webp"
-            alt="Phòng đấu giá BidZone"
+            alt={t("imageAlt")}
             fill
             priority
             sizes="(min-width: 768px) calc(100vw - 16rem), 100vw"
@@ -25,15 +28,13 @@ export default function AuctionsPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_42%,rgba(240,201,130,0.16),transparent_36%)]" />
           <div className="relative z-10 flex max-w-3xl flex-col gap-5 px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
             <p className="text-xs font-semibold uppercase tracking-[0.36em] text-[var(--luxora-gold)]">
-              Phòng đấu giá
+              {t("badge")}
             </p>
             <h1 className="font-display-lg text-3xl leading-tight sm:text-5xl">
-              Danh sách sản phẩm đang đấu giá
+              {t("title")}
             </h1>
             <p className="max-w-2xl text-sm leading-relaxed text-white/60">
-              Theo dõi các lot đang live, lọc theo danh mục, sắp xếp theo giá
-              hoặc thời gian còn lại và vào phòng đấu chi tiết chỉ với một lần
-              bấm.
+              {t("desc")}
             </p>
           </div>
         </section>

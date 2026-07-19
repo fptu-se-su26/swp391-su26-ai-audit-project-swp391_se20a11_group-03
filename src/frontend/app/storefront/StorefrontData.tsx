@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import StorefrontCategoryFilter from "./StorefrontCategoryFilter";
 import StorefrontLotBrowser from "./StorefrontLotBrowser";
 import StorefrontDataFallback from "./StorefrontDataFallback";
@@ -17,6 +18,7 @@ export default function StorefrontData({
 }: {
   basePath?: "/storefront" | "/auctions";
 }) {
+  const t = useTranslations("storefront");
   const searchParams = useSearchParams();
   const selectedCategoryId = searchParams.get("category") ?? undefined;
   const [lots, setLots] = useState<StorefrontLot[]>([]);
@@ -80,7 +82,7 @@ export default function StorefrontData({
       />
       <StorefrontLotBrowser
         lots={visibleLots}
-        categoryLabel={activeCategory?.label ?? "Tất cả danh mục"}
+        categoryLabel={activeCategory?.label ?? t("allCategories")}
       />
     </div>
   );

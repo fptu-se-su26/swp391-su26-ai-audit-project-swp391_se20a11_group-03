@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { adminApi, ApiError, type WalletTransaction } from "@/lib/api";
 
 const VND = new Intl.NumberFormat("vi-VN");
@@ -12,6 +13,7 @@ function fmt(date: string | null) {
 }
 
 export default function AuditLogsClient() {
+  const t = useTranslations("auditLogs");
   const [rows, setRows] = useState<WalletTransaction[]>([]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -19,21 +21,27 @@ export default function AuditLogsClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (f = "", t = "", ty = "") => {
+  const load = useCallback(async (f = "", toDate = "", ty = "") => {
     setLoading(true);
     setError(null);
     try {
-      const res = await adminApi.balanceLedger({ from: f, to: t, type: ty });
+      const res = await adminApi.balanceLedger({ from: f, to: toDate, type: ty });
       setRows(res.data ?? []);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Không thể tải nhật ký.");
+      setError(err instanceof ApiError ? err.message : t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
-    void load();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void load();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   const types = Array.from(new Set(rows.map((r) => r.transactionType))).sort();
@@ -41,13 +49,10 @@ export default function AuditLogsClient() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <p className="text-xs font-semibold tracking-[0.3em] text-[var(--luxora-gold)]">
-        QUẢN TRỊ HỆ THỐNG
+        {t("systemBadge")}
       </p>
-      <h1 className="font-display-lg mt-2 text-3xl">Nhật ký hệ thống</h1>
-      <p className="mt-2 text-sm text-white/50">
-        Toàn bộ biến động tài chính trên nền tảng: nạp/rút, khóa tiền đặt giá, hoàn cọc,
-        thanh toán, hoa hồng, tịch thu.
-      </p>
+      <h1 className="font-display-lg mt-2 text-3xl">{t("title")}</h1>
+      <p className="mt-2 text-sm text-white/50">{t("subtitle")}</p>
 
       <form
         onSubmit={(e) => {
@@ -57,7 +62,7 @@ export default function AuditLogsClient() {
         className="mt-6 flex flex-wrap items-end gap-3"
       >
         <label className="text-xs text-white/50">
-          Từ ngày
+          {t("fromLabel")}
           <input
             type="date"
             value={from}
@@ -66,7 +71,7 @@ export default function AuditLogsClient() {
           />
         </label>
         <label className="text-xs text-white/50">
-          Đến ngày
+          {t("toLabel")}
           <input
             type="date"
             value={to}
@@ -75,13 +80,13 @@ export default function AuditLogsClient() {
           />
         </label>
         <label className="text-xs text-white/50">
-          Loại
+          {t("typeLabel")}
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
             className="mt-1 block rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none focus:border-[var(--luxora-gold)]"
           >
-            <option value="" className="bg-[#111]">Tất cả</option>
+            <option value="" className="bg-[#111]">{t("allOption")}</option>
             {types.map((t) => (
               <option key={t} value={t} className="bg-[#111]">
                 {t}
@@ -93,7 +98,7 @@ export default function AuditLogsClient() {
           type="submit"
           className="rounded-xl bg-[var(--luxora-gold)] px-5 py-2.5 text-sm font-semibold text-black"
         >
-          Lọc
+          {t("filterButton")}
         </button>
       </form>
 
@@ -107,12 +112,12 @@ export default function AuditLogsClient() {
         <table className="w-full min-w-[900px] text-sm">
           <thead>
             <tr className="border-b border-white/10 text-left text-[11px] uppercase tracking-wider text-white/40">
-              <th className="px-4 py-3">Thời gian</th>
-              <th className="px-4 py-3">Người dùng</th>
-              <th className="px-4 py-3">Loại</th>
-              <th className="px-4 py-3 text-right">Số tiền</th>
-              <th className="px-4 py-3">Mã tham chiếu</th>
-              <th className="px-4 py-3">Mô tả</th>
+              <th className="px-4 py-3">{t("col.time")}</th>
+              <th className="px-4 py-3">{t("col.user")}</th>
+              <th className="px-4 py-3">{t("col.type")}</th>
+              <th className="px-4 py-3 text-right">{t("col.amount")}</th>
+              <th className="px-4 py-3">{t("col.ref")}</th>
+              <th className="px-4 py-3">{t("col.desc")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -141,13 +146,13 @@ export default function AuditLogsClient() {
             ))}
           </tbody>
         </table>
-        {loading && <p className="p-6 text-center text-sm text-white/40">Đang tải...</p>}
+        {loading && <p className="p-6 text-center text-sm text-white/40">{t("loading")}</p>}
         {!loading && rows.length === 0 && (
-          <p className="p-6 text-center text-sm text-white/40">Không có bản ghi nào.</p>
+          <p className="p-6 text-center text-sm text-white/40">{t("empty")}</p>
         )}
         {!loading && rows.length > 200 && (
           <p className="p-3 text-center text-xs text-white/35">
-            Hiển thị 200 bản ghi mới nhất trong {rows.length}. Dùng bộ lọc để thu hẹp.
+            {t("showingNote", { count: rows.length })}
           </p>
         )}
       </div>

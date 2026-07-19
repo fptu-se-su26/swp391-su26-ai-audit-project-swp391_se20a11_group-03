@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import LiveBiddingPanel from "@/components/feature/LiveBiddingPanel";
 import {
   ApiError,
@@ -26,6 +27,7 @@ export default function AuctionDetailClient({
   product,
   initialBids,
 }: AuctionDetailClientProps) {
+  const t = useTranslations("auctionDetail");
   const [state, setState] = useState(initialState);
   const [bids, setBids] = useState(initialBids);
   const [activeImage, setActiveImage] = useState(0);
@@ -59,7 +61,7 @@ export default function AuctionDetailClient({
       setState(nextState);
       setBids(nextBids);
     } catch {
-      // giữ dữ liệu cũ nếu 1 lần poll lỗi
+      // Keep current data when one polling cycle fails.
     }
   }, [state.auctionId]);
 
@@ -109,7 +111,7 @@ export default function AuctionDetailClient({
     if (!getToken()) {
       setWatchlistMessage({
         kind: "error",
-        text: "Bạn cần đăng nhập để thêm sản phẩm vào danh sách theo dõi.",
+        text: t("watchlistLogin"),
       });
       return;
     }
@@ -119,11 +121,11 @@ export default function AuctionDetailClient({
       if (isWatched) {
         await userApi.removeFromWatchlist(product.productId);
         setIsWatched(false);
-        setWatchlistMessage({ kind: "success", text: "Đã bỏ khỏi danh sách theo dõi." });
+        setWatchlistMessage({ kind: "success", text: t("watchlistRemoved") });
       } else {
         await userApi.addToWatchlist(product.productId);
         setIsWatched(true);
-        setWatchlistMessage({ kind: "success", text: "Đã thêm vào danh sách theo dõi." });
+        setWatchlistMessage({ kind: "success", text: t("watchlistAdded") });
       }
     } catch (cause) {
       setWatchlistMessage({
@@ -131,7 +133,7 @@ export default function AuctionDetailClient({
         text:
           cause instanceof ApiError
             ? cause.message
-            : "Không thể cập nhật danh sách theo dõi. Vui lòng thử lại.",
+            : t("watchlistError"),
       });
     } finally {
       setWatchlistBusy(false);
@@ -140,27 +142,27 @@ export default function AuctionDetailClient({
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-      {/* Cột trái (2/3) */}
+      {/* Left column (2/3) */}
       <div className="flex flex-col gap-6 lg:col-span-2">
         <div className="group relative overflow-hidden rounded-3xl">
           <button
             type="button"
             onClick={() => setLightboxOpen(true)}
-            aria-label="Mở ảnh sản phẩm toàn màn hình"
+            aria-label={t("openImage")}
             className="block aspect-video w-full cursor-zoom-in bg-cover bg-center"
             style={{ backgroundImage: `url(${images[activeImage]})` }}
           />
           <span className="pointer-events-none absolute bottom-4 right-4 flex items-center gap-1 rounded-full bg-black/65 px-3 py-1.5 text-xs text-white/80 opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
             <span className="material-symbols-outlined text-base">zoom_in</span>
-            Xem toàn bộ ảnh
+            {t("viewAllImages")}
           </span>
           {isActive ? (
             <span className="pulse-live absolute left-4 top-4 rounded-full bg-red-500/90 px-3 py-1.5 text-xs font-semibold text-white">
-              Đang đấu giá trực tiếp
+              {t("liveStatus")}
             </span>
           ) : (
             <span className="absolute left-4 top-4 rounded-full bg-white/15 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
-              {state.status === "UPCOMING" ? "Sắp diễn ra" : "Đã kết thúc"}
+              {state.status === "UPCOMING" ? t("upcomingStatus") : t("endedStatus")}
             </span>
           )}
         </div>
@@ -187,7 +189,7 @@ export default function AuctionDetailClient({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs text-white/40">
-                LOT #{product.productId} · {product.categoryName ?? "Đấu giá"}
+                LOT #{product.productId} · {product.categoryName ?? t("categoryFallback")}
               </p>
               <h1 className="font-display-lg mt-1 text-2xl">
                 {product.productName}
@@ -207,10 +209,10 @@ export default function AuctionDetailClient({
                 <span className="material-symbols-outlined text-base">
                   {isWatched ? "favorite" : "favorite_border"}
                 </span>
-                {isWatched ? "Đang theo dõi" : "Theo dõi"}
+                {isWatched ? t("watching") : t("watch")}
               </button>
               <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80">
-                {state.totalBids} lượt bid
+                {t("bidCount", { count: state.totalBids })}
               </span>
             </div>
           </div>
@@ -228,27 +230,27 @@ export default function AuctionDetailClient({
           ) : null}
 
           <h2 className="mt-6 text-sm font-semibold text-white/70">
-            Thông tin lot này
+            {t("lotInfo")}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-white/50">
-            {product.description ?? "Chưa có mô tả cho sản phẩm này."}
+            {product.description ?? t("noDescription")}
           </p>
 
           <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
             <div className="rounded-xl border border-white/10 p-3">
-              <p className="text-[10px] text-white/40">Giá khởi điểm</p>
+              <p className="text-[10px] text-white/40">{t("startingPrice")}</p>
               <p className="mt-1 text-sm font-semibold">
                 {VND.format(state.startingPrice)} ₫
               </p>
             </div>
             <div className="rounded-xl border border-white/10 p-3">
-              <p className="text-[10px] text-white/40">Bước giá</p>
+              <p className="text-[10px] text-white/40">{t("bidStep")}</p>
               <p className="mt-1 text-sm font-semibold">
                 {VND.format(state.bidStep)} ₫
               </p>
             </div>
             <div className="rounded-xl border border-white/10 p-3">
-              <p className="text-[10px] text-white/40">Chế độ</p>
+              <p className="text-[10px] text-white/40">{t("mode")}</p>
               <p className="mt-1 text-sm font-semibold">
                 {state.auctionMode === "LIVE" ? "Live" : "Timed"}
               </p>
@@ -258,7 +260,7 @@ export default function AuctionDetailClient({
           {bids.length > 0 ? (
             <>
               <h2 className="mt-6 text-sm font-semibold text-white/70">
-                Lịch sử đấu giá
+                {t("bidHistory")}
               </h2>
               <ul className="mt-2 divide-y divide-white/8">
                 {bids.slice(0, 8).map((bid) => (
@@ -267,7 +269,7 @@ export default function AuctionDetailClient({
                     className="flex items-center justify-between py-2 text-sm"
                   >
                     <span className="text-white/60">
-                      {bid.username ?? "Người tham gia ẩn danh"}
+                      {bid.username ?? t("anonymousBidder")}
                     </span>
                     <span className="font-semibold text-[var(--luxora-gold-light)]">
                       {VND.format(bid.bidAmount)} ₫
@@ -280,7 +282,7 @@ export default function AuctionDetailClient({
         </div>
       </div>
 
-      {/* Cột phải: Bidding Panel */}
+      {/* Right column: bidding panel */}
       <div className="lg:col-span-1">
         <LiveBiddingPanel
           state={state}
@@ -293,7 +295,7 @@ export default function AuctionDetailClient({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Bộ sưu tập ảnh sản phẩm"
+          aria-label={t("galleryLabel")}
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
           onClick={() => setLightboxOpen(false)}
         >
@@ -301,7 +303,7 @@ export default function AuctionDetailClient({
             type="button"
             onClick={() => setLightboxOpen(false)}
             className="absolute right-5 top-5 z-10 rounded-full border border-white/15 bg-black/60 p-2 text-white/80 hover:text-white"
-            aria-label="Đóng trình xem ảnh"
+            aria-label={t("closeGallery")}
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -314,7 +316,7 @@ export default function AuctionDetailClient({
                 showPreviousImage();
               }}
               className="absolute left-4 z-10 rounded-full border border-white/15 bg-black/60 p-3 text-white/80 hover:text-white"
-              aria-label="Ảnh trước"
+              aria-label={t("previousImage")}
             >
               <span className="material-symbols-outlined">chevron_left</span>
             </button>
@@ -323,7 +325,7 @@ export default function AuctionDetailClient({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={images[activeImage]}
-            alt={`${product.productName} - ảnh ${activeImage + 1}`}
+            alt={t("imageAlt", { name: product.productName, number: activeImage + 1 })}
             className="max-h-[82vh] max-w-[88vw] object-contain"
             onClick={(event) => event.stopPropagation()}
           />
@@ -336,14 +338,14 @@ export default function AuctionDetailClient({
                 showNextImage();
               }}
               className="absolute right-4 z-10 rounded-full border border-white/15 bg-black/60 p-3 text-white/80 hover:text-white"
-              aria-label="Ảnh tiếp theo"
+              aria-label={t("nextImage")}
             >
               <span className="material-symbols-outlined">chevron_right</span>
             </button>
           ) : null}
 
           <div className="absolute bottom-5 rounded-full bg-black/65 px-4 py-2 text-xs text-white/70">
-            {activeImage + 1} / {images.length} · Dùng phím ← → để chuyển ảnh
+            {t("keyboardHint", { current: activeImage + 1, total: images.length })}
           </div>
         </div>
       ) : null}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import {
   ApiError,
   userApi,
@@ -13,18 +14,15 @@ const STATUS_CLASS: Record<string, string> = {
   CLOSED: "bg-green-500/10 text-green-300",
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  OPEN: "Đang mở",
-  CLOSED: "Đã đóng",
-};
-
-function fmt(date: string | null) {
+function fmt(date: string | null, locale: string) {
   return date
-    ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(date))
+    ? new Intl.DateTimeFormat(locale, { dateStyle: "short", timeStyle: "short" }).format(new Date(date))
     : "";
 }
 
 export default function SupportClient() {
+  const t = useTranslations("staffSupportPage");
+  const locale = useLocale();
   const [unassigned, setUnassigned] = useState<Conversation[]>([]);
   const [assigned, setAssigned] = useState<Conversation[]>([]);
   const [selected, setSelected] = useState<Conversation | null>(null);
@@ -46,16 +44,23 @@ export default function SupportClient() {
       setUnassigned(un);
       setAssigned(mine);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Không thể tải hộp thư hỗ trợ.");
+      setError(err instanceof ApiError ? err.message : t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
-    void loadLists();
-    const timer = setInterval(() => void loadLists(), 15000);
-    return () => clearInterval(timer);
+    let cancelled = false;
+    const refresh = () => {
+      if (!cancelled) void loadLists();
+    };
+    queueMicrotask(refresh);
+    const timer = setInterval(refresh, 15000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
   }, [loadLists]);
 
   const loadMessages = useCallback(async (conversationId: number) => {
@@ -88,7 +93,7 @@ export default function SupportClient() {
       await loadLists();
       void loadMessages(updated.conversationId);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Không thể nhận ticket này.");
+      setError(err instanceof ApiError ? err.message : t("claimError"));
     } finally {
       setBusy(false);
     }
@@ -103,7 +108,7 @@ export default function SupportClient() {
       setReply("");
       await loadMessages(selected.conversationId);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Không gửi được phản hồi.");
+      setError(err instanceof ApiError ? err.message : t("sendError"));
     } finally {
       setBusy(false);
     }
@@ -111,7 +116,7 @@ export default function SupportClient() {
 
   async function closeTicket() {
     if (!selected) return;
-    if (!window.confirm("Đóng ticket này? Người dùng sẽ không gửi thêm tin nhắn được.")) return;
+    if (!window.confirm(t("closeConfirm"))) return;
     setBusy(true);
     setError(null);
     try {
@@ -119,7 +124,7 @@ export default function SupportClient() {
       setSelected(updated);
       await loadLists();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Không thể đóng ticket.");
+      setError(err instanceof ApiError ? err.message : t("closeError"));
     } finally {
       setBusy(false);
     }
@@ -153,14 +158,14 @@ export default function SupportClient() {
             <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--luxora-gold)]" />
           )}
         </div>
-        <p className="truncate text-xs text-white/50">{c.subject || "(không có tiêu đề)"}</p>
+        <p className="truncate text-xs text-white/50">{c.subject || t("noSubject")}</p>
         <div className="flex items-center gap-2">
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS_CLASS[(c.status ?? "").toUpperCase()] ?? "bg-white/10 text-white/50"}`}
           >
-            {STATUS_LABEL[(c.status ?? "").toUpperCase()] ?? c.status}
+            {STATUS_CLASS[(c.status ?? "").toUpperCase()] ? t(`status.${(c.status ?? "").toUpperCase()}`) : c.status}
           </span>
-          <span className="text-[10px] text-white/35">{fmt(c.updatedAt)}</span>
+          <span className="text-[10px] text-white/35">{fmt(c.updatedAt, locale)}</span>
         </div>
       </button>
     );
@@ -172,51 +177,51 @@ export default function SupportClient() {
       <aside className="w-80 shrink-0 overflow-y-auto border-r border-white/10">
         <div className="border-b border-white/10 p-4">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/40">
-            Hộp thư hỗ trợ
+            {t("title")}
           </p>
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Tìm theo tên hoặc tiêu đề..."
+            placeholder={t("searchPlaceholder")}
             className="w-full rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
           />
         </div>
 
         <p className="px-4 pb-1 pt-4 text-[10px] font-semibold uppercase tracking-wider text-yellow-300/70">
-          Chưa nhận ({unassigned.filter(matches).length})
+          {t("unassigned", { count: unassigned.filter(matches).length })}
         </p>
         {unassigned.filter(matches).map((c) => renderItem(c, "unassigned"))}
         {!loading && unassigned.length === 0 && (
-          <p className="px-4 py-2 text-xs text-white/35">Không có ticket chờ nhận.</p>
+          <p className="px-4 py-2 text-xs text-white/35">{t("noUnassigned")}</p>
         )}
 
         <p className="px-4 pb-1 pt-4 text-[10px] font-semibold uppercase tracking-wider text-blue-300/70">
-          Của tôi ({assigned.filter(matches).length})
+          {t("mine", { count: assigned.filter(matches).length })}
         </p>
         {assigned.filter(matches).map((c) => renderItem(c, "mine"))}
         {!loading && assigned.length === 0 && (
-          <p className="px-4 py-2 text-xs text-white/35">Bạn chưa nhận ticket nào.</p>
+          <p className="px-4 py-2 text-xs text-white/35">{t("noMine")}</p>
         )}
-        {loading && <p className="px-4 py-3 text-xs text-white/40">Đang tải...</p>}
+        {loading && <p className="px-4 py-3 text-xs text-white/40">{t("loading")}</p>}
       </aside>
 
       {/* Detail */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {!selected ? (
           <div className="flex flex-1 items-center justify-center text-sm text-white/40">
-            Chọn một ticket để xem nội dung.
+            {t("chooseTicket")}
           </div>
         ) : (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 p-5">
               <div className="min-w-0">
                 <p className="truncate text-lg font-semibold">
-                  {selected.subject || "(không có tiêu đề)"}
+                  {selected.subject || t("noSubject")}
                 </p>
                 <p className="text-sm text-white/40">
-                  {selected.userName} · {fmt(selected.createdAt)}
-                  {selected.assignedStaffName ? ` · Phụ trách: ${selected.assignedStaffName}` : ""}
+                  {selected.userName} · {fmt(selected.createdAt, locale)}
+                  {selected.assignedStaffName ? ` · ${t("assignedTo", { name: selected.assignedStaffName })}` : ""}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
@@ -227,7 +232,7 @@ export default function SupportClient() {
                     onClick={() => void claim(selected)}
                     className="rounded-full bg-[var(--luxora-gold)] px-5 py-2 text-xs font-bold text-black disabled:opacity-50"
                   >
-                    {busy ? "..." : "Nhận xử lý"}
+                    {busy ? "..." : t("claim")}
                   </button>
                 )}
                 {isMine && isOpen && (
@@ -237,12 +242,12 @@ export default function SupportClient() {
                     onClick={() => void closeTicket()}
                     className="rounded-full bg-green-500/10 px-5 py-2 text-xs font-semibold text-green-300 hover:bg-green-500/20 disabled:opacity-50"
                   >
-                    Đóng ticket
+                    {t("closeTicket")}
                   </button>
                 )}
                 {!isOpen && (
                   <span className="rounded-full bg-green-500/10 px-4 py-2 text-xs font-semibold text-green-300">
-                    Đã đóng
+                    {t("closed")}
                   </span>
                 )}
               </div>
@@ -270,13 +275,13 @@ export default function SupportClient() {
                     <p
                       className={`mt-1 text-[10px] ${fromCustomer ? "text-white/35" : "text-black/50"}`}
                     >
-                      {m.senderName} · {fmt(m.sentAt)}
+                      {m.senderName} · {fmt(m.sentAt, locale)}
                     </p>
                   </div>
                 );
               })}
               {messages.length === 0 && (
-                <p className="py-10 text-center text-sm text-white/35">Chưa có tin nhắn.</p>
+                <p className="py-10 text-center text-sm text-white/35">{t("emptyMessages")}</p>
               )}
               <div ref={messagesEndRef} />
             </div>
@@ -287,7 +292,7 @@ export default function SupportClient() {
                   rows={3}
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}
-                  placeholder="Nhập phản hồi..."
+                  placeholder={t("replyPlaceholder")}
                   className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
                 />
                 <button
@@ -296,12 +301,12 @@ export default function SupportClient() {
                   onClick={() => void sendReply()}
                   className="gradient-cta mt-3 rounded-full px-8 py-2.5 text-sm font-semibold text-black disabled:opacity-50"
                 >
-                  {busy ? "Đang gửi..." : "Trả lời"}
+                  {busy ? t("sending") : t("reply")}
                 </button>
               </div>
             ) : isOpen ? (
               <p className="border-t border-white/10 p-5 text-center text-xs text-white/40">
-                Bấm &quot;Nhận xử lý&quot; để trả lời ticket này.
+                {t("claimToReply")}
               </p>
             ) : null}
           </>

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { FiArrowRight } from "react-icons/fi";
 import {
   fetchStorefrontCategories,
@@ -12,6 +13,7 @@ import {
 } from "@/lib/api";
 
 export default function CategoriesGrid() {
+  const t = useTranslations("categoriesGrid");
   const [lots, setLots] = useState<StorefrontLot[]>([]);
   const [categories, setCategories] = useState<StorefrontCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,17 +62,17 @@ export default function CategoriesGrid() {
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-sm font-semibold tracking-[0.25em] text-[#f0c982]">
-            DANH MỤC NỔI BẬT
+            {t("badge")}
           </p>
           <h2 className="mt-3 text-3xl font-bold">
-            Bộ lọc dành cho người mua nghiêm túc
+            {t("title")}
           </h2>
         </div>
         <Link
           href="/storefront"
           className="inline-flex w-fit items-center gap-2 rounded-full border border-[#d7aa63]/45 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
         >
-          Xem toàn bộ lot
+          {t("viewAll")}
           <FiArrowRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       </div>
@@ -118,7 +120,7 @@ export default function CategoriesGrid() {
                           {category.count}
                         </span>
                         <span className="text-[10px] uppercase tracking-wider text-white/35">
-                          lot
+                          {t("lotUnit")}
                         </span>
                       </span>
                     </div>
@@ -132,7 +134,7 @@ export default function CategoriesGrid() {
                       />
                     </div>
                     <span className="mt-auto flex items-center gap-1 pt-5 text-xs font-semibold uppercase tracking-wider text-[#f0c982] opacity-0 transition-opacity group-hover:opacity-100">
-                      Khám phá ngay
+                      {t("explore")}
                       <FiArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                     </span>
                   </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   aiApi,
   ApiError,
@@ -31,6 +32,7 @@ type PostItemFormProps = {
 };
 
 export default function PostItemForm({ editProductId }: PostItemFormProps) {
+  const t = useTranslations("postItem");
   const router = useRouter();
   const isEditing = editProductId !== undefined;
 
@@ -82,7 +84,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
       const isAdmin = profile.roleName?.toLowerCase() === "admin";
       setKycAccess(profile.identityVerified || isAdmin ? "verified" : "unverified");
     } catch {
-      // Khóa form nếu không xác định được trạng thái để tránh bỏ qua KYC.
+      // Lock the form when KYC status cannot be determined.
       setKycAccess("error");
     }
   }
@@ -110,7 +112,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
         const product = productResponse.data;
         const status = product.status.toUpperCase();
         if (!["PENDING", "REJECTED"].includes(status)) {
-          setError("Chỉ có thể sửa sản phẩm đang chờ duyệt hoặc đã bị từ chối.");
+          setError(t("editStatusError"));
           return;
         }
 
@@ -131,7 +133,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
         setError(
           err instanceof ApiError
             ? err.message
-            : "Không thể tải thông tin sản phẩm để chỉnh sửa.",
+            : t("loadProductError"),
         );
       })
       .finally(() => {
@@ -141,7 +143,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
     return () => {
       cancelled = true;
     };
-  }, [editProductId, isEditing, kycAccess]);
+  }, [editProductId, isEditing, kycAccess, t]);
 
   // Release object URLs on unmount to avoid leaks.
   useEffect(() => {
@@ -171,7 +173,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
 
   async function handleGetValuation() {
     if (!name.trim()) {
-      setAiResult("Vui lòng nhập tên sản phẩm trước khi định giá.");
+      setAiResult(t("aiNeedName"));
       return;
     }
     setAiLoading(true);
@@ -197,12 +199,12 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
         currency === "VND" ? `${n.toLocaleString("vi-VN")} ₫` : `${currency} ${n.toLocaleString()}`;
       const range =
         d.lowEstimate != null && d.highEstimate != null
-          ? `Khoảng giá đề xuất: ${fmt(d.lowEstimate)} – ${fmt(d.highEstimate)}. `
+          ? `${t("aiRange", { low: fmt(d.lowEstimate), high: fmt(d.highEstimate) })} `
           : "";
-      setAiResult(range + (d.summary || d.reply || "Đã định giá."));
+      setAiResult(range + (d.summary || d.reply || t("aiDone")));
     } catch (err) {
       setAiResult(
-        err instanceof ApiError ? err.message : "Không thể định giá lúc này. Vui lòng thử lại.",
+        err instanceof ApiError ? err.message : t("aiError"),
       );
     } finally {
       setAiLoading(false);
@@ -215,17 +217,17 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
     setSuccess(null);
 
     if (kycAccess !== "verified") {
-      setError("Bạn cần hoàn tất xác thực KYC trước khi đăng sản phẩm.");
+      setError(t("kycRequiredError"));
       return;
     }
 
-    if (!name.trim()) return setError("Vui lòng nhập tên sản phẩm.");
-    if (categoryId === "") return setError("Vui lòng chọn danh mục.");
+    if (!name.trim()) return setError(t("nameRequired"));
+    if (categoryId === "") return setError(t("categoryRequired"));
     const price = Number(startingPrice);
     if (!Number.isFinite(price) || price <= 0)
-      return setError("Giá khởi điểm phải là số lớn hơn 0.");
+      return setError(t("priceRequired"));
     if (existingImages.length + picked.length === 0)
-      return setError("Vui lòng giữ lại hoặc tải lên ít nhất 1 ảnh.");
+      return setError(t("imageRequired"));
 
     setSubmitting(true);
     try {
@@ -248,7 +250,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
           startingPrice: price,
           images,
         });
-        setSuccess("Đã cập nhật và gửi lại sản phẩm để duyệt!");
+        setSuccess(t("updateSuccess"));
         setRejectionReason(null);
       } else {
         await productApi.create({
@@ -258,7 +260,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
           startingPrice: price,
           images,
         });
-        setSuccess("Đã gửi sản phẩm để duyệt thành công!");
+        setSuccess(t("createSuccess"));
       }
 
       picked.forEach((p) => URL.revokeObjectURL(p.preview));
@@ -274,8 +276,8 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
         err instanceof ApiError
           ? err.message
           : isEditing
-            ? "Không thể cập nhật sản phẩm. Vui lòng thử lại."
-            : "Không thể đăng sản phẩm. Vui lòng thử lại.",
+            ? t("updateError")
+            : t("createError"),
       );
     } finally {
       setSubmitting(false);
@@ -289,8 +291,8 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
           <span className="material-symbols-outlined animate-pulse text-5xl text-[var(--luxora-gold-light)]">
             verified_user
           </span>
-          <p className="mt-4 text-lg font-semibold">Đang kiểm tra trạng thái KYC</p>
-          <p className="mt-1 text-sm text-white/45">Vui lòng chờ trong giây lát...</p>
+          <p className="mt-4 text-lg font-semibold">{t("checkingKycTitle")}</p>
+          <p className="mt-1 text-sm text-white/45">{t("checkingKycDesc")}</p>
         </div>
       </div>
     );
@@ -307,12 +309,12 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
             </span>
           </div>
           <h2 className="font-headline-md mt-6 text-2xl">
-            {unavailable ? "Chưa thể kiểm tra trạng thái KYC" : "Bạn chưa xác thực KYC"}
+            {unavailable ? t("kycUnavailableTitle") : t("kycMissingTitle")}
           </h2>
           <p className="mt-3 text-sm leading-6 text-white/55">
             {unavailable
-              ? "Hệ thống chưa thể xác nhận điều kiện đăng bán của bạn. Form được tạm khóa để bảo vệ tài khoản."
-              : "Bạn cần hoàn tất xác thực căn cước công dân và được nhân viên phê duyệt trước khi có thể đăng sản phẩm đấu giá."}
+              ? t("kycUnavailableDesc")
+              : t("kycMissingDesc")}
           </p>
 
           <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
@@ -324,7 +326,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
                 }}
                 className="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold hover:bg-white/5"
               >
-                Kiểm tra lại
+                {t("retryKyc")}
               </button>
             )}
             <Link
@@ -332,7 +334,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
               className="gradient-cta inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-sm font-semibold text-black"
             >
               <span className="material-symbols-outlined text-lg">verified_user</span>
-              Xác thực KYC ngay
+              {t("verifyKycNow")}
             </Link>
           </div>
         </div>
@@ -347,7 +349,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
           <span className="material-symbols-outlined animate-pulse text-5xl text-[var(--luxora-gold-light)]">
             inventory_2
           </span>
-          <p className="mt-4 text-lg font-semibold">Đang tải sản phẩm</p>
+          <p className="mt-4 text-lg font-semibold">{t("loadingProduct")}</p>
         </div>
       </div>
     );
@@ -362,27 +364,27 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
       >
         {isEditing && rejectionReason && (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-            <p className="font-semibold">Lý do bị từ chối</p>
+            <p className="font-semibold">{t("rejectionReason")}</p>
             <p className="mt-1 text-red-200/80">{rejectionReason}</p>
           </div>
         )}
 
         <div>
           <label className="mb-1.5 block text-xs font-medium text-white/50">
-            Tên sản phẩm
+            {t("productName")}
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Ví dụ: Rolex Daytona 116500LN"
+            placeholder={t("productNamePlaceholder")}
             className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
           />
         </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-medium text-white/50">
-            Danh mục
+            {t("category")}
           </label>
           <select
             value={categoryId}
@@ -390,7 +392,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
             disabled={isEditing}
             className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none focus:border-[var(--luxora-gold)] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {categories.length === 0 && <option value="">Đang tải danh mục...</option>}
+            {categories.length === 0 && <option value="">{t("loadingCategories")}</option>}
             {categories.map((c) => (
               <option key={c.categoryId} value={c.categoryId} className="bg-[var(--luxora-bg-elevated)]">
                 {c.categoryName}
@@ -399,14 +401,14 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
           </select>
           {isEditing && (
             <p className="mt-1.5 text-[11px] text-white/35">
-              Danh mục được giữ nguyên khi gửi lại sản phẩm.
+              {t("categoryLocked")}
             </p>
           )}
         </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-medium text-white/50">
-            Giá khởi điểm (₫)
+            {t("startingPrice")}
           </label>
           <input
             type="number"
@@ -419,20 +421,20 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
 
         <div>
           <label className="mb-1.5 block text-xs font-medium text-white/50">
-            Mô tả &amp; Tình trạng sản phẩm
+            {t("description")}
           </label>
           <textarea
             rows={5}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Mô tả chi tiết tình trạng, xuất xứ, giấy tờ đi kèm..."
+            placeholder={t("descriptionPlaceholder")}
             className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
           />
         </div>
 
         <div>
           <label className="mb-1.5 block text-xs font-medium text-white/50">
-            Tải ảnh lên
+            {t("uploadImages")}
           </label>
           <div
             onClick={() => fileInputRef.current?.click()}
@@ -447,9 +449,9 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
               cloud_upload
             </span>
             <p className="text-sm text-white/50">
-              Kéo thả ảnh vào đây hoặc bấm để chọn file
+              {t("dropImages")}
             </p>
-            <p className="text-xs text-white/30">JPG, PNG, TIFF · tối đa 20MB</p>
+            <p className="text-xs text-white/30">{t("imageHint")}</p>
           </div>
           <input
             ref={fileInputRef}
@@ -473,19 +475,19 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={toImageSrc(image.imageUrl)}
-                    alt={`Ảnh sản phẩm ${index + 1}`}
+                    alt={t("productImageAlt", { number: index + 1 })}
                     className="h-full w-full object-cover"
                   />
                   {index === 0 && (
                     <span className="absolute left-1 top-1 rounded bg-[var(--luxora-gold)] px-1.5 py-0.5 text-[9px] font-semibold text-black">
-                      Ảnh chính
+                      {t("primaryImage")}
                     </span>
                   )}
                   <button
                     type="button"
                     onClick={() => removeExistingAt(index)}
                     className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white/80 opacity-0 transition-opacity group-hover:opacity-100"
-                    aria-label={`Xoá ảnh sản phẩm ${index + 1}`}
+                    aria-label={t("removeProductImage", { number: index + 1 })}
                   >
                     <span className="material-symbols-outlined text-sm">close</span>
                   </button>
@@ -502,14 +504,14 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
                   <img src={p.preview} alt="preview" className="h-full w-full object-cover" />
                   {existingImages.length === 0 && i === 0 && (
                     <span className="absolute left-1 top-1 rounded bg-[var(--luxora-gold)] px-1.5 py-0.5 text-[9px] font-semibold text-black">
-                      Ảnh chính
+                      {t("primaryImage")}
                     </span>
                   )}
                   <button
                     type="button"
                     onClick={() => removeAt(i)}
                     className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white/80 opacity-0 transition-opacity group-hover:opacity-100"
-                    aria-label="Xoá ảnh"
+                    aria-label={t("removeImage")}
                   >
                     <span className="material-symbols-outlined text-sm">close</span>
                   </button>
@@ -536,19 +538,18 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
           className="gradient-cta mt-2 rounded-full py-3.5 text-sm font-semibold text-black disabled:opacity-60"
         >
           {submitting
-            ? "Đang gửi..."
+            ? t("submitting")
             : isEditing
-              ? "Lưu và gửi duyệt lại"
-              : "Gửi để duyệt"}
+              ? t("submitEdit")
+              : t("submitCreate")}
         </button>
       </form>
 
       {/* AI Valuation Assistant */}
       <aside className="glass-panel sticky top-24 h-fit rounded-2xl p-6 lg:col-span-1">
-        <p className="text-sm font-semibold">Trợ lý định giá AI</p>
+        <p className="text-sm font-semibold">{t("aiTitle")}</p>
         <p className="mt-1 text-xs text-white/50">
-          Ước tính bằng AI dựa trên tên, mô tả và hình ảnh bạn cung cấp. Chỉ mang
-          tính tham khảo, không phải giá thẩm định chính thức.
+          {t("aiDesc")}
         </p>
 
         <button
@@ -557,7 +558,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
           disabled={aiLoading}
           className="gradient-cta mt-5 w-full rounded-full py-3 text-sm font-semibold text-black disabled:opacity-60"
         >
-          {aiLoading ? "Đang phân tích..." : "Nhận định giá AI"}
+          {aiLoading ? t("aiLoading") : t("aiButton")}
         </button>
 
         {aiResult && (
@@ -567,7 +568,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
         )}
 
         <p className="mt-4 text-[11px] text-white/30">
-          Lượt xử lý còn lại: 12
+          {t("aiRemaining", { count: 12 })}
         </p>
       </aside>
     </div>

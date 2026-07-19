@@ -25,10 +25,10 @@ export type TrustStat = {
 };
 
 export const DEFAULT_PUBLIC_STATS: TrustStat[] = [
-  { id: "products", value: "500+", label: "Sản phẩm" },
-  { id: "members", value: "2K+", label: "Thành viên" },
-  { id: "active-auctions", value: "24/7", label: "Phiên đang chạy" },
-  { id: "completed-auctions", value: "1K+", label: "Phiên hoàn tất" },
+  { id: "products", value: "500+", label: "Products" },
+  { id: "members", value: "2K+", label: "Members" },
+  { id: "active-auctions", value: "24/7", label: "Live sessions" },
+  { id: "completed-auctions", value: "1K+", label: "Completed" },
 ];
 
 export type AuctionProcessStep = {
@@ -45,10 +45,10 @@ export type BrandItem = {
 };
 
 export const NAV_LINKS = [
-  { label: "TRANG CHỦ", href: "/" },
-  { label: "SẢN PHẨM", href: "/storefront" },
-  { label: "THƯƠNG HIỆU", href: "/brands" },
-  { label: "VỀ CHÚNG TÔI", href: "/about" },
+  { key: "home", label: "TRANG CHỦ", href: "/" },
+  { key: "products", label: "SẢN PHẨM", href: "/storefront" },
+  { key: "brands", label: "THƯƠNG HIỆU", href: "/brands" },
+  { key: "about", label: "VỀ CHÚNG TÔI", href: "/about" },
 ];
 
 
