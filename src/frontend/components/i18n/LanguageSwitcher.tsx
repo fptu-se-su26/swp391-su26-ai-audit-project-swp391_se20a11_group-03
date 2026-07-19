@@ -43,11 +43,11 @@ export default function LanguageSwitcher({
       onClick={handleSwitch}
       disabled={isPending}
       aria-label={t("switchTo")}
-      className={`flex items-center rounded-full border border-white/20 text-[11px] font-medium tracking-wide text-white/70 transition-colors hover:border-[#d7aa63]/50 hover:text-[#f0c982] disabled:opacity-50 ${
-        compactOnMobile ? "h-10 w-10 justify-center p-0 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1.5" : "gap-1.5 px-3 py-1.5"
+      className={`language-switcher${
+        compactOnMobile ? " language-switcher--compact" : ""
       }`}
     >
-      <FiGlobe aria-hidden="true" className="h-3.5 w-3.5" />
+      <FiGlobe aria-hidden="true" />
       <span className={compactOnMobile ? "hidden sm:inline" : undefined}>
         {t("current")}
       </span>
