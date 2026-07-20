@@ -1,4 +1,0 @@
-{
-  "summary": "Implemented KYC duplicate CCCD flow: users can submit without duplicate error; removed submit block and KycProfiles CccdNumber UNIQUE (entity + seeder migration); staff approve blocked if CCCD already on another account; staff kyc-review duplicate warnings unchanged. Admin /users: server search ?q= by name/email/phone/CCCD including latest KycProfiles CCCD, search UI with CCCD column. KYC OCR: manual Quét CCCD button, friendly Gemini 429 message, OCR optional for submit.",
-  "current_status": "Plan items A/B/C and OCR UX delivered. Restart backend to apply DB constraint drop on startup. Test: submit KYC with duplicate CCCD, verify staff warning, admin user search, manual OCR scan."
-}

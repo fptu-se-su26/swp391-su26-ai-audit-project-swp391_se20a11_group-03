@@ -1,4 +1,0 @@
-{
-  "summary": "Reverted all the earlier port changes that caused the UI to break. The intended (and friend's working) setup is: backend on 8096, frontend Next.js on 3000 (the user-facing web). Restored server.port=8096 in application.properties, restored frontend backend references to 8096 (apiClient.ts, post-item/page.tsx, next.config.mjs image port + uploads rewrite), restored package.json dev/start to default port 3000, and reverted README port references. Confirmed CorsConfig already allows both 3000 and 3001 origins. The Products status fix (ACTIVE -> APPROVED for CK_Product_Status) remains in place.",
-  "current_status": "Configuration matches the working friend's setup: backend http://localhost:8096, frontend http://localhost:3000. Open localhost:3000 for the Next.js UI. Run backend with mvnw (set JAVA_HOME) and frontend with npm run dev."
-}

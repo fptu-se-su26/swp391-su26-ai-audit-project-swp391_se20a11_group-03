@@ -1,4 +1,0 @@
-{
-  "summary": "User báo localhost:3000 không chạy sau reboot. Đã khởi động frontend qua start-frontend.ps1; Next.js Ready tại http://localhost:3000 (HTTP 200).",
-  "current_status": "Frontend đang chạy. Nếu cần đăng nhập/API, chạy thêm npm run backend hoặc npm run dev:all."
-}

@@ -1,4 +1,0 @@
-{
-  "summary": "Started the Next.js frontend via scripts/start-frontend.ps1 after machine reboot. Port 3000 was freed and dev server is running at http://localhost:3000 (Ready).",
-  "current_status": "Frontend is up on localhost:3000. Backend (8096) was not started in this turn; user can run scripts/start-backend.ps1 or scripts/start-dev.ps1 if API is needed."
-}

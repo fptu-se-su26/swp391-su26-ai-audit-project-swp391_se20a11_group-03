@@ -1,4 +1,0 @@
-﻿{
-    "summary":  "Rewrote Admin Quick Access (PortalSwitcher) to mirror AdminSidebar exactly via ADMIN_NAV_GROUPS from adminNav.ts. Removed Collector/Seller/Gateway links that admin cannot access (redirect to dashboard). Tabs now match sidebar groups: All, Vận hành, Đấu giá, Tài chính, Hệ thống. Added portalSwitcher i18n keys.",
-    "current_status":  "Portal switcher aligned with admin sidebar; no dead-end collector/seller links. Chat dark theme and floating button fixes from prior turn remain in place."
-}

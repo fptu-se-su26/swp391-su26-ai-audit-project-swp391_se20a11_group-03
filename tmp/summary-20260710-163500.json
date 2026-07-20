@@ -1,4 +1,0 @@
-{
-  "summary": "Implemented global win announcements: backend broadcasts AuctionWinAnnouncementDto via WebSocket /topic/auctions when AuctionSettlementServiceImpl settles a winner; frontend adds useAuctionAnnouncements hook and GlobalWinAnnouncement toast (top-right, auto-dismiss 8s, personal vs broadcast copy, click to /auctions/{id}); mounted in root layout with vi/en i18n keys. Backend restarted.",
-  "current_status": "Global win toast feature complete. Toast appears for all logged-in users ~30s after auction settlement when a winner exists. Manual test: run auction to completion with 2 logged-in tabs."
-}

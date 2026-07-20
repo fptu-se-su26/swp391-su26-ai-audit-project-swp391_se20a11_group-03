@@ -1,4 +1,0 @@
-{
-  "summary": "Backend failed to start because port 8096 was in use by old Java process (PID 31868). Freed port via free-port.ps1 and restarted backend; AuctionApplication started successfully.",
-  "current_status": "Backend running on 8096 with Gemini key in application-local.properties. User can test KYC OCR."
-}

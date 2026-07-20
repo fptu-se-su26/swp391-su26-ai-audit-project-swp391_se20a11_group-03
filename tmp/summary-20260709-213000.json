@@ -1,4 +1,0 @@
-{
-  "summary": "Diagnosed 'Cannot find module ./760.js' as stale/corrupted Next.js .next webpack chunk cache during long-running dev server (not an i18n code defect). Deleted src/frontend/.next, restarted dev server via start-frontend.ps1, verified /dashboard, /luxe, and /admin/dashboard all return HTTP 200.",
-  "current_status": "Frontend dev server running cleanly on localhost:3000 after cache reset. i18n work from prior session remains in place; npm run build had already passed. User should hard-refresh browser if old error overlay persists."
-}

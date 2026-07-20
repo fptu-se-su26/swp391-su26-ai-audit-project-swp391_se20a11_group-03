@@ -1,4 +1,0 @@
-{
-  "summary": "Đã cấu hình Google Client ID cho user: tạo src/frontend/.env.local với NEXT_PUBLIC_GOOGLE_CLIENT_ID, cập nhật application.properties default và start-backend.ps1. User cần restart frontend + backend và đảm bảo Google Cloud có origin http://localhost:3000.",
-  "current_status": "Đăng nhập Google đã được cấu hình local; cần restart dev server và test tại /auth."
-}

@@ -1,4 +1,0 @@
-{
-  "summary": "Brief status update for user: backend restart with AuctionStatus enum fix completed successfully; demo won auction and /won-items contract flow verified earlier.",
-  "current_status": "Backend on 8096 should be running after latest port-free restart. Test with user123@gmail.com / 123456 on /won-items (Demo Contract Test Lot)."
-}

@@ -1,4 +1,0 @@
-{
-  "summary": "Started the Next.js frontend dev server via scripts/start-frontend.ps1. Port 3000 was freed and npm run dev launched successfully; server is Ready at http://localhost:3000 with / and /luxe compiling and returning 200.",
-  "current_status": "Frontend dev server is running on localhost:3000 in the background. User can open http://localhost:3000 (redirects to /luxe). Backend on :8096 may need to be started separately if API calls are required."
-}
