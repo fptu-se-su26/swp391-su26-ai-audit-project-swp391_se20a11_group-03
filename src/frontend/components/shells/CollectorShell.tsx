@@ -2,6 +2,7 @@ import Link from "next/link";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
 import CollectorSidebar from "@/components/shells/CollectorSidebar";
 import LiveChat from "@/components/feature/LiveChat";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 export default function CollectorShell({
   children,
@@ -17,9 +18,16 @@ export default function CollectorShell({
           <Link href="/" className="flex items-center" aria-label="BidZone">
             <BidZoneLogo className="h-9 w-auto" />
           </Link>
-          <span className="material-symbols-outlined flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-lg text-white/70">
-            person
-          </span>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link
+              href="/profile"
+              aria-label="Profile"
+              className="material-symbols-outlined flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-lg text-white/70"
+            >
+              person
+            </Link>
+          </div>
         </header>
 
         <main className="flex-1">{children}</main>

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import { authApi, fetchAccountSummary, toFrontendRole, userApi, type AccountSummary } from "@/lib/api";
 import { useApiData } from "@/lib/use-api-data";
 
@@ -34,6 +35,7 @@ const NAV_GROUPS: NavGroup[] = [
       { labelKey: "wallet", href: "/wallet", icon: "account_balance_wallet" },
       { labelKey: "kyc", href: "/kyc", icon: "verified_user" },
       { labelKey: "profile", href: "/profile", icon: "person" },
+      { labelKey: "contracts", href: "/contracts", icon: "contract" },
       { labelKey: "security", href: "/security", icon: "lock" },
       { labelKey: "premium", href: "/premium", icon: "workspace_premium", badge: "VIP" },
     ],
@@ -225,7 +227,12 @@ export default function CollectorSidebar() {
       </nav>
 
       <div className="flex flex-col gap-1 border-t border-white/10 px-3 py-4">
-        {!collapsed && <div className="px-3 pb-2"><LanguageSwitcher /></div>}
+        {!collapsed && (
+          <div className="flex flex-wrap items-center gap-2 px-3 pb-2">
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
+        )}
         <Link
           href="/wallet"
           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/60 hover:bg-white/5 hover:text-white"

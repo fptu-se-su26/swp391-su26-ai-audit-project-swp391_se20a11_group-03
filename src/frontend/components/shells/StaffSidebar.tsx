@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import { authApi } from "@/lib/api";
 
 type StaffNavItem = {
@@ -66,7 +67,10 @@ export default function StaffSidebar() {
       </nav>
 
       <div className="border-t border-white/10 px-4 py-4">
-        <div className="mb-3 px-3"><LanguageSwitcher /></div>
+        <div className="mb-3 flex flex-wrap items-center gap-2 px-3">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
         <Link
           href="/auth"
           onClick={() => authApi.logout()}

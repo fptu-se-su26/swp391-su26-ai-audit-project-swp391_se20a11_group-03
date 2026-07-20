@@ -33,7 +33,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -165,6 +167,10 @@ public class AdminDashboardController {
             @RequestParam(value = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(value = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(value = "groupBy", required = false, defaultValue = "day") String groupBy) {
+        validateReportRange(from, to);
+        if (!"day".equalsIgnoreCase(groupBy) && !"month".equalsIgnoreCase(groupBy)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "groupBy must be day or month");
+        }
         LocalDateTime fromDt = from != null ? from.atStartOfDay() : null;
         LocalDateTime toDt = to != null ? to.plusDays(1).atStartOfDay() : null;
         boolean byMonth = "month".equalsIgnoreCase(groupBy);
@@ -218,7 +224,12 @@ public class AdminDashboardController {
     /** Platform purchase/sales history: settled (paid) auctions, newest first. */
     @GetMapping("/sales-history")
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<List<SalesHistoryDTO>>> getSalesHistory() {
+    public ResponseEntity<ApiResponse<List<SalesHistoryDTO>>> getSalesHistory(
+            @RequestParam(value = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(value = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        validateReportRange(from, to);
+        LocalDateTime fromDt = from != null ? from.atStartOfDay() : null;
+        LocalDateTime toDt = to != null ? to.plusDays(1).atStartOfDay() : null;
         List<SalesHistoryDTO> rows = new ArrayList<>();
         for (Auction auction : auctionRepository.findAll()) {
             boolean paid = "PAID".equalsIgnoreCase(auction.getStatus())
@@ -237,6 +248,8 @@ public class AdminDashboardController {
                     ? displayName(auction.getCurrentWinnerUser())
                     : "—";
             LocalDateTime paidAt = auction.getSettledAt() != null ? auction.getSettledAt() : auction.getEndTime();
+            if (fromDt != null && (paidAt == null || paidAt.isBefore(fromDt))) continue;
+            if (toDt != null && (paidAt == null || !paidAt.isBefore(toDt))) continue;
 
             rows.add(SalesHistoryDTO.builder()
                     .auctionId(auction.getAuctionId())
@@ -255,6 +268,16 @@ public class AdminDashboardController {
         rows.sort(Comparator.comparing(SalesHistoryDTO::getPaidAt,
                 Comparator.nullsLast(Comparator.reverseOrder())));
         return ResponseEntity.ok(ApiResponse.success(rows));
+    }
+
+    private void validateReportRange(LocalDate from, LocalDate to) {
+        // Reporting edge cases: reject inverted ranges rather than returning a
+        // misleading empty chart; an open-ended range remains supported.
+        if (from != null && to != null && from.isAfter(to)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Ngày bắt đầu không được sau ngày kết thúc");
+        }
     }
 
     /**

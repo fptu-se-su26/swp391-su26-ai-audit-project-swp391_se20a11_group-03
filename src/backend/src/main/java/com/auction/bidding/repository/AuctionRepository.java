@@ -23,6 +23,8 @@ public interface AuctionRepository extends JpaRepository<Auction, Long> {
     @Query("SELECT a FROM Auction a JOIN FETCH a.product WHERE a.product.productId IN :productIds")
     List<Auction> findByProduct_ProductIdIn(@Param("productIds") List<Long> productIds);
 
+    List<Auction> findByCurrentWinnerUser_Id(int userId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             SELECT a FROM Auction a
