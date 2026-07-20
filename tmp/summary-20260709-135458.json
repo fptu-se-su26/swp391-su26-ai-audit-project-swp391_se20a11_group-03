@@ -1,4 +1,0 @@
-﻿{
-  "summary": "Fixed staff/admin 403 errors by restarting backend with JWT email-subject auth, fixing duplicate admin usernames in SQL Server, improving ChatAuthService email-first login, and adding frontend session-expired redirect on staff/admin 403.",
-  "current_status": "Backend on 8096 verified: admin@gmail.com, staff@example.com, and staff123@gmail.com all return 200 on KYC/products/withdrawals APIs. User must logout and login again to get new JWT token."
-}

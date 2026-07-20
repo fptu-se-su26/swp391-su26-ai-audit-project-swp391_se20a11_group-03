@@ -1,4 +1,0 @@
-{
-  "summary": "Fixed a post-login redirect bug: buyers/sellers were sent to '/', which now redirects to the guest landing page (/luxe), so they landed back on the customer view instead of a user area. Updated getRedirectPath in src/frontend/src/app/auth/page.tsx so buyer/seller/user now go to /dashboard (admin still /admin/dashboard, staff still /staff/approvals). Applies to both email and Google login flows. Lint passes.",
-  "current_status": "Public pages share the luxe dark theme; login now routes buyers/sellers to /dashboard, admins to /admin/dashboard, staff to /staff/approvals. Buyer/seller shell (DashboardLayout) and staff/admin areas still use the original light theme. Frontend (localhost:3000) and backend (localhost:8096) running."
-}

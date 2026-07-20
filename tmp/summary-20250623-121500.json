@@ -1,4 +1,0 @@
-{
-  "summary": "Removed fake homepage lots (sampleLots fallback); homepage now shows only real API products with empty states. Added LiveBidActivity feed in auction room for real-time bid messages. Non-depositors can watch live sessions (price updates, bid feed, history) with spectator mode; deposit only required to place bids. Auction detail page shows 'Watch live' for all users during ACTIVE sessions.",
-  "current_status": "Homepage no longer displays placeholder Rolex/Ferrari cards. Live auction viewing works for spectators without deposit; bidding still requires deposit+KYC. User can post real products when ready."
-}

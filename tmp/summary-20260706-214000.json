@@ -1,4 +1,0 @@
-{
-  "summary": "User asked about FPT.AI HTTP 429 when scanning CCCD. Explained: not app bug but FPT.AI API rate limit exceeded; each scan calls API twice (front+back); duplicate message from combineMessages; likely shared default API key in application.properties; remedies: wait, own API key, manual entry.",
-  "current_status": "Frontend on 3000 from prior turn. CCCD OCR blocked by FPT.AI quota/rate limit until reset or new key."
-}

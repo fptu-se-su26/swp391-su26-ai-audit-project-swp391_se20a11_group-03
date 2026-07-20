@@ -1,4 +1,0 @@
-{
-  "summary": "Fixed a bug in DataSeeder.ensureColumn that crashed startup with 'Column name Condition ... specified more than once'. The existence check queried INFORMATION_SCHEMA.COLUMNS using the bracketed name '[Condition]', which never matches the real column name 'Condition', so it always attempted ALTER TABLE ADD and failed once the column existed. Added a bareColumnName (strip [ and ]) used only for the INFORMATION_SCHEMA lookup, while keeping the bracketed name in the ALTER statement. Verified a clean Maven compile with JDK 25.",
-  "current_status": "Backend on 8096, frontend on 3000 (unchanged). DataSeeder no longer fails on ensureProductSchemaColumns; the earlier ACTIVE->APPROVED status fix remains. App should start; run backend with mvnw (set JAVA_HOME) and frontend with npm run dev, then open http://localhost:3000."
-}

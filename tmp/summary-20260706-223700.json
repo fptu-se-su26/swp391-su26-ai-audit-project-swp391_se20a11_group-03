@@ -1,4 +1,0 @@
-{
-  "summary": "Moved CCCD duplicate warning to staff-only: removed from user KYC page and OCR response; KycService enrichForStaff vs enrichForUser. Enhanced user-facing rejection/info-required banners with labeled staff reason.",
-  "current_status": "Duplicate CCCD alert only on staff kyc-review. Users see rejection reason when admin rejects or requests info."
-}

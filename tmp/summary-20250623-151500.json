@@ -1,4 +1,0 @@
-{
-  "summary": "Fixed purchase contract modal error 'No static resource .../preview'. Root cause: frontend called new /preview route not on running backend. Consolidated: GET /purchase-contract returns full preview DTO; frontend modal now uses that existing endpoint only. Minimal diff, no other features touched.",
-  "current_status": "Contract popup should load after backend restart. User on /auctions/29 correctly uses auctionId 16 from product data."
-}

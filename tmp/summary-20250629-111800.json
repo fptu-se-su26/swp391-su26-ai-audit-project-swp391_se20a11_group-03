@@ -1,4 +1,0 @@
-{
-  "summary": "Removed demo won auction (Demo Contract Test Lot): deleted seeder, added startup cleanup in DataSeeder. Unified messenger UI via ChatMessageList component — sender on right (gold bubble), others on left; applied to /messages (admin/user) and /staff/support; fixed isMe via Number() comparison and useState for currentUser.",
-  "current_status": "Demo auction removed on next backend restart. Chat UI is Messenger-style for admin, staff, and users. Refresh frontend to see bubble layout."
-}

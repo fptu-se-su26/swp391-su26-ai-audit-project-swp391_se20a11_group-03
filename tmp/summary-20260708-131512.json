@@ -1,4 +1,0 @@
-{
-  "summary": "Restyled /profile and /post-item for readability in the luxe dark theme. Profile: replaced light premium-card/slate form with dark cards (#0e0d0b), luxe-input fields, gold accents, GoldButton/OutlineButton for actions, and updated hero + seller-upgrade sections. Post-item: replaced low-contrast gold-on-gold KYC banner with dark panel, cream text, and luxe buttons.",
-  "current_status": "Luxe UI port largely complete across public, auth, dashboard shells, and key user/seller pages. Profile and post-item KYC states are now readable and consistent with BidZone dark/gold design. Backend integrations preserved."
-}

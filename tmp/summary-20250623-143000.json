@@ -1,4 +1,0 @@
-{
-  "summary": "Implemented auction room live chat: all logged-in users (seller, bidders, spectators) can chat during session; chat stays open until 5 minutes after auction endTime then closes. Backend: Auction_Chat_Messages table, REST + WebSocket, AuctionRoomChat frontend component wired into auction-room page.",
-  "current_status": "Auction live chat feature complete. User must restart backend to create DB table via DataSeeder. Frontend hot-reloads on save."
-}

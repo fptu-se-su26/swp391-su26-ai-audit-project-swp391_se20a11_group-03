@@ -1,4 +1,0 @@
-{
-  "summary": "Backend restart with admin chat messaging fix completed successfully. Admin can now send messages in conversations; support threads auto-assign to admin on open.",
-  "current_status": "Backend on 8096; admin messaging fix is live after restart. Use npm run backend:kill if port conflict when starting from IDE."
-}

@@ -1,4 +1,0 @@
-{
-  "summary": "Added image attach UX to AI valuation panel on /post-item: shared image pool with listing form via new AiValuationChat props (previews, add/remove, max 6), thumbnail strip with primary badge, add_photo_alternate button beside chat input, send enabled when text or photos present, validation allows description/question/photos, default message for photo-only requests, and updated vi/en i18n keys.",
-  "current_status": "AI valuation chat now has visible photo attach/remove in-panel; images sync with form dropzone. All plan todos completed."
-}

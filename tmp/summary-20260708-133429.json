@@ -1,4 +1,0 @@
-{
-  "summary": "Fixed KYC submit flow and contract persistence logic. Seller contract sign now only acknowledges (role upgrade) without DB write; contract PDF is saved on KYC submit via signSellerAgreement flag. Purchase contract acknowledges in memory and persists on successful payment. KYC page: fixed seller detection, contract acknowledge state, photo validation UX, and submit integration. Admin /contracts: added CCCD search API param and search UI with identityNumber column.",
-  "current_status": "KYC submit + deferred contract signing implemented end-to-end. Admin can search contracts by CCCD. Backend compiles successfully. User should restart backend and test /kyc submit flow and /admin/contracts search."
-}

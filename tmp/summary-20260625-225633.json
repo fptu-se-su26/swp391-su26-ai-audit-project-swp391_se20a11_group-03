@@ -1,4 +1,0 @@
-﻿{
-  "summary": "User requested a recap of completed work. Provided Vietnamese summary covering: realtime price/timer sync via AuctionSession polling, AuctionResultBanner for winner/final price on auction end, enhanced user dashboard with active/ended sessions and payment stats, and BiddingService API improvements for getUserBids/getWonItems.",
-  "current_status": "Auction realtime sync, winner screen, and detailed user dashboard are implemented. Backend compiles. User can restart backend and test two-browser bid flow and dashboard participation history."
-}

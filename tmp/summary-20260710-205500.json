@@ -1,4 +1,0 @@
-{
-  "summary": "Reported prior backend restart (task 793028): started successfully on port 8096 with WebSocket broker, ran ~4h then process terminated. Backend was down when checking; attempted restart hit compile error from missing package in AuctionDepositRepository.java — fixed and restarted successfully with new Gemini split-key config loaded.",
-  "current_status": "Backend running on port 8096 with OCR/valuation Gemini keys split. Frontend still on localhost:3000. AuctionDepositRepository package declaration restored."
-}

@@ -1,4 +1,0 @@
-{
-  "summary": "Fixed notification bell: homepage Header had a non-functional static button—replaced with NotificationBell. Dashboard sidebar dropdown was clipped/off-screen due to right-0 alignment and overflow-hidden; now uses portal + fixed positioning with menuAlign start/end.",
-  "current_status": "Notification bell works on homepage and dashboard. User should refresh localhost:3000 to verify."
-}
