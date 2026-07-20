@@ -836,3 +836,17 @@ PRINT '        Wallets, Transactions, WithdrawalRequests, Auctions, Auction_Depo
 PRINT '        SystemSettings, SystemSettingAuditLogs, FraudAlerts, Auction_Chat_Messages,';
 PRINT '        Conversations, Messages, Notifications, FeaturedProducts';
 GO
+
+IF COL_LENGTH('Users', 'IsPremium') IS NULL
+BEGIN
+ALTER TABLE Users
+    ADD IsPremium BIT NOT NULL CONSTRAINT DF_Users_IsPremium DEFAULT 0;
+END;
+GO
+
+IF COL_LENGTH('Users', 'PremiumExpiresAt') IS NULL
+BEGIN
+ALTER TABLE Users
+    ADD PremiumExpiresAt DATETIME2 NULL;
+END;
+GO

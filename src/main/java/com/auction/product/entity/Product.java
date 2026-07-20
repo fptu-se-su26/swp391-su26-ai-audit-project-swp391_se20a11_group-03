@@ -61,4 +61,7 @@ public class Product {
 
     @Column(name = "RejectionReason", length = 500)
     private String rejectionReason;
+
+    @Column(name = "IsLockedInEvent", nullable = false)
+    private boolean isLockedInEvent = false;
 }

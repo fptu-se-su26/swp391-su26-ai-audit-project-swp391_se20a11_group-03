@@ -32,6 +32,7 @@ const NAV_GROUPS: AdminNavGroup[] = [
   {
     titleKey: "auctions",
     items: [
+      { href: "/admin/events", icon: "event", labelKey: "events" },
       { href: "/admin/auction-history", icon: "live_tv", labelKey: "allSessions" },
       { href: "/admin/sales-history", icon: "receipt_long", labelKey: "salesHistory" },
     ],

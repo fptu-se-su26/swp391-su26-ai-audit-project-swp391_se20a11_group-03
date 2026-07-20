@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/staff/withdrawals/**").hasAnyRole("Staff", "Admin")
                 .requestMatchers(HttpMethod.GET, "/api/watchlist/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/auctions/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**", "/api/featured-products").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**", "/api/featured-products", "/api/events/**").permitAll()
                 .requestMatchers("/api/admin/users/**").hasRole("Admin")
                 .requestMatchers("/api/admin/dashboard/**").hasAnyRole("Admin", "Staff")
                 .requestMatchers(HttpMethod.GET, "/api/admin/products/**").hasAnyRole("Staff", "Admin")

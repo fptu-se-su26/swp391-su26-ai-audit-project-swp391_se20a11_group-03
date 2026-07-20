@@ -368,7 +368,8 @@
     "home": "TRANG CHỦ",
     "products": "SẢN PHẨM",
     "brands": "THƯƠNG HIỆU",
-    "about": "VỀ CHÚNG TÔI"
+    "about": "VỀ CHÚNG TÔI",
+    "events": "SỰ KIỆN"
   },
   "home": {
     "liveSection": "PHIÊN ĐẤU GIÁ LIVE",
@@ -702,6 +703,7 @@
         "productApprovals": "Duyệt sản phẩm",
         "kycReview": "Duyệt KYC",
         "withdrawals": "Duyệt rút tiền",
+        "events": "Quản lý sự kiện",
         "allSessions": "Tất cả phiên",
         "paid": "Đã thanh toán",
         "unpaid": "Chưa thanh toán",
