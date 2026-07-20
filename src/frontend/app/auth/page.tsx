@@ -22,7 +22,8 @@ function safeNextPath(value: string | undefined) {
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
 
-const GSI_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
+const GOOGLE_BUTTON_LOCALE = "vi";
+const GSI_SCRIPT_SRC = `https://accounts.google.com/gsi/client?hl=${GOOGLE_BUTTON_LOCALE}`;
 
 type GoogleCredentialResponse = { credential?: string };
 
@@ -131,7 +132,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
         shape: "pill",
         text: "continue_with",
         logo_alignment: "left",
-        locale: "vi",
+        locale: GOOGLE_BUTTON_LOCALE,
         width: Math.min(400, googleButtonRef.current.clientWidth || 400),
       });
     }

@@ -3,8 +3,17 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
+const localApiBaseUrl = "http://localhost:8096/api";
+const productionApiBaseUrl = "https://api.bidzone.io.vn/api";
+const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+const configuredForLocalhost =
+  configuredApiBaseUrl?.startsWith("http://localhost") ||
+  configuredApiBaseUrl?.startsWith("http://127.0.0.1");
 const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8096/api";
+  process.env.NODE_ENV === "production" &&
+  (!configuredApiBaseUrl || configuredForLocalhost)
+    ? productionApiBaseUrl
+    : configuredApiBaseUrl || localApiBaseUrl;
 const backendOrigin = (
   process.env.BACKEND_ORIGIN ?? apiBaseUrl.replace(/\/api\/?$/, "")
 ).replace(/\/$/, "");

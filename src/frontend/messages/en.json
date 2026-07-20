@@ -623,7 +623,7 @@
     "heroTitle": "WHERE VALUE\nIS CELEBRATED",
     "heroDesc": "Discover premium items, tech, and rare finds from the world's top brands. Live auctions daily at the best prices.",
     "googleCredError": "No credentials received from Google.",
-    "serverError": "Cannot connect to server. Ensure backend is running on port 8096.",
+    "serverError": "Cannot connect to the server. Please try again later.",
     "wrongCredentials": "Invalid email or password.",
     "passwordMismatch": "Passwords do not match.",
     "passwordWeak": "Password must be at least 8 characters with uppercase, lowercase and number.",
