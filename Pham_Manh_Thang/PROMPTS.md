@@ -25,6 +25,12 @@
 | M8.1 | Module 8: Admin Dashboard & Báo cáo | Thống kê doanh thu & Giao dịch |
 | M8.2 | Module 8: Admin Dashboard & Báo cáo | Xuất báo cáo dữ liệu (Excel/CSV) |
 
+### Phạm vi bổ sung
+
+| Mã | Module | Chức năng |
+|:---:|---|---|
+| EVENT | Module Event Management | Tích hợp backend Event Management và CRUD Event trên Admin Dashboard |
+
 ---
 
 ## 2. Mục đích của file Prompt Log
@@ -59,6 +65,11 @@ Ghi lại các prompt quan trọng em đã dùng với ChatGPT và Cursor khi ph
 | 10 | M8.1, M8.2 | 08/07/2026 | Cursor | Date filter validation | End date không sớm hơn start date | Frontend + backend validation | Có | `revenue-analytics.html` |
 | 11 | M8.1, M8.2 | 10/07/2026 | Cursor | UI sync | Đồng bộ UI admin pages | Sidebar, font, English | Có | `data-reports.html` |
 | 12 | — | 12/07/2026 | Cursor | Report | Điền AI Audit docs | Audit log từ source | Có | `AI_AUDIT_LOG.md` |
+| 13 | EVENT | 20/07/2026 | Cursor | Integrate Event module | Di chuyển code event từ `src/backend` sang `src/main/java` | Event package hoạt động trong main project | Có | `src/main/java/com/auction/event/` |
+| 14 | EVENT | 20/07/2026 | Cursor | Fix compile errors | Sửa enum, DTO, notification, import trong module event | `mvn compile` thành công | Có | `src/main/java/com/auction/event/service/impl/` |
+| 15 | EVENT | 20/07/2026 | Cursor | Public Event pages | Tạo `/events` và `/events/[slug]` | Event list + detail page | Có | `src/frontend/app/events/` |
+| 16 | EVENT | 20/07/2026 | Cursor | Admin Event CRUD UI | Thêm menu Event và tạo `/admin/events` | Admin event management page | Có | `src/frontend/app/admin/events/` |
+| 17 | EVENT | 20/07/2026 | Cursor | Seed Event data | Thêm `ensureEventTables()` và `seedSampleEvents()` | Schema + sample data event | Có | `DataSeeder.java` |
 
 ---
 
@@ -378,6 +389,100 @@ AI sinh SecurityConfig, JwtFilter, UserDetailsService đầy đủ.
 
 ---
 
+### Prompt số 11 – Tích hợp Event Module
+
+| Nội dung | Thông tin |
+|---|---|
+| Chức năng | EVENT Backend Integration |
+| Ngày sử dụng | 20/07/2026 |
+| Công cụ AI | Cursor |
+| Mục đích | Di chuyển module Event về đúng source set của main project |
+| Phần việc liên quan | Backend / Integration |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Em cần di chuyển toàn bộ code event từ thư mục src/backend/src/main/java/com/auction/event sang src/main/java/com/auction/event, giữ nguyên cấu trúc package. Sau đó kiểm tra xem có file nào lỗi không, đặc biệt là reference đến Product entity.
+```
+
+#### 5.2. Bối cảnh
+
+Module Event đã có source ở `src/backend` nhưng chưa nằm đúng chỗ để main project compile cùng các module khác.
+
+#### 5.3. Kết quả AI trả về
+
+Cursor hỗ trợ xác định toàn bộ package cần copy và phát hiện lỗi thiếu field `isLockedInEvent` trong `Product.java`.
+
+#### 5.4. Kết quả đã áp dụng
+
+Toàn bộ package `com.auction.event` được đưa sang `src/main/java`, sau đó fix `Product` để build được.
+
+#### 5.5. Phần chỉnh sửa
+
+Em tự rà lại các file tích hợp, kiểm tra import và chạy `mvn compile`.
+
+---
+
+### Prompt số 12 – Sửa lỗi compile module Event
+
+| Nội dung | Thông tin |
+|---|---|
+| Chức năng | EVENT Debug |
+| Ngày sử dụng | 20/07/2026 |
+| Công cụ AI | Cursor |
+| Mục đích | Sửa các lỗi compile do enum, DTO, notification API không khớp codebase hiện tại |
+| Phần việc liên quan | Backend / Debug |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Hãy đọc các file đang báo lỗi compile trong module event và sửa theo codebase hiện tại, không đổi kiến trúc project. Ưu tiên sửa enum switch case, kiểu trả về ProductService, notification enum, import còn thiếu rồi chạy lại mvn compile.
+```
+
+#### 5.3. Kết quả
+
+AI giúp sửa các file `EventLifecycleScheduler`, `EventSellerServiceImpl`, `EventNotificationServiceImpl`, `StandardEventBidServiceImpl`, `PennyAuctionServiceImpl`, `EventProductAssignmentServiceImpl`.
+
+#### 5.4. Kết quả đã áp dụng
+
+Đã áp dụng toàn bộ các chỉnh sửa cần thiết để `mvn compile` chạy thành công.
+
+#### 5.5. Phần chỉnh sửa
+
+Em giữ nguyên kiến trúc module, chỉ sửa các điểm không tương thích với enum, DTO và service của project hiện tại.
+
+---
+
+### Prompt số 13 – Tạo giao diện Event cho public và admin
+
+| Nội dung | Thông tin |
+|---|---|
+| Chức năng | EVENT Frontend |
+| Ngày sử dụng | 20/07/2026 |
+| Công cụ AI | Cursor |
+| Mục đích | Tạo trang Event list/detail và trang quản lý Event cho admin |
+| Phần việc liên quan | Frontend |
+
+#### 5.1. Prompt nguyên văn
+
+```text
+Hãy tạo trang events list (src/frontend/app/events/page.tsx), event detail (src/frontend/app/events/[slug]/page.tsx), thêm menu Events vào AdminSidebar và tạo trang src/frontend/app/admin/events/page.tsx theo phong cách LuxeAuction hiện tại.
+```
+
+#### 5.3. Kết quả
+
+AI sinh khung trang public `events`, trang chi tiết, trang admin events và cập nhật sidebar/translation.
+
+#### 5.4. Kết quả đã áp dụng
+
+Áp dụng cho `src/frontend/app/events`, `src/frontend/app/admin/events`, `AdminSidebar.tsx`, `vi.json`, `en.json`.
+
+#### 5.5. Phần chỉnh sửa
+
+Em tự kiểm tra import path, cấu trúc thư mục và đảm bảo giữ đúng design system hiện có.
+
+---
+
 ## 6. Prompt quan trọng nhất
 
 ### 6.1. Prompt được chọn
@@ -392,7 +497,7 @@ Không viết query trong controller.
 
 ### 6.2. Vì sao prompt này quan trọng?
 
-M8.1 là module phức tạp nhất em làm: kết hợp JPQL, native query SQL Server, pagination, và Thymeleaf UI với Chart.js. M8.2 tách riêng prompt export.
+M8.1 là module phức tạp nhất trong 5 chức năng cũ em làm: kết hợp JPQL, native query SQL Server, pagination, và Thymeleaf UI với Chart.js. Ngoài ra ở giai đoạn sau, prompt tích hợp Event module cũng rất quan trọng vì ảnh hưởng trực tiếp đến khả năng build của toàn project.
 
 ### 6.3. Kết quả
 
@@ -464,12 +569,12 @@ Luôn attach context project (folder `Pham_Manh_Thang`), nêu file liên quan, v
 
 | Loại prompt | Số lượng | Ví dụ tiêu biểu |
 |---|---:|---|
-| Prompt phân tích yêu cầu | 2 | Use case product approval |
+| Prompt phân tích yêu cầu | 3 | Use case product approval, event integration |
 | Prompt giải thích kiến thức | 3 | JPA mapping, CASCADE |
-| Prompt thiết kế giải pháp | 2 | Dashboard architecture |
-| Prompt thiết kế database | 3 | Entity mapping, native query |
-| Prompt sinh code mẫu | 8 | CRUD, dashboard, Thymeleaf |
-| Prompt debug lỗi | 4 | Autowire, FK, date filter |
+| Prompt thiết kế giải pháp | 3 | Dashboard architecture, event module integration |
+| Prompt thiết kế database | 4 | Entity mapping, native query, event seed schema |
+| Prompt sinh code mẫu | 11 | CRUD, dashboard, Thymeleaf, event pages |
+| Prompt debug lỗi | 5 | Autowire, FK, date filter, event compile |
 | Prompt review code | 1 | UI sync check |
 | Prompt viết báo cáo | 2 | AI Audit docs |
 | Prompt khác | 1 | Email/PDF integration |

@@ -44,6 +44,7 @@ export const NAV_LINKS = [
   { key: "products", href: "/storefront" },
   { key: "brands", href: "/brands" },
   { key: "about", href: "/about" },
+  { key: "events", href: "/events" },
 ];
 
 

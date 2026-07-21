@@ -34,6 +34,7 @@ File này ghi lại các thay đổi quan trọng trong quá trình thực hiệ
 | Phase 04 | 19/06 – 02/07/2026 | Implementation | Completed |
 | Phase 05 | 03/07 – 10/07/2026 | Testing & Debug | Completed |
 | Phase 06 | 11/07 – 12/07/2026 | Hoàn thiện báo cáo và demo | Completed |
+| Phase 07 | 20/07/2026 | Tích hợp Module Event Management | Completed |
 
 ---
 
@@ -248,6 +249,45 @@ AI hỗ trợ tổng hợp tài liệu audit từ source code thực tế.
 
 ---
 
+# [Phase 07] Tích hợp Module Event Management
+
+## Ngày thực hiện
+
+20/07/2026
+
+## Đã hoàn thành
+
+- [x] Tích hợp package `com.auction.event` vào main project
+- [x] Sửa `Product.java` để bổ sung `isLockedInEvent`
+- [x] Cập nhật `DataSeeder.java` để tạo và seed dữ liệu event
+- [x] Tạo giao diện public cho `/events` và `/events/[slug]`
+- [x] Tạo giao diện admin cho `/admin/events`
+- [x] Thêm menu `Events` vào `AdminSidebar`
+- [x] Sửa các lỗi compile trong module event để toàn project build thành công
+
+## Thay đổi chi tiết
+
+| STT | Chức năng | Nội dung thay đổi | File/Module liên quan | Minh chứng |
+|---:|---|---|---|---|
+| 1 | EVENT Backend | Di chuyển module Event từ `src/backend` sang `src/main/java` | `src/main/java/com/auction/event/` | `mvn compile` OK |
+| 2 | EVENT Backend | Bổ sung field `isLockedInEvent` trong Product entity | `Product.java` | Compile không còn lỗi reference |
+| 3 | EVENT Seed Data | Thêm `ensureEventTables()` và `seedSampleEvents()` | `DataSeeder.java` | Có thể seed schema/event mẫu |
+| 4 | EVENT Public UI | Tạo danh sách sự kiện và trang chi tiết sự kiện | `src/frontend/app/events/` | Có route `/events` |
+| 5 | EVENT Admin UI | Tạo trang quản lý event trong admin dashboard | `src/frontend/app/admin/events/` | Có route `/admin/events` |
+| 6 | EVENT Debug | Sửa enum, DTO, notification API, import thiếu | `service/impl/*.java`, `scheduler/*.java` | `BUILD SUCCESS` |
+
+## AI có hỗ trợ không?
+
+- [x] Có
+
+Cursor hỗ trợ rà lỗi compile, tích hợp module Event vào source set chính và tạo khung giao diện Event cho public/admin. Em tự kiểm tra lại sự tương thích với codebase hiện tại và chạy `mvn compile`.
+
+## Ghi chú
+
+Module Event là phần bổ sung sau giai đoạn 5 chức năng cũ. Em giữ nguyên kiến trúc project hiện tại và chỉ thêm các file/chỉnh sửa cần thiết để tích hợp.
+
+---
+
 # 4. Tổng kết thay đổi cuối project
 
 ## 4.1. Các chức năng đã hoàn thành (5 chức năng phụ trách)
@@ -259,6 +299,7 @@ AI hỗ trợ tổng hợp tài liệu audit từ source code thực tế.
 | M2.3 | Quản lý danh mục & Thuộc tính SP | Completed | `CategoryController`, `CategoryAttributeController`, `category-management.html` | CRUD + validation tên category |
 | M8.1 | Thống kê doanh thu & Giao dịch | Completed | `GET /api/admin/dashboard/summary`, `/revenue`, `/transactions`, `revenue-analytics.html` | Chart.js, date filter, phân trang |
 | M8.2 | Xuất báo cáo dữ liệu (Excel/CSV) | Completed | `GET /api/admin/dashboard/export/excel`, `/export/csv`, `data-reports.html` | Apache POI, CSV UTF-8 BOM |
+| EVENT | Module Event Management + Admin Event CRUD | Completed | `src/main/java/com/auction/event/`, `src/frontend/app/events/`, `src/frontend/app/admin/events/` | Tích hợp backend + UI event |
 
 ## 4.2. Các chức năng chưa hoàn thành
 
@@ -276,9 +317,9 @@ AI hỗ trợ tổng hợp tài liệu audit từ source code thực tế.
 |---|---|---|---|
 | Requirement | Có | Trung bình | Gợi ý use case, em tự chốt |
 | Design | Có | Trung bình | Entity mapping, API design |
-| Database | Có | Nhiều | JPA, native query, CASCADE |
-| Coding | Có | Nhiều | Controller/Service/Repository/UI |
-| Debug | Có | Nhiều | FK error, query SQL Server, validation |
+| Database | Có | Nhiều | JPA, native query, CASCADE, event schema/seed |
+| Coding | Có | Nhiều | Controller/Service/Repository/UI, event integration |
+| Debug | Có | Nhiều | FK error, query SQL Server, validation, event compile |
 | Testing | Có | Ít | Gợi ý test case, em test thủ công |
 | Report | Có | Nhiều | AI Audit docs |
 | Presentation | Có | Ít | Em tự làm slide |
@@ -290,6 +331,7 @@ AI hỗ trợ tổng hợp tài liệu audit từ source code thực tế.
 - Tách rõ Controller/Service/Repository giúp debug và mở rộng dễ hơn.
 - Ghi `INTEGRATION_NOTE.md` và TODO rõ ràng khi làm việc nhóm.
 - AI tiết kiệm thời gian nhưng không thay việc tự test và hiểu code.
+- Khi tích hợp module mới như Event, phải đối chiếu enum/DTO/service với codebase hiện tại để tránh lỗi compile dây chuyền.
 
 ## 4.5. Hướng cải thiện tiếp theo
 
@@ -297,6 +339,7 @@ AI hỗ trợ tổng hợp tài liệu audit từ source code thực tế.
 - Viết unit test cho `ProductServiceImpl`, `StatisticsServiceImpl`.
 - Kết nối approve product với Auction service.
 - Upload PDF lên cloud storage thay vì URL placeholder.
+- Kết nối frontend Event với backend API thật thay vì mock data và bổ sung test cho module Event.
 
 ---
 
