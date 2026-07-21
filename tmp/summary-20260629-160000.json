@@ -1,4 +1,0 @@
-{
-  "summary": "User yêu cầu đánh giá 2 module AI (Smart Auto-Bidder, Fraud/Shill Detector) — không implement. Đã đọc codebase: frontend poll 1s thay vì WS bid; backend có BiddingService, deposit, wallet, notification, chat. Trả lời độ khó, phân tách rule-based vs ML, và roadmap từng bước.",
-  "current_status": "Đánh giá kiến trúc AI modules hoàn tất. Seller registration flow (become-seller) có thể chưa merge hết do interrupt trước đó — cần verify nếu user quay lại."
-}

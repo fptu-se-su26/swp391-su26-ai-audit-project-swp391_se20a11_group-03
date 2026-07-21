@@ -1,4 +1,0 @@
-{
-  "summary": "Provided full seed_test_accounts.sql script inline for user to run manually: 4 test accounts (user1, user2, admin, seller) with password 123456, 50M wallet, KYC approved, seller contract for seller@gmail.com.",
-  "current_status": "SQL file at src/main/resources/db/seed_test_accounts.sql; user will execute in SSMS/sqlcmd themselves."
-}

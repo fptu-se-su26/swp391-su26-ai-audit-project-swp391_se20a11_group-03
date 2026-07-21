@@ -1,4 +1,0 @@
-﻿{
-    "summary":  "Checked admin wallet ledger: per-row credit/debit signs are correct (HOLD/PAYMENT debit, REFUND/PAYOUT/COMMISSION credit). Auction 1: bid 25M -\u003e seller 20M + admin commission 5M. Misleading part was platform-wide net ~0. Added admin summary line for platform revenue and clearer debit/credit hints.",
-    "current_status":  "Ledger accounting verified correct; UI clarified for admin revenue vs all-wallet net."
-}

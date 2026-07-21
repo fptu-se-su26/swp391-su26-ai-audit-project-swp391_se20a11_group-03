@@ -1,4 +1,0 @@
-{
-  "summary": "Received the completion notification for the previously started Maven Spring Boot backend task. The task ended with an error because that backend process was intentionally terminated to free port 8096 after the user hit a port-in-use error from the IDE.",
-  "current_status": "No additional action is required. Port 8096 was freed for the user to start the backend from the IDE."
-}

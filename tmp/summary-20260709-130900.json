@@ -1,4 +1,0 @@
-{
-  "summary": "Resolved port 8096 conflict: stopped existing Java backend process (PID 9472) that was still listening from an earlier background start. Port is now free for IDE or script restart.",
-  "current_status": "Port 8096 free. User can re-run Spring Boot from IDE or use scripts/start-backend.ps1. Avoid running backend twice (IDE + script) simultaneously."
-}

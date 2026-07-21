@@ -1,4 +1,0 @@
-{
-  "summary": "Sửa lỗi đăng ký Seller: nút trên /post-item trước đây chỉ dẫn tới /profile không có hành động. Đã thêm khối nâng cấp Seller trên trang profile (gọi API select-role), cập nhật link tới #seller-upgrade, và cho phép ký hợp đồng seller trên /kyc khi đã KYC.",
-  "current_status": "User có thể bấm Đăng ký Seller Account từ /post-item hoặc /profile, nâng cấp role, rồi được chuyển tới /post-item (đã KYC) hoặc /kyc (chưa KYC)."
-}

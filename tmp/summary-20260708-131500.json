@@ -1,4 +1,0 @@
-{
-  "summary": "Sửa lỗi đăng ký: nút Đăng ký trên /luxe trỏ nhầm /auth/onboarding (trang mock của Đức chỉ redirect dashboard/inventory không tạo tài khoản). Đã đổi tất cả link Đăng ký sang /auth?mode=signup và thay /auth/onboarding bằng redirect tới luồng đăng ký thật.",
-  "current_status": "Luồng đăng ký: Đăng ký → form /auth → chọn Buyer/Seller → tạo tài khoản backend. Cần backend chạy để đăng ký thành công."
-}

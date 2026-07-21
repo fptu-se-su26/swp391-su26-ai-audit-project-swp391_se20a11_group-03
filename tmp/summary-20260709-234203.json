@@ -1,4 +1,0 @@
-﻿{
-    "summary":  "Fixed Vietnamese mojibake on all 20 [SEED-STAGGER] auction lots by updating DB product names/descriptions via PowerShell SqlClient with ASCII-safe Vietnamese text. Verified API returns clean titles (e.g. Lot 14 Tranh thuy mac thieu nu, Lot 15 Kim cuong solitaire). Updated seed_staggered_auctions.sql and fix_seed_stagger_encoding.sql to use same ASCII text so future sqlcmd runs on Windows won\u0027t corrupt encoding.",
-    "current_status":  "Font/encoding issue on /upcoming resolved in DB. User should hard-refresh /upcoming to see corrected titles. Seed scripts updated for prevention. Other project features (wallet DB-only, featured products, admin portal shell, dark support chat) remain complete from prior work."
-}

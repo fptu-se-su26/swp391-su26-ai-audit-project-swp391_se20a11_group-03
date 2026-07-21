@@ -1,4 +1,0 @@
-{
-  "summary": "Đã gắn link cho menu trên trang /luxe: Đấu giá → /live, Danh mục → /browse (sản phẩm trên sàn), Bộ sưu tập → /storefront, đổi Tin tức thành Sắp đấu giá → /upcoming, Về chúng tôi → #about (cuộn xuống footer có id about + scroll-mt). Cập nhật thêm ô danh mục hero và CTA tin tức trỏ /browse và /upcoming.",
-  "current_status": "Menu trang chủ luxe đã có đích điều hướng thật. Refresh localhost:3000/luxe để kiểm tra."
-}

@@ -1,4 +1,0 @@
-{
-  "summary": "Fixed KYC submit SQL unique constraint error on duplicate CccdNumber. Added pre-submit duplicate check with user-friendly Vietnamese message; DataIntegrityViolationException fallback in KycController. User does not see other account details.",
-  "current_status": "Duplicate CCCD submit blocked gracefully. User on second account with same CCCD as approved profile must use original account or contact staff."
-}

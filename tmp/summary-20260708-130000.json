@@ -1,4 +1,0 @@
-{
-  "summary": "Đã redesign trang /auth (đăng nhập & đăng ký) theo ngôn ngữ thiết kế luxe tối-vàng của Đức: layout split-screen (hero đồng hồ + trust items bên trái, form card tối bên phải), header BrandLogo + LanguageSwitcher, footer stats. Giữ nguyên toàn bộ logic backend và chỉ dùng các nút đã có (tab Đăng nhập/Đăng ký, demo Collector/Seller/Staff, submit, Google, chọn vai trò Buyer/Seller, quên mật khẩu, hiện/ẩn mật khẩu) — không thêm Apple/Facebook. Dùng GoldButton/OutlineButton và luxe-input từ design system hiện có.",
-  "current_status": "Trang auth đã đồng bộ tông luxe với phần còn lại của site. Frontend localhost:3000 đang chạy — refresh /auth để xem."
-}

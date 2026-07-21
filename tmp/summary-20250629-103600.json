@@ -1,4 +1,0 @@
-{
-  "summary": "User could not access localhost:3000 after rebooting machine. Diagnosed that port 3000 had no process listening. Started frontend via npm run frontend; Next.js 14.2.5 is Ready at http://localhost:3000.",
-  "current_status": "Frontend dev server is running. User can open http://localhost:3000. Backend (8096) may still need npm run backend or npm run dev:all if API calls fail."
-}

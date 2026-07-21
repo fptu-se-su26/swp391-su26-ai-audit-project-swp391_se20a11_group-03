@@ -1,4 +1,0 @@
-{
-  "summary": "User muốn một file context duy nhất. Đã gộp PROFILE_VERIFICATION_GUIDE.md vào docs/AI_PROJECT_CONTEXT.md (profile/KYC, become-seller + PDF, TIMED blind, roadmap AI), cập nhật nội dung theo code thực tế, xóa PROFILE_VERIFICATION_GUIDE.md.",
-  "current_status": "docs/AI_PROJECT_CONTEXT.md là single source of truth cho AI/dev. Các doc khác trong docs/ (CHANGELOG, PROMPTS...) vẫn tồn tại nhưng onboarding nên đọc file context chính."
-}

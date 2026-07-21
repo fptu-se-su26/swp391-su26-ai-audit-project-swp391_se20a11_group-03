@@ -1,4 +1,0 @@
-﻿{
-  "summary": "Created seed_demo_catalog.sql with 3 new accounts, 14 [SEED] products across PENDING/REJECTED/APPROVED states, and auctions in UPCOMING/ACTIVE/AWAITING_PAYMENT/PAID/FORFEITED/NO_WINNER with bids, deposits, contracts, watchlist.",
-  "current_status": "User can run seed_demo_catalog.sql in SSMS against SWP_Nhom3_App after seed_test_accounts.sql for full multi-scenario test data."
-}

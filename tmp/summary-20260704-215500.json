@@ -1,4 +1,0 @@
-{
-  "summary": "Fixed backend startup failure: JPQL in TransactionRepository.findAllTransactions used u.userId but User entity field is id. Changed to u.id. User should restart backend.",
-  "current_status": "Balance ledger backend query fixed; restart Spring Boot to bring API up. Frontend may already be starting on port 3000."
-}
