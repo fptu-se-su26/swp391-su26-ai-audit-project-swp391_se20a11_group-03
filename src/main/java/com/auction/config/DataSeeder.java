@@ -36,6 +36,8 @@ public class DataSeeder implements CommandLineRunner {
         ensureWatchlistTable();
         ensureKycProfileTable();
         ensureCategoryAttributesTables();
+        ensureEventTables();
+        normalizeEventSeedData();
         seedDefaultCategories();
         seedCategoryAttributes();
 
@@ -122,6 +124,10 @@ public class DataSeeder implements CommandLineRunner {
         syncProductStepPrices();
 
         removeDemoWonAuctionForContractTest();
+        
+        // Seed sample events
+        Long adminId = jdbcTemplate.queryForObject("SELECT TOP 1 UserId FROM Users WHERE RoleId = (SELECT TOP 1 RoleId FROM Roles WHERE RoleName = 'Admin') ORDER BY UserId", Long.class);
+        seedSampleEvents(now, adminId, sellerId, aliceId);
     }
 
     private void ensureCoreTables() {
@@ -522,10 +528,380 @@ public class DataSeeder implements CommandLineRunner {
         ensureColumn("Products", "ScheduledStartTime", "DATETIME2 NULL");
         ensureColumn("Products", "ScheduledDurationSeconds", "BIGINT NULL");
         ensureColumn("Products", "TaxPercent", "INT NULL DEFAULT 5");
+        ensureColumn("Products", "IsLockedInEvent", "BIT NOT NULL DEFAULT 0");
         ensureColumn("Auctions", "AuctionMode", "NVARCHAR(10) NOT NULL DEFAULT 'TIMED'");
         ensureColumn("Auctions", "ScheduledDurationSeconds", "BIGINT NULL");
         jdbcTemplate.update("UPDATE Products SET SubmittedAt = COALESCE(SubmittedAt, CreatedAt, SYSDATETIME())");
         jdbcTemplate.update("UPDATE Products SET TaxPercent = COALESCE(TaxPercent, 5) WHERE TaxPercent IS NULL");
+    }
+
+    private void ensureEventTables() {
+        // AuctionEvents table
+        if (!hasTable("AuctionEvents")) {
+            jdbcTemplate.execute("""
+                CREATE TABLE AuctionEvents (
+                    EventId BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                    Name NVARCHAR(255) NOT NULL,
+                    Slug NVARCHAR(255) NOT NULL UNIQUE,
+                    Description NVARCHAR(MAX) NULL,
+                    BannerUrl NVARCHAR(500) NULL,
+                    EventCategory NVARCHAR(20) NOT NULL,
+                    BiddingMode NVARCHAR(20) NOT NULL,
+                    IsCharity BIT NOT NULL DEFAULT 0,
+                    CharityPercent INT NULL,
+                    RegistrationOpenAt DATETIME2 NULL,
+                    RegistrationDeadline DATETIME2 NULL,
+                    StartTime DATETIME2 NOT NULL,
+                    EndTime DATETIME2 NOT NULL,
+                    Status NVARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+                    RulesText NVARCHAR(MAX) NULL,
+                    RewardDescription NVARCHAR(MAX) NULL,
+                    DutchConfigJson NVARCHAR(MAX) NULL,
+                    SealedConfigJson NVARCHAR(MAX) NULL,
+                    PennyConfigJson NVARCHAR(MAX) NULL,
+                    AllowSellerSubmission BIT NOT NULL DEFAULT 1,
+                    CreatedBy BIGINT NULL,
+                    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+                    UpdatedAt DATETIME2 NULL,
+                    Version BIGINT NOT NULL DEFAULT 0,
+                    CONSTRAINT FK_AuctionEvents_Users_CreatedBy FOREIGN KEY (CreatedBy) REFERENCES Users(UserId)
+                )
+            """);
+        }
+        
+        // EventProducts table
+        if (!hasTable("EventProducts")) {
+            jdbcTemplate.execute("""
+                CREATE TABLE EventProducts (
+                    EventProductId BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                    EventId BIGINT NOT NULL,
+                    ProductId BIGINT NULL,
+                    SourceType NVARCHAR(20) NOT NULL,
+                    SubmittedBySellerId BIGINT NOT NULL,
+                    ApprovalStatus NVARCHAR(20) NOT NULL DEFAULT 'PENDING',
+                    RejectReason NVARCHAR(500) NULL,
+                    StartingPrice BIGINT NOT NULL,
+                    CurrentPrice BIGINT NOT NULL,
+                    PriceStep BIGINT NULL,
+                    ReservePrice BIGINT NULL,
+                    SessionStart DATETIME2 NULL,
+                    SessionEnd DATETIME2 NULL,
+                    SessionStatus NVARCHAR(20) NOT NULL DEFAULT 'SCHEDULED',
+                    WinnerId BIGINT NULL,
+                    FinalPrice BIGINT NULL,
+                    Version BIGINT NOT NULL DEFAULT 0,
+                    CONSTRAINT FK_EventProducts_AuctionEvents FOREIGN KEY (EventId) REFERENCES AuctionEvents(EventId),
+                    CONSTRAINT FK_EventProducts_Products FOREIGN KEY (ProductId) REFERENCES Products(ProductId),
+                    CONSTRAINT FK_EventProducts_Users_SubmittedBySeller FOREIGN KEY (SubmittedBySellerId) REFERENCES Users(UserId),
+                    CONSTRAINT FK_EventProducts_Users_Winner FOREIGN KEY (WinnerId) REFERENCES Users(UserId)
+                )
+            """);
+            jdbcTemplate.execute("CREATE INDEX IX_EventProducts_EventId ON EventProducts(EventId)");
+            jdbcTemplate.execute("CREATE INDEX IX_EventProducts_ProductId ON EventProducts(ProductId)");
+        }
+        
+        // EventRegistrations table
+        if (!hasTable("EventRegistrations")) {
+            jdbcTemplate.execute("""
+                CREATE TABLE EventRegistrations (
+                    RegistrationId BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                    EventId BIGINT NOT NULL,
+                    UserId BIGINT NOT NULL,
+                    Role NVARCHAR(20) NOT NULL,
+                    Status NVARCHAR(20) NOT NULL DEFAULT 'REGISTERED',
+                    RegisteredAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+                    NotifyOnOpen BIT NOT NULL DEFAULT 1,
+                    CONSTRAINT FK_EventRegistrations_AuctionEvents FOREIGN KEY (EventId) REFERENCES AuctionEvents(EventId),
+                    CONSTRAINT FK_EventRegistrations_Users FOREIGN KEY (UserId) REFERENCES Users(UserId),
+                    CONSTRAINT UQ_EventRegistrations_Event_User UNIQUE (EventId, UserId)
+                )
+            """);
+            jdbcTemplate.execute("CREATE INDEX IX_EventRegistrations_EventId ON EventRegistrations(EventId)");
+            jdbcTemplate.execute("CREATE INDEX IX_EventRegistrations_UserId ON EventRegistrations(UserId)");
+        }
+        
+        // SealedBids table
+        if (!hasTable("SealedBids")) {
+            jdbcTemplate.execute("""
+                CREATE TABLE SealedBids (
+                    SealedBidId BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                    EventProductId BIGINT NOT NULL,
+                    UserId BIGINT NOT NULL,
+                    BidAmount BIGINT NOT NULL,
+                    SubmittedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+                    UpdatedAt DATETIME2 NULL,
+                    Revealed BIT NOT NULL DEFAULT 0,
+                    CONSTRAINT FK_SealedBids_EventProducts FOREIGN KEY (EventProductId) REFERENCES EventProducts(EventProductId),
+                    CONSTRAINT FK_SealedBids_Users FOREIGN KEY (UserId) REFERENCES Users(UserId),
+                    CONSTRAINT UQ_SealedBids_EventProduct_User UNIQUE (EventProductId, UserId)
+                )
+            """);
+            jdbcTemplate.execute("CREATE INDEX IX_SealedBids_EventProductId ON SealedBids(EventProductId)");
+            jdbcTemplate.execute("CREATE INDEX IX_SealedBids_UserId ON SealedBids(UserId)");
+        }
+        
+        // PennyBids table
+        if (!hasTable("PennyBids")) {
+            jdbcTemplate.execute("""
+                CREATE TABLE PennyBids (
+                    PennyBidId BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                    EventProductId BIGINT NOT NULL,
+                    UserId BIGINT NOT NULL,
+                    PriceAfterBid BIGINT NOT NULL,
+                    BidAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+                    CONSTRAINT FK_PennyBids_EventProducts FOREIGN KEY (EventProductId) REFERENCES EventProducts(EventProductId),
+                    CONSTRAINT FK_PennyBids_Users FOREIGN KEY (UserId) REFERENCES Users(UserId)
+                )
+            """);
+            jdbcTemplate.execute("CREATE INDEX IX_PennyBids_EventProductId ON PennyBids(EventProductId)");
+            jdbcTemplate.execute("CREATE INDEX IX_PennyBids_UserId ON PennyBids(UserId)");
+        }
+    }
+
+    private void normalizeEventSeedData() {
+        if (!hasTable("AuctionEvents")) {
+            return;
+        }
+
+        // Align existing seed/demo rows with the enum values used by JPA.
+        jdbcTemplate.update("""
+            UPDATE AuctionEvents
+            SET EventCategory = CASE
+                WHEN EventCategory IN ('ART', 'LUXURY_WATCH', 'AUTOMOTIVE', 'FURNITURE') THEN 'THEMED'
+                WHEN EventCategory = 'JEWELRY' AND IsCharity = 1 THEN 'CHARITY'
+                WHEN EventCategory = 'JEWELRY' THEN 'GENERAL'
+                ELSE EventCategory
+            END
+            WHERE EventCategory NOT IN ('THEMED', 'CHARITY', 'GENERAL')
+        """);
+
+        jdbcTemplate.update("""
+            UPDATE AuctionEvents
+            SET Status = CASE
+                WHEN Status = 'REGISTERING' THEN 'PUBLISHED'
+                WHEN Status = 'RUNNING' THEN 'ONGOING'
+                WHEN Status = 'FINISHED' THEN 'ENDED'
+                WHEN Status = 'COMING_SOON' THEN 'PUBLISHED'
+                ELSE Status
+            END
+            WHERE Status NOT IN ('DRAFT', 'PUBLISHED', 'ONGOING', 'ENDED', 'CANCELLED', 'ARCHIVED')
+        """);
+    }
+
+    private void seedSampleEvents(LocalDateTime now, Long adminId, Long sellerId, Long userId) {
+        // Sample Event 1: Standard Auction (DRAFT)
+        insertSampleEvent(
+            "Hội đấu giá nghệ thuật tháng 1",
+            "hoi-dau-gia-nghe-thuat-thang-1",
+            "Hội đấu giá các tác phẩm nghệ thuật đặc biệt",
+            "https://example.com/banner1.jpg",
+            "THEMED",
+            "STANDARD",
+            false,
+            null,
+            now.minusDays(7),
+            now.plusDays(3),
+            now.plusDays(5),
+            now.plusDays(15),
+            "DRAFT",
+            adminId,
+            now
+        );
+        
+        // Sample Event 2: Standard Auction (PUBLISHED, coming soon)
+        Long event2Id = insertSampleEvent(
+            "Hội đấu giá đồng hồ cao cấp",
+            "hoi-dau-gia-dong-ho-cao-cap",
+            "Hội đấu giá các mẫu đồng hồ cao cấp từ các thương hiệu nổi tiếng",
+            "https://example.com/banner2.jpg",
+            "THEMED",
+            "STANDARD",
+            false,
+            null,
+            now.minusDays(2),
+            now.plusDays(5),
+            now.plusDays(7),
+            now.plusDays(20),
+            "PUBLISHED",
+            adminId,
+            now
+        );
+        
+        // Sample Event 3: Dutch Auction (REGISTERING)
+        Long event3Id = insertSampleEvent(
+            "Hội đấu giá giảm giá nhanh",
+            "hoi-dau-gia-giam-gia-nhanh",
+            "Hội đấu giá theo định dạng Dutch, giá giảm mỗi phút",
+            "https://example.com/banner3.jpg",
+            "CHARITY",
+            "DUTCH",
+            true,
+            10,
+            now.minusDays(5),
+            now.plusDays(2),
+            now.plusDays(3),
+            now.plusDays(10),
+            "PUBLISHED",
+            adminId,
+            now
+        );
+        
+        // Sample Event 4: Sealed Bid (ONGOING)
+        Long event4Id = insertSampleEvent(
+            "Hội đấu giá kín ô tô cổ",
+            "hoi-dau-gia-kin-oto-co",
+            "Hội đấu giá kín cho các xe cổ điển",
+            "https://example.com/banner4.jpg",
+            "THEMED",
+            "SEALED_BID",
+            false,
+            null,
+            now.minusDays(10),
+            now.minusDays(1),
+            now.minusDays(1),
+            now.plusDays(7),
+            "ONGOING",
+            adminId,
+            now
+        );
+        
+        // Sample Event 5: Penny Auction (ENDED)
+        insertSampleEvent(
+            "Hội đấu giá xu thú vị",
+            "hoi-dau-gia-xu-thu-vi",
+            "Hội đấu giá Penny vui vẻ, mỗi lần đấu giá tăng 1000 đồng",
+            "https://example.com/banner5.jpg",
+            "GENERAL",
+            "PENNY",
+            false,
+            null,
+            now.minusDays(20),
+            now.minusDays(15),
+            now.minusDays(14),
+            now.minusDays(7),
+            "ENDED",
+            adminId,
+            now
+        );
+        
+        // Add products to events
+        if (event2Id != null && event3Id != null && event4Id != null) {
+            // Get some existing product IDs
+            List<Long> productIds = jdbcTemplate.queryForList(
+                "SELECT TOP 5 ProductId FROM Products ORDER BY ProductId", Long.class
+            );
+            if (!productIds.isEmpty()) {
+                // Add products to event 2
+                for (int i = 0; i < Math.min(3, productIds.size()); i++) {
+                    insertEventProduct(
+                        event2Id,
+                        productIds.get(i),
+                        "EXISTING_PRODUCT",
+                        sellerId,
+                        "APPROVED",
+                        1000000L + (i * 500000L),
+                        now.plusDays(7).plusHours(i * 2),
+                        now.plusDays(7).plusHours(i * 2 + 3)
+                    );
+                }
+                
+                // Add products to event3
+                for (int i = 0; i < Math.min(2, productIds.size()); i++) {
+                    insertEventProduct(
+                        event3Id,
+                        productIds.get(i),
+                        "EXISTING_PRODUCT",
+                        sellerId,
+                        "APPROVED",
+                        5000000L + (i * 1000000L),
+                        now.plusDays(3).plusHours(i * 3),
+                        now.plusDays(3).plusHours(i * 3 + 2)
+                    );
+                }
+                
+                // Add products to event4
+                for (int i = 0; i < Math.min(2, productIds.size()); i++) {
+                    insertEventProduct(
+                        event4Id,
+                        productIds.get(i),
+                        "EXISTING_PRODUCT",
+                        sellerId,
+                        "APPROVED",
+                        20000000L + (i * 5000000L),
+                        now.minusDays(1).plusHours(i * 2),
+                        now.plusDays(7).plusHours(i * 2)
+                    );
+                }
+            }
+            
+            // Add registrations
+            insertEventRegistration(event2Id, userId, "BIDDER", "REGISTERED", now);
+            insertEventRegistration(event2Id, sellerId, "SELLER", "REGISTERED", now);
+            insertEventRegistration(event3Id, userId, "BIDDER", "REGISTERED", now);
+            insertEventRegistration(event4Id, userId, "BIDDER", "REGISTERED", now);
+        }
+    }
+
+    private Long insertSampleEvent(String name, String slug, String description, String bannerUrl, 
+                                   String category, String biddingMode, boolean isCharity, 
+                                   Integer charityPercent, LocalDateTime regOpen, LocalDateTime regDeadline,
+                                   LocalDateTime startTime, LocalDateTime endTime, String status,
+                                   Long createdBy, LocalDateTime now) {
+        Integer count = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM AuctionEvents WHERE Slug = ?", Integer.class, slug
+        );
+        if (count != null && count > 0) {
+            return jdbcTemplate.queryForObject(
+                "SELECT TOP 1 EventId FROM AuctionEvents WHERE Slug = ?", Long.class, slug
+            );
+        }
+        
+        jdbcTemplate.update("""
+            INSERT INTO AuctionEvents (
+                Name, Slug, Description, BannerUrl, EventCategory, BiddingMode, IsCharity, CharityPercent,
+                RegistrationOpenAt, RegistrationDeadline, StartTime, EndTime, Status, RulesText,
+                RewardDescription, AllowSellerSubmission, CreatedBy, CreatedAt, Version
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, name, slug, description, bannerUrl, category, biddingMode, isCharity, charityPercent,
+           regOpen, regDeadline, startTime, endTime, status, 
+           "Quy tắc tham gia: Đăng ký trước thời hạn, có đủ số dư ví.",
+           "Phần thưởng: Giảm giá 5% cho người thắng cuộc.",
+           true, createdBy, now, 0L);
+        
+        return jdbcTemplate.queryForObject("SELECT TOP 1 EventId FROM AuctionEvents WHERE Slug = ?", Long.class, slug);
+    }
+
+    private void insertEventProduct(Long eventId, Long productId, String sourceType, 
+                                    Long sellerId, String approvalStatus, Long startingPrice,
+                                    LocalDateTime sessionStart, LocalDateTime sessionEnd) {
+        Integer count = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM EventProducts WHERE EventId = ? AND ProductId = ?", 
+            Integer.class, eventId, productId
+        );
+        if (count != null && count > 0) return;
+        
+        jdbcTemplate.update("""
+            INSERT INTO EventProducts (
+                EventId, ProductId, SourceType, SubmittedBySellerId, ApprovalStatus, 
+                StartingPrice, CurrentPrice, PriceStep, SessionStart, SessionEnd, SessionStatus, Version
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, eventId, productId, sourceType, sellerId, approvalStatus,
+           startingPrice, startingPrice, StepCalculator.calculate(startingPrice),
+           sessionStart, sessionEnd, "SCHEDULED", 0L);
+    }
+
+    private void insertEventRegistration(Long eventId, Long userId, String role, 
+                                         String status, LocalDateTime now) {
+        Integer count = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM EventRegistrations WHERE EventId = ? AND UserId = ?",
+            Integer.class, eventId, userId
+        );
+        if (count != null && count > 0) return;
+        
+        jdbcTemplate.update("""
+            INSERT INTO EventRegistrations (EventId, UserId, Role, Status, RegisteredAt, NotifyOnOpen)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, eventId, userId, role, status, now, true);
     }
 
     private void ensureCategorySchemaColumns() {

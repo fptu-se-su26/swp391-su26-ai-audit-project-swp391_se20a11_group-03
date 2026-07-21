@@ -273,7 +273,8 @@
     "home": "HOME",
     "products": "PRODUCTS",
     "brands": "BRANDS",
-    "about": "ABOUT US"
+    "about": "ABOUT US",
+    "events": "EVENTS"
   },
   "home": {
     "liveSection": "LIVE AUCTIONS",
@@ -770,6 +771,7 @@
         "productApprovals": "Product approvals",
         "kycReview": "KYC review",
         "withdrawals": "Withdrawal review",
+        "events": "Event management",
         "allSessions": "All sessions",
         "paid": "Paid",
         "unpaid": "Unpaid",

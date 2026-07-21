@@ -209,6 +209,42 @@ export type Category = {
   isActive: boolean;
 };
 
+export type EventCategoryValue = "THEMED" | "CHARITY" | "GENERAL";
+export type BiddingModeValue = "STANDARD" | "DUTCH" | "SEALED_BID" | "PENNY";
+export type EventStatusValue =
+  | "DRAFT"
+  | "PUBLISHED"
+  | "ONGOING"
+  | "ENDED"
+  | "CANCELLED"
+  | "ARCHIVED";
+
+export type AdminEvent = {
+  eventId: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  bannerUrl: string | null;
+  eventCategory: EventCategoryValue;
+  biddingMode: BiddingModeValue;
+  isCharity: boolean;
+  charityPercent: number | null;
+  registrationOpenAt: string | null;
+  registrationDeadline: string | null;
+  startTime: string;
+  endTime: string;
+  status: EventStatusValue;
+  rulesText: string | null;
+  rewardDescription: string | null;
+  dutchConfigJson: string | null;
+  sealedConfigJson: string | null;
+  pennyConfigJson: string | null;
+  allowSellerSubmission: boolean;
+  createdBy: number | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
 export type CategoryAttribute = {
   attributeId: number;
   categoryId: number;
@@ -1224,6 +1260,26 @@ export const adminApi = {
   },
   deleteCategory(categoryId: number) {
     return apiFetch<ApiEnvelope<null>>(`/admin/categories/${categoryId}`, {
+      method: "DELETE",
+    });
+  },
+  events() {
+    return apiFetch<ApiEnvelope<AdminEvent[]>>("/admin/events");
+  },
+  createEvent(payload: Partial<AdminEvent>) {
+    return apiFetch<ApiEnvelope<AdminEvent>>("/admin/events", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+  updateEvent(eventId: number, payload: Partial<AdminEvent>) {
+    return apiFetch<ApiEnvelope<AdminEvent>>(`/admin/events/${eventId}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+  deleteEvent(eventId: number) {
+    return apiFetch<ApiEnvelope<null>>(`/admin/events/${eventId}`, {
       method: "DELETE",
     });
   },

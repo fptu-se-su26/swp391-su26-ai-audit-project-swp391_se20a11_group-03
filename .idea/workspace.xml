@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="fc773791-1e07-4dff-bccf-b9e815c707a7" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/CHANGELOG.md" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/CHANGELOG.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/PROMPTS.md" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/PROMPTS.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pham_Manh_Thang/REFLECTION.md" beforeDir="false" afterPath="$PROJECT_DIR$/Pham_Manh_Thang/REFLECTION.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/db/SWP_Nhom3_App_full_schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/db/SWP_Nhom3_App_full_schema.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/components/shells/AdminSidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/components/shells/AdminSidebar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/lib/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/lib/api.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/lib/home-data.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/lib/home-data.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/messages/en.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/messages/en.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/messages/vi.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/messages/vi.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/frontend/next-env.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/frontend/next-env.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/auction/config/DataSeeder.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/auction/config/DataSeeder.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/auction/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/auction/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/auction/product/entity/Product.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/auction/product/entity/Product.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;ThangManhPham&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/fptu-se-su26/swp391-su26-ai-audit-project-swp391_se20a11_group-03.git&quot;,
+    &quot;accountId&quot;: &quot;4fc65f94-e4e7-4e00-9179-7f42ae3444a7&quot;
+  }
+}</component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="3GiEIgrse98qVMeenf15ftKJzeB" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showScratchesAndConsoles" value="false" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Spring Boot.Auction Backend (free port 8096).executor": "Run",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "#60 on devthang",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/HP/Documents/GitHub/swp391-su26-ai-audit-project-swp391_se20a11_group-03",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "terminal",
+    "to.speed.mode.migration.done": "true"
+  }
+}]]></component>
+  <component name="RunManager" selected="Spring Boot.Auction Backend (free port 8096)">
+    <list>
+      <item itemvalue="Shell Script.Free Port 8096" />
+      <item itemvalue="Spring Boot.Auction Backend (free port 8096)" />
+    </list>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-37e91769500f-intellij.indexing.shared.core-IU-261.24374.151" />
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-IU-261.24374.151" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="fc773791-1e07-4dff-bccf-b9e815c707a7" name="Changes" comment="" />
+      <created>1784445912285</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1784445912285</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+    <option name="exactExcludedFiles">
+      <list>
+        <option value="$PROJECT_DIR$/src/frontend/next.config.mjs" />
+      </list>
+    </option>
+  </component>
+</project>
