@@ -18,5 +18,6 @@ public class WalletTransactionDTO {
     private String status;
     private String referenceCode;
     private String description;
+    private String rejectionReason;
     private String createdAt;
 }

@@ -245,36 +245,61 @@ export default function WalletPage() {
               </tr>
             </thead>
             <tbody>
-              {data.transactions.map((tx) => (
-                <tr key={tx.transactionId} className="border-b border-white/5">
-                  <td className="px-5 py-4 text-white/60">
-                    {new Intl.DateTimeFormat("vi-VN").format(
-                      new Date(tx.createdAt),
-                    )}
-                  </td>
-                  <td className="px-5 py-4">{tx.transactionTypeLabel}</td>
-                  <td className="px-5 py-4 text-white/60">{tx.description}</td>
-                  <td
-                    className={`px-5 py-4 font-semibold ${
-                      tx.signedAmount >= 0 ? "text-green-300" : "text-red-300"
-                    }`}
-                  >
-                    {tx.signedAmount >= 0 ? "+" : ""}
-                    {tx.signedAmount.toLocaleString("vi-VN")} ₫
-                  </td>
-                  <td className="px-5 py-4">
-                    <span
-                      className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-                        tx.status.toUpperCase() === "COMPLETED"
-                          ? "bg-green-500/10 text-green-300"
-                          : "bg-yellow-500/10 text-yellow-300"
+              {data.transactions.map((tx) => {
+                const status = tx.status.toUpperCase();
+                const rejectedWithdrawal =
+                  status === "REJECTED" &&
+                  tx.transactionType.toUpperCase() === "WITHDRAWAL";
+
+                return (
+                  <tr key={tx.transactionId} className="border-b border-white/5">
+                    <td className="px-5 py-4 text-white/60">
+                      {new Intl.DateTimeFormat("vi-VN").format(
+                        new Date(tx.createdAt),
+                      )}
+                    </td>
+                    <td className="px-5 py-4">{tx.transactionTypeLabel}</td>
+                    <td className="px-5 py-4 text-white/60">
+                      <p>{tx.description}</p>
+                      {rejectedWithdrawal ? (
+                        <details className="mt-2 text-xs">
+                          <summary className="cursor-pointer font-semibold text-red-300 hover:text-red-200">
+                            {t("viewWithdrawalRejectionReason")}
+                          </summary>
+                          <p className="mt-1 border-l-2 border-red-400/40 pl-2 text-red-200/85">
+                            {t("withdrawalRejectionReason", {
+                              reason:
+                                tx.rejectionReason?.trim() ||
+                                t("withdrawalRejectionReasonUnavailable"),
+                            })}
+                          </p>
+                        </details>
+                      ) : null}
+                    </td>
+                    <td
+                      className={`px-5 py-4 font-semibold ${
+                        tx.signedAmount >= 0 ? "text-green-300" : "text-red-300"
                       }`}
                     >
-                      {tx.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                      {tx.signedAmount >= 0 ? "+" : ""}
+                      {tx.signedAmount.toLocaleString("vi-VN")} ₫
+                    </td>
+                    <td className="px-5 py-4">
+                      <span
+                        className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
+                          status === "COMPLETED"
+                            ? "bg-green-500/10 text-green-300"
+                            : status === "REJECTED"
+                              ? "bg-red-500/10 text-red-300"
+                              : "bg-yellow-500/10 text-yellow-300"
+                        }`}
+                      >
+                        {tx.status}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
               {!loading && data.transactions.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-5 py-10 text-center text-white/45">

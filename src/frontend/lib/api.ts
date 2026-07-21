@@ -374,6 +374,7 @@ export type WalletTransaction = {
   status: string;
   referenceCode: string | null;
   description: string | null;
+  rejectionReason: string | null;
   createdAt: string;
 };
 
