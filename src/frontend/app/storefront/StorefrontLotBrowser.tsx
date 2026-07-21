@@ -262,7 +262,11 @@ export default function StorefrontLotBrowser({
                   className="object-contain p-4 transition-transform duration-300 group-hover:scale-[1.03] sm:p-6"
                 />
                 {lot.isLive && (
-                  <span className="pulse-live absolute left-3 top-3 rounded-full bg-red-500/90 px-2.5 py-1 text-[10px] font-semibold text-white">
+                  <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-red-500/90 px-2.5 py-1 text-[10px] font-semibold text-white">
+                    <span
+                      aria-hidden="true"
+                      className="pulse-live h-1.5 w-1.5 rounded-full bg-white"
+                    />
                     LIVE
                   </span>
                 )}

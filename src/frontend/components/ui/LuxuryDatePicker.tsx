@@ -216,7 +216,7 @@ export default function LuxuryDatePicker({
           role="dialog"
           aria-modal="false"
           aria-label={t("calendarLabel", { label: ariaLabel.toLocaleLowerCase(localeTag) })}
-          className="absolute left-0 top-[calc(100%+0.4rem)] z-50 w-[min(15rem,calc(100vw-3rem))] overflow-hidden rounded-xl border border-[var(--luxora-gold)]/25 bg-[#0c0d0f] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.03)]"
+          className="theme-dark-content theme-dark-surface absolute left-0 top-[calc(100%+0.4rem)] z-50 w-[min(15rem,calc(100vw-3rem))] overflow-hidden rounded-xl border border-[var(--luxora-gold)]/25 bg-[#0c0d0f] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.03)]"
         >
           <div className="flex items-center gap-1">
             <button

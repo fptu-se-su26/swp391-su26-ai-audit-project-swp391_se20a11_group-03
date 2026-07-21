@@ -20,7 +20,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
-import org.springframework.security.access.AccessDeniedException;
 
 import java.security.Principal;
 
@@ -69,6 +68,14 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     private void validateSubscription(StompHeaderAccessor accessor) {
         String destination = accessor.getDestination();
         if (destination == null || !destination.startsWith("/topic/")) return;
+        // Auction state and bid history are already public through REST. Allow
+        // anonymous viewers to receive the same public realtime updates.
+        if (destination.equals("/topic/bids")
+                || destination.startsWith("/topic/bids/")
+                || destination.equals("/topic/auctions")
+                || destination.startsWith("/topic/auctions/")) {
+            return;
+        }
         Principal principal = accessor.getUser();
         if (principal == null) throw new AccessDeniedException("Authentication required for chat subscription");
         User user;

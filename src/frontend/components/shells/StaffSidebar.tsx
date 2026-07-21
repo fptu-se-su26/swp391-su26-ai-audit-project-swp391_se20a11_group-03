@@ -5,13 +5,20 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import { authApi } from "@/lib/api";
 
-const NAV_ITEMS = [
-  { label: "Đơn giao hàng", href: "/staff/orders", icon: "local_shipping" },
-  { label: "Duyệt sản phẩm", href: "/staff/approvals", icon: "fact_check" },
-  { label: "Duyệt hồ sơ KYC", href: "/staff/kyc-review", icon: "badge" },
-  { label: "Hộp thư hỗ trợ", href: "/staff/support", icon: "inbox" },
+type StaffNavItem = {
+  labelKey: "orders" | "approvals" | "kycReview" | "supportInbox";
+  href: string;
+  icon: string;
+};
+
+const NAV_ITEMS: StaffNavItem[] = [
+  { labelKey: "orders", href: "/staff/orders", icon: "local_shipping" },
+  { labelKey: "approvals", href: "/staff/approvals", icon: "fact_check" },
+  { labelKey: "kycReview", href: "/staff/kyc-review", icon: "badge" },
+  { labelKey: "supportInbox", href: "/staff/support", icon: "inbox" },
 ];
 
 export default function StaffSidebar() {
@@ -60,7 +67,10 @@ export default function StaffSidebar() {
       </nav>
 
       <div className="border-t border-white/10 px-4 py-4">
-        <div className="mb-3 px-3"><LanguageSwitcher /></div>
+        <div className="mb-3 flex flex-wrap items-center gap-2 px-3">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
         <Link
           href="/auth"
           onClick={() => authApi.logout()}

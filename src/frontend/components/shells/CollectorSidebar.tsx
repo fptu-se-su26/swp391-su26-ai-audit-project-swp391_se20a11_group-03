@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import { authApi, fetchAccountSummary, toFrontendRole, userApi, type AccountSummary } from "@/lib/api";
 import { useApiData } from "@/lib/use-api-data";
 
@@ -21,21 +22,22 @@ const NAV_GROUPS: NavGroup[] = [
   {
     titleKey: "auction",
     items: [
-      { label: "Tổng quan", href: "/dashboard", icon: "dashboard" },
-      { label: "Theo dõi", href: "/watchlist", icon: "visibility" },
-      { label: "Đã thắng", href: "/won-items", icon: "emoji_events" },
-      { label: "Đơn hàng", href: "/orders", icon: "local_shipping" },
-      { label: "Tin nhắn", href: "/messages", icon: "chat" },
+      { labelKey: "dashboard", href: "/dashboard", icon: "dashboard" },
+      { labelKey: "watchlist", href: "/watchlist", icon: "visibility" },
+      { labelKey: "wonItems", href: "/won-items", icon: "emoji_events" },
+      { labelKey: "orders", href: "/orders", icon: "local_shipping" },
+      { labelKey: "messages", href: "/messages", icon: "chat" },
     ],
   },
   {
     titleKey: "account",
     items: [
-      { label: "Ví BidZone", href: "/wallet", icon: "account_balance_wallet" },
-      { label: "Xác minh KYC", href: "/kyc", icon: "verified_user" },
-      { label: "Hồ sơ", href: "/profile", icon: "person" },
-      { label: "Bảo mật", href: "/security", icon: "lock" },
-      { label: "Gói Premium", href: "/premium", icon: "workspace_premium", badge: "VIP" },
+      { labelKey: "wallet", href: "/wallet", icon: "account_balance_wallet" },
+      { labelKey: "kyc", href: "/kyc", icon: "verified_user" },
+      { labelKey: "profile", href: "/profile", icon: "person" },
+      { labelKey: "contracts", href: "/contracts", icon: "contract" },
+      { labelKey: "security", href: "/security", icon: "lock" },
+      { labelKey: "premium", href: "/premium", icon: "workspace_premium", badge: "VIP" },
     ],
   },
   {
@@ -225,7 +227,12 @@ export default function CollectorSidebar() {
       </nav>
 
       <div className="flex flex-col gap-1 border-t border-white/10 px-3 py-4">
-        {!collapsed && <div className="px-3 pb-2"><LanguageSwitcher /></div>}
+        {!collapsed && (
+          <div className="flex flex-wrap items-center gap-2 px-3 pb-2">
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
+        )}
         <Link
           href="/wallet"
           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/60 hover:bg-white/5 hover:text-white"

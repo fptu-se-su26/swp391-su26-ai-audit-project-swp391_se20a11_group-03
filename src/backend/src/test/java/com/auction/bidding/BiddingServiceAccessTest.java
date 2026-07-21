@@ -2,7 +2,10 @@ package com.auction.bidding;
 
 import com.auction.bidding.dto.BidRequest;
 import com.auction.bidding.dto.BidResponse;
+import com.auction.bidding.entity.AuctionDeposit;
 import com.auction.bidding.entity.AuctionSession;
+import com.auction.bidding.entity.AuctionStatus;
+import com.auction.bidding.entity.Bid;
 import com.auction.bidding.repository.AuctionDepositRepository;
 import com.auction.bidding.repository.AuctionRepository;
 import com.auction.bidding.repository.BidRepository;
@@ -17,9 +20,12 @@ import com.auction.account.entity.User;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
+import java.time.LocalDateTime;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -119,10 +125,43 @@ class BiddingServiceAccessTest {
         verify(bidRepository, never()).save(org.mockito.ArgumentMatchers.any());
     }
 
+    @Test
+    void successfulLiveBidExtendsPersistedEndTimeByExactlyTenSeconds() {
+        AuctionSession session = session(7L, 70L);
+        session.setAuctionMode(com.auction.bidding.entity.AuctionMode.LIVE);
+        Product product = product(70L, 42L);
+        User bidder = activeUser(99);
+        AuctionDeposit deposit = new AuctionDeposit();
+        deposit.setStatus("LOCKED");
+        LocalDateTime originalEnd = session.getEndTime();
+
+        when(sessionRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(session));
+        when(productRepository.findById(70L)).thenReturn(Optional.of(product));
+        when(userRepository.findById(99)).thenReturn(Optional.of(bidder));
+        when(depositRepository.findByAuction_AuctionIdAndUser_Id(7L, 99))
+                .thenReturn(Optional.of(deposit));
+        when(bidRepository.save(any(Bid.class))).thenAnswer(invocation -> {
+            Bid saved = invocation.getArgument(0);
+            saved.setBidId(1L);
+            return saved;
+        });
+
+        BidResponse response = service.placeBid(request(7L, 99L, 10_500_000L));
+
+        assertTrue(response.isSuccess());
+        assertEquals(originalEnd.plusSeconds(10), response.getEndTime());
+        assertEquals(originalEnd.plusSeconds(10), session.getEndTime());
+        verify(sessionRepository).save(session);
+    }
+
     private static AuctionSession session(Long auctionId, Long productId) {
         AuctionSession session = new AuctionSession();
         session.setAuctionId(auctionId);
         session.setProductId(productId);
+        session.setStartTime(LocalDateTime.now().minusMinutes(1));
+        session.setEndTime(LocalDateTime.now().plusMinutes(2));
+        session.setCurrentHighestBid(10_000_000L);
+        session.setStatus(AuctionStatus.ACTIVE);
         return session;
     }
 

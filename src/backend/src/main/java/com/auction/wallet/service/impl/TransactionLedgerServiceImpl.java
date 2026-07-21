@@ -6,6 +6,7 @@ import com.auction.wallet.dto.WalletTransactionDTO;
 import com.auction.wallet.entity.Transaction;
 import com.auction.wallet.entity.Wallet;
 import com.auction.wallet.repository.TransactionRepository;
+import com.auction.wallet.repository.WithdrawalRequestRepository;
 import com.auction.wallet.repository.WalletRepository;
 import com.auction.wallet.service.TransactionLedgerService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +27,7 @@ public class TransactionLedgerServiceImpl implements TransactionLedgerService {
 
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final WithdrawalRequestRepository withdrawalRequestRepository;
 
     @Override
     public List<WalletTransactionDTO> getUserTransactions(Long userId, LocalDate from, LocalDate to, String type) {
@@ -88,8 +91,39 @@ public class TransactionLedgerServiceImpl implements TransactionLedgerService {
                 .status(t.getStatus())
                 .referenceCode(t.getReferenceCode())
                 .description(t.getDescription())
+                .rejectionReason(findWithdrawalRejectionReason(t))
                 .createdAt(t.getCreatedAt() != null ? t.getCreatedAt().toString() : null)
                 .build();
+    }
+
+    private String findWithdrawalRejectionReason(Transaction transaction) {
+        if (!"WITHDRAWAL".equalsIgnoreCase(transaction.getTransactionType())
+                || !"REJECTED".equalsIgnoreCase(transaction.getStatus())) {
+            return null;
+        }
+
+        String referenceCode = transaction.getReferenceCode();
+        if (referenceCode == null || !referenceCode.startsWith("WD-")) {
+            return null;
+        }
+
+        try {
+            Long withdrawalId = Long.parseLong(referenceCode.substring(3));
+            return withdrawalRequestRepository.findById(withdrawalId)
+                    .filter(withdrawal -> "REJECTED".equalsIgnoreCase(withdrawal.getStatus()))
+                    .filter(withdrawal -> withdrawal.getWallet() != null
+                            && transaction.getWallet() != null
+                            && Objects.equals(
+                                    withdrawal.getWallet().getWalletId(),
+                                    transaction.getWallet().getWalletId()
+                            ))
+                    .map(withdrawal -> withdrawal.getStaffNote())
+                    .filter(note -> !note.isBlank())
+                    .map(String::trim)
+                    .orElse(null);
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
     }
 
     private boolean isCredit(String type) {

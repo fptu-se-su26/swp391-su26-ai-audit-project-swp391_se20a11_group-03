@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import BidZoneLogo from "@/components/brand/BidZoneLogo";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import { authApi } from "@/lib/api";
 
 type AdminNavItem = {
@@ -32,8 +33,8 @@ const NAV_GROUPS: AdminNavGroup[] = [
   {
     titleKey: "auctions",
     items: [
-      { href: "/admin/auction-history", icon: "live_tv", label: "Tất cả phiên" },
-      { href: "/admin/sales-history", icon: "receipt_long", label: "Lịch sử mua bán" },
+      { href: "/admin/auction-history", icon: "live_tv", labelKey: "allSessions" },
+      { href: "/admin/sales-history", icon: "receipt_long", labelKey: "salesHistory" },
     ],
   },
   {
@@ -148,7 +149,10 @@ export default function AdminSidebar() {
       </nav>
 
       <div className="border-t border-white/10 px-4 py-4">
-        <div className="mb-3 px-3"><LanguageSwitcher /></div>
+        <div className="mb-3 flex flex-wrap items-center gap-2 px-3">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
         <Link
           href="/auth"
           onClick={() => authApi.logout()}

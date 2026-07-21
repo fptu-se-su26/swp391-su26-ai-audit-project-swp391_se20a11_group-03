@@ -11,6 +11,10 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    // Legacy UI snapshot. The active Next.js application uses the root
+    // app/components/lib directories, while this source tree is kept only
+    // for historical reference.
+    "src/**",
     "next-env.d.ts",
   ]),
 ]);

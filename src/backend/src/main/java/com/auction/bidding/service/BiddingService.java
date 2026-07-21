@@ -16,6 +16,7 @@ import com.auction.bidding.repository.AuctionRepository;
 import com.auction.bidding.repository.AuctionSessionRepository;
 import com.auction.bidding.repository.BidRepository;
 import com.auction.bidding.util.AuctionPhaseUtil;
+import com.auction.bidding.util.AuctionTimingPolicy;
 import com.auction.bidding.util.StepCalculator;
 import com.auction.product.repository.ProductImageRepository;
 import com.auction.product.repository.ProductRepository;
@@ -41,11 +42,9 @@ import org.springframework.context.ApplicationEventPublisher;
 public class BiddingService {
     /** Minimum bid increment (VND). */
     public static final long MIN_BID_INCREMENT = 50_000L;
-    /** LIVE: total window opened once the auction goes ACTIVE (3 minutes for demo). */
-    public static final long INITIAL_AUCTION_DURATION_SECONDS = 180L;
-    /** LIVE anti-sniper: a bid in the final stretch guarantees this many seconds remain. */
-    public static final long ANTI_SNIPER_EXTENSION_SECONDS = 15L;
-    public static final long DEPOSIT_DEADLINE_BEFORE_START_MINUTES = 3L;
+    public static final long INITIAL_AUCTION_DURATION_SECONDS = AuctionTimingPolicy.LIVE_DURATION.toSeconds();
+    public static final long LIVE_BID_EXTENSION_SECONDS = AuctionTimingPolicy.LIVE_BID_EXTENSION.toSeconds();
+    public static final long DEPOSIT_DEADLINE_BEFORE_START_MINUTES = AuctionTimingPolicy.DEPOSIT_CUTOFF.toMinutes();
 
     private final AuctionSessionRepository auctionSessionRepository;
     private final AuctionRepository auctionRepository;
@@ -175,15 +174,11 @@ public class BiddingService {
             // the bid amount / winner we just set.
             auction.setStatus(AuctionStatus.ACTIVE);
 
-            // LIVE anti-sniper: a bid inside the final window guarantees at
-            // least ANTI_SNIPER_EXTENSION_SECONDS of remaining time, so other
-            // bidders always get a fair chance to respond. Bids placed earlier
-            // do not extend the auction. TIMED: endTime is fixed, never extend.
+            // A successful LIVE bid extends the authoritative end time by exactly
+            // ten seconds. The row is pessimistically locked, so concurrent bids
+            // apply their extensions serially and no extension is lost.
             if (auction.getAuctionMode() == AuctionMode.LIVE) {
-                LocalDateTime minEnd = now.plusSeconds(ANTI_SNIPER_EXTENSION_SECONDS);
-                if (auction.getEndTime().isBefore(minEnd)) {
-                    auction.setEndTime(minEnd);
-                }
+                auction.setEndTime(AuctionTimingPolicy.extendLiveEnd(auction.getEndTime()));
             }
 
             auctionSessionRepository.save(auction);
@@ -245,8 +240,8 @@ public class BiddingService {
         if (auctionSession.getStartTime() == null) {
             return false;
         }
-        LocalDateTime deadline = auctionSession.getStartTime().minusMinutes(DEPOSIT_DEADLINE_BEFORE_START_MINUTES);
-        return !depositConfirmedAt.isAfter(deadline);
+        LocalDateTime deadline = AuctionTimingPolicy.depositDeadline(auctionSession.getStartTime());
+        return depositConfirmedAt.isBefore(deadline);
     }
 
     public AuctionSession createDefaultAuctionSession(Long auctionId, Long productId, LocalDateTime startTime) {
@@ -254,7 +249,7 @@ public class BiddingService {
         session.setAuctionId(auctionId);
         session.setProductId(productId);
         session.setStartTime(startTime);
-        session.setEndTime(startTime.plusSeconds(INITIAL_AUCTION_DURATION_SECONDS));
+        session.setEndTime(AuctionTimingPolicy.liveEndAt(startTime));
         session.setCurrentHighestBid(0L);
         session.setStatus(AuctionStatus.UPCOMING);
         session.setCreatedAt(LocalDateTime.now());

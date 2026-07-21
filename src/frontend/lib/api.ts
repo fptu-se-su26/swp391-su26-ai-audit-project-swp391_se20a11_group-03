@@ -122,6 +122,28 @@ async function apiFetch<T>(
   return (await res.json()) as T;
 }
 
+async function apiFetchBlob(path: string): Promise<Blob> {
+  const token = getToken();
+  const deviceId = getOrCreateDeviceId();
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(deviceId ? { "X-Device-Id": deviceId } : {}),
+    },
+  });
+  if (!response.ok) {
+    let message = `HTTP ${response.status}`;
+    try {
+      const body = (await response.json()) as { message?: string; detail?: string; error?: string };
+      message = body.message ?? body.detail ?? body.error ?? message;
+    } catch {
+      /* PDF endpoints may return an empty/non-JSON error body. */
+    }
+    throw new ApiError(response.status, message);
+  }
+  return response.blob();
+}
+
 /**
  * POST multipart/form-data (file uploads). Unlike {@link apiFetch} we must NOT
  * set Content-Type — the browser adds the multipart boundary itself.
@@ -272,9 +294,11 @@ export type ProductDetail = {
 export type BidResult = {
   success: boolean;
   message: string | null;
-  auctionId: number;
+  auctionId: number | null;
+  userId: number | null;
   bidAmount: number | null;
-  [key: string]: unknown;
+  currentHighestBid: number | null;
+  endTime: string | null;
 };
 
 export type AuctionEligibility = {
@@ -319,6 +343,15 @@ export type UserProfile = {
   lockedByPaymentStrikes: boolean;
 };
 
+export type UserContract = {
+  contractId: number;
+  contractType: "SELLER_AGREEMENT" | "LISTING" | "PURCHASE_AGREEMENT" | string;
+  referenceId: number;
+  referenceName: string;
+  partyRole: "ACCOUNT_HOLDER" | "BUYER" | "SELLER" | string;
+  createdAt: string | null;
+};
+
 export type WalletInfo = {
   walletId: number;
   userId: number;
@@ -341,6 +374,7 @@ export type WalletTransaction = {
   status: string;
   referenceCode: string | null;
   description: string | null;
+  rejectionReason: string | null;
   createdAt: string;
 };
 
@@ -497,6 +531,12 @@ export type DailyRevenue = {
   date: string;
   amount: number;
   count: number;
+};
+
+export type RevenueQuery = {
+  from?: string;
+  to?: string;
+  groupBy?: "day" | "month";
 };
 
 export type AuctionSessionHistory = {
@@ -1071,6 +1111,12 @@ export const userApi = {
       body: JSON.stringify({ fullName }),
     });
   },
+  contracts() {
+    return apiFetch<ApiEnvelope<UserContract[]>>("/users/me/contracts");
+  },
+  contractPdf(contractId: number) {
+    return apiFetchBlob(`/users/me/contracts/${contractId}/pdf`);
+  },
   changePassword(data: {
     currentPassword: string;
     newPassword: string;
@@ -1192,11 +1238,20 @@ export const adminApi = {
   summary() {
     return apiFetch<ApiEnvelope<AdminDashboardSummary>>("/admin/dashboard/summary");
   },
-  revenue() {
-    return apiFetch<ApiEnvelope<DailyRevenue[]>>("/admin/dashboard/revenue");
+  revenue(query: RevenueQuery = {}) {
+    const params = new URLSearchParams();
+    if (query.from) params.set("from", query.from);
+    if (query.to) params.set("to", query.to);
+    if (query.groupBy) params.set("groupBy", query.groupBy);
+    const suffix = params.size > 0 ? `?${params.toString()}` : "";
+    return apiFetch<ApiEnvelope<DailyRevenue[]>>(`/admin/dashboard/revenue${suffix}`);
   },
-  salesHistory() {
-    return apiFetch<ApiEnvelope<SalesHistory[]>>("/admin/dashboard/sales-history");
+  salesHistory(query: Pick<RevenueQuery, "from" | "to"> = {}) {
+    const params = new URLSearchParams();
+    if (query.from) params.set("from", query.from);
+    if (query.to) params.set("to", query.to);
+    const suffix = params.size > 0 ? `?${params.toString()}` : "";
+    return apiFetch<ApiEnvelope<SalesHistory[]>>(`/admin/dashboard/sales-history${suffix}`);
   },
   auctionSessions(payment = "ALL") {
     return apiFetch<ApiEnvelope<AuctionSessionHistory[]>>(
