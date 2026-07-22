@@ -51,6 +51,10 @@ public class DepositServiceImpl implements DepositService {
             throw new IllegalStateException("Deposit is only allowed for upcoming or active auctions");
         }
 
+        if (auction.getAuctionMode() == AuctionMode.TIMED) {
+            throw new IllegalStateException("Phiên đấu giá dài hạn không yêu cầu đặt cọc trước");
+        }
+
         LocalDateTime deadline = auction.getStartTime().minusMinutes(3);
         if (LocalDateTime.now().isAfter(deadline)) {
             throw new IllegalStateException("Deposit closed 3 minutes before auction starts");

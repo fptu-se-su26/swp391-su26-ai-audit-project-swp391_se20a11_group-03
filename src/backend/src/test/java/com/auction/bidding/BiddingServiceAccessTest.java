@@ -10,6 +10,8 @@ import com.auction.bidding.service.BiddingService;
 import com.auction.product.entity.Product;
 import com.auction.product.repository.ProductImageRepository;
 import com.auction.product.repository.ProductRepository;
+import com.auction.wallet.entity.Wallet;
+import com.auction.wallet.repository.WalletRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import com.auction.account.dao.UserRepository;
@@ -35,6 +37,7 @@ class BiddingServiceAccessTest {
     private final ProductImageRepository imageRepository = mock(ProductImageRepository.class);
     private final AuctionDepositRepository depositRepository = mock(AuctionDepositRepository.class);
     private final UserRepository userRepository = mock(UserRepository.class);
+    private final WalletRepository walletRepository = mock(WalletRepository.class);
     private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
 
     private BiddingService service;
@@ -49,6 +52,7 @@ class BiddingServiceAccessTest {
                 imageRepository,
                 depositRepository,
                 userRepository,
+                walletRepository,
                 eventPublisher);
     }
 
@@ -85,20 +89,40 @@ class BiddingServiceAccessTest {
     }
 
     @Test
-    void timedBidderWithoutDepositCannotBid() {
+    void timedBidderCanBidWithoutDepositIfWalletCoversTheBid() {
         AuctionSession session = session(7L, 70L);
         session.setAuctionMode(com.auction.bidding.entity.AuctionMode.TIMED);
         Product product = product(70L, 42L);
+        Wallet wallet = wallet(20_000_000L, 0L);
         when(sessionRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(session));
         when(productRepository.findById(70L)).thenReturn(Optional.of(product));
         when(userRepository.findById(99)).thenReturn(Optional.of(activeUser(99)));
-        when(depositRepository.findByAuction_AuctionIdAndUser_Id(7L, 99))
-                .thenReturn(Optional.empty());
+        // No AuctionDeposit stubbed at all — TIMED mode must not require one.
+        when(depositRepository.findByAuction_AuctionIdAndUser_Id(7L, 99)).thenReturn(Optional.empty());
+        when(walletRepository.findByUserIdForUpdate(99)).thenReturn(Optional.of(wallet));
+
+        BidResponse response = service.placeBid(request(7L, 99L, 10_500_000L));
+
+        assertTrue(response.isSuccess());
+        verify(bidRepository).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void timedBidderWithInsufficientWalletBalanceCannotBid() {
+        AuctionSession session = session(7L, 70L);
+        session.setAuctionMode(com.auction.bidding.entity.AuctionMode.TIMED);
+        Product product = product(70L, 42L);
+        Wallet wallet = wallet(1_000_000L, 0L);
+        when(sessionRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(session));
+        when(productRepository.findById(70L)).thenReturn(Optional.of(product));
+        when(userRepository.findById(99)).thenReturn(Optional.of(activeUser(99)));
+        when(depositRepository.findByAuction_AuctionIdAndUser_Id(7L, 99)).thenReturn(Optional.empty());
+        when(walletRepository.findByUserIdForUpdate(99)).thenReturn(Optional.of(wallet));
 
         BidResponse response = service.placeBid(request(7L, 99L, 10_500_000L));
 
         assertFalse(response.isSuccess());
-        assertTrue(response.getMessage().contains("phải đặt cọc"));
+        assertTrue(response.getMessage().contains("Số dư ví"));
         verify(bidRepository, never()).save(org.mockito.ArgumentMatchers.any());
     }
 
@@ -123,6 +147,8 @@ class BiddingServiceAccessTest {
         AuctionSession session = new AuctionSession();
         session.setAuctionId(auctionId);
         session.setProductId(productId);
+        session.setStartTime(java.time.LocalDateTime.now().minusMinutes(5));
+        session.setEndTime(java.time.LocalDateTime.now().plusMinutes(30));
         return session;
     }
 
@@ -148,5 +174,12 @@ class BiddingServiceAccessTest {
         user.setActive(true);
         user.setStatus("ACTIVE");
         return user;
+    }
+
+    private static Wallet wallet(Long balance, Long holdBalance) {
+        Wallet wallet = new Wallet();
+        wallet.setBalance(balance);
+        wallet.setHoldBalance(holdBalance);
+        return wallet;
     }
 }

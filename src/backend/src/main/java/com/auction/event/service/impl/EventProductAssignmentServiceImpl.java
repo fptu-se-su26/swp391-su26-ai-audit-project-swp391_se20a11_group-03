@@ -12,6 +12,7 @@ import com.auction.event.enums.EventStatus;
 import com.auction.event.repository.AuctionEventRepository;
 import com.auction.event.repository.EventProductRepository;
 import com.auction.event.service.EventProductAssignmentService;
+import com.auction.product.dto.AvailableProductForEventDTO;
 import com.auction.product.entity.Product;
 import com.auction.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -151,5 +152,18 @@ public class EventProductAssignmentServiceImpl implements EventProductAssignment
         EventProduct eventProduct = eventProductRepository.findById(eventProductId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event product not found with id: " + eventProductId));
         return EventProductResponse.fromEntity(eventProduct);
+    }
+
+    @Override
+    public List<AvailableProductForEventDTO> getAvailableProducts() {
+        return productRepository.findByStatusAndIsLockedInEventFalse("APPROVED").stream()
+                .map(product -> AvailableProductForEventDTO.builder()
+                        .productId(product.getProductId())
+                        .productName(product.getProductName())
+                        .sellerId(product.getSellerId())
+                        .startingPrice(product.getStartingPrice())
+                        .stepPrice(product.getStepPrice())
+                        .build())
+                .collect(Collectors.toList());
     }
 }
