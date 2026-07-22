@@ -1509,11 +1509,15 @@ function toLiveAuctionItem(p: ProductSummary): LiveAuctionItem {
   const price = p.currentBid && p.currentBid > 0 ? p.currentBid : p.startingPrice;
   return {
     id: String(p.auctionId ?? p.productId),
+    status: p.auctionStatus?.toUpperCase() === "UPCOMING" ? "UPCOMING" : "ACTIVE",
     title: p.productName,
     subtitle: p.categoryName ?? "",
     currentPrice: `${VND.format(price)} ₫`,
     estimatedPrice: `${VND.format(p.startingPrice)} ₫`,
     bidCount: p.totalBids ?? 0,
+    startsAt: p.auctionStartTime
+      ? new Date(p.auctionStartTime).getTime()
+      : Date.now(),
     endsAt: p.auctionEndTime ? new Date(p.auctionEndTime).getTime() : Date.now(),
     imageSrc: toImageSrc(p.imageUrl),
   };
@@ -1522,18 +1526,31 @@ function toLiveAuctionItem(p: ProductSummary): LiveAuctionItem {
 /** Lấy các phiên đấu giá đang diễn ra từ backend. Trả [] nếu backend chưa chạy. */
 export async function fetchLiveAuctions(limit = 5): Promise<LiveAuctionItem[]> {
   try {
-    const res = await fetch(
-      `${API_BASE_URL}/products?auctionStatus=ACTIVE&size=${limit}`,
-      {
-        cache: "no-store",
-        signal: AbortSignal.timeout(15000),
-      },
-    );
-    if (!res.ok) return [];
-    const page = (await res.json()) as PageResponse<ProductSummary>;
-    return (page.content ?? [])
-      .filter((p) => p.auctionId != null)
-      .map(toLiveAuctionItem);
+    const loadByStatus = async (auctionStatus: "ACTIVE" | "UPCOMING") => {
+      const res = await fetch(
+        `${API_BASE_URL}/products?auctionStatus=${auctionStatus}&size=${limit}`,
+        {
+          cache: "no-store",
+          signal: AbortSignal.timeout(15000),
+        },
+      );
+      if (!res.ok) return [];
+      const page = (await res.json()) as PageResponse<ProductSummary>;
+      return page.content ?? [];
+    };
+
+    const [active, upcoming] = await Promise.all([
+      loadByStatus("ACTIVE"),
+      loadByStatus("UPCOMING"),
+    ]);
+    const uniqueAuctions = new Map<number, ProductSummary>();
+    for (const product of [...active, ...upcoming]) {
+      if (product.auctionId != null && !uniqueAuctions.has(product.auctionId)) {
+        uniqueAuctions.set(product.auctionId, product);
+      }
+    }
+
+    return [...uniqueAuctions.values()].slice(0, limit).map(toLiveAuctionItem);
   } catch {
     return [];
   }

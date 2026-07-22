@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +58,7 @@ public class BiddingProductServiceImpl implements BiddingProductService {
                         imageUrlsByProductId.get(product.getProductId()),
                         bidCountsByAuctionId))
                 .filter(response -> matchesAuctionStatus(response, request.getAuctionStatus()))
+                .filter(response -> matchesAuctionMode(response, request.getAuctionMode()))
                 .toList();
 
         int page = request.getPage() == null ? 0 : Math.max(0, request.getPage());
@@ -123,7 +125,7 @@ public class BiddingProductServiceImpl implements BiddingProductService {
                         : product.getAuctionMode())
                 .scheduledDurationSeconds(auction != null ? auction.getScheduledDurationSeconds() : null)
                 .auctionId(auction != null ? auction.getAuctionId() : null)
-                .auctionStatus(auction != null ? auction.getStatus() : null)
+                .auctionStatus(resolveEffectiveAuctionStatus(auction))
                 .auctionStartTime(auction != null && auction.getStartTime() != null ? auction.getStartTime().toString() : null)
                 .auctionEndTime(auction != null && auction.getEndTime() != null ? auction.getEndTime().toString() : null)
                 .auctionPaymentStatus(auction != null ? auction.getPaymentStatus() : null)
@@ -184,7 +186,7 @@ public class BiddingProductServiceImpl implements BiddingProductService {
                 .totalBids(auction != null
                         ? bidCountsByAuctionId.getOrDefault(auction.getAuctionId(), 0L)
                         : 0L)
-                .auctionStatus(auction != null ? auction.getStatus() : null)
+                .auctionStatus(resolveEffectiveAuctionStatus(auction))
                 .auctionStartTime(auction != null && auction.getStartTime() != null ? auction.getStartTime().toString() : null)
                 .auctionEndTime(auction != null && auction.getEndTime() != null ? auction.getEndTime().toString() : null)
                 .auctionMode(auction != null && auction.getAuctionMode() != null
@@ -219,6 +221,38 @@ public class BiddingProductServiceImpl implements BiddingProductService {
             return false;
         }
         return auctionStatus.equalsIgnoreCase(response.getAuctionStatus());
+    }
+
+    private boolean matchesAuctionMode(ProductSummaryResponse response, String auctionMode) {
+        if (auctionMode == null || auctionMode.isBlank()) {
+            return true;
+        }
+        return response.getAuctionMode() != null
+                && auctionMode.equalsIgnoreCase(response.getAuctionMode());
+    }
+
+    /**
+     * Derive the public lifecycle from the schedule instead of waiting for the
+     * periodic database synchronizer. Terminal statuses must remain unchanged.
+     */
+    private String resolveEffectiveAuctionStatus(Auction auction) {
+        if (auction == null) {
+            return null;
+        }
+        String persistedStatus = auction.getStatus();
+        if (!"UPCOMING".equalsIgnoreCase(persistedStatus)
+                && !"ACTIVE".equalsIgnoreCase(persistedStatus)) {
+            return persistedStatus;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (auction.getEndTime() != null && !now.isBefore(auction.getEndTime())) {
+            return "ENDED";
+        }
+        if (auction.getStartTime() != null && now.isBefore(auction.getStartTime())) {
+            return "UPCOMING";
+        }
+        return "ACTIVE";
     }
 
     private Map<Long, Auction> getAuctionsByProductId(List<Product> products) {

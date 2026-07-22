@@ -45,9 +45,13 @@ export default function LiveAuctionGrid({ items }: LiveAuctionGridProps) {
                 className="object-contain transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black to-transparent" />
-              <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-red-500 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-white">
+              <span
+                className={`absolute left-3 top-3 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-wider text-white ${
+                  item.status === "ACTIVE" ? "bg-red-500" : "bg-amber-500"
+                }`}
+              >
                 <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                LIVE
+                {item.status === "ACTIVE" ? "LIVE" : t("upcomingBadge")}
               </span>
               <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur">
                 <span className="material-symbols-outlined text-lg">favorite</span>
@@ -70,8 +74,12 @@ export default function LiveAuctionGrid({ items }: LiveAuctionGridProps) {
 
               <div className="mt-auto grid grid-cols-2 gap-3 border-t border-white/12 pt-3 text-xs">
                 <div>
-                  <Countdown endsAt={item.endsAt} />
-                  <p className="mt-1 text-white/45">{t("ends")}</p>
+                  <Countdown
+                    endsAt={item.status === "ACTIVE" ? item.endsAt : item.startsAt}
+                  />
+                  <p className="mt-1 text-white/45">
+                    {item.status === "ACTIVE" ? t("ends") : t("starts")}
+                  </p>
                 </div>
                 <div>
                   <p className="font-semibold text-white">{item.bidCount}</p>
@@ -83,7 +91,7 @@ export default function LiveAuctionGrid({ items }: LiveAuctionGridProps) {
                 href={`/auctions/${item.id}`}
                 className="mt-1 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#d7aa63]/50 px-4 py-2.5 text-xs font-semibold tracking-wider text-white transition-colors hover:bg-[#f0c982] hover:text-black"
               >
-                {t("bidNow")}
+                {item.status === "ACTIVE" ? t("bidNow") : t("viewAuction")}
                 <span className="material-symbols-outlined text-sm">arrow_forward</span>
               </Link>
             </div>
