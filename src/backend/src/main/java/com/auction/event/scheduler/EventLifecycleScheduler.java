@@ -109,7 +109,7 @@ public class EventLifecycleScheduler {
         BiddingMode mode = event.getBiddingMode();
 
         switch (mode) {
-            case STANDARD, THEMED, CHARITY -> {
+            case STANDARD -> {
                 // Standard, we'll just use currentPrice as final if there's a winner
                 if (product.getWinnerId() != null && product.getCurrentPrice() != null) {
                     product.setSessionStatus(EventProductSessionStatus.ENDED_SOLD);

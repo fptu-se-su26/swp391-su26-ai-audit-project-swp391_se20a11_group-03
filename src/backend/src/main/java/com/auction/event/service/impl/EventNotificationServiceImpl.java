@@ -45,7 +45,7 @@ public class EventNotificationServiceImpl implements EventNotificationService {
         String title = "Sự kiện bắt đầu: " + event.getName();
         String message = "Sự kiện \"" + event.getName() + "\" đã bắt đầu! Hãy tham gia đấu giá ngay!";
         registrations.forEach(reg -> {
-            if (reg.getNotifyOnOpen()) {
+            if (reg.isNotifyOnOpen()) {
                 notificationService.createNotification(
                         reg.getUserId(),
                         title,

@@ -43,9 +43,7 @@ public class StandardEventBidServiceImpl implements StandardEventBidService {
             AuctionEvent event = eventRepository.findById(product.getEventId())
                     .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
 
-            if (event.getBiddingMode() != BiddingMode.STANDARD
-                    && event.getBiddingMode() != BiddingMode.THEMED
-                    && event.getBiddingMode() != BiddingMode.CHARITY) {
+            if (event.getBiddingMode() != BiddingMode.STANDARD) {
                 throw new BusinessException("Loại đấu giá không hỗ trợ");
             }
 

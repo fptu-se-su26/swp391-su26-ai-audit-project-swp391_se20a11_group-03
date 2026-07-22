@@ -223,7 +223,7 @@ public class EventLifecycleServiceImpl implements EventLifecycleService {
         // TODO: Calculate total final price
         stats.setTotalFinalPrice(0L);
 
-        Long totalProducts = eventProductRepository.findByEventId(eventId).size();
+        long totalProducts = eventProductRepository.findByEventId(eventId).size();
         stats.setSoldRatio(totalProducts > 0 ? (double) soldProducts / totalProducts * 100 : 0.0);
 
         return stats;
