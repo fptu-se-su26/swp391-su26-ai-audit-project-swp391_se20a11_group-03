@@ -286,6 +286,11 @@ D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\ma
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\order\repository\OrderStatusHistoryRepository.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\order\scheduler\OrderAutoCompleteScheduler.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\order\service\OrderService.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\premium\controller\PremiumController.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\premium\dto\PremiumPlan.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\premium\dto\PremiumPurchaseRequest.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\premium\dto\PremiumPurchaseResponse.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\premium\service\PremiumPurchaseService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\controller\AdminCategoryController.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\controller\AdminFeaturedProductController.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\controller\AiValuationController.java

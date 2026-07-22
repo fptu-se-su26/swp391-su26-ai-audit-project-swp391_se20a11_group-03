@@ -12,6 +12,7 @@ com\auction\event\dto\BidRequest.class
 com\auction\chat\repository\MessageRepository.class
 com\auction\common\service\ImageForensicsService$Severity.class
 com\auction\fraud\dto\ReviewFraudAlertRequest.class
+com\auction\premium\controller\PremiumController.class
 com\auction\product\dto\ProductDetailResponse$ProductDetailResponseBuilder.class
 com\auction\bidding\dto\BidRequest.class
 com\auction\bidding\entity\AuctionSession.class
@@ -122,6 +123,7 @@ com\auction\bidding\dto\AuctionSessionDto.class
 com\auction\chat\dto\response\ConversationDetailResponse$ConversationDetailResponseBuilder.class
 com\auction\bidding\repository\JpaAuctionSessionRepository.class
 com\auction\config\SellerContractHealRunner.class
+com\auction\premium\service\PremiumPurchaseService.class
 com\auction\product\repository\ProductRepository.class
 com\auction\product\dto\CategoryAttributeDTO.class
 com\auction\common\dto\ApiResponse.class
@@ -276,6 +278,7 @@ com\auction\product\repository\ProductImageRepository.class
 com\auction\chat\controller\MessageController.class
 com\auction\product\service\ContractService.class
 com\auction\account\dao\PasswordResetTokenDAO.class
+com\auction\premium\dto\PremiumPurchaseResponse.class
 com\auction\fraud\service\FraudActionService$1.class
 com\auction\product\dto\AttributeOptionDTO.class
 com\auction\fraud\entity\FraudRiskLevel.class
@@ -336,6 +339,7 @@ com\auction\product\service\EmailService.class
 com\auction\wallet\dto\SepayWebhookRequest.class
 com\auction\wallet\dto\WalletResponse.class
 com\auction\account\dto\KycSubmissionResponse$KycSubmissionResponseBuilder.class
+com\auction\premium\dto\PremiumPlan.class
 com\auction\common\util\TokenUtil.class
 com\auction\account\controller\ProfileController.class
 com\auction\fraud\event\BidCreatedEvent.class
@@ -443,6 +447,7 @@ com\auction\bidding\entity\AuctionDeposit.class
 com\auction\bidding\service\impl\AuctionCreationServiceImpl.class
 com\auction\admin\dto\ContractRowDTO.class
 com\auction\product\entity\CategoryAttribute.class
+com\auction\premium\dto\PremiumPurchaseRequest.class
 com\auction\product\entity\Product.class
 com\auction\account\entity\PasswordResetToken.class
 com\auction\account\entity\UserVerificationToken.class

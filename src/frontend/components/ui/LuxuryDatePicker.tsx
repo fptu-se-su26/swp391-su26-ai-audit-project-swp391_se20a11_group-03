@@ -10,6 +10,7 @@ type LuxuryDatePickerProps = {
   min?: string;
   placeholder?: string;
   ariaLabel: string;
+  variant?: "dark" | "light";
 };
 
 function parseDate(value?: string) {
@@ -60,10 +61,12 @@ export default function LuxuryDatePicker({
   min,
   placeholder,
   ariaLabel,
+  variant = "dark",
 }: LuxuryDatePickerProps) {
   const t = useTranslations("datePicker");
   const locale = useLocale();
   const localeTag = locale === "vi" ? "vi-VN" : "en-US";
+  const light = variant === "light";
   const months = useMemo(
     () =>
       Array.from({ length: 12 }, (_, month) => {
@@ -186,20 +189,40 @@ export default function LuxuryDatePicker({
           if (!open) setViewDate(startOfMonth(selectedDate ?? maxDate ?? today));
           setOpen((current) => !current);
         }}
-        className={`flex w-full items-center justify-between rounded-xl border bg-white/5 px-4 py-3 text-left text-sm outline-none transition ${
+        className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm outline-none transition ${
+          light ? "bg-[#fffdfa]" : "bg-white/5"
+        } ${
           open
             ? "border-[var(--luxora-gold)] ring-2 ring-[var(--luxora-gold)]/10"
-            : "border-white/10 hover:border-white/20 focus-visible:border-[var(--luxora-gold)]"
+            : light
+              ? "border-[#ded8ce] hover:border-[#d3982c] focus-visible:border-[#d3982c]"
+              : "border-white/10 hover:border-white/20 focus-visible:border-[var(--luxora-gold)]"
         }`}
       >
-        <span className={value ? "text-white" : "text-white/30"}>
+        <span
+          className={
+            value
+              ? light
+                ? "text-[#17151b]"
+                : "text-white"
+              : light
+                ? "text-[#a7aab1]"
+                : "text-white/30"
+          }
+        >
           {formatDisplay(value, localeTag) || placeholder || t("selectDate")}
         </span>
         <svg
           aria-hidden="true"
           viewBox="0 0 24 24"
           className={`h-[18px] w-[18px] transition ${
-            open ? "text-[var(--luxora-gold-light)]" : "text-white/45"
+            open
+              ? light
+                ? "text-[#b77808]"
+                : "text-[var(--luxora-gold-light)]"
+              : light
+                ? "text-[#7c8491]"
+                : "text-white/45"
           }`}
           fill="none"
           stroke="currentColor"
@@ -216,14 +239,22 @@ export default function LuxuryDatePicker({
           role="dialog"
           aria-modal="false"
           aria-label={t("calendarLabel", { label: ariaLabel.toLocaleLowerCase(localeTag) })}
-          className="absolute left-0 top-[calc(100%+0.4rem)] z-50 w-[min(15rem,calc(100vw-3rem))] overflow-hidden rounded-xl border border-[var(--luxora-gold)]/25 bg-[#0c0d0f] p-2 shadow-[0_18px_50px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.03)]"
+          className={`absolute left-0 top-[calc(100%+0.4rem)] z-50 w-[min(15rem,calc(100vw-3rem))] overflow-hidden rounded-xl border border-[var(--luxora-gold)]/25 p-2 ${
+            light
+              ? "bg-white text-[#17151b] shadow-[0_18px_45px_rgba(74,55,28,0.2)]"
+              : "bg-[#0c0d0f] shadow-[0_18px_50px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.03)]"
+          }`}
         >
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => setViewDate(previousMonth)}
               disabled={previousDisabled}
-              className="grid size-7 shrink-0 place-items-center rounded-md text-white/55 transition hover:bg-white/5 hover:text-[var(--luxora-gold-light)] disabled:cursor-not-allowed disabled:opacity-20"
+              className={`grid size-7 shrink-0 place-items-center rounded-md transition disabled:cursor-not-allowed disabled:opacity-20 ${
+                light
+                  ? "text-[#667085] hover:bg-[#fff5e3] hover:text-[#a66b06]"
+                  : "text-white/55 hover:bg-white/5 hover:text-[var(--luxora-gold-light)]"
+              }`}
               aria-label={t("previousMonth")}
             >
               <svg
@@ -247,14 +278,18 @@ export default function LuxuryDatePicker({
                     new Date(viewDate.getFullYear(), Number(event.target.value), 1),
                   )
                 }
-                className="min-w-0 flex-1 cursor-pointer rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-1 text-[10px] font-semibold text-white outline-none transition hover:border-[var(--luxora-gold)]/40 focus:border-[var(--luxora-gold)]"
+                className={`min-w-0 flex-1 cursor-pointer rounded-md border px-1.5 py-1 text-[10px] font-semibold outline-none transition focus:border-[var(--luxora-gold)] ${
+                  light
+                    ? "border-[#e5ded4] bg-[#fffdfa] text-[#17151b] hover:border-[#d3982c]"
+                    : "border-white/10 bg-white/[0.04] text-white hover:border-[var(--luxora-gold)]/40"
+                }`}
               >
                 {months.map((month, index) => (
                   <option
                     key={month}
                     value={index}
                     disabled={monthUnavailable(index)}
-                    className="bg-[#0c0d0f]"
+                    className={light ? "bg-white" : "bg-[#0c0d0f]"}
                   >
                     {month}
                   </option>
@@ -264,10 +299,14 @@ export default function LuxuryDatePicker({
                 aria-label={t("selectYear")}
                 value={viewDate.getFullYear()}
                 onChange={(event) => changeYear(Number(event.target.value))}
-                className="w-16 cursor-pointer rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-1 text-[10px] font-semibold text-white outline-none transition hover:border-[var(--luxora-gold)]/40 focus:border-[var(--luxora-gold)]"
+                className={`w-16 cursor-pointer rounded-md border px-1.5 py-1 text-[10px] font-semibold outline-none transition focus:border-[var(--luxora-gold)] ${
+                  light
+                    ? "border-[#e5ded4] bg-[#fffdfa] text-[#17151b] hover:border-[#d3982c]"
+                    : "border-white/10 bg-white/[0.04] text-white hover:border-[var(--luxora-gold)]/40"
+                }`}
               >
                 {years.map((year) => (
-                  <option key={year} value={year} className="bg-[#0c0d0f]">
+                  <option key={year} value={year} className={light ? "bg-white" : "bg-[#0c0d0f]"}>
                     {year}
                   </option>
                 ))}
@@ -278,7 +317,11 @@ export default function LuxuryDatePicker({
               type="button"
               onClick={() => setViewDate(nextMonth)}
               disabled={nextDisabled}
-              className="grid size-7 shrink-0 place-items-center rounded-md text-white/55 transition hover:bg-white/5 hover:text-[var(--luxora-gold-light)] disabled:cursor-not-allowed disabled:opacity-20"
+              className={`grid size-7 shrink-0 place-items-center rounded-md transition disabled:cursor-not-allowed disabled:opacity-20 ${
+                light
+                  ? "text-[#667085] hover:bg-[#fff5e3] hover:text-[#a66b06]"
+                  : "text-white/55 hover:bg-white/5 hover:text-[var(--luxora-gold-light)]"
+              }`}
               aria-label={t("nextMonth")}
             >
               <svg
@@ -294,12 +337,18 @@ export default function LuxuryDatePicker({
             </button>
           </div>
 
-          <div className="mt-2 grid grid-cols-7 border-b border-white/[0.07] pb-1">
+          <div className={`mt-2 grid grid-cols-7 border-b pb-1 ${light ? "border-[#eee7dc]" : "border-white/[0.07]"}`}>
             {weekdays.map((weekday, index) => (
               <span
                 key={weekday}
                 className={`text-center text-[9px] font-semibold uppercase tracking-wide ${
-                  index > 4 ? "text-[var(--luxora-gold)]/70" : "text-white/35"
+                  index > 4
+                    ? light
+                      ? "text-[#b77808]"
+                      : "text-[var(--luxora-gold)]/70"
+                    : light
+                      ? "text-[#8a909b]"
+                      : "text-white/35"
                 }`}
               >
                 {weekday}
@@ -330,11 +379,17 @@ export default function LuxuryDatePicker({
                     isSelected
                       ? "bg-[var(--luxora-gold)] font-bold text-black shadow-[0_0_18px_rgba(217,170,85,0.28)]"
                       : isToday
-                        ? "border border-[var(--luxora-gold)]/60 text-[var(--luxora-gold-light)]"
+                        ? light
+                          ? "border border-[#d3982c] text-[#a66b06]"
+                          : "border border-[var(--luxora-gold)]/60 text-[var(--luxora-gold-light)]"
                         : item.inCurrentMonth
-                          ? "text-white/80 hover:bg-white/[0.07] hover:text-white"
-                          : "text-white/20 hover:bg-white/[0.04] hover:text-white/45"
-                  } disabled:cursor-not-allowed disabled:border-transparent disabled:text-white/10 disabled:hover:bg-transparent`}
+                          ? light
+                            ? "text-[#343944] hover:bg-[#fff5e3]"
+                            : "text-white/80 hover:bg-white/[0.07] hover:text-white"
+                          : light
+                            ? "text-[#c2c5ca] hover:bg-[#faf5ec]"
+                            : "text-white/20 hover:bg-white/[0.04] hover:text-white/45"
+                  } disabled:cursor-not-allowed disabled:border-transparent disabled:opacity-20 disabled:hover:bg-transparent`}
                 >
                   {item.date.getDate()}
                 </button>
@@ -342,7 +397,7 @@ export default function LuxuryDatePicker({
             })}
           </div>
 
-          <div className="mt-1 flex items-center justify-between border-t border-white/[0.07] pt-1">
+          <div className={`mt-1 flex items-center justify-between border-t pt-1 ${light ? "border-[#eee7dc]" : "border-white/[0.07]"}`}>
             <button
               type="button"
               disabled={todayDisabled}
@@ -358,7 +413,11 @@ export default function LuxuryDatePicker({
                   onChange("");
                   setOpen(false);
                 }}
-                className="rounded-md px-1.5 py-1 text-[10px] text-white/40 transition hover:bg-white/5 hover:text-white/70"
+                className={`rounded-md px-1.5 py-1 text-[10px] transition ${
+                  light
+                    ? "text-[#7a8190] hover:bg-[#fff5e3] hover:text-[#a66b06]"
+                    : "text-white/40 hover:bg-white/5 hover:text-white/70"
+                }`}
               >
                 {t("clearDate")}
               </button>

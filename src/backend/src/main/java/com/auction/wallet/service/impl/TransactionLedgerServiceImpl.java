@@ -122,6 +122,7 @@ public class TransactionLedgerServiceImpl implements TransactionLedgerService {
             case "SHIPPING_FEE_REVENUE" -> "Doanh thu phí vận chuyển";
             case "SHIPPING_FEE_REFUND" -> "Hoàn phí vận chuyển";
             case "ORDER_REFUND" -> "Hoàn tiền đơn hàng";
+            case "PREMIUM_PURCHASE" -> "Mua gói Premium";
             default -> type;
         };
     }

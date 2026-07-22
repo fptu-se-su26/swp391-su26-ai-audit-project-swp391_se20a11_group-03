@@ -14,6 +14,12 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     List<Transaction> findByWallet_WalletIdOrderByCreatedAtDesc(Long walletId);
 
+    List<Transaction> findByWallet_WalletIdAndTransactionTypeAndStatusOrderByCreatedAtAsc(
+            Long walletId,
+            String transactionType,
+            String status
+    );
+
     @Query("""
             SELECT t FROM Transaction t
             JOIN FETCH t.wallet w
