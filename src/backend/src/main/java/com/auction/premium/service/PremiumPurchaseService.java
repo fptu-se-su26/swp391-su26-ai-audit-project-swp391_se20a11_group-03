@@ -28,6 +28,7 @@ public class PremiumPurchaseService {
     public static final long USER_MONTHLY_PRICE = 10_000_000L;
     public static final long USER_YEARLY_PRICE = 100_000_000L;
     private static final String TRANSACTION_TYPE = "PREMIUM_PURCHASE";
+    private static final String ADMIN_REVENUE_TRANSACTION_TYPE = "PREMIUM_REVENUE";
 
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
@@ -75,15 +76,36 @@ public class PremiumPurchaseService {
         wallet.setUpdatedAt(now);
         walletRepository.save(wallet);
 
+        String referenceCode = "PREMIUM-" + plan.name() + "-" + userId + "-" + System.currentTimeMillis();
         Transaction transaction = new Transaction();
         transaction.setWallet(wallet);
         transaction.setAmount(price);
         transaction.setTransactionType(TRANSACTION_TYPE);
         transaction.setStatus("COMPLETED");
-        transaction.setReferenceCode("PREMIUM-" + plan.name() + "-" + userId + "-" + System.currentTimeMillis());
+        transaction.setReferenceCode(referenceCode);
         transaction.setDescription("Premium " + plan.name() + " subscription");
         transaction.setCreatedAt(now);
         transactionRepository.save(transaction);
+
+        // Premium subscription fees are platform revenue: credit the admin wallet
+        // so this shows up alongside shipping fees / auction commission in the
+        // admin revenue dashboard, instead of the money just disappearing.
+        Wallet adminWallet = getAdminWallet(now);
+        if (adminWallet != null) {
+            adminWallet.setBalance(safeAmount(adminWallet.getBalance()) + price);
+            adminWallet.setUpdatedAt(now);
+            walletRepository.save(adminWallet);
+
+            Transaction adminTransaction = new Transaction();
+            adminTransaction.setWallet(adminWallet);
+            adminTransaction.setAmount(price);
+            adminTransaction.setTransactionType(ADMIN_REVENUE_TRANSACTION_TYPE);
+            adminTransaction.setStatus("COMPLETED");
+            adminTransaction.setReferenceCode("REV-" + referenceCode);
+            adminTransaction.setDescription("Premium " + plan.name() + " subscription revenue (user " + userId + ")");
+            adminTransaction.setCreatedAt(now);
+            transactionRepository.save(adminTransaction);
+        }
 
         return response(
                 account,
@@ -168,6 +190,22 @@ public class PremiumPurchaseService {
             return plan == PremiumPlan.YEARLY ? SELLER_YEARLY_PRICE : SELLER_MONTHLY_PRICE;
         }
         return plan == PremiumPlan.YEARLY ? USER_YEARLY_PRICE : USER_MONTHLY_PRICE;
+    }
+
+    /** Returns the platform admin wallet (first Admin user), creating it if missing. */
+    private Wallet getAdminWallet(LocalDateTime now) {
+        User admin = userRepository.findFirstByRole_RoleNameOrderByIdAsc("Admin").orElse(null);
+        if (admin == null) {
+            return null;
+        }
+        return walletRepository.findByUserIdForUpdate(admin.getId()).orElseGet(() -> {
+            Wallet w = new Wallet();
+            w.setUser(admin);
+            w.setBalance(0L);
+            w.setHoldBalance(0L);
+            w.setUpdatedAt(now);
+            return walletRepository.save(w);
+        });
     }
 
     private static long availableBalance(Wallet wallet) {
