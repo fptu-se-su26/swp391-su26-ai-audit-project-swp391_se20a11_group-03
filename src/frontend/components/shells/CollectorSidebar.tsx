@@ -115,8 +115,8 @@ export default function CollectorSidebar() {
 
   return (
     <aside
-      className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r border-white/10 bg-[var(--luxora-bg-elevated)] transition-all md:flex ${
-        collapsed ? "w-16" : "w-64"
+      className={`sticky top-0 hidden h-screen shrink-0 flex-col overflow-x-hidden border-r border-white/10 bg-[var(--luxora-bg-elevated)] transition-[width] duration-200 md:flex ${
+        collapsed ? "w-[72px]" : "w-64"
       }`}
     >
       <div
@@ -133,7 +133,7 @@ export default function CollectorSidebar() {
           type="button"
           onClick={toggleCollapsed}
           aria-label={collapsed ? t("expandMenu") : t("collapseMenu")}
-          className="text-white/40 hover:text-white"
+          className="grid size-10 shrink-0 place-items-center rounded-xl text-white/40 transition hover:bg-white/5 hover:text-white"
         >
           <span className="material-symbols-outlined text-lg">
             {collapsed ? "chevron_right" : "chevron_left"}
@@ -173,9 +173,13 @@ export default function CollectorSidebar() {
         </div>
       )}
 
-      <nav className="custom-scrollbar flex-1 overflow-y-auto px-3 pb-4">
+      <nav
+        className={`custom-scrollbar flex-1 overflow-y-auto pb-4 ${
+          collapsed ? "px-2" : "px-3"
+        }`}
+      >
         {navGroups.map((group) => (
-          <div key={group.titleKey} className="mb-5">
+          <div key={group.titleKey} className={collapsed ? "mb-3" : "mb-5"}>
             {!collapsed && (
               <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">
                 {t(`groups.${group.titleKey}`)}
@@ -194,20 +198,32 @@ export default function CollectorSidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+                    title={collapsed ? t(`items.${item.labelKey}`) : undefined}
+                    aria-label={collapsed ? t(`items.${item.labelKey}`) : undefined}
+                    className={`relative flex items-center rounded-xl text-sm transition-colors ${
+                      collapsed
+                        ? "mx-auto size-11 justify-center p-0"
+                        : "gap-3 px-3 py-2.5"
+                    } ${
                       active
                         ? "bg-[var(--luxora-gold)]/10 text-[var(--luxora-gold-light)]"
                         : "text-white/60 hover:bg-white/5 hover:text-white"
                     }`}
                   >
-                    <span className="relative material-symbols-outlined text-xl">
+                    <span className="material-symbols-outlined block text-xl leading-none">
                       {item.icon}
-                      {collapsed && badge && (
-                        <span className="absolute -right-1.5 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--luxora-gold)] px-1 text-[9px] font-bold text-black">
-                          {badge}
-                        </span>
-                      )}
                     </span>
+                    {collapsed && badge && badge !== "VIP" && (
+                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d89716] px-1 font-sans text-[9px] font-bold leading-none text-[#211500] ring-2 ring-[var(--luxora-bg-elevated)]">
+                        {badge}
+                      </span>
+                    )}
+                    {collapsed && badge === "VIP" && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute right-1.5 top-1.5 size-2.5 rounded-full bg-[#d89716] ring-2 ring-[var(--luxora-bg-elevated)]"
+                      />
+                    )}
                     {!collapsed && (
                       <span className="flex-1 truncate">{t(`items.${item.labelKey}`)}</span>
                     )}
@@ -224,11 +240,19 @@ export default function CollectorSidebar() {
         ))}
       </nav>
 
-      <div className="flex flex-col gap-1 border-t border-white/10 px-3 py-4">
+      <div
+        className={`flex flex-col gap-1 border-t border-white/10 py-4 ${
+          collapsed ? "items-center px-2" : "px-3"
+        }`}
+      >
         {!collapsed && <div className="px-3 pb-2"><LanguageSwitcher /></div>}
         <Link
           href="/wallet"
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/60 hover:bg-white/5 hover:text-white"
+          title={collapsed ? t("topUp") : undefined}
+          aria-label={collapsed ? t("topUp") : undefined}
+          className={`flex items-center rounded-xl text-sm text-white/60 transition hover:bg-white/5 hover:text-white ${
+            collapsed ? "size-11 justify-center p-0" : "gap-3 px-3 py-2.5"
+          }`}
         >
           <span className="material-symbols-outlined text-xl">
             add_circle
@@ -238,7 +262,11 @@ export default function CollectorSidebar() {
         <Link
           href="/auth"
           onClick={() => authApi.logout()}
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/60 hover:bg-white/5 hover:text-white"
+          title={collapsed ? t("logout") : undefined}
+          aria-label={collapsed ? t("logout") : undefined}
+          className={`flex items-center rounded-xl text-sm text-white/60 transition hover:bg-white/5 hover:text-white ${
+            collapsed ? "size-11 justify-center p-0" : "gap-3 px-3 py-2.5"
+          }`}
         >
           <span className="material-symbols-outlined text-xl">logout</span>
           {!collapsed && <span>{t("logout")}</span>}

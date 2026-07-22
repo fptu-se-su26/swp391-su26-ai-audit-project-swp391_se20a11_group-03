@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { ApiError, userApi } from "@/lib/api";
 import KycClient from "@/app/kyc/KycClient";
@@ -13,6 +13,7 @@ type PasswordFieldProps = {
   visible: boolean;
   onChange: (value: string) => void;
   onToggle: () => void;
+  className?: string;
 };
 
 function PasswordField({
@@ -23,9 +24,10 @@ function PasswordField({
   visible,
   onChange,
   onToggle,
+  className = "",
 }: PasswordFieldProps) {
   return (
-    <div>
+    <div className={className}>
       <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-[#4f5663]">
         {label}
       </label>
@@ -57,11 +59,6 @@ function PasswordField({
 
 export default function SecurityClient() {
   const t = useTranslations("security");
-  const accountRef = useRef<HTMLElement>(null);
-  const identityRef = useRef<HTMLDivElement>(null);
-  const [activeSection, setActiveSection] = useState<"ACCOUNT" | "IDENTITY">(
-    "ACCOUNT",
-  );
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -69,12 +66,6 @@ export default function SecurityClient() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  function goToSection(section: "ACCOUNT" | "IDENTITY") {
-    setActiveSection(section);
-    const target = section === "ACCOUNT" ? accountRef.current : identityRef.current;
-    target?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
 
   function toggleVisibility(field: string) {
     setVisibleFields((current) => ({ ...current, [field]: !current[field] }));
@@ -120,7 +111,7 @@ export default function SecurityClient() {
 
   return (
     <main className="min-h-screen bg-[#faf8f4] text-[#17151b]">
-      <div className="mx-auto max-w-[1040px] px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1120px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
         <header>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#b5790a]">
             {t("eyebrow")}
@@ -131,46 +122,13 @@ export default function SecurityClient() {
           <p className="mt-1.5 text-sm text-[#667085]">{t("subtitle")}</p>
         </header>
 
-        <nav
-          aria-label={t("title")}
-          className="sticky top-3 z-30 mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-[#e6dfd5] bg-white/95 p-1 shadow-[0_8px_30px_rgba(72,52,22,0.08)] backdrop-blur"
-        >
-          <button
-            type="button"
-            aria-pressed={activeSection === "ACCOUNT"}
-            onClick={() => goToSection("ACCOUNT")}
-            className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-bold transition ${
-              activeSection === "ACCOUNT"
-                ? "bg-gradient-to-r from-[#d89a27] to-[#c98509] text-white shadow-[0_8px_20px_rgba(199,132,12,0.22)]"
-                : "text-[#566071] hover:bg-[#faf6ee]"
-            }`}
-          >
-            <span className="material-symbols-outlined text-[20px]">shield_lock</span>
-            {t("accountTab")}
-          </button>
-          <button
-            type="button"
-            aria-pressed={activeSection === "IDENTITY"}
-            onClick={() => goToSection("IDENTITY")}
-            className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-bold transition ${
-              activeSection === "IDENTITY"
-                ? "bg-gradient-to-r from-[#d89a27] to-[#c98509] text-white shadow-[0_8px_20px_rgba(199,132,12,0.22)]"
-                : "text-[#566071] hover:bg-[#faf6ee]"
-            }`}
-          >
-            <span className="material-symbols-outlined text-[20px]">verified_user</span>
-            {t("identityTab")}
-          </button>
-        </nav>
-
         <section
-          ref={accountRef}
-          className="scroll-mt-24 mt-5 overflow-hidden rounded-2xl border border-[#e7e0d6] bg-white shadow-[0_12px_40px_rgba(74,55,28,0.06)]"
+          className="mt-5 overflow-hidden rounded-2xl border border-[#e7e0d6] bg-white shadow-[0_12px_40px_rgba(74,55,28,0.06)]"
         >
-          <div className="grid lg:grid-cols-[1fr_290px]">
+          <div className="grid lg:grid-cols-[minmax(0,1fr)_330px]">
             <form onSubmit={handleChangePassword} className="p-5 sm:p-6">
               <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined grid size-11 place-items-center rounded-full bg-[#fbf0da] text-[#b77808]">
+                <span className="material-symbols-outlined inline-flex aspect-square h-11 w-11 min-w-11 flex-none items-center justify-center rounded-full bg-[#fbf0da] text-[#b77808]">
                   lock
                 </span>
                 <div>
@@ -190,7 +148,7 @@ export default function SecurityClient() {
                 </div>
               )}
 
-              <div className="mt-5 flex flex-col gap-3.5">
+              <div className="mt-5 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                 <PasswordField
                   id="current-password"
                   label={t("currentPassword")}
@@ -199,6 +157,7 @@ export default function SecurityClient() {
                   visible={Boolean(visibleFields.current)}
                   onChange={setCurrentPassword}
                   onToggle={() => toggleVisibility("current")}
+                  className="sm:col-span-2"
                 />
                 <PasswordField
                   id="new-password"
@@ -229,25 +188,48 @@ export default function SecurityClient() {
               </button>
             </form>
 
-            <div className="relative hidden min-h-full items-center justify-center overflow-hidden border-l border-[#f0ebe3] bg-gradient-to-br from-[#fffdfa] to-[#fbf3e5] lg:flex">
+            <aside className="relative hidden min-h-full flex-col justify-between overflow-hidden border-l border-[#f0ebe3] bg-gradient-to-br from-[#fffdfa] to-[#fbf3e5] p-5 lg:flex">
               <span className="absolute left-10 top-16 size-2 rounded-full bg-[#e8bd69]/30" />
               <span className="absolute right-12 top-24 size-3 rotate-45 border border-[#e2b75e]/35" />
-              <span className="absolute bottom-20 left-16 size-2 rotate-45 border border-[#e2b75e]/30" />
-              <div className="relative grid size-40 place-items-center rounded-[42%] border border-[#eddbb8] bg-white/70 shadow-[0_24px_45px_rgba(183,121,10,0.12)]">
-                <span className="material-symbols-outlined text-[86px] leading-none text-[#c7840d] [font-variation-settings:'FILL'_1,'wght'_500]">
-                  lock
-                </span>
-                <div className="absolute -bottom-4 rounded-xl border border-[#dfbd7d] bg-white px-5 py-2 text-lg font-black tracking-[0.25em] text-[#68420a] shadow-lg">
-                  •••••
+              <div className="relative z-10 flex flex-1 items-center justify-center py-4">
+                <div className="relative grid size-28 place-items-center rounded-[42%] border border-[#eddbb8] bg-white/80 shadow-[0_20px_38px_rgba(183,121,10,0.12)]">
+                  <span className="material-symbols-outlined text-[62px] leading-none text-[#c7840d] [font-variation-settings:'FILL'_1,'wght'_500]">
+                    lock
+                  </span>
+                  <div className="absolute -bottom-3 rounded-lg border border-[#dfbd7d] bg-white px-4 py-1.5 text-sm font-black tracking-[0.25em] text-[#68420a] shadow-md">
+                    •••••
+                  </div>
                 </div>
               </div>
-            </div>
+
+              <div className="relative z-10 rounded-xl border border-[#eadfcf] bg-white/90 p-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined inline-flex aspect-square h-10 w-10 min-w-10 flex-none items-center justify-center rounded-full bg-[#fbf0da] text-[#b77808]">
+                    security
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-sm font-bold">{t("twoFactor")}</h2>
+                    <p className="mt-0.5 text-[11px] leading-4 text-[#7a8190]">
+                      {t("twoFactorDesc")}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled
+                    aria-label={t("twoFactorUnavailable")}
+                    className="relative h-6 w-11 shrink-0 cursor-not-allowed rounded-full bg-[#ddd9d4]"
+                  >
+                    <span className="absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow-sm" />
+                  </button>
+                </div>
+              </div>
+            </aside>
           </div>
         </section>
 
-        <section className="mt-4 rounded-2xl border border-[#e7e0d6] bg-white p-5 shadow-[0_10px_30px_rgba(74,55,28,0.05)] sm:p-6">
+        <section className="mt-4 rounded-2xl border border-[#e7e0d6] bg-white p-4 shadow-[0_10px_30px_rgba(74,55,28,0.05)] lg:hidden">
           <div className="flex items-center gap-4">
-            <span className="material-symbols-outlined grid size-11 shrink-0 place-items-center rounded-full bg-[#fbf0da] text-[#b77808]">
+            <span className="material-symbols-outlined inline-flex aspect-square h-11 w-11 min-w-11 flex-none items-center justify-center rounded-full bg-[#fbf0da] text-[#b77808]">
               security
             </span>
             <div className="min-w-0 flex-1">
@@ -265,16 +247,13 @@ export default function SecurityClient() {
           </div>
         </section>
 
-        <div
-          ref={identityRef}
-          className="scroll-mt-24 mt-4"
-        >
+        <div className="mt-4">
           <KycClient embedded />
         </div>
 
-        <section className="mt-4 rounded-2xl border border-[#e7e0d6] bg-white p-5 shadow-[0_10px_30px_rgba(74,55,28,0.05)] sm:p-6">
+        <section className="mt-4 rounded-2xl border border-[#e7e0d6] bg-white p-4 shadow-[0_10px_30px_rgba(74,55,28,0.05)] sm:p-5">
           <div className="flex items-start gap-3">
-            <span className="material-symbols-outlined grid size-10 shrink-0 place-items-center rounded-full bg-[#fbf0da] text-[#b77808]">
+            <span className="material-symbols-outlined inline-flex aspect-square h-10 w-10 min-w-10 flex-none items-center justify-center rounded-full bg-[#fbf0da] text-[#b77808]">
               desktop_windows
             </span>
             <div>

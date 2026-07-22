@@ -348,6 +348,7 @@ D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\ma
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\repository\ProductImageRepository.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\repository\ProductRepository.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\repository\WatchlistRepository.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\service\AiValuationQuotaService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\service\BiddingProductService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\service\CategoryService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\service\ContractPdfAccessService.java

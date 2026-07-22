@@ -23,15 +23,31 @@ export default function Footer() {
   const footerColumns = [
     {
       title: t("infoTitle"),
-      links: [t("about"), t("contact"), t("terms"), t("privacy")],
+      links: [
+        { label: t("about"), href: "/about" },
+        { label: t("contact"), href: "mailto:support@bidzone.com" },
+        { label: t("terms"), href: "/legal#terms" },
+        { label: t("privacy"), href: "/legal#privacy" },
+      ],
     },
     {
       title: t("supportTitle"),
-      links: [t("helpCenter"), t("biddingGuide"), t("payments"), t("shipping")],
+      links: [
+        { label: t("helpCenter"), href: "/help" },
+        { label: t("biddingGuide"), href: "/help#bidding" },
+        { label: t("payments"), href: "/help#payments" },
+        { label: t("shipping"), href: "/help#shipping" },
+      ],
     },
     {
       title: t("categoriesTitle"),
-      links: [t("watches"), t("phones"), t("laptops"), t("cameras"), t("seeAll")],
+      links: [
+        { label: t("watches"), href: "/storefront?category=2" },
+        { label: t("art"), href: "/storefront?category=1" },
+        { label: t("jewelry"), href: "/storefront?category=3" },
+        { label: t("furniture"), href: "/storefront?category=5" },
+        { label: t("seeAll"), href: "/categories" },
+      ],
     },
   ];
   return (
@@ -74,12 +90,12 @@ export default function Footer() {
                 </h3>
                 <ul className="mt-4 space-y-2">
                   {column.links.map((link) => (
-                    <li key={link}>
+                    <li key={link.href}>
                       <Link
-                        href="/storefront"
+                        href={link.href}
                         className="text-sm text-white/55 transition-colors hover:text-white"
                       >
-                        {link}
+                        {link.label}
                       </Link>
                     </li>
                   ))}
@@ -88,14 +104,31 @@ export default function Footer() {
             ))}
           </div>
 
-          <div>
+          <div id="contact">
             <h3 className="text-xs font-semibold tracking-[0.2em] text-[#f0c982]">
               {t("infoTitle")}
             </h3>
             <div className="mt-4 space-y-2 text-sm leading-relaxed text-white/55">
-              <p>{t("contactPhone", { phone: "1900 8888" })}</p>
-              <p>{t("contactEmail", { email: "support@bidzone.com" })}</p>
-              <p>{t("contactAddress", { address: "123 Lê Lợi, Quận 1, TP. Hồ Chí Minh" })}</p>
+              <p>
+                <a href="tel:19008888" className="transition-colors hover:text-white">
+                  {t("contactPhone", { phone: "1900 8888" })}
+                </a>
+              </p>
+              <p>
+                <a href="mailto:support@bidzone.com" className="transition-colors hover:text-white">
+                  {t("contactEmail", { email: "support@bidzone.com" })}
+                </a>
+              </p>
+              <p>
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=123+Le+Loi+Quan+1+Ho+Chi+Minh"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="transition-colors hover:text-white"
+                >
+                  {t("contactAddress", { address: "123 Lê Lợi, Quận 1, TP. Hồ Chí Minh" })}
+                </a>
+              </p>
             </div>
           </div>
         </div>

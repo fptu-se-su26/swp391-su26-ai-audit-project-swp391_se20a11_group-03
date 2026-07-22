@@ -1,10 +1,12 @@
 export type LiveAuctionItem = {
   id: string;
+  status: "ACTIVE" | "UPCOMING";
   title: string;
   subtitle: string;
   currentPrice: string;
   estimatedPrice: string;
   bidCount: number;
+  startsAt: number;
   endsAt: number;
   imageSrc: string;
 };

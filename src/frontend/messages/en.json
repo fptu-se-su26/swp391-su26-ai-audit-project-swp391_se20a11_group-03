@@ -103,12 +103,47 @@
     "payments": "Payments",
     "shipping": "Shipping & delivery",
     "watches": "Watches",
+    "art": "Art",
+    "jewelry": "Jewelry",
+    "furniture": "Furniture",
     "phones": "Phones",
     "laptops": "Laptops",
     "cameras": "Cameras",
     "contactPhone": "Hotline: {phone}",
     "contactEmail": "Email: {email}",
     "contactAddress": "Address: {address}"
+  },
+  "helpPage": {
+    "badge": "BIDZONE SUPPORT",
+    "title": "Help center",
+    "description": "Essential information for bidding, payments, and delivery tracking.",
+    "openFeature": "Open feature",
+    "contactSupport": "Contact support",
+    "bidding": {
+      "title": "Bidding guide",
+      "description": "Choose an auction, complete the required deposit, and place bids while the room is open.",
+      "href": "/auctions"
+    },
+    "payments": {
+      "title": "Payments",
+      "description": "Manage your balance, add funds, and review transaction history in your BidZone wallet.",
+      "href": "/wallet"
+    },
+    "shipping": {
+      "title": "Shipping and delivery",
+      "description": "Track delivery progress and confirm when an item has arrived safely.",
+      "href": "/orders"
+    }
+  },
+  "legalPage": {
+    "badge": "LEGAL",
+    "title": "Terms and privacy",
+    "description": "General rules for using the BidZone auction platform.",
+    "termsTitle": "Terms of service",
+    "termsBody": "Users must provide accurate information and follow the identity verification, deposit, bidding, and payment processes. Fraud, self-bidding, and counterfeit listings are prohibited.",
+    "privacyTitle": "Privacy policy",
+    "privacyBody": "BidZone uses account and verification information to protect transactions, control access, and meet legal obligations. Data is processed only as necessary to operate the platform.",
+    "contact": "Contact support"
   },
   "auth": {
     "login": "Log in",
@@ -263,8 +298,11 @@
     "startingPrice": "Starting price {price}",
     "currentPrice": "Current price",
     "ends": "Ends",
+    "starts": "Starts in",
+    "upcomingBadge": "UPCOMING",
     "bids": "Bids",
     "bidNow": "BID NOW",
+    "viewAuction": "VIEW AUCTION",
     "zoomIn": "Zoom in",
     "closeZoom": "Close zoom",
     "selectedItem": "Selected item"
@@ -279,7 +317,7 @@
   "home": {
     "liveSection": "LIVE AUCTIONS",
     "seeAll": "SEE ALL",
-    "noLiveAuctions": "No live auctions at the moment. Check back later!"
+    "noLiveAuctions": "No live or upcoming auctions at the moment. Check back later!"
   },
   "cta": {
     "imageAlt": "Premium watch auction collection",
@@ -547,7 +585,9 @@
     "approvedDesc": "Your identity has been verified. You can now use all features.",
     "sellerAlreadyTitle": "You are already a Seller",
     "sellerAlreadyDesc": "Your seller contract has been signed electronically. Go to \"List an item\" to start selling.",
-    "registerSellerTitle": "Register as Seller",
+    "registerSellerTitle": "Upgrade role to Seller",
+    "sellerUpgradeDesc": "Your identity is verified and your account is eligible to become a seller on BidZone.",
+    "upgradeSellerBtn": "Upgrade now",
     "registerSellerDesc": "Your identity has been verified — you are eligible to register as a seller. Simply read and sign the seller contract and your account will be upgraded <b>immediately</b>, no review required.",
     "viewContractBtn": "Read seller contract (PDF)",
     "openingContract": "Opening contract...",
@@ -561,6 +601,9 @@
     "pendingBadge": "Profile under review",
     "pendingDesc": "Your KYC submission is being reviewed. You cannot edit or resubmit until staff have processed it. If rejected, you will be able to resubmit.",
     "formTitle": "Identity Verification",
+    "collapsedDescription": "Verify with your ID card and a selfie to improve account security, protect transactions, and unlock all account features.",
+    "startVerification": "Start verification",
+    "collapseForm": "Collapse",
     "rejectedNotice": "Your previous submission was rejected.",
     "infoRequiredNotice": "Staff requested additional information.",
     "rejectionReasonSuffix": " Reason: {reason}",
@@ -1457,6 +1500,8 @@
     },
     "autoBid": {
       "title": "How does Auto Bid work?",
+      "subtitle": "Set it once and let the system follow the auction for you.",
+      "automatic": "Automatic & secure",
       "steps": {
         "set": { "title": "Set your price", "description": "Choose your maximum bid" },
         "outbid": { "title": "Someone outbids you", "description": "The system detects a higher bid" },

@@ -24,7 +24,7 @@ export default function HomeDynamicSections() {
   useEffect(() => {
     let active = true;
 
-    async function loadData() {
+    async function loadInitialData() {
       const [nextLiveItems, nextLots] = await Promise.all([
         fetchLiveAuctions(5),
         fetchStorefrontLots(),
@@ -38,12 +38,25 @@ export default function HomeDynamicSections() {
       setLoaded(true);
     }
 
-    loadData().catch(() => {
+    async function refreshLiveAuctions() {
+      const nextLiveItems = await fetchLiveAuctions(5);
+      if (active) setLiveItems(nextLiveItems);
+    }
+
+    void loadInitialData().catch(() => {
       if (active) setLoaded(true);
     });
 
+    // A scheduled LIVE room can become active while the visitor is already on
+    // the homepage, so keep this section synchronized without a manual reload.
+    const liveRefreshInterval = window.setInterval(
+      () => void refreshLiveAuctions(),
+      10_000,
+    );
+
     return () => {
       active = false;
+      window.clearInterval(liveRefreshInterval);
     };
   }, []);
 

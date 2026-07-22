@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ApiError, kycApi, sellerContractApi, updateRoleCookie, userApi } from "@/lib/api";
 import LuxuryDatePicker from "@/components/ui/LuxuryDatePicker";
@@ -29,7 +30,7 @@ function ImagePicker({
   const inputRef = useRef<HTMLInputElement>(null);
   return (
     <div className="rounded-xl border border-[#e8e1d7] bg-[#fffdfa] p-4">
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex items-start justify-between gap-2">
         <p className="text-sm font-semibold">{title}</p>
         <span
           className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
@@ -46,9 +47,9 @@ function ImagePicker({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="flex w-full items-center justify-center gap-4 rounded-xl border border-dashed border-[#d9d2c8] bg-white px-4 py-7 text-center transition hover:border-[#d3982c] hover:bg-[#fffaf0]"
+          className="flex min-h-28 w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#d9d2c8] bg-white px-3 py-5 text-center transition hover:border-[#d3982c] hover:bg-[#fffaf0]"
         >
-          <span className="material-symbols-outlined grid size-12 place-items-center rounded-full bg-[#f6f2eb] text-3xl text-[#757d89]">
+          <span className="material-symbols-outlined inline-flex aspect-square h-12 w-12 min-w-12 flex-none items-center justify-center rounded-full bg-[#f6f2eb] text-3xl text-[#757d89]">
             cloud_upload
           </span>
           <p className="text-sm text-[#667085]">{clickToSelectLabel}</p>
@@ -95,6 +96,8 @@ const CCCD_PATTERN = /^0\d{11}$/;
 
 export default function KycClient({ embedded = false }: { embedded?: boolean }) {
   const t = useTranslations("kycPage");
+  const router = useRouter();
+  const [formExpanded, setFormExpanded] = useState(!embedded);
   const [front, setFront] = useState<Picked>(null);
   const [back, setBack] = useState<Picked>(null);
   const [selfie, setSelfie] = useState<Picked>(null);
@@ -120,6 +123,8 @@ export default function KycClient({ embedded = false }: { embedded?: boolean }) 
   const [success, setSuccess] = useState<string | null>(null);
 
   const [statusLoading, setStatusLoading] = useState(true);
+  const [roleLoading, setRoleLoading] = useState(true);
+  const [identityVerified, setIdentityVerified] = useState(false);
   const [existingStatus, setExistingStatus] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
 
@@ -127,16 +132,30 @@ export default function KycClient({ embedded = false }: { embedded?: boolean }) 
     kycApi
       .mine()
       .then((res) => {
-        setExistingStatus(res.data?.status ?? null);
+        const status = res.data?.status ?? null;
+        setExistingStatus(status);
         setRejectionReason(res.data?.rejectionReason ?? null);
+        if (embedded && (status === "REJECTED" || status === "INFO_REQUIRED")) {
+          setFormExpanded(true);
+        }
       })
       .catch(() => setExistingStatus(null))
       .finally(() => setStatusLoading(false));
     userApi
       .profile()
-      .then((res) => setRoleName(res.data.roleName))
-      .catch(() => setRoleName(null));
-  }, [success, sellerSuccess]);
+      .then((res) => {
+        setRoleName(res.data.roleName);
+        setIdentityVerified(res.data.identityVerified);
+        if (!embedded && res.data.identityVerified) {
+          router.replace("/security");
+        }
+      })
+      .catch(() => {
+        setRoleName(null);
+        setIdentityVerified(false);
+      })
+      .finally(() => setRoleLoading(false));
+  }, [embedded, router, success, sellerSuccess]);
 
   async function handleBecomeSeller() {
     setSellerError(null);
@@ -259,7 +278,7 @@ export default function KycClient({ embedded = false }: { embedded?: boolean }) 
     }
   }
 
-  if (statusLoading) {
+  if (statusLoading || roleLoading) {
     return (
       <div
         className={
@@ -273,9 +292,147 @@ export default function KycClient({ embedded = false }: { embedded?: boolean }) 
     );
   }
 
-  if (existingStatus === "APPROVED") {
+  // The account profile is the authoritative verification flag. Once verified,
+  // the standalone KYC route is closed and the security page shows Seller upgrade.
+  if (!embedded && identityVerified) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-10 text-sm text-[#667085]">
+        {t("statusLoading")}
+      </div>
+    );
+  }
+
+  const effectiveStatus = identityVerified ? "APPROVED" : existingStatus;
+
+  if (effectiveStatus === "APPROVED") {
     const isSeller = (roleName ?? "").toLowerCase() === "seller";
     const isBasicUser = (roleName ?? "").toLowerCase() === "user";
+
+    if (embedded && isBasicUser && !sellerSuccess && !formExpanded) {
+      return (
+        <section className="rounded-2xl border border-[#e7e0d6] bg-white shadow-[0_10px_30px_rgba(74,55,28,0.05)]">
+          <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:p-6">
+            <span className="material-symbols-outlined inline-flex aspect-square h-12 w-12 min-w-12 flex-none items-center justify-center rounded-full bg-[#fbf0da] text-2xl text-[#b77808]">
+              storefront
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-bold">{t("registerSellerTitle")}</h2>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-[#667085]">
+                {t("sellerUpgradeDesc")}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFormExpanded(true)}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#d89a27] to-[#c98509] px-5 py-3 text-sm font-bold text-white shadow-[0_8px_22px_rgba(199,132,12,0.18)] transition hover:-translate-y-0.5"
+            >
+              <span className="material-symbols-outlined text-[19px]">upgrade</span>
+              {t("upgradeSellerBtn")}
+            </button>
+          </div>
+        </section>
+      );
+    }
+
+    if (isSeller || sellerSuccess) {
+      return (
+        <section
+          className={
+            embedded
+              ? "rounded-2xl border border-[#ead3a7] bg-[#fff8e9] p-5 shadow-[0_10px_30px_rgba(74,55,28,0.05)] sm:p-6"
+              : "mx-auto max-w-3xl px-6 py-10 text-[#17151b]"
+          }
+        >
+          <div className="flex flex-col items-center gap-2 text-center">
+            <span className="material-symbols-outlined text-4xl text-[#b77808]">
+              storefront
+            </span>
+            <h1 className="text-lg font-semibold text-[#8d5b06]">
+              {sellerSuccess ?? t("sellerAlreadyTitle")}
+            </h1>
+            <p className="text-sm text-[#667085]">{t("sellerAlreadyDesc")}</p>
+          </div>
+        </section>
+      );
+    }
+
+    if (isBasicUser) {
+      return (
+        <section
+          className={
+            embedded
+              ? "rounded-2xl border border-[#e7e0d6] bg-white p-5 shadow-[0_10px_30px_rgba(74,55,28,0.05)] sm:p-6"
+              : "mx-auto max-w-3xl px-6 py-10 text-[#17151b]"
+          }
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-2xl text-[#b77808]">
+                storefront
+              </span>
+              <h1 className={embedded ? "text-lg font-bold" : "text-3xl font-bold"}>
+                {t("registerSellerTitle")}
+              </h1>
+            </div>
+            {embedded && (
+              <button
+                type="button"
+                onClick={() => setFormExpanded(false)}
+                className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#e4ddd3] px-3 py-2 text-xs font-semibold text-[#667085] transition hover:border-[#d3982c] hover:bg-[#fffaf0] hover:text-[#9c6507]"
+              >
+                <span className="material-symbols-outlined text-[17px]">expand_less</span>
+                <span className="hidden sm:inline">{t("collapseForm")}</span>
+              </button>
+            )}
+          </div>
+          <p className="mt-3 text-sm leading-6 text-[#667085]">
+            {t.rich("registerSellerDesc", {
+              b: (chunks) => <b>{chunks}</b>,
+            })}
+          </p>
+
+          <button
+            type="button"
+            onClick={handleViewContract}
+            disabled={contractLoading}
+            className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#a66b06] hover:underline disabled:opacity-50"
+          >
+            <span className="material-symbols-outlined text-base">picture_as_pdf</span>
+            {contractLoading ? t("openingContract") : t("viewContractBtn")}
+          </button>
+
+          <label className="mt-3 flex items-start gap-2 text-xs text-[#667085]">
+            <input
+              type="checkbox"
+              checked={agreeSellerTerms}
+              onChange={(e) => setAgreeSellerTerms(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              {t.rich("agreeSellerTerms", {
+                b: (chunks) => <b>{chunks}</b>,
+              })}
+            </span>
+          </label>
+
+          {sellerError && (
+            <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {sellerError}
+            </div>
+          )}
+
+          <button
+            type="button"
+            disabled={registering || !agreeSellerTerms}
+            onClick={() => void handleBecomeSeller()}
+            className="mt-5 w-full rounded-xl bg-gradient-to-r from-[#d89a27] to-[#c98509] py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {registering ? t("signingContract") : t("signAndRegisterBtn")}
+          </button>
+        </section>
+      );
+    }
+
     return (
       <div
         className={
@@ -295,77 +452,11 @@ export default function KycClient({ embedded = false }: { embedded?: boolean }) 
           </p>
         </div>
 
-        {isSeller || sellerSuccess ? (
-          <div className="mt-5 flex flex-col items-center gap-2 rounded-2xl border border-[#ead3a7] bg-[#fff8e9] p-7 text-center">
-            <span className="material-symbols-outlined text-4xl text-[#b77808]">
-              storefront
-            </span>
-            <p className="text-base font-semibold text-[#8d5b06]">
-              {sellerSuccess ?? t("sellerAlreadyTitle")}
-            </p>
-            <p className="text-sm text-[#667085]">
-              {t("sellerAlreadyDesc")}
-            </p>
-          </div>
-        ) : isBasicUser ? (
-          <div className="mt-5 rounded-2xl border border-[#e7e0d6] bg-[#fffdfa] p-6">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-2xl text-[#b77808]">
-                storefront
-              </span>
-              <h2 className="text-base font-semibold">{t("registerSellerTitle")}</h2>
-            </div>
-            <p className="mt-2 text-sm leading-6 text-[#667085]">
-              {t.rich("registerSellerDesc", {
-                b: (chunks) => <b>{chunks}</b>,
-              })}
-            </p>
-
-            <button
-              type="button"
-              onClick={handleViewContract}
-              disabled={contractLoading}
-              className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#a66b06] hover:underline disabled:opacity-50"
-            >
-              <span className="material-symbols-outlined text-base">picture_as_pdf</span>
-              {contractLoading ? t("openingContract") : t("viewContractBtn")}
-            </button>
-
-            <label className="mt-3 flex items-start gap-2 text-xs text-[#667085]">
-              <input
-                type="checkbox"
-                checked={agreeSellerTerms}
-                onChange={(e) => setAgreeSellerTerms(e.target.checked)}
-                className="mt-0.5"
-              />
-              <span>
-                {t.rich("agreeSellerTerms", {
-                  b: (chunks) => <b>{chunks}</b>,
-                })}
-              </span>
-            </label>
-
-            {sellerError && (
-              <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {sellerError}
-              </div>
-            )}
-
-            <button
-              type="button"
-              disabled={registering || !agreeSellerTerms}
-              onClick={() => void handleBecomeSeller()}
-              className="mt-5 w-full rounded-xl bg-gradient-to-r from-[#d89a27] to-[#c98509] py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {registering ? t("signingContract") : t("signAndRegisterBtn")}
-            </button>
-          </div>
-        ) : null}
       </div>
     );
   }
 
-  if (existingStatus === "PENDING") {
+  if (effectiveStatus === "PENDING") {
     return (
       <div
         className={
@@ -388,6 +479,32 @@ export default function KycClient({ embedded = false }: { embedded?: boolean }) 
     );
   }
 
+  if (embedded && !formExpanded) {
+    return (
+      <section className="rounded-2xl border border-[#e7e0d6] bg-white shadow-[0_10px_30px_rgba(74,55,28,0.05)]">
+        <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:p-6">
+          <span className="material-symbols-outlined inline-flex aspect-square h-12 w-12 min-w-12 flex-none items-center justify-center rounded-full bg-[#fbf0da] text-2xl text-[#b77808]">
+            verified_user
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-lg font-bold">{t("formTitle")}</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-[#667085]">
+              {t("collapsedDescription")}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFormExpanded(true)}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#d89a27] to-[#c98509] px-5 py-3 text-sm font-bold text-white shadow-[0_8px_22px_rgba(199,132,12,0.18)] transition hover:-translate-y-0.5"
+          >
+            <span className="material-symbols-outlined text-[19px]">badge</span>
+            {t("startVerification")}
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -397,21 +514,37 @@ export default function KycClient({ embedded = false }: { embedded?: boolean }) 
           : "mx-auto max-w-3xl px-6 py-10 text-[#17151b]"
       }
     >
-      <h1 className={embedded ? "text-lg font-bold" : "text-3xl font-bold"}>
-        {t("formTitle")}
-      </h1>
-      {(existingStatus === "REJECTED" || existingStatus === "INFO_REQUIRED") && (
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <span className="material-symbols-outlined inline-flex aspect-square h-11 w-11 min-w-11 flex-none items-center justify-center rounded-full bg-[#fbf0da] text-[#b77808]">
+            verified_user
+          </span>
+          <div>
+            <h1 className={embedded ? "text-lg font-bold" : "text-3xl font-bold"}>
+              {t("formTitle")}
+            </h1>
+            <p className="mt-1 text-sm text-[#667085]">{t("formSubtitle")}</p>
+          </div>
+        </div>
+        {embedded && (
+          <button
+            type="button"
+            onClick={() => setFormExpanded(false)}
+            className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#e4ddd3] px-3 py-2 text-xs font-semibold text-[#667085] transition hover:border-[#d3982c] hover:bg-[#fffaf0] hover:text-[#9c6507]"
+          >
+            <span className="material-symbols-outlined text-[17px]">expand_less</span>
+            <span className="hidden sm:inline">{t("collapseForm")}</span>
+          </button>
+        )}
+      </div>
+      {(effectiveStatus === "REJECTED" || effectiveStatus === "INFO_REQUIRED") && (
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {existingStatus === "REJECTED" ? t("rejectedNotice") : t("infoRequiredNotice")}
+          {effectiveStatus === "REJECTED" ? t("rejectedNotice") : t("infoRequiredNotice")}
           {rejectionReason ? t("rejectionReasonSuffix", { reason: rejectionReason }) : ""}
           {t("resubmitSuffix")}
         </div>
       )}
-      <p className="mt-2 text-sm text-[#667085]">
-        {t("formSubtitle")}
-      </p>
-
-      <div className="mt-6">
+      <div className="mt-5">
         <div className="mb-2 flex items-center justify-between text-xs text-[#667085]">
           <span>{t("uploadProgress")}</span>
           <span>{uploaded}/3</span>
@@ -424,7 +557,7 @@ export default function KycClient({ embedded = false }: { embedded?: boolean }) 
         </div>
       </div>
 
-      <div className="mt-8 flex flex-col gap-5">
+      <div className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-3">
         <ImagePicker
           title={t("frontImageTitle")}
           value={front}
@@ -461,12 +594,12 @@ export default function KycClient({ embedded = false }: { embedded?: boolean }) 
         type="button"
         onClick={handleOcr}
         disabled={ocrLoading || !front || !back}
-        className="mt-5 w-full rounded-xl border border-[#d8aa55] py-3 text-sm font-semibold text-[#9c6507] transition hover:bg-[#fff8e9] disabled:opacity-40"
+        className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-[#d8aa55] px-5 py-3 text-sm font-semibold text-[#9c6507] transition hover:bg-[#fff8e9] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
       >
         {ocrLoading ? t("ocrLoading") : t("ocrBtn")}
       </button>
 
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className="mb-1.5 block text-xs font-medium text-[#4f5663]">{t("fullNameLabel")}</label>
           <input
@@ -559,7 +692,7 @@ export default function KycClient({ embedded = false }: { embedded?: boolean }) 
       <button
         type="submit"
         disabled={submitting || uploaded < 3}
-        className="mt-8 w-full rounded-xl bg-gradient-to-r from-[#d89a27] to-[#c98509] py-3.5 text-sm font-semibold text-white shadow-[0_8px_22px_rgba(199,132,12,0.18)] disabled:cursor-not-allowed disabled:opacity-40"
+        className="mt-6 w-full rounded-xl bg-gradient-to-r from-[#d89a27] to-[#c98509] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_8px_22px_rgba(199,132,12,0.18)] disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:min-w-56"
       >
         {submitting ? t("submitting") : t("submitBtn")}
       </button>
