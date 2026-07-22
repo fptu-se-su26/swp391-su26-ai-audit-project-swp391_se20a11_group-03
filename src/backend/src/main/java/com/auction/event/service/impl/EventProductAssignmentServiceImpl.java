@@ -88,8 +88,9 @@ public class EventProductAssignmentServiceImpl implements EventProductAssignment
         eventProduct.setRejectReason(null);
 
         if (eventProduct.getProductId() != null) {
-            Product product = productRepository.findById(eventProduct.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + eventProduct.getProductId()));
+            Long productId = eventProduct.getProductId();
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
             product.setLockedInEvent(true);
             productRepository.save(product);
         }

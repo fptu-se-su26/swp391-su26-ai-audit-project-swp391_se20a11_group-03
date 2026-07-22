@@ -19,6 +19,7 @@ import com.auction.event.repository.AuctionEventRepository;
 import com.auction.event.repository.EventProductRepository;
 import com.auction.event.repository.EventRegistrationRepository;
 import com.auction.event.service.EventSellerService;
+import com.auction.product.dto.ProductResponseDTO;
 import com.auction.product.entity.Product;
 import com.auction.product.repository.ProductRepository;
 import com.auction.product.service.ProductService;
@@ -152,7 +153,7 @@ public class EventSellerServiceImpl implements EventSellerService {
             registerAsSeller(eventId, sellerId);
         }
 
-        Product product = productService.createProduct(request, sellerId);
+        ProductResponseDTO product = productService.createProduct(request, sellerId);
 
         EventProduct eventProduct = new EventProduct();
         eventProduct.setEventId(eventId);

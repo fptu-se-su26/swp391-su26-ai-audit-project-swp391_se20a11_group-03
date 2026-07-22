@@ -1,0 +1,17 @@
+com\auction\bidding\AuctionSettlementServiceTest.class
+com\auction\bidding\util\DepositCalculatorTest.class
+com\auction\bidding\BiddingServiceAccessTest.class
+com\auction\account\KycInputValidatorTest.class
+com\auction\common\util\JpaUtilTest.class
+com\auction\bidding\StepCalculatorTest.class
+com\auction\bidding\BiddingServiceTimerTest.class
+com\auction\account\AuthValidatorEmailOnlyTest.class
+com\auction\fraud\FraudDetectionServiceTest.class
+com\auction\order\OrderServiceStateMachineTest.class
+com\auction\common\service\GroqKeyPoolTest.class
+com\auction\product\ProductApprovalKycTest.class
+com\auction\account\RegistrationEmailVerificationServiceTest.class
+com\auction\fraud\FraudRiskLevelTest.class
+com\auction\account\TwilioVerifyServiceTest.class
+com\auction\order\OrderServiceTest.class
+com\auction\fraud\FraudActionServiceTest.class
