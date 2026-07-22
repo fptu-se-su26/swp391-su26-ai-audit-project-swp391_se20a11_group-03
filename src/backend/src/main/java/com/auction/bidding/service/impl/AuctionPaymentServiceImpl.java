@@ -62,7 +62,7 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
             throw new IllegalStateException("Payment window has expired for this auction");
         }
 
-        Wallet buyerWallet = walletRepository.findLockedByUser_Id(Math.toIntExact(userId))
+        Wallet buyerWallet = walletRepository.findByUserIdForUpdate(Math.toIntExact(userId))
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found for user: " + userId));
 
         AuctionDeposit deposit = auctionDepositRepository
@@ -159,7 +159,7 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
         if (admin == null) {
             return null;
         }
-        return walletRepository.findLockedByUser_Id(admin.getId()).orElseGet(() -> {
+        return walletRepository.findByUserIdForUpdate(admin.getId()).orElseGet(() -> {
             Wallet w = new Wallet();
             w.setUser(admin);
             w.setBalance(0L);
