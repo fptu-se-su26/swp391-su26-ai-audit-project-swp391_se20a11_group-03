@@ -254,11 +254,11 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
   }
 
   return (
-    <main className="luxora-app auth-page min-h-screen overflow-x-hidden lg:fixed lg:inset-0 lg:h-dvh lg:min-h-0 lg:w-full lg:overflow-hidden">
+    <main className="luxora-app auth-page min-h-screen overflow-x-hidden">
       <div className="auth-page__glow auth-page__glow--one" aria-hidden="true" />
       <div className="auth-page__glow auth-page__glow--two" aria-hidden="true" />
 
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-4 sm:px-6 lg:h-full lg:min-h-0 lg:px-10">
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1440px] flex-col px-4 sm:px-6 lg:px-10">
         <header className="flex h-20 shrink-0 items-center justify-between">
           <Link
             href="/"
@@ -280,7 +280,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
           </div>
         </header>
 
-        <section className="auth-layout mb-6 grid flex-1 overflow-hidden rounded-[28px] lg:mb-5 lg:min-h-0 lg:grid-cols-[1.08fr_0.92fr]">
+        <section className="auth-layout mb-6 grid overflow-hidden rounded-[28px] lg:mb-5 lg:min-h-[calc(100dvh-7rem)] lg:grid-cols-[1.08fr_0.92fr]">
           <div className="theme-dark-content relative hidden min-h-0 overflow-hidden lg:flex">
             <Image
               src="/images/hero-auction-dark-v2.webp"
@@ -328,7 +328,7 @@ export default function AuthPage({ searchParams }: AuthPageProps) {
             </div>
           </div>
 
-          <div className="auth-form-pane flex min-h-[calc(100dvh-7rem)] min-w-0 flex-col justify-center px-5 py-8 sm:px-10 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:px-12 lg:py-5 xl:px-16">
+          <div className="auth-form-pane flex min-h-[calc(100dvh-7rem)] min-w-0 flex-col justify-center px-5 py-8 sm:px-10 lg:px-12 lg:py-8 xl:px-16">
             <div className="theme-dark-content relative mb-8 min-h-40 overflow-hidden rounded-2xl p-6 lg:hidden">
               <Image
                 src="/images/hero-auction-dark-v2.webp"

@@ -186,7 +186,7 @@ export default function SupportClient() {
   }
 
   return (
-    <div className="m-4 flex h-[calc(100vh-2rem)] overflow-hidden rounded-3xl border border-white/10">
+    <div className="m-4 flex min-h-[calc(100vh-2rem)] overflow-x-hidden rounded-3xl border border-white/10">
       {/* Sidebar */}
       <aside className="w-80 shrink-0 overflow-y-auto border-r border-white/10">
         <div className="border-b border-white/10 p-4">

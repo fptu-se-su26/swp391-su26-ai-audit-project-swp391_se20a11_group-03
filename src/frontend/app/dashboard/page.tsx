@@ -202,7 +202,9 @@ export default function DashboardPage() {
               <div className="flex flex-col gap-1">
                 {[
                   { label: "Watchlist", href: "/watchlist", icon: "visibility" },
-                  { label: "KYC", href: "/kyc", icon: "verified_user" },
+                  data.account.profile.identityVerified
+                    ? { label: "Nâng cấp Seller", href: "/security", icon: "storefront" }
+                    : { label: "KYC", href: "/kyc", icon: "verified_user" },
                   { label: "Messages", href: "/messages", icon: "chat" },
                 ].map((item) => (
                   <Link

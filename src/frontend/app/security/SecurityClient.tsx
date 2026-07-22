@@ -128,7 +128,7 @@ export default function SecurityClient() {
           <div className="grid lg:grid-cols-[minmax(0,1fr)_330px]">
             <form onSubmit={handleChangePassword} className="p-5 sm:p-6">
               <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined grid size-11 place-items-center rounded-full bg-[#fbf0da] text-[#b77808]">
+                <span className="material-symbols-outlined inline-flex aspect-square h-11 w-11 min-w-11 flex-none items-center justify-center rounded-full bg-[#fbf0da] text-[#b77808]">
                   lock
                 </span>
                 <div>
@@ -204,7 +204,7 @@ export default function SecurityClient() {
 
               <div className="relative z-10 rounded-xl border border-[#eadfcf] bg-white/90 p-4 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined grid size-10 shrink-0 place-items-center rounded-full bg-[#fbf0da] text-[#b77808]">
+                  <span className="material-symbols-outlined inline-flex aspect-square h-10 w-10 min-w-10 flex-none items-center justify-center rounded-full bg-[#fbf0da] text-[#b77808]">
                     security
                   </span>
                   <div className="min-w-0 flex-1">
@@ -229,7 +229,7 @@ export default function SecurityClient() {
 
         <section className="mt-4 rounded-2xl border border-[#e7e0d6] bg-white p-4 shadow-[0_10px_30px_rgba(74,55,28,0.05)] lg:hidden">
           <div className="flex items-center gap-4">
-            <span className="material-symbols-outlined grid size-11 shrink-0 place-items-center rounded-full bg-[#fbf0da] text-[#b77808]">
+            <span className="material-symbols-outlined inline-flex aspect-square h-11 w-11 min-w-11 flex-none items-center justify-center rounded-full bg-[#fbf0da] text-[#b77808]">
               security
             </span>
             <div className="min-w-0 flex-1">
@@ -253,7 +253,7 @@ export default function SecurityClient() {
 
         <section className="mt-4 rounded-2xl border border-[#e7e0d6] bg-white p-4 shadow-[0_10px_30px_rgba(74,55,28,0.05)] sm:p-5">
           <div className="flex items-start gap-3">
-            <span className="material-symbols-outlined grid size-10 shrink-0 place-items-center rounded-full bg-[#fbf0da] text-[#b77808]">
+            <span className="material-symbols-outlined inline-flex aspect-square h-10 w-10 min-w-10 flex-none items-center justify-center rounded-full bg-[#fbf0da] text-[#b77808]">
               desktop_windows
             </span>
             <div>
