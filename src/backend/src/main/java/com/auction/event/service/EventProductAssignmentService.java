@@ -1,6 +1,7 @@
 package com.auction.event.service;
 
 import com.auction.event.dto.EventProductResponse;
+import com.auction.product.dto.AvailableProductForEventDTO;
 
 import java.util.List;
 
@@ -11,4 +12,5 @@ public interface EventProductAssignmentService {
     void removeProductFromEvent(Long eventProductId, Long adminId);
     List<EventProductResponse> getEventProducts(Long eventId);
     EventProductResponse getEventProductById(Long eventProductId);
+    List<AvailableProductForEventDTO> getAvailableProducts();
 }

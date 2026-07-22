@@ -50,6 +50,15 @@ public class PremiumPurchaseService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public boolean isPremiumActive(Long userId) {
+        Wallet wallet = walletRepository.findByUser_Id(Math.toIntExact(userId)).orElse(null);
+        if (wallet == null) {
+            return false;
+        }
+        return isActive(calculateExpiresAt(wallet.getWalletId()), LocalDateTime.now());
+    }
+
     @Transactional
     public PremiumPurchaseResponse purchase(Long userId, PremiumPlan plan) {
         if (plan == null) {

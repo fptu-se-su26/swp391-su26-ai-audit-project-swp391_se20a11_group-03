@@ -10,6 +10,7 @@ import {
   uploadImages,
 } from "@/lib/api";
 import { useApiData } from "@/lib/use-api-data";
+import EventProductsPanel from "./EventProductsPanel";
 
 type EventFormState = {
   name: string;
@@ -42,16 +43,16 @@ const statusColors: Record<EventStatusValue, string> = {
 };
 
 const biddingModeOptions: { value: BiddingModeValue; label: string; hint: string }[] = [
-  { value: "STANDARD", label: "Standard", hint: "Đấu giá chuẩn, không cần config riêng." },
-  { value: "DUTCH", label: "Dutch", hint: "Đấu giá Hà Lan, cần cấu hình giảm giá." },
-  { value: "SEALED_BID", label: "Sealed Bid", hint: "Đấu giá kín, cần cấu hình lượt reveal." },
-  { value: "PENNY", label: "Penny", hint: "Đấu giá xu, cần cấu hình bước giá/time extend." },
+  { value: "STANDARD", label: "Tiêu chuẩn", hint: "Đấu giá chuẩn, không cần config riêng." },
+  { value: "DUTCH", label: "Kiểu Hà Lan", hint: "Đấu giá Hà Lan, cần cấu hình giảm giá." },
+  { value: "SEALED_BID", label: "Đấu giá kín", hint: "Đấu giá kín, cần cấu hình lượt reveal." },
+  { value: "PENNY", label: "Đấu giá xu", hint: "Đấu giá xu, cần cấu hình bước giá/time extend." },
 ];
 
 const categoryOptions: { value: EventCategoryValue; label: string }[] = [
-  { value: "GENERAL", label: "General" },
-  { value: "THEMED", label: "Themed" },
-  { value: "CHARITY", label: "Charity" },
+  { value: "GENERAL", label: "Tổng hợp" },
+  { value: "THEMED", label: "Theo chủ đề" },
+  { value: "CHARITY", label: "Từ thiện" },
 ];
 
 const defaultDutchConfig = JSON.stringify({ startPrice: 10000000, decrementAmount: 250000, decrementEverySeconds: 60 }, null, 2);
@@ -237,11 +238,16 @@ export default function EventsClient() {
       if (editingEventId == null) {
         const response = await adminApi.createEvent(payload);
         setData((items) => [response.data, ...items]);
+        // Stay in the modal, now in "edit" mode, so the product-management
+        // panel (which needs a real eventId) becomes available immediately
+        // instead of forcing a second click on "Sửa".
+        setEditingEventId(response.data.eventId);
+        setForm(fromEvent(response.data));
       } else {
         const response = await adminApi.updateEvent(editingEventId, payload);
         setData((items) => items.map((item) => (item.eventId === editingEventId ? response.data : item)));
+        closeModal();
       }
-      closeModal();
     } catch (cause) {
       setFormError(cause instanceof Error ? cause.message : "Không thể lưu sự kiện");
     } finally {
@@ -437,6 +443,7 @@ export default function EventsClient() {
                   )}
                   <textarea value={form.rulesText} onChange={(event) => updateForm("rulesText", event.target.value)} placeholder="Thể lệ / nội dung đầy đủ" className={`${textareaClassName} min-h-28`} />
                   <textarea value={form.rewardDescription} onChange={(event) => updateForm("rewardDescription", event.target.value)} placeholder="Mô tả phần thưởng" className={`${textareaClassName} min-h-28`} />
+                  {editingEventId != null && <EventProductsPanel eventId={editingEventId} />}
                 </div>
                 {formError && <p className="mt-4 text-sm text-red-600">{formError}</p>}
                 <div className="mt-6 flex gap-3">

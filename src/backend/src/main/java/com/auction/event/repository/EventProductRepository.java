@@ -18,7 +18,8 @@ public interface EventProductRepository extends JpaRepository<EventProduct, Long
 
     /** Row-locked read used to serialize concurrent bid/purchase attempts on the same product. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<EventProduct> findLockedById(Long id);
+    @Query("select ep from EventProduct ep where ep.eventProductId = :eventProductId")
+    Optional<EventProduct> findLockedById(@Param("eventProductId") Long eventProductId);
 
     List<EventProduct> findByEventIdAndApprovalStatus(Long eventId, EventProductApprovalStatus approvalStatus);
 

@@ -9,6 +9,7 @@ import com.auction.event.dto.RejectSubmissionRequest;
 import com.auction.event.dto.UpdateEventRequest;
 import com.auction.event.service.EventLifecycleService;
 import com.auction.event.service.EventProductAssignmentService;
+import com.auction.product.dto.AvailableProductForEventDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -130,6 +131,13 @@ public class AdminEventController {
     public ResponseEntity<ApiResponse<EventProductResponse>> getEventProduct(@PathVariable Long eventProductId) {
         EventProductResponse response = eventProductAssignmentService.getEventProductById(eventProductId);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /** Approved products not currently locked into another event — used by the admin "add product" picker. */
+    @GetMapping("/available-products")
+    public ResponseEntity<ApiResponse<List<AvailableProductForEventDTO>>> getAvailableProducts() {
+        List<AvailableProductForEventDTO> responses = eventProductAssignmentService.getAvailableProducts();
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
     private Long getUserIdFromAuthentication(Authentication authentication) {

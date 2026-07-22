@@ -245,6 +245,42 @@ export type AdminEvent = {
   updatedAt: string | null;
 };
 
+export type EventProductSourceType = "EXISTING_PRODUCT" | "NEW_SUBMISSION";
+export type EventProductApprovalStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type EventProductSessionStatus =
+  | "SCHEDULED"
+  | "ACTIVE"
+  | "ENDED_SOLD"
+  | "ENDED_UNSOLD"
+  | "CANCELLED";
+
+export type EventProduct = {
+  eventProductId: number;
+  eventId: number;
+  productId: number | null;
+  sourceType: EventProductSourceType;
+  submittedBySellerId: number | null;
+  approvalStatus: EventProductApprovalStatus;
+  rejectReason: string | null;
+  startingPrice: number | null;
+  currentPrice: number | null;
+  priceStep: number | null;
+  reservePrice: number | null;
+  sessionStart: string | null;
+  sessionEnd: string | null;
+  sessionStatus: EventProductSessionStatus;
+  winnerId: number | null;
+  finalPrice: number | null;
+};
+
+export type AvailableProductForEvent = {
+  productId: number;
+  productName: string;
+  sellerId: number;
+  startingPrice: number;
+  stepPrice: number;
+};
+
 export type CategoryAttribute = {
   attributeId: number;
   categoryId: number;
@@ -988,6 +1024,32 @@ export const premiumApi = {
   },
 };
 
+export type AutoBidStatus = "ACTIVE" | "CANCELLED" | "EXHAUSTED";
+
+export type AutoBid = {
+  auctionId: number;
+  maxBidAmount: number;
+  status: AutoBidStatus;
+  message: string | null;
+};
+
+export const autoBidApi = {
+  set(auctionId: number, maxBidAmount: number) {
+    return apiFetch<AutoBid>(`/bidding/auto/${auctionId}`, {
+      method: "POST",
+      body: JSON.stringify({ maxBidAmount }),
+    });
+  },
+  cancel(auctionId: number) {
+    return apiFetch<AutoBid>(`/bidding/auto/${auctionId}`, {
+      method: "DELETE",
+    });
+  },
+  get(auctionId: number) {
+    return apiFetch<AutoBid | null>(`/bidding/auto/${auctionId}`);
+  },
+};
+
 // ---------------------------------------------------------------------------
 // AUCTIONS & BIDDING — /api/auctions/*, /api/bidding/*
 // ---------------------------------------------------------------------------
@@ -1292,6 +1354,35 @@ export const adminApi = {
       method: "DELETE",
     });
   },
+  eventProducts(eventId: number) {
+    return apiFetch<ApiEnvelope<EventProduct[]>>(`/admin/events/${eventId}/products`);
+  },
+  assignExistingProductToEvent(eventId: number, productId: number) {
+    return apiFetch<ApiEnvelope<EventProduct>>(
+      `/admin/events/${eventId}/products/existing/${productId}`,
+      { method: "POST" },
+    );
+  },
+  approveEventProduct(eventProductId: number) {
+    return apiFetch<ApiEnvelope<EventProduct>>(
+      `/admin/events/products/${eventProductId}/approve`,
+      { method: "POST" },
+    );
+  },
+  rejectEventProduct(eventProductId: number, reason: string) {
+    return apiFetch<ApiEnvelope<EventProduct>>(
+      `/admin/events/products/${eventProductId}/reject`,
+      { method: "POST", body: JSON.stringify({ reason }) },
+    );
+  },
+  removeEventProduct(eventProductId: number) {
+    return apiFetch<ApiEnvelope<null>>(`/admin/events/products/${eventProductId}`, {
+      method: "DELETE",
+    });
+  },
+  availableProducts() {
+    return apiFetch<ApiEnvelope<AvailableProductForEvent[]>>("/admin/events/available-products");
+  },
   pendingProducts() {
     return apiFetch<ApiEnvelope<ReviewProduct[]>>("/admin/products/pending");
   },
@@ -1408,6 +1499,29 @@ export const adminApi = {
   },
   restoreFraudUser(id: number, note = "") {
     return fraudAlertAction(id, "restore-user", note);
+  },
+};
+
+// ---------------------------------------------------------------------------
+// SELLER EVENTS — /api/seller/events*
+// ---------------------------------------------------------------------------
+export const sellerApi = {
+  openEvents() {
+    return apiFetch<ApiEnvelope<AdminEvent[]>>("/seller/events");
+  },
+  submitExistingProductToEvent(eventId: number, productId: number) {
+    return apiFetch<ApiEnvelope<EventProduct>>(`/seller/events/${eventId}/products/existing`, {
+      method: "POST",
+      body: JSON.stringify({ productId }),
+    });
+  },
+  mySubmissions(eventId: number) {
+    return apiFetch<ApiEnvelope<EventProduct[]>>(`/seller/events/${eventId}/my-submissions`);
+  },
+  withdrawSubmission(eventProductId: number) {
+    return apiFetch<ApiEnvelope<null>>(`/seller/events/products/${eventProductId}`, {
+      method: "DELETE",
+    });
   },
 };
 
