@@ -826,6 +826,12 @@ export type AiValuationResult = {
   lowEstimate: number | null;
   highEstimate: number | null;
   currency: string | null;
+  remaining: number | null;
+};
+
+export type AiValuationQuota = {
+  remaining: number;
+  limit: number;
 };
 
 export type AiValuationPayload = {
@@ -841,6 +847,9 @@ export const aiApi = {
       method: "POST",
       body: JSON.stringify(payload),
     });
+  },
+  valuationQuota() {
+    return apiFetch<ApiEnvelope<AiValuationQuota>>("/ai/valuation/quota");
   },
 };
 

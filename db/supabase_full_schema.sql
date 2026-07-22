@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS Users (
     SuspensionReason        VARCHAR(500)  NULL,
     BannedAt                TIMESTAMPTZ   NULL,
     BannedBy                BIGINT        NULL REFERENCES Users(UserId),
+    AiValuationUsedCount    INT           NOT NULL DEFAULT 0,
     CreatedAt               TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 

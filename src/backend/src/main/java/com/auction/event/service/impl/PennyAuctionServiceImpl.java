@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
@@ -37,7 +38,7 @@ public class PennyAuctionServiceImpl implements PennyAuctionService {
     private final PennyBidRepository pennyBidRepository;
     private final EventNotificationService eventNotificationService;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final Map<Long, ReentrantLock> productLocks = new HashMap<>();
+    private final Map<Long, ReentrantLock> productLocks = new ConcurrentHashMap<>();
 
     @Override
     @Transactional
@@ -45,7 +46,7 @@ public class PennyAuctionServiceImpl implements PennyAuctionService {
         ReentrantLock lock = productLocks.computeIfAbsent(eventProductId, k -> new ReentrantLock(true));
         lock.lock();
         try {
-            EventProduct product = eventProductRepository.findById(eventProductId)
+            EventProduct product = eventProductRepository.findLockedById(eventProductId)
                     .orElseThrow(() -> new ResourceNotFoundException("Event product not found"));
 
             if (product.getSessionStatus() != EventProductSessionStatus.ACTIVE) {
