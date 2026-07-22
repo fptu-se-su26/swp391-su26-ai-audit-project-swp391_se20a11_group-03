@@ -31,6 +31,7 @@ com\auction\account\entity\VerificationType.class
 com\auction\bidding\dto\DepositResponse$DepositResponseBuilder.class
 com\auction\product\util\ThymeleafPDFUtil.class
 com\auction\account\controller\AdminUserController.class
+com\auction\product\service\AiValuationQuotaService$ConsumeResult.class
 com\auction\bidding\repository\AuctionChatMessageRepository.class
 com\auction\account\service\SpeedSmsService.class
 com\auction\bidding\controller\UserBidController.class
@@ -72,6 +73,7 @@ com\auction\order\repository\OrderStatusHistoryRepository.class
 com\auction\account\dto\RegisterRequest.class
 com\auction\AuctionApplication.class
 com\auction\fraud\service\AdminFraudService.class
+com\auction\product\service\AiValuationQuotaService.class
 com\auction\product\repository\BiddingProductRepository.class
 com\auction\common\util\LoginRateLimitUtil.class
 com\auction\product\repository\CategoryAttributeRepository.class
