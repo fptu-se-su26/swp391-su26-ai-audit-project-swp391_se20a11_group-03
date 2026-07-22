@@ -4,13 +4,15 @@ import com.auction.wallet.entity.Wallet;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
 public interface WalletRepository extends JpaRepository<Wallet, Long> {
     Optional<Wallet> findByUser_Id(Integer userId);
 
-    /** Row-locked read used whenever a caller is about to mutate balance/holdBalance. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<Wallet> findLockedByUser_Id(Integer userId);
+    @Query("select w from Wallet w where w.user.id = :userId")
+    Optional<Wallet> findByUserIdForUpdate(@Param("userId") Integer userId);
 }

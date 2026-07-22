@@ -5,6 +5,7 @@ com\auction\account\KycInputValidatorTest.class
 com\auction\common\util\JpaUtilTest.class
 com\auction\bidding\StepCalculatorTest.class
 com\auction\bidding\BiddingServiceTimerTest.class
+com\auction\premium\service\PremiumPurchaseServiceTest.class
 com\auction\account\AuthValidatorEmailOnlyTest.class
 com\auction\fraud\FraudDetectionServiceTest.class
 com\auction\order\OrderServiceStateMachineTest.class
