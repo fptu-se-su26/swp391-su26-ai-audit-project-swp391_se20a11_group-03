@@ -1,0 +1,24 @@
+# Build output
+target/
+build/
+*.class
+
+# Secrets / local config (never commit real credentials)
+application.properties
+!application.properties.example
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/shelf/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads generated at runtime
+/uploads/
