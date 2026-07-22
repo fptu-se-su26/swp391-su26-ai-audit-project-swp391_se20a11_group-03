@@ -312,8 +312,11 @@ export default function ProfileClient() {
                     {walletLoading ? "—" : formatMoney(walletData.wallet.availableBalance)}
                   </p>
                 </div>
-                <span className="material-symbols-outlined rounded-full bg-[#fbf0da] p-3 text-[#c3840e]">
-                  account_balance_wallet
+                <span
+                  aria-hidden="true"
+                  className="inline-flex size-12 flex-none items-center justify-center rounded-xl bg-[#fbf0da] text-[#c3840e]"
+                >
+                  <span className="material-symbols-outlined">account_balance_wallet</span>
                 </span>
               </div>
               <Link
@@ -332,8 +335,11 @@ export default function ProfileClient() {
                     {walletLoading ? "—" : formatMoney(walletData.wallet.holdBalance)}
                   </p>
                 </div>
-                <span className="material-symbols-outlined rounded-full bg-[#f7f2e9] p-3 text-[#b87b0d]">
-                  lock
+                <span
+                  aria-hidden="true"
+                  className="inline-flex size-12 flex-none items-center justify-center rounded-xl bg-[#f7f2e9] text-[#b87b0d]"
+                >
+                  <span className="material-symbols-outlined">lock</span>
                 </span>
               </div>
               <Link
@@ -353,8 +359,11 @@ export default function ProfileClient() {
                   </p>
                   <p className="mt-4 text-xs text-[#8a8f9b]">{t("totalAssetsHint")}</p>
                 </div>
-                <span className="material-symbols-outlined rounded-full bg-[#fbf0da] p-3 text-[#c3840e]">
-                  data_usage
+                <span
+                  aria-hidden="true"
+                  className="inline-flex size-12 flex-none items-center justify-center rounded-xl bg-[#fbf0da] text-[#c3840e]"
+                >
+                  <span className="material-symbols-outlined">data_usage</span>
                 </span>
               </div>
             </article>

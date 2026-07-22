@@ -134,7 +134,7 @@ export default function MessagesClient() {
   }
 
   return (
-    <div className="m-4 flex h-[calc(100vh-2rem)] overflow-hidden rounded-3xl border border-white/10">
+    <div className="m-4 flex min-h-[calc(100vh-2rem)] overflow-x-hidden rounded-3xl border border-white/10">
       <aside className="flex w-full max-w-xs flex-col border-r border-white/10">
         <div className="flex items-center justify-between border-b border-white/10 p-4">
           <h1 className="font-headline-md text-lg">{t("title")}</h1>

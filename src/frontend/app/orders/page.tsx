@@ -172,8 +172,8 @@ export default function OrdersPage() {
 
   return (
     <CollectorShell>
-      <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_48%_0%,rgba(245,219,166,.13),transparent_32%),#fffdfa] text-[#29262b] xl:h-screen xl:min-h-0 xl:overflow-y-hidden">
-        <div className="mx-auto flex h-full max-w-[1320px] flex-col px-5 py-7 sm:px-8 lg:px-10 xl:py-8">
+      <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_48%_0%,rgba(245,219,166,.13),transparent_32%),#fffdfa] text-[#29262b]">
+        <div className="mx-auto flex min-h-screen max-w-[1320px] flex-col px-5 py-7 sm:px-8 lg:px-10 xl:py-8">
           <header className="shrink-0">
             <h1 className="text-3xl font-bold tracking-[-.035em] text-[#1f1d20] sm:text-4xl">{t("title")}</h1>
             <p className="mt-2 text-sm text-[#7d767c]">{t("subtitle")}</p>
@@ -266,7 +266,7 @@ export default function OrdersPage() {
               <span>{t("table.actions")}</span>
             </div>
 
-            <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-3">
+            <div className="custom-scrollbar min-h-0 flex-1 p-3">
               {loading && (
                 <div className="space-y-3" aria-label={t("loading")}>
                   {[1, 2, 3].map((item) => <div key={item} className="h-28 animate-pulse rounded-2xl bg-[#f5f1eb]" />)}

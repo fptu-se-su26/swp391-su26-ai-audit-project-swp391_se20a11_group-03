@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { ApiError, premiumApi, type PremiumStatus } from "@/lib/api";
 
@@ -87,9 +87,9 @@ export default function PremiumPurchaseClient() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_42%_0%,rgba(243,211,143,.12),transparent_34%),#fffdfa] text-[#24212a] xl:h-screen xl:min-h-0 xl:overflow-hidden">
-      <div className="mx-auto grid max-w-[1440px] xl:h-full xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="min-w-0 px-5 py-6 sm:px-8 lg:px-9 xl:overflow-hidden xl:px-9 xl:py-5">
+    <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_42%_0%,rgba(243,211,143,.12),transparent_34%),#fffdfa] text-[#24212a]">
+      <div className="mx-auto grid max-w-[1440px] xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
+        <div className="min-w-0 px-5 py-6 sm:px-8 lg:px-9 xl:px-9 xl:py-5">
           <section className="grid items-center gap-4 lg:grid-cols-[minmax(0,1fr)_310px]" aria-labelledby="premium-title">
             <div className="py-2">
               <div className="inline-flex items-center gap-2 rounded-full border border-[#e5d2ac] bg-[#fffaf0] px-4 py-2 text-xs font-bold uppercase tracking-[.2em] text-[#8e641c]">
@@ -193,29 +193,70 @@ export default function PremiumPurchaseClient() {
           </section>
 
           {!isSeller && (
-            <section className="mt-4 rounded-2xl border border-[#e7dfd4] bg-white p-4 shadow-[0_8px_25px_rgba(69,51,21,.04)]" aria-labelledby="auto-bid-title">
-              <p id="auto-bid-title" className="text-xs font-bold uppercase tracking-[.18em] text-[#746b64]">{t("autoBid.title")}</p>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <section
+              className="mt-4 rounded-2xl border border-[#e7dfd4] bg-white px-4 py-3.5 shadow-[0_8px_25px_rgba(69,51,21,.04)]"
+              aria-labelledby="auto-bid-title"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p
+                    id="auto-bid-title"
+                    className="text-xs font-bold uppercase tracking-[.18em] text-[#746b64]"
+                  >
+                    {t("autoBid.title")}
+                  </p>
+                  <p className="mt-1 text-xs text-[#948b82]">
+                    {t("autoBid.subtitle")}
+                  </p>
+                </div>
+                <span className="hidden rounded-full bg-[#fff6e5] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#a66d10] sm:inline-flex">
+                  {t("autoBid.automatic")}
+                </span>
+              </div>
+
+              <div className="mt-3 flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)_44px_minmax(0,1fr)_44px_minmax(0,1fr)] lg:items-start">
                 {AUTO_BID_STEPS.map(([icon, key], index) => (
-                  <div key={key} className="relative flex items-center gap-3 lg:block">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#ecdcbf] bg-[#fffaf0] text-[#ca8d27] lg:mb-2">
-                      <span className="material-symbols-outlined text-[22px]">{icon}</span>
-                    </div>
-                    <div>
-                      <h3 className="text-xs font-bold text-[#3b3539]">{t(`autoBid.steps.${key}.title`)}</h3>
-                      <p className="mt-1 text-xs leading-5 text-[#777077]">{t(`autoBid.steps.${key}.description`)}</p>
-                    </div>
+                  <Fragment key={key}>
+                    <article className="flex min-w-0 items-center gap-3 rounded-xl px-1 py-1.5 lg:block lg:px-0 lg:py-0">
+                      <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full border border-[#e8d5b1] bg-[#fff9ee] text-[#c88412] shadow-[0_4px_12px_rgba(180,120,18,.08)] lg:mb-2">
+                        <span className="material-symbols-outlined text-[21px]">
+                          {icon}
+                        </span>
+                        <span className="absolute -right-1 -top-1 grid size-4 place-items-center rounded-full bg-[#d89319] text-[9px] font-bold text-white ring-2 ring-white">
+                          {index + 1}
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-xs font-bold text-[#3b3539]">
+                          {t(`autoBid.steps.${key}.title`)}
+                        </h3>
+                        <p className="mt-0.5 text-[11px] leading-4 text-[#777077]">
+                          {t(`autoBid.steps.${key}.description`)}
+                        </p>
+                      </div>
+                    </article>
+
                     {index < AUTO_BID_STEPS.length - 1 && (
-                      <span className="material-symbols-outlined absolute -right-3 top-3 hidden text-[22px] text-[#cfc5b7] lg:block">arrow_forward</span>
+                      <div
+                        aria-hidden="true"
+                        className="flex h-6 items-center pl-5 text-[#cfc2ae] lg:h-10 lg:justify-center lg:pl-0"
+                      >
+                        <span className="material-symbols-outlined text-[20px] lg:hidden">
+                          arrow_downward
+                        </span>
+                        <span className="material-symbols-outlined hidden text-[22px] lg:block">
+                          arrow_forward
+                        </span>
+                      </div>
                     )}
-                  </div>
+                  </Fragment>
                 ))}
               </div>
             </section>
           )}
         </div>
 
-        <aside id="premium-checkout" className="scroll-mt-4 border-t border-[#e8e1d7] bg-white/65 p-5 sm:p-7 xl:h-full xl:min-h-0 xl:overflow-hidden xl:border-l xl:border-t-0 xl:p-4">
+        <aside id="premium-checkout" className="scroll-mt-4 border-t border-[#e8e1d7] bg-white/65 p-5 sm:p-7 xl:min-h-screen xl:border-l xl:border-t-0 xl:p-4">
           <div className="xl:sticky xl:top-6">
             <section className="rounded-[24px] border border-[#e5ddd1] bg-white p-4 shadow-[0_16px_45px_rgba(74,54,21,.055)]" aria-labelledby="premium-plan-title">
               <div className="flex items-start justify-between gap-4">

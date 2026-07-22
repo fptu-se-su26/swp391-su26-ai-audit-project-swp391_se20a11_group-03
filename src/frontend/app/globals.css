@@ -712,6 +712,11 @@ body {
   visibility: visible;
 }
 
+/* Preserve flex centering for Material Symbols used as icon containers. */
+.material-symbols-outlined.inline-flex {
+  display: inline-flex;
+}
+
 .auth-input:-webkit-autofill,
 .auth-input:-webkit-autofill:hover,
 .auth-input:-webkit-autofill:focus {
