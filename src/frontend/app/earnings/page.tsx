@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import CollectorShell from "@/components/shells/CollectorShell";
-import { walletApi, type WalletInfo, type Withdrawal } from "@/lib/api";
+import { ApiError, walletApi, type WalletInfo, type Withdrawal } from "@/lib/api";
 import { useApiData } from "@/lib/use-api-data";
 
 type EarningsData = { wallet: WalletInfo; withdrawals: Withdrawal[] };
@@ -22,11 +23,62 @@ async function loadEarnings(): Promise<EarningsData> {
 
 export default function EarningsPage() {
   const t = useTranslations("earnings");
-  const { data, loading, error } = useApiData(loadEarnings, EMPTY_DATA);
+  const tw = useTranslations("walletPage");
+  const { data, loading, error, reload } = useApiData(loadEarnings, EMPTY_DATA);
   const pendingAmount = data.withdrawals
     .filter((item) => item.status.toUpperCase() === "PENDING")
     .reduce((sum, item) => sum + item.amount, 0);
   const latestBank = data.withdrawals[0];
+
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [bankName, setBankName] = useState(latestBank?.bankName ?? "");
+  const [accountNumber, setAccountNumber] = useState(latestBank?.accountNumber ?? "");
+  const [accountName, setAccountName] = useState("");
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawError, setWithdrawError] = useState("");
+  const [withdrawSuccess, setWithdrawSuccess] = useState("");
+
+  const numericWithdrawAmount = Number(withdrawAmount.replace(/\D/g, ""));
+
+  function openWithdraw() {
+    setShowWithdraw(true);
+    setWithdrawError("");
+    setWithdrawSuccess("");
+  }
+
+  async function submitWithdraw(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setWithdrawError("");
+    setWithdrawSuccess("");
+
+    if (!Number.isSafeInteger(numericWithdrawAmount) || numericWithdrawAmount < 10_000) {
+      setWithdrawError(tw("withdrawMinError"));
+      return;
+    }
+    if (numericWithdrawAmount > data.wallet.availableBalance) {
+      setWithdrawError(tw("withdrawExceedError"));
+      return;
+    }
+
+    setWithdrawing(true);
+    try {
+      await walletApi.withdraw({
+        amount: numericWithdrawAmount,
+        bankName: bankName.trim(),
+        accountNumber: accountNumber.trim(),
+        accountName: accountName.trim(),
+      });
+      setWithdrawSuccess(tw("withdrawSuccess"));
+      setWithdrawAmount("");
+      await reload();
+    } catch (cause) {
+      setWithdrawError(cause instanceof ApiError ? cause.message : tw("withdrawError"));
+    } finally {
+      setWithdrawing(false);
+    }
+  }
+
   return (
     <CollectorShell>
       <div className="mx-auto max-w-7xl px-6 py-10">
@@ -48,6 +100,7 @@ export default function EarningsPage() {
             <p className="mt-2 text-2xl font-bold">{data.wallet.availableBalance.toLocaleString("vi-VN")} ₫</p>
             <button
               type="button"
+              onClick={openWithdraw}
               className="gradient-cta mt-4 w-full rounded-full py-2.5 text-xs font-semibold text-black"
             >
               {t("withdraw")}
@@ -66,6 +119,7 @@ export default function EarningsPage() {
           </div>
           <button
             type="button"
+            onClick={openWithdraw}
             className="text-xs font-semibold text-[var(--luxora-gold)] hover:underline"
           >
             {t("editAccount")}
@@ -123,6 +177,125 @@ export default function EarningsPage() {
           </table>
         </div>
       </div>
+
+      {showWithdraw ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="withdraw-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowWithdraw(false);
+          }}
+        >
+          <div className="relative max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-lg border border-white/15 bg-[var(--luxora-bg-elevated)] p-5 text-[var(--luxora-text)] shadow-2xl sm:p-6">
+            <button
+              type="button"
+              onClick={() => setShowWithdraw(false)}
+              title={tw("closeBtn")}
+              aria-label={tw("closeBtn")}
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-[var(--luxora-text)]/50 transition-colors hover:bg-white/10 hover:text-[var(--luxora-text)]"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+
+            <h2 id="withdraw-title" className="font-headline-md pr-12 text-xl text-[var(--luxora-text)]">
+              {tw("withdrawModalTitle")}
+            </h2>
+            <p className="mt-1 text-sm text-[var(--luxora-text)]/60">
+              {tw("withdrawModalSubtitle", {
+                balance: `${data.wallet.availableBalance.toLocaleString("vi-VN")} ₫`,
+              })}
+            </p>
+
+            <form onSubmit={submitWithdraw} className="mt-6 flex flex-col gap-4">
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--luxora-text)]/60">
+                  {tw("withdrawAmountLabel")}
+                </span>
+                <div className="mt-2 flex h-12 items-center rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 focus-within:border-[var(--luxora-gold)]">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoFocus
+                    value={
+                      numericWithdrawAmount
+                        ? numericWithdrawAmount.toLocaleString("vi-VN")
+                        : ""
+                    }
+                    onChange={(event) =>
+                      setWithdrawAmount(event.target.value.replace(/\D/g, ""))
+                    }
+                    placeholder={tw("withdrawMinPlaceholder")}
+                    className="min-w-0 flex-1 bg-transparent text-lg font-semibold text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text)]/40"
+                  />
+                  <span className="text-sm text-[var(--luxora-text)]/45">₫</span>
+                </div>
+              </label>
+
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--luxora-text)]/60">
+                  {tw("withdrawBankLabel")}
+                </span>
+                <input
+                  type="text"
+                  required
+                  value={bankName}
+                  onChange={(event) => setBankName(event.target.value)}
+                  placeholder={tw("withdrawBankExample")}
+                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text)]/40 focus:border-[var(--luxora-gold)]"
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--luxora-text)]/60">
+                  {tw("withdrawAccountLabel")}
+                </span>
+                <input
+                  type="text"
+                  required
+                  inputMode="numeric"
+                  value={accountNumber}
+                  onChange={(event) =>
+                    setAccountNumber(event.target.value.replace(/\D/g, ""))
+                  }
+                  placeholder={tw("withdrawAccountPlaceholder")}
+                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text)]/40 focus:border-[var(--luxora-gold)]"
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--luxora-text)]/60">
+                  {tw("withdrawHolderLabel")}
+                </span>
+                <input
+                  type="text"
+                  required
+                  value={accountName}
+                  onChange={(event) => setAccountName(event.target.value)}
+                  placeholder={tw("withdrawHolderPlaceholder")}
+                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text)]/40 focus:border-[var(--luxora-gold)]"
+                />
+              </label>
+
+              {withdrawError ? (
+                <p className="text-sm text-red-500">{withdrawError}</p>
+              ) : null}
+              {withdrawSuccess ? (
+                <p className="text-sm text-green-600">{withdrawSuccess}</p>
+              ) : null}
+
+              <button
+                type="submit"
+                disabled={withdrawing}
+                className="gradient-cta h-11 w-full rounded-full text-sm font-bold text-black disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {withdrawing ? tw("withdrawSubmitting") : tw("withdrawSubmitBtn")}
+              </button>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </CollectorShell>
   );
 }

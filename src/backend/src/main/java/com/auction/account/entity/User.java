@@ -99,6 +99,9 @@ public class User {
     @Column(name = "BannedBy")
     private Long bannedBy;
 
+    @Column(name = "AiValuationUsedCount", nullable = false)
+    private int aiValuationUsedCount = 0;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "RoleId")
     private Role role;
@@ -327,6 +330,8 @@ public class User {
     public void setBannedAt(LocalDateTime bannedAt) { this.bannedAt = bannedAt; }
     public Long getBannedBy() { return bannedBy; }
     public void setBannedBy(Long bannedBy) { this.bannedBy = bannedBy; }
+    public int getAiValuationUsedCount() { return aiValuationUsedCount; }
+    public void setAiValuationUsedCount(int aiValuationUsedCount) { this.aiValuationUsedCount = aiValuationUsedCount; }
 }
 
 

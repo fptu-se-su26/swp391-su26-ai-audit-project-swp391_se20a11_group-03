@@ -31,10 +31,8 @@ const NAV_GROUPS: NavGroup[] = [
   {
     titleKey: "account",
     items: [
-      { labelKey: "wallet", href: "/wallet", icon: "account_balance_wallet" },
-      { labelKey: "kyc", href: "/kyc", icon: "verified_user" },
-      { labelKey: "profile", href: "/profile", icon: "person" },
-      { labelKey: "security", href: "/security", icon: "lock" },
+      { labelKey: "profile", href: "/profile", icon: "account_circle" },
+      { labelKey: "security", href: "/security", icon: "shield_lock" },
       { labelKey: "premium", href: "/premium", icon: "workspace_premium", badge: "VIP" },
     ],
   },
@@ -110,7 +108,9 @@ export default function CollectorSidebar() {
   }
 
   function isItemActive(href: string) {
-    return pathname === href;
+    return pathname === href ||
+      (href === "/profile" && pathname === "/wallet") ||
+      (href === "/security" && pathname === "/kyc");
   }
 
   return (

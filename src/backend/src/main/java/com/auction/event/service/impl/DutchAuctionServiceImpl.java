@@ -36,7 +36,10 @@ public class DutchAuctionServiceImpl implements DutchAuctionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Event product not found"));
         AuctionEvent event = eventRepository.findById(product.getEventId())
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
+        return computeCurrentPrice(product, event);
+    }
 
+    private long computeCurrentPrice(EventProduct product, AuctionEvent event) {
         DutchConfig config = parseDutchConfig(event.getDutchConfigJson());
         if (config == null) {
             throw new BusinessException("Dutch auction config not found");
@@ -58,7 +61,11 @@ public class DutchAuctionServiceImpl implements DutchAuctionService {
     @Override
     @Transactional
     public EventProductResponse commitPurchase(Long eventProductId, Long userId) {
-        EventProduct product = eventProductRepository.findById(eventProductId)
+        // Pessimistic lock: only one concurrent "buy now" can win the race for
+        // this product. The second caller sees the already-updated sessionStatus
+        // once it acquires the lock and gets a clean "already sold" error instead
+        // of both callers silently overwriting each other's save().
+        EventProduct product = eventProductRepository.findLockedById(eventProductId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event product not found"));
 
         if (product.getSessionStatus() != EventProductSessionStatus.ACTIVE) {
@@ -68,8 +75,9 @@ public class DutchAuctionServiceImpl implements DutchAuctionService {
             throw new BusinessException("Phiên đấu giá không hoạt động");
         }
 
-        // Calculate current price
-        Long currentPrice = getCurrentPrice(eventProductId);
+        AuctionEvent event = eventRepository.findById(product.getEventId())
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
+        long currentPrice = computeCurrentPrice(product, event);
 
         // Update product
         product.setSessionStatus(EventProductSessionStatus.ENDED_SOLD);

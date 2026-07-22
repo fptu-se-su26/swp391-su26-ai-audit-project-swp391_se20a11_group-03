@@ -98,6 +98,7 @@ BEGIN
         SuspensionReason        NVARCHAR(500)        NULL,
         BannedAt                DATETIME2            NULL,
         BannedBy                BIGINT               NULL,
+        AiValuationUsedCount    INT                  NOT NULL DEFAULT 0,
         CreatedAt               DATETIME2            NOT NULL DEFAULT SYSDATETIME(),
         CONSTRAINT FK_Users_Roles FOREIGN KEY (RoleId) REFERENCES dbo.Roles(RoleId),
         CONSTRAINT FK_Users_BannedBy FOREIGN KEY (BannedBy) REFERENCES dbo.Users(UserId)

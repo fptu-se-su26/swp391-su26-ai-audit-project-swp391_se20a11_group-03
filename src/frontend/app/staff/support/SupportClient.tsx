@@ -12,6 +12,7 @@ import { connectChatRealtime } from "@/lib/chat-realtime";
 
 const STATUS_CLASS: Record<string, string> = {
   OPEN: "bg-blue-500/10 text-blue-300",
+  IN_PROGRESS: "bg-yellow-500/10 text-yellow-300",
   CLOSED: "bg-green-500/10 text-green-300",
 };
 
@@ -152,7 +153,7 @@ export default function SupportClient() {
   const isMine = selected
     ? assigned.some((c) => c.conversationId === selected.conversationId)
     : false;
-  const isOpen = (selected?.status ?? "").toUpperCase() === "OPEN";
+  const isClosed = (selected?.status ?? "").toUpperCase() === "CLOSED";
 
   function renderItem(c: Conversation, section: "unassigned" | "mine") {
     const active = selected?.conversationId === c.conversationId;
@@ -238,7 +239,7 @@ export default function SupportClient() {
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                {!isMine && isOpen && (
+                {!isMine && !isClosed && (
                   <button
                     type="button"
                     disabled={busy}
@@ -248,7 +249,7 @@ export default function SupportClient() {
                     {busy ? "..." : t("claim")}
                   </button>
                 )}
-                {isMine && isOpen && (
+                {isMine && !isClosed && (
                   <button
                     type="button"
                     disabled={busy}
@@ -258,7 +259,7 @@ export default function SupportClient() {
                     {t("closeTicket")}
                   </button>
                 )}
-                {!isOpen && (
+                {isClosed && (
                   <span className="rounded-full bg-green-500/10 px-4 py-2 text-xs font-semibold text-green-300">
                     {t("closed")}
                   </span>
@@ -299,7 +300,7 @@ export default function SupportClient() {
               <div ref={messagesEndRef} />
             </div>
 
-            {isMine && isOpen ? (
+            {isMine && !isClosed ? (
               <div className="border-t border-white/10 p-5">
                 <textarea
                   rows={3}
@@ -317,7 +318,7 @@ export default function SupportClient() {
                   {busy ? t("sending") : t("reply")}
                 </button>
               </div>
-            ) : isOpen ? (
+            ) : !isClosed ? (
               <p className="border-t border-white/10 p-5 text-center text-xs text-white/40">
                 {t("claimToReply")}
               </p>
