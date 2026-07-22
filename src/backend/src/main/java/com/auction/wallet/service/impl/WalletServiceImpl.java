@@ -231,7 +231,7 @@ public class WalletServiceImpl implements WalletService {
         withdrawal.setStaffNote(request.getStaffNote());
         withdrawal.setUpdatedAt(LocalDateTime.now());
 
-        Wallet wallet = walletRepository.findLockedByUser_Id(withdrawal.getUser().getId())
+        Wallet wallet = walletRepository.findByUserIdForUpdate(withdrawal.getUser().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found for user: " + withdrawal.getUser().getId()));
         normalizeLegacyPendingWithdrawals(wallet);
         long hold = wallet.getHoldBalance() == null ? 0L : wallet.getHoldBalance();
@@ -286,7 +286,7 @@ public class WalletServiceImpl implements WalletService {
     }
 
     private Wallet getOrCreateWallet(Long userId) {
-        return walletRepository.findLockedByUser_Id(Math.toIntExact(userId))
+        return walletRepository.findByUserIdForUpdate(Math.toIntExact(userId))
                 .orElseGet(() -> {
                     User user = userRepository.findById(Math.toIntExact(userId))
                             .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));

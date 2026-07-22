@@ -120,8 +120,8 @@ class OrderServiceTest {
         sellerWallet.setBalance(0L);
         Wallet adminWallet = new Wallet();
         adminWallet.setBalance(0L);
-        when(walletRepository.findLockedByUser_Id(2)).thenReturn(Optional.of(sellerWallet));
-        when(walletRepository.findLockedByUser_Id(99)).thenReturn(Optional.of(adminWallet));
+        when(walletRepository.findByUserIdForUpdate(2)).thenReturn(Optional.of(sellerWallet));
+        when(walletRepository.findByUserIdForUpdate(99)).thenReturn(Optional.of(adminWallet));
 
         service.releasePayout(order);
         assertEquals(800_000L, sellerWallet.getBalance());
@@ -139,6 +139,6 @@ class OrderServiceTest {
         order.setStatus(OrderStatus.DELIVERED);
         service.releasePayout(order);
         assertNull(order.getPayoutReleasedAt());
-        verify(walletRepository, never()).findLockedByUser_Id(anyInt());
+        verify(walletRepository, never()).findByUserIdForUpdate(anyInt());
     }
 }

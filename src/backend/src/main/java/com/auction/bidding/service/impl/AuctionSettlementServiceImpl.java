@@ -265,7 +265,7 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
 
     private void forfeitWinnerDeposit(Auction auction, AuctionDeposit deposit, LocalDateTime now) {
         Wallet wallet = walletRepository
-                .findLockedByUser_Id(Math.toIntExact(deposit.getUser().getId()))
+                .findByUserIdForUpdate(Math.toIntExact(deposit.getUser().getId()))
                 .orElse(null);
         if (wallet == null) {
             log.warn("Cannot forfeit deposit {} — wallet not found for user {}",
@@ -491,7 +491,7 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
             log.warn("No Admin user found to receive platform revenue");
             return null;
         }
-        return walletRepository.findLockedByUser_Id(admin.getId()).orElseGet(() -> {
+        return walletRepository.findByUserIdForUpdate(admin.getId()).orElseGet(() -> {
             Wallet w = new Wallet();
             w.setUser(admin);
             w.setBalance(0L);
@@ -527,7 +527,7 @@ public class AuctionSettlementServiceImpl implements AuctionSettlementService {
 
     private void refundOneDeposit(Auction auction, AuctionDeposit deposit, LocalDateTime now) {
         Wallet wallet = walletRepository
-                .findLockedByUser_Id(Math.toIntExact(deposit.getUser().getId()))
+                .findByUserIdForUpdate(Math.toIntExact(deposit.getUser().getId()))
                 .orElse(null);
         if (wallet == null) {
             log.warn("Cannot refund deposit {} — wallet not found for user {}",
