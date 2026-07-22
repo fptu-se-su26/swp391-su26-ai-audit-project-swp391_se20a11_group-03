@@ -6,10 +6,13 @@ import { useTranslations } from "next-intl";
 import {
   ApiError,
   auctionApi,
+  autoBidApi,
   getToken,
+  premiumApi,
   userApi,
   type AuctionEligibility,
   type AuctionState,
+  type AutoBid,
 } from "@/lib/api";
 
 type LiveBiddingPanelProps = {
@@ -64,6 +67,10 @@ export default function LiveBiddingPanel({
   const [viewerMode, setViewerMode] = useState<ViewerMode>("checking");
   const [eligibility, setEligibility] = useState<AuctionEligibility | null>(null);
   const [myBidAmount, setMyBidAmount] = useState<number | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
+  const [autoBid, setAutoBid] = useState<AutoBid | null>(null);
+  const [autoBidAmount, setAutoBidAmount] = useState("");
+  const [autoBidBusy, setAutoBidBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -99,6 +106,24 @@ export default function LiveBiddingPanel({
         /* No bid yet or no signed-in user. */
       });
 
+    premiumApi
+      .status()
+      .then((status) => {
+        if (!cancelled) setIsPremium(status.premium);
+      })
+      .catch(() => {
+        /* Not eligible for Premium (e.g. Admin) — leave auto-bid hidden. */
+      });
+
+    autoBidApi
+      .get(state.auctionId)
+      .then((existing) => {
+        if (!cancelled) setAutoBid(existing);
+      })
+      .catch(() => {
+        /* No auto-bid set yet. */
+      });
+
     return () => {
       cancelled = true;
     };
@@ -116,10 +141,12 @@ export default function LiveBiddingPanel({
 
   const isActive = state.status === "ACTIVE";
   const isUpcoming = state.status === "UPCOMING";
+  const isTimed = state.auctionMode === "TIMED";
   const canBid =
     isActive &&
     viewerMode === "buyer" &&
-    Boolean(eligibility?.alreadyDeposited);
+    Boolean(eligibility?.kycVerified) &&
+    (isTimed || Boolean(eligibility?.alreadyDeposited));
 
   async function placeDeposit() {
     setMessage(null);
@@ -177,6 +204,46 @@ export default function LiveBiddingPanel({
       }
     } finally {
       setPlacing(false);
+    }
+  }
+
+  async function submitAutoBid() {
+    const parsed = Number(autoBidAmount);
+    if (!autoBidAmount || Number.isNaN(parsed)) {
+      setMessage({ kind: "error", text: "Vui lòng nhập mức giá tối đa hợp lệ" });
+      return;
+    }
+    setMessage(null);
+    setAutoBidBusy(true);
+    try {
+      const result = await autoBidApi.set(state.auctionId, parsed);
+      setAutoBid(result);
+      setAutoBidAmount("");
+      setMessage({ kind: "success", text: result.message ?? "Đã bật đấu giá tự động" });
+    } catch (err) {
+      setMessage({
+        kind: "error",
+        text: err instanceof ApiError ? err.message : "Không thể bật đấu giá tự động",
+      });
+    } finally {
+      setAutoBidBusy(false);
+    }
+  }
+
+  async function cancelAutoBidClick() {
+    setMessage(null);
+    setAutoBidBusy(true);
+    try {
+      const result = await autoBidApi.cancel(state.auctionId);
+      setAutoBid(result);
+      setMessage({ kind: "success", text: result.message ?? "Đã tắt đấu giá tự động" });
+    } catch (err) {
+      setMessage({
+        kind: "error",
+        text: err instanceof ApiError ? err.message : "Không thể tắt đấu giá tự động",
+      });
+    } finally {
+      setAutoBidBusy(false);
     }
   }
 
@@ -253,7 +320,7 @@ export default function LiveBiddingPanel({
         </div>
       ) : null}
 
-      {false && viewerMode === "buyer" && (isUpcoming || isActive) ? (
+      {isTimed && viewerMode === "buyer" && (isUpcoming || isActive) ? (
         <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
           {!eligibility?.kycVerified ? (
             <Link
@@ -280,7 +347,7 @@ export default function LiveBiddingPanel({
         </div>
       ) : null}
 
-      {viewerMode === "buyer" && eligibility && (isUpcoming || isActive) ? (
+      {!isTimed && viewerMode === "buyer" && eligibility && (isUpcoming || isActive) ? (
         <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
           {eligibility.alreadyDeposited ? (
             <div>
@@ -330,6 +397,54 @@ export default function LiveBiddingPanel({
             <p className="text-xs leading-5 text-yellow-200/80">
               {eligibility.message || t("depositClosed")}
             </p>
+          )}
+        </div>
+      ) : null}
+
+      {isPremium && isTimed && viewerMode === "buyer" && (isActive || isUpcoming) ? (
+        <div className="rounded-xl border border-[var(--luxora-gold)]/30 bg-[var(--luxora-gold)]/5 p-4">
+          <p className="text-xs font-semibold text-[var(--luxora-gold-light)]">
+            Đấu giá tự động (Premium)
+          </p>
+          {autoBid && autoBid.status === "ACTIVE" ? (
+            <div className="mt-2">
+              <p className="text-xs text-white/70">
+                Đang bật, mức tối đa{" "}
+                <span className="font-semibold text-[var(--luxora-gold-light)]">
+                  {VND.format(autoBid.maxBidAmount)} ₫
+                </span>
+              </p>
+              <button
+                type="button"
+                disabled={autoBidBusy}
+                onClick={() => {
+                  void cancelAutoBidClick();
+                }}
+                className="mt-2 w-full rounded-xl border border-white/15 py-2 text-xs font-semibold text-white/70 hover:border-red-400/40 hover:text-red-200 disabled:opacity-60"
+              >
+                Tắt đấu giá tự động
+              </button>
+            </div>
+          ) : (
+            <div className="mt-2 flex gap-2">
+              <input
+                type="number"
+                value={autoBidAmount}
+                onChange={(e) => setAutoBidAmount(e.target.value)}
+                placeholder="Mức giá tối đa"
+                className="w-full rounded-xl border border-white/10 bg-[var(--luxora-bg-soft)] px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
+              />
+              <button
+                type="button"
+                disabled={autoBidBusy}
+                onClick={() => {
+                  void submitAutoBid();
+                }}
+                className="shrink-0 rounded-xl bg-[var(--luxora-gold,#f0c982)] px-4 py-2 text-xs font-bold text-black disabled:opacity-60"
+              >
+                Bật
+              </button>
+            </div>
           )}
         </div>
       ) : null}

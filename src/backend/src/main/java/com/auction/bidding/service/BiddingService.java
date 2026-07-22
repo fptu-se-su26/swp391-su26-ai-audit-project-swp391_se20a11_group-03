@@ -22,6 +22,8 @@ import com.auction.product.repository.ProductRepository;
 import com.auction.account.dao.UserRepository;
 import com.auction.account.entity.User;
 import com.auction.fraud.event.BidCreatedEvent;
+import com.auction.wallet.entity.Wallet;
+import com.auction.wallet.repository.WalletRepository;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -54,6 +56,7 @@ public class BiddingService {
     private final ProductImageRepository productImageRepository;
     private final AuctionDepositRepository auctionDepositRepository;
     private final UserRepository userRepository;
+    private final WalletRepository walletRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final ReentrantLock auctionLock = new ReentrantLock(true);
 
@@ -65,6 +68,7 @@ public class BiddingService {
             ProductImageRepository productImageRepository,
             AuctionDepositRepository auctionDepositRepository,
             UserRepository userRepository,
+            WalletRepository walletRepository,
             ApplicationEventPublisher eventPublisher
     ) {
         this.auctionSessionRepository = auctionSessionRepository;
@@ -74,6 +78,7 @@ public class BiddingService {
         this.productImageRepository = productImageRepository;
         this.auctionDepositRepository = auctionDepositRepository;
         this.userRepository = userRepository;
+        this.walletRepository = walletRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -106,12 +111,17 @@ public class BiddingService {
 
             boolean timedMode = auction.getAuctionMode() == AuctionMode.TIMED;
 
-            AuctionDeposit bidderDeposit = auctionDepositRepository
-                    .findByAuction_AuctionIdAndUser_Id(
-                            request.getAuctionId(), Math.toIntExact(request.getUserId()))
-                    .orElse(null);
-            if (bidderDeposit == null || !"LOCKED".equalsIgnoreCase(bidderDeposit.getStatus())) {
-                return BidResponse.fail("Bạn phải đặt cọc hợp lệ trước khi tham gia đấu giá");
+            // LIVE: unchanged — must have a locked 10% deposit before joining the room.
+            // TIMED: no upfront deposit; instead each bid locks its own amount in the
+            // wallet (see the hold/release block below, after the bid amount is validated).
+            if (!timedMode) {
+                AuctionDeposit bidderDeposit = auctionDepositRepository
+                        .findByAuction_AuctionIdAndUser_Id(
+                                request.getAuctionId(), Math.toIntExact(request.getUserId()))
+                        .orElse(null);
+                if (bidderDeposit == null || !"LOCKED".equalsIgnoreCase(bidderDeposit.getStatus())) {
+                    return BidResponse.fail("Bạn phải đặt cọc hợp lệ trước khi tham gia đấu giá");
+                }
             }
 
             LocalDateTime now = LocalDateTime.now();
@@ -158,6 +168,13 @@ public class BiddingService {
                 }
             }
 
+            if (timedMode) {
+                BidResponse holdFailure = applyTimedWalletHold(auction, request, bidder, bidAmount, now);
+                if (holdFailure != null) {
+                    return holdFailure;
+                }
+            }
+
             Bid bid = new Bid();
             bid.setAuctionId(request.getAuctionId());
             bid.setUserId(request.getUserId());
@@ -196,6 +213,88 @@ public class BiddingService {
         } finally {
             auctionLock.unlock();
         }
+    }
+
+    /**
+     * TIMED auctions have no upfront deposit. Instead, every leading bid locks its
+     * own amount in the bidder's {@code holdBalance}; when a different bidder takes
+     * the lead, the previous leader's hold is released. This reuses the
+     * {@code AuctionDeposit} table (status {@code "TIMED_HOLD"}, distinct from the
+     * LIVE-only {@code "LOCKED"} deposit status) so settlement/payment code that
+     * already reads {@code depositAmount} generically keeps working unchanged.
+     * Returns a failure {@link BidResponse} if the bidder's wallet can't cover the
+     * bid, or {@code null} on success (hold applied).
+     */
+    private BidResponse applyTimedWalletHold(
+            AuctionSession auction, BidRequest request, User bidder, Long bidAmount, LocalDateTime now) {
+        Long previousLeaderId = auction.getCurrentWinnerUserId();
+        Wallet bidderWallet = walletRepository.findByUserIdForUpdate(Math.toIntExact(request.getUserId()))
+                .orElse(null);
+        if (bidderWallet == null) {
+            return BidResponse.fail("Không tìm thấy ví của bạn");
+        }
+
+        // AuctionDeposit has a UNIQUE(AuctionId, UserId) constraint, so this row must
+        // always be reused (updated) for this bidder+auction pair — even if its
+        // current status is REFUNDED from an earlier round where they were outbid.
+        // Filtering it out here and falling through to an INSERT would violate that
+        // constraint the moment someone re-bids after being outbid.
+        AuctionDeposit ownDepositRow = auctionDepositRepository
+                .findByAuction_AuctionIdAndUser_Id(request.getAuctionId(), Math.toIntExact(request.getUserId()))
+                .orElse(null);
+        long ownExistingHold = ownDepositRow != null
+                && "TIMED_HOLD".equalsIgnoreCase(ownDepositRow.getStatus())
+                && ownDepositRow.getDepositAmount() != null
+                ? ownDepositRow.getDepositAmount() : 0L;
+
+        long balance = bidderWallet.getBalance() != null ? bidderWallet.getBalance() : 0L;
+        long hold = bidderWallet.getHoldBalance() != null ? bidderWallet.getHoldBalance() : 0L;
+        // Give back the bidder's own existing TIMED hold before checking — they're
+        // about to replace it with a new (larger) one, not add a second hold.
+        long available = balance - hold + ownExistingHold;
+        if (available < bidAmount) {
+            return BidResponse.fail("Số dư ví khả dụng không đủ để đặt giá này");
+        }
+
+        if (previousLeaderId != null && !previousLeaderId.equals(request.getUserId())) {
+            auctionDepositRepository
+                    .findByAuction_AuctionIdAndUser_Id(request.getAuctionId(), Math.toIntExact(previousLeaderId))
+                    .filter(d -> "TIMED_HOLD".equalsIgnoreCase(d.getStatus()))
+                    .ifPresent(prev -> {
+                        walletRepository.findByUserIdForUpdate(Math.toIntExact(previousLeaderId)).ifPresent(prevWallet -> {
+                            long prevHold = prevWallet.getHoldBalance() != null ? prevWallet.getHoldBalance() : 0L;
+                            long releaseAmt = prev.getDepositAmount() != null ? prev.getDepositAmount() : 0L;
+                            prevWallet.setHoldBalance(Math.max(0L, prevHold - releaseAmt));
+                            prevWallet.setUpdatedAt(now);
+                            walletRepository.save(prevWallet);
+                        });
+                        prev.setStatus("REFUNDED");
+                        prev.setSettlementType("REFUNDED");
+                        prev.setSettledAt(now);
+                        auctionDepositRepository.save(prev);
+                    });
+        }
+
+        bidderWallet.setHoldBalance(hold - ownExistingHold + bidAmount);
+        bidderWallet.setUpdatedAt(now);
+        walletRepository.save(bidderWallet);
+
+        if (ownDepositRow != null) {
+            ownDepositRow.setDepositAmount(bidAmount);
+            ownDepositRow.setStatus("TIMED_HOLD");
+            ownDepositRow.setSettlementType(null);
+            ownDepositRow.setSettledAt(null);
+            auctionDepositRepository.save(ownDepositRow);
+        } else {
+            AuctionDeposit newHold = new AuctionDeposit();
+            newHold.setAuction(auctionRepository.getReferenceById(request.getAuctionId()));
+            newHold.setUser(bidder);
+            newHold.setDepositAmount(bidAmount);
+            newHold.setStatus("TIMED_HOLD");
+            newHold.setCreatedAt(now);
+            auctionDepositRepository.save(newHold);
+        }
+        return null;
     }
 
     private String validateBidderStatus(User bidder) {
