@@ -28,6 +28,7 @@ public class BiddingProductController {
             @RequestParam(name = "maxPrice", required = false) Long maxPrice,
             @RequestParam(name = "status", required = false) String status,
             @RequestParam(name = "auctionStatus", required = false) String auctionStatus,
+            @RequestParam(name = "auctionMode", required = false) String auctionMode,
             @RequestParam(name = "page", defaultValue = "0") Integer page,
             @RequestParam(name = "size", defaultValue = "10") Integer size
     ) {
@@ -38,6 +39,7 @@ public class BiddingProductController {
         request.setMaxStartingPrice(maxStartingPrice != null ? maxStartingPrice : maxPrice);
         request.setStatus(status);
         request.setAuctionStatus(auctionStatus);
+        request.setAuctionMode(auctionMode);
         request.setPage(page);
         request.setSize(size);
 

@@ -10,6 +10,7 @@ public class ProductSearchRequest {
     private Long maxStartingPrice;
     private String status;
     private String auctionStatus;
+    private String auctionMode;
     private Integer page = 0;
     private Integer size = 10;
 }

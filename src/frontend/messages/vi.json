@@ -107,6 +107,9 @@
     "shipping": "Vận chuyển & giao nhận",
     "categoriesTitle": "DANH MỤC",
     "watches": "Đồng hồ",
+    "art": "Tranh nghệ thuật",
+    "jewelry": "Trang sức",
+    "furniture": "Nội thất",
     "phones": "Điện thoại",
     "laptops": "Laptop",
     "cameras": "Máy ảnh",
@@ -114,6 +117,38 @@
     "contactPhone": "Hotline: {phone}",
     "contactEmail": "Email: {email}",
     "contactAddress": "Địa chỉ: {address}"
+  },
+  "helpPage": {
+    "badge": "HỖ TRỢ BIDZONE",
+    "title": "Trung tâm trợ giúp",
+    "description": "Thông tin cần thiết để tham gia đấu giá, thanh toán và theo dõi giao nhận.",
+    "openFeature": "Mở chức năng",
+    "contactSupport": "Liên hệ hỗ trợ",
+    "bidding": {
+      "title": "Hướng dẫn đấu giá",
+      "description": "Chọn phiên phù hợp, hoàn tất khoản đặt cọc và đặt giá trong thời gian phiên mở.",
+      "href": "/auctions"
+    },
+    "payments": {
+      "title": "Thanh toán",
+      "description": "Quản lý số dư, nạp tiền và kiểm tra lịch sử giao dịch trong ví BidZone.",
+      "href": "/wallet"
+    },
+    "shipping": {
+      "title": "Vận chuyển và giao nhận",
+      "description": "Theo dõi trạng thái giao hàng và xác nhận khi sản phẩm đã được nhận an toàn.",
+      "href": "/orders"
+    }
+  },
+  "legalPage": {
+    "badge": "PHÁP LÝ",
+    "title": "Điều khoản và quyền riêng tư",
+    "description": "Các nguyên tắc chung khi sử dụng nền tảng đấu giá BidZone.",
+    "termsTitle": "Điều khoản sử dụng",
+    "termsBody": "Người dùng phải cung cấp thông tin chính xác, tuân thủ quy trình xác minh, đặt cọc, đấu giá và thanh toán. Mọi hành vi gian lận, tự nâng giá hoặc đăng bán hàng giả đều bị nghiêm cấm.",
+    "privacyTitle": "Chính sách bảo mật",
+    "privacyBody": "BidZone sử dụng thông tin tài khoản và dữ liệu xác minh nhằm bảo vệ giao dịch, kiểm soát truy cập và thực hiện nghĩa vụ pháp lý. Dữ liệu chỉ được xử lý trong phạm vi cần thiết cho hoạt động của nền tảng.",
+    "contact": "Liên hệ hỗ trợ"
   },
   "why": {
     "badge": "Nền tảng tin cậy",
@@ -358,8 +393,11 @@
     "startingPrice": "Giá khởi điểm {price}",
     "currentPrice": "Giá hiện tại",
     "ends": "Kết thúc",
+    "starts": "Bắt đầu sau",
+    "upcomingBadge": "SẮP DIỄN RA",
     "bids": "Lượt bid",
     "bidNow": "ĐẤU GIÁ NGAY",
+    "viewAuction": "XEM PHIÊN ĐẤU GIÁ",
     "zoomIn": "Phóng to",
     "closeZoom": "Đóng ảnh phóng to",
     "selectedItem": "Sản phẩm đang chọn"
@@ -374,7 +412,7 @@
   "home": {
     "liveSection": "PHIÊN ĐẤU GIÁ LIVE",
     "seeAll": "XEM TẤT CẢ",
-    "noLiveAuctions": "Chưa có phiên đấu giá nào đang diễn ra. Quay lại sau nhé!"
+    "noLiveAuctions": "Chưa có phiên đấu giá nào đang diễn ra hoặc sắp diễn ra. Quay lại sau nhé!"
   },
   "cta": {
     "imageAlt": "Bộ sưu tập đồng hồ đấu giá cao cấp",
