@@ -76,7 +76,7 @@ export default async function EventsPage() {
               {/* Banner */}
               <div className="relative h-48 overflow-hidden sm:h-56">
                 <img
-                  src={event.bannerUrl}
+                  src={event.bannerUrl || "/product-placeholder.svg"}
                   alt={event.name}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
