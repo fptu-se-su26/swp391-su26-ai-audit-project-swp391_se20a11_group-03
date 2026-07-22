@@ -62,7 +62,7 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
             throw new IllegalStateException("Payment window has expired for this auction");
         }
 
-        Wallet buyerWallet = walletRepository.findByUser_Id(Math.toIntExact(userId))
+        Wallet buyerWallet = walletRepository.findLockedByUser_Id(Math.toIntExact(userId))
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found for user: " + userId));
 
         AuctionDeposit deposit = auctionDepositRepository
@@ -77,7 +77,12 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
 
         long shippingFee = orderService.getShippingFee();
         long totalCharge = finalPrice + shippingFee;
-        if (currentBalance < totalCharge) {
+        // This auction's own deposit hold is being released as part of payment, so
+        // only holds reserved elsewhere (other auction deposits, pending withdrawals)
+        // should count against what's available to spend here.
+        long otherHolds = Math.max(0L, currentHold - depositAmount);
+        long availableForPayment = currentBalance - otherHolds;
+        if (availableForPayment < totalCharge) {
             throw new IllegalStateException("Insufficient wallet balance to complete auction payment");
         }
 
@@ -154,7 +159,7 @@ public class AuctionPaymentServiceImpl implements AuctionPaymentService {
         if (admin == null) {
             return null;
         }
-        return walletRepository.findByUser_Id(admin.getId()).orElseGet(() -> {
+        return walletRepository.findLockedByUser_Id(admin.getId()).orElseGet(() -> {
             Wallet w = new Wallet();
             w.setUser(admin);
             w.setBalance(0L);

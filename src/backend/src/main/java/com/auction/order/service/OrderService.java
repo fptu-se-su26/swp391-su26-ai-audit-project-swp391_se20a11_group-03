@@ -190,7 +190,7 @@ public class OrderService {
         wallet.setBalance(value(wallet.getBalance()) + amount); wallet.setUpdatedAt(now); walletRepository.save(wallet);
         transactionRepository.save(new Transaction(wallet, amount, type, "COMPLETED", ref, description, now));
     }
-    private Wallet wallet(User user, LocalDateTime now) { return walletRepository.findByUser_Id(user.getId()).orElseGet(() -> { Wallet w = new Wallet(); w.setUser(user); w.setBalance(0L); w.setHoldBalance(0L); w.setUpdatedAt(now); return walletRepository.save(w); }); }
+    private Wallet wallet(User user, LocalDateTime now) { return walletRepository.findLockedByUser_Id(user.getId()).orElseGet(() -> { Wallet w = new Wallet(); w.setUser(user); w.setBalance(0L); w.setHoldBalance(0L); w.setUpdatedAt(now); return walletRepository.save(w); }); }
     private long value(Long n) { return n == null ? 0L : n; }
     private Order get(long id) { return orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Order not found: " + id)); }
     private Order locked(long id) { return orderRepository.findLockedByOrderId(id).orElseThrow(() -> new ResourceNotFoundException("Order not found: " + id)); }

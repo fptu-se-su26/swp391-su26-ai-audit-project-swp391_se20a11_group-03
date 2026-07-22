@@ -38,7 +38,7 @@ public class DepositServiceImpl implements DepositService {
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + auctionId));
         User user = userRepository.findById(Math.toIntExact(userId))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-        Wallet wallet = walletRepository.findByUser_Id(Math.toIntExact(userId))
+        Wallet wallet = walletRepository.findLockedByUser_Id(Math.toIntExact(userId))
                 .orElseThrow(() -> new ResourceNotFoundException("Wallet not found for user: " + userId));
 
         if (auction.getProduct() != null

@@ -95,9 +95,44 @@ public class MessageServiceImpl implements MessageService {
     @Override
     @Transactional(readOnly = true)
     public List<MessageResponse> getMessages(Long conversationId, Long requesterId) {
+        Conversation conv = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation không tồn tại"));
+        User requester = userRepository.findById(Math.toIntExact(requesterId))
+                .orElseThrow(() -> new ResourceNotFoundException("User không tồn tại"));
+        validateReadAccess(conv, requester);
+
         return messageRepository
                 .findByConversation_ConversationIdOrderBySentAtAsc(conversationId)
                 .stream().map(this::toResponse).toList();
+    }
+
+    /**
+     * Same permission model as {@code ConversationServiceImpl.validateViewAccess}:
+     * creator, assigned staff, any Staff (for support conversations), or Admin.
+     */
+    private void validateReadAccess(Conversation conv, User requester) {
+        String role = requester.getRole().getRoleName();
+        if ("Admin".equalsIgnoreCase(role)) {
+            return;
+        }
+        if (conv.getType() == ConversationType.BUYER_SELLER) {
+            if ("Staff".equalsIgnoreCase(role)) {
+                throw new AccessDeniedException("Staff không được xem cuộc hội thoại giữa buyer và seller");
+            }
+            boolean isBuyer = conv.getUser().getId() == requester.getId();
+            boolean isSeller = conv.getSeller() != null && conv.getSeller().getId() == requester.getId();
+            if (!isBuyer && !isSeller) {
+                throw new AccessDeniedException("Bạn không có quyền xem conversation này");
+            }
+        } else {
+            boolean isCreator = conv.getUser().getId() == requester.getId();
+            boolean isAssignedStaff = conv.getAssignedStaff() != null
+                    && conv.getAssignedStaff().getId() == requester.getId();
+            boolean isStaffViewingSupport = "Staff".equalsIgnoreCase(role);
+            if (!isCreator && !isAssignedStaff && !isStaffViewingSupport) {
+                throw new AccessDeniedException("Bạn không có quyền xem conversation này");
+            }
+        }
     }
 
     @Override

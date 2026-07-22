@@ -3,7 +3,9 @@ package com.auction.event.repository;
 import com.auction.event.entity.EventProduct;
 import com.auction.event.enums.EventProductApprovalStatus;
 import com.auction.event.enums.EventProductSessionStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -13,6 +15,10 @@ import java.util.Optional;
 
 public interface EventProductRepository extends JpaRepository<EventProduct, Long> {
     List<EventProduct> findByEventId(Long eventId);
+
+    /** Row-locked read used to serialize concurrent bid/purchase attempts on the same product. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<EventProduct> findLockedById(Long id);
 
     List<EventProduct> findByEventIdAndApprovalStatus(Long eventId, EventProductApprovalStatus approvalStatus);
 
