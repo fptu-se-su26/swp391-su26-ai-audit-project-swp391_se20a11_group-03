@@ -297,21 +297,21 @@ export default function WalletPage() {
             if (event.target === event.currentTarget) closeDeposit();
           }}
         >
-          <div className="relative max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-lg border border-white/15 bg-[#111] p-5 shadow-2xl sm:p-6">
+          <div className="relative max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-lg border border-white/15 bg-[var(--luxora-bg-elevated)] p-5 text-[var(--luxora-text)] shadow-2xl sm:p-6">
             <button
               type="button"
               onClick={closeDeposit}
               title={t("closeBtn")}
               aria-label={t("closeBtn")}
-              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-[var(--luxora-text)]/50 transition-colors hover:bg-white/10 hover:text-[var(--luxora-text)]"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
 
-            <h2 id="deposit-title" className="font-headline-md pr-12 text-xl">
+            <h2 id="deposit-title" className="font-headline-md pr-12 text-xl text-[var(--luxora-text)]">
               {t("depositModalTitle")}
             </h2>
-            <p className="mt-1 text-sm text-white/50">
+            <p className="mt-1 text-sm text-[var(--luxora-text)]/60">
               {t("depositModalSubtitle")}
             </p>
 
@@ -319,7 +319,7 @@ export default function WalletPage() {
               <form onSubmit={createDepositQr} className="mt-6">
                 <label
                   htmlFor="deposit-amount"
-                  className="text-xs font-semibold uppercase tracking-wider text-white/60"
+                  className="text-xs font-semibold uppercase tracking-wider text-[var(--luxora-text)]/60"
                 >
                   {t("depositAmountLabel")}
                 </label>
@@ -334,9 +334,9 @@ export default function WalletPage() {
                       setAmount(event.target.value.replace(/\D/g, ""))
                     }
                     placeholder={t("depositMinPlaceholder")}
-                    className="min-w-0 flex-1 bg-transparent text-lg font-semibold outline-none"
+                    className="min-w-0 flex-1 bg-transparent text-lg font-semibold text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text)]/40"
                   />
-                  <span className="text-sm text-white/45">₫</span>
+                  <span className="text-sm text-[var(--luxora-text)]/45">₫</span>
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -348,7 +348,7 @@ export default function WalletPage() {
                       className={`h-10 rounded-lg border text-xs font-semibold transition-colors ${
                         numericAmount === preset
                           ? "border-[var(--luxora-gold)] bg-[var(--luxora-gold)]/10 text-[var(--luxora-gold-light)]"
-                          : "border-white/10 text-white/65 hover:border-white/25"
+                          : "border-white/10 text-[var(--luxora-text)]/65 hover:border-white/25"
                       }`}
                     >
                       {preset.toLocaleString("vi-VN")}
@@ -357,7 +357,7 @@ export default function WalletPage() {
                 </div>
 
                 {actionError ? (
-                  <p className="mt-4 text-sm text-red-300">{actionError}</p>
+                  <p className="mt-4 text-sm text-red-500">{actionError}</p>
                 ) : null}
 
                 <button
@@ -428,14 +428,14 @@ export default function WalletPage() {
                 </dl>
 
                 {actionError ? (
-                  <p className="mt-4 text-sm text-red-300">{actionError}</p>
+                  <p className="mt-4 text-sm text-red-500">{actionError}</p>
                 ) : null}
                 {depositStatus ? (
                   <p
                     className={`mt-4 text-sm ${
                       depositStatus.startsWith(t("depositReceived", { amount: "" }).slice(0, 5))
-                        ? "text-green-300"
-                        : "text-yellow-200"
+                        ? "text-green-600"
+                        : "text-yellow-600"
                     }`}
                   >
                     {depositStatus}
@@ -450,7 +450,7 @@ export default function WalletPage() {
                       setDepositStatus("");
                       setQrImageError(false);
                     }}
-                    className="h-11 flex-1 rounded-full border border-white/15 text-sm font-semibold hover:border-white/30"
+                    className="h-11 flex-1 rounded-full border border-white/15 text-[var(--luxora-text)] text-sm font-semibold hover:border-white/30"
                   >
                     {t("depositChangeAmount")}
                   </button>
@@ -478,27 +478,27 @@ export default function WalletPage() {
             if (event.target === event.currentTarget) setShowWithdraw(false);
           }}
         >
-          <div className="relative max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-lg border border-white/15 bg-[#111] p-5 shadow-2xl sm:p-6">
+          <div className="relative max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-lg border border-white/15 bg-[var(--luxora-bg-elevated)] p-5 text-[var(--luxora-text)] shadow-2xl sm:p-6">
             <button
               type="button"
               onClick={() => setShowWithdraw(false)}
               title={t("closeBtn")}
               aria-label={t("closeBtn")}
-              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-[var(--luxora-text)]/50 transition-colors hover:bg-white/10 hover:text-[var(--luxora-text)]"
             >
               <span className="material-symbols-outlined">close</span>
             </button>
 
-            <h2 id="withdraw-title" className="font-headline-md pr-12 text-xl">
+            <h2 id="withdraw-title" className="font-headline-md pr-12 text-xl text-[var(--luxora-text)]">
               {t("withdrawModalTitle")}
             </h2>
-            <p className="mt-1 text-sm text-white/50">
+            <p className="mt-1 text-sm text-[var(--luxora-text)]/60">
               {t("withdrawModalSubtitle", { balance: formatVnd(data.wallet.availableBalance) })}
             </p>
 
             <form onSubmit={submitWithdraw} className="mt-6 flex flex-col gap-4">
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--luxora-text)]/60">
                   {t("withdrawAmountLabel")}
                 </span>
                 <div className="mt-2 flex h-12 items-center rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 focus-within:border-[var(--luxora-gold)]">
@@ -515,14 +515,14 @@ export default function WalletPage() {
                       setWithdrawAmount(event.target.value.replace(/\D/g, ""))
                     }
                     placeholder={t("withdrawMinPlaceholder")}
-                    className="min-w-0 flex-1 bg-transparent text-lg font-semibold outline-none"
+                    className="min-w-0 flex-1 bg-transparent text-lg font-semibold text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text)]/40"
                   />
-                  <span className="text-sm text-white/45">₫</span>
+                  <span className="text-sm text-[var(--luxora-text)]/45">₫</span>
                 </div>
               </label>
 
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--luxora-text)]/60">
                   {t("withdrawBankLabel")}
                 </span>
                 <input
@@ -531,12 +531,12 @@ export default function WalletPage() {
                   value={bankName}
                   onChange={(event) => setBankName(event.target.value)}
                   placeholder={t("withdrawBankExample")}
-                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
+                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text)]/40 focus:border-[var(--luxora-gold)]"
                 />
               </label>
 
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--luxora-text)]/60">
                   {t("withdrawAccountLabel")}
                 </span>
                 <input
@@ -548,12 +548,12 @@ export default function WalletPage() {
                     setAccountNumber(event.target.value.replace(/\D/g, ""))
                   }
                   placeholder={t("withdrawAccountPlaceholder")}
-                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
+                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text)]/40 focus:border-[var(--luxora-gold)]"
                 />
               </label>
 
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--luxora-text)]/60">
                   {t("withdrawHolderLabel")}
                 </span>
                 <input
@@ -562,15 +562,15 @@ export default function WalletPage() {
                   value={accountName}
                   onChange={(event) => setAccountName(event.target.value)}
                   placeholder={t("withdrawHolderPlaceholder")}
-                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 text-sm outline-none placeholder:text-white/30 focus:border-[var(--luxora-gold)]"
+                  className="mt-2 h-12 w-full rounded-lg border border-white/15 bg-[var(--luxora-bg-soft)] px-4 text-sm text-[var(--luxora-text)] outline-none placeholder:text-[var(--luxora-text)]/40 focus:border-[var(--luxora-gold)]"
                 />
               </label>
 
               {withdrawError ? (
-                <p className="text-sm text-red-300">{withdrawError}</p>
+                <p className="text-sm text-red-500">{withdrawError}</p>
               ) : null}
               {withdrawSuccess ? (
-                <p className="text-sm text-green-300">{withdrawSuccess}</p>
+                <p className="text-sm text-green-600">{withdrawSuccess}</p>
               ) : null}
 
               <button
@@ -607,11 +607,11 @@ function DepositDetail({
 }) {
   return (
     <div className="flex min-h-12 items-center justify-between gap-4 py-2.5">
-      <dt className="shrink-0 text-white/45">{label}</dt>
+      <dt className="shrink-0 text-[var(--luxora-text)]/45">{label}</dt>
       <dd className="flex min-w-0 items-center justify-end gap-2 text-right">
         <span
           className={`break-all font-semibold ${
-            emphasize ? "text-[var(--luxora-gold-light)]" : "text-white"
+            emphasize ? "text-[var(--luxora-gold-light)]" : "text-[var(--luxora-text)]"
           }`}
         >
           {value}
@@ -622,7 +622,7 @@ function DepositDetail({
             onClick={onCopy}
             title={copied ? copiedLabel : copyLabel}
             aria-label={copied ? copiedLabel : copyLabel}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/50 hover:bg-white/10 hover:text-white"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[var(--luxora-text)]/50 hover:bg-white/10 hover:text-[var(--luxora-text)]"
           >
             <span className="material-symbols-outlined text-lg">
               {copied ? "check" : "content_copy"}

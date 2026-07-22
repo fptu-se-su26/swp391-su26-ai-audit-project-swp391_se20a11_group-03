@@ -1155,7 +1155,7 @@
     "view": "Xem"
   },
   "staffSupportPage": {
-    "status": { "OPEN": "Đang mở", "CLOSED": "Đã đóng" },
+    "status": { "OPEN": "Đang mở", "IN_PROGRESS": "Đang xử lý", "CLOSED": "Đã đóng" },
     "loadError": "Không thể tải hộp thư hỗ trợ.",
     "claimError": "Không thể nhận ticket này.",
     "sendError": "Không gửi được phản hồi.",

@@ -52,6 +52,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
 
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState<string | null>(null);
+  const [aiRemaining, setAiRemaining] = useState<number | null>(null);
   const [kycAccess, setKycAccess] = useState<KycAccess>("checking");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -69,6 +70,23 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
       })
       .catch(() => {
         if (!cancelled) setKycAccess("error");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    aiApi
+      .valuationQuota()
+      .then((response) => {
+        if (!cancelled) setAiRemaining(response.data.remaining);
+      })
+      .catch(() => {
+        /* Non-critical: leave remaining count unknown if this fails. */
       });
 
     return () => {
@@ -202,6 +220,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
           ? `${t("aiRange", { low: fmt(d.lowEstimate), high: fmt(d.highEstimate) })} `
           : "";
       setAiResult(range + (d.summary || d.reply || t("aiDone")));
+      if (d.remaining != null) setAiRemaining(d.remaining);
     } catch (err) {
       setAiResult(
         err instanceof ApiError ? err.message : t("aiError"),
@@ -555,7 +574,7 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
         <button
           type="button"
           onClick={handleGetValuation}
-          disabled={aiLoading}
+          disabled={aiLoading || aiRemaining === 0}
           className="gradient-cta mt-5 w-full rounded-full py-3 text-sm font-semibold text-black disabled:opacity-60"
         >
           {aiLoading ? t("aiLoading") : t("aiButton")}
@@ -567,9 +586,11 @@ export default function PostItemForm({ editProductId }: PostItemFormProps) {
           </div>
         )}
 
-        <p className="mt-4 text-[11px] text-white/30">
-          {t("aiRemaining", { count: 12 })}
-        </p>
+        {aiRemaining != null && (
+          <p className="mt-4 text-[11px] text-white/30">
+            {t("aiRemaining", { count: aiRemaining })}
+          </p>
+        )}
       </aside>
     </div>
   );

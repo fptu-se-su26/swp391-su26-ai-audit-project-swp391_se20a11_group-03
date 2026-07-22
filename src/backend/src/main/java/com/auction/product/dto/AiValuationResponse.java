@@ -17,4 +17,6 @@ public class AiValuationResponse {
     private Long lowEstimate;
     private Long highEstimate;
     private String currency;
+    /** Remaining free AI valuation uses for the requesting user, after this call. */
+    private Integer remaining;
 }

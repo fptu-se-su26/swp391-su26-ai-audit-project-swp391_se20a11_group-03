@@ -1223,7 +1223,7 @@
     "view": "View"
   },
   "staffSupportPage": {
-    "status": { "OPEN": "Open", "CLOSED": "Closed" },
+    "status": { "OPEN": "Open", "IN_PROGRESS": "In progress", "CLOSED": "Closed" },
     "loadError": "Could not load support inbox.",
     "claimError": "Could not claim this ticket.",
     "sendError": "Could not send reply.",
