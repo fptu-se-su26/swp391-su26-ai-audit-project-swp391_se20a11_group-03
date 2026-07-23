@@ -25,6 +25,13 @@ public interface EventProductRepository extends JpaRepository<EventProduct, Long
 
     List<EventProduct> findByEventIdAndSessionStatus(Long eventId, EventProductSessionStatus sessionStatus);
 
+    List<EventProduct> findBySessionStatus(EventProductSessionStatus sessionStatus);
+
+    List<EventProduct> findByPaymentStatusIgnoreCaseAndPaymentDeadlineLessThanEqual(
+            String paymentStatus,
+            LocalDateTime paymentDeadline
+    );
+
     List<EventProduct> findBySubmittedBySellerIdAndEventId(Long sellerId, Long eventId);
 
     Optional<EventProduct> findByEventIdAndProductId(Long eventId, Long productId);

@@ -61,6 +61,14 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auctions/*/bid").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/auctions/*/pay").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/auctions/*/deposit").authenticated()
+                // Legacy/non-/api admin & staff endpoints (e.g. Thymeleaf panels and
+                // dual-mapped controllers) must NOT fall through to plain
+                // "authenticated" — that let any logged-in user approve/reject products
+                // or manage categories by dropping the /api prefix. Order matters:
+                // the Staff-allowed product path is matched before the Admin-only /admin/**.
+                .requestMatchers("/staff/**").hasAnyRole("Staff", "Admin")
+                .requestMatchers("/admin/products/**").hasAnyRole("Staff", "Admin")
+                .requestMatchers("/admin/**").hasRole("Admin")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

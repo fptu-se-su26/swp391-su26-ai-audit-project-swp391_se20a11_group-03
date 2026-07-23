@@ -3,7 +3,9 @@ package com.auction.event.repository;
 import com.auction.event.entity.EventRegistration;
 import com.auction.event.enums.EventRegistrationRole;
 import com.auction.event.enums.EventRegistrationStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,6 +14,13 @@ import java.util.Optional;
 
 public interface EventRegistrationRepository extends JpaRepository<EventRegistration, Long> {
     Optional<EventRegistration> findByEventIdAndUserId(Long eventId, Long userId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select r from EventRegistration r where r.eventId = :eventId and r.userId = :userId")
+    Optional<EventRegistration> findLockedByEventIdAndUserId(
+            @Param("eventId") Long eventId,
+            @Param("userId") Long userId
+    );
 
     List<EventRegistration> findByEventId(Long eventId);
 

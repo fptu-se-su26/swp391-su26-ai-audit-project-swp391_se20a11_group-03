@@ -75,7 +75,7 @@ public class PhoneOtpService {
         if (token != null
                 && token.getUsedAt() == null
                 && token.getExpiresAt().isAfter(LocalDateTime.now())
-                && token.getUser().getUserId() == user.getUserId()) {
+                && token.getUser().getId() == user.getId()) {
             tokenDAO.markUsed(token.getId(), LocalDateTime.now());
             return true;
         }

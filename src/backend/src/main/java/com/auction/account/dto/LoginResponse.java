@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class LoginResponse {
@@ -12,6 +13,7 @@ public class LoginResponse {
     private String email;
     private String roleName;
     private String status;
+    @ToString.Exclude
     private String token;
     private boolean identityVerified;
     private boolean phoneVerified;

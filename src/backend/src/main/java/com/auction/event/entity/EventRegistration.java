@@ -48,4 +48,12 @@ public class EventRegistration {
 
     @Column(name = "NotifyOnOpen", nullable = false)
     private boolean notifyOnOpen = true;
+
+    /** Real-money deposit held in the bidder's wallet for a VIRTUAL-money event (0/null for REAL). */
+    @Column(name = "DepositAmount")
+    private Long depositAmount;
+
+    /** NONE | HELD | REFUNDED | FORFEITED — lifecycle of the registration deposit. */
+    @Column(name = "DepositStatus", length = 20)
+    private String depositStatus;
 }

@@ -1,6 +1,7 @@
 package com.auction.product;
 
 import com.auction.account.dao.UserRepository;
+import com.auction.account.entity.Role;
 import com.auction.account.entity.User;
 import com.auction.account.service.KycEligibilityService;
 import com.auction.bidding.repository.AuctionRepository;
@@ -61,8 +62,14 @@ class ProductApprovalKycTest {
         User seller = new User();
         seller.setId(7);
 
+        Role adminRole = new Role();
+        adminRole.setRoleName("Admin");
+        User reviewer = new User();
+        reviewer.setId(99);
+        reviewer.setRole(adminRole);
+
         when(productRepository.findById(10L)).thenReturn(Optional.of(product));
-        when(userRepository.existsById(99)).thenReturn(true);
+        when(userRepository.findById(99)).thenReturn(Optional.of(reviewer));
         when(userRepository.findById(7)).thenReturn(Optional.of(seller));
         doThrow(new KycRequiredException("KYC required"))
                 .when(kycEligibilityService)

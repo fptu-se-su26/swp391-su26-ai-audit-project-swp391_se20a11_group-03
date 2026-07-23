@@ -3,6 +3,7 @@ package com.auction.event.entity;
 import com.auction.account.entity.User;
 import com.auction.event.enums.EventCategory;
 import com.auction.event.enums.BiddingMode;
+import com.auction.event.enums.EventMoneyMode;
 import com.auction.event.enums.EventStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -39,6 +40,15 @@ public class AuctionEvent {
     @Enumerated(EnumType.STRING)
     @Column(name = "BiddingMode", nullable = false, length = 20)
     private BiddingMode biddingMode;
+
+    /** REAL: bids lock real wallet money, no deposit. VIRTUAL: free bids, deposit at registration. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "MoneyMode", nullable = false, length = 10)
+    private EventMoneyMode moneyMode = EventMoneyMode.REAL;
+
+    /** Real-money deposit each bidder must stake to register for a VIRTUAL-money event. */
+    @Column(name = "DepositAmount")
+    private Long depositAmount;
 
     @Column(name = "IsCharity", nullable = false)
     private boolean isCharity = false;

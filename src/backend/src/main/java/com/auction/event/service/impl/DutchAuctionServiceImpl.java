@@ -6,9 +6,12 @@ import com.auction.event.dto.DutchConfig;
 import com.auction.event.dto.EventProductResponse;
 import com.auction.event.entity.AuctionEvent;
 import com.auction.event.entity.EventProduct;
+import com.auction.event.enums.EventMoneyMode;
 import com.auction.event.enums.EventProductSessionStatus;
+import com.auction.event.enums.EventRegistrationStatus;
 import com.auction.event.repository.AuctionEventRepository;
 import com.auction.event.repository.EventProductRepository;
+import com.auction.event.repository.EventRegistrationRepository;
 import com.auction.event.service.DutchAuctionService;
 import com.auction.event.service.EventNotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,6 +30,8 @@ public class DutchAuctionServiceImpl implements DutchAuctionService {
 
     private final AuctionEventRepository eventRepository;
     private final EventProductRepository eventProductRepository;
+    private final EventRegistrationRepository registrationRepository;
+    private final EventBidWalletService eventBidWalletService;
     private final EventNotificationService eventNotificationService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -41,8 +46,11 @@ public class DutchAuctionServiceImpl implements DutchAuctionService {
 
     private long computeCurrentPrice(EventProduct product, AuctionEvent event) {
         DutchConfig config = parseDutchConfig(event.getDutchConfigJson());
-        if (config == null) {
-            throw new BusinessException("Dutch auction config not found");
+        if (config == null
+                || config.getDropIntervalSeconds() == null || config.getDropIntervalSeconds() <= 0
+                || config.getDropAmount() == null || config.getDropAmount() < 0
+                || config.getFloorPrice() == null) {
+            throw new BusinessException("Cấu hình đấu giá Hà Lan không hợp lệ");
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -75,20 +83,42 @@ public class DutchAuctionServiceImpl implements DutchAuctionService {
             throw new BusinessException("Phiên đấu giá không hoạt động");
         }
 
+        if (product.getSubmittedBySellerId() != null && product.getSubmittedBySellerId().equals(userId)) {
+            throw new BusinessException("Người bán không thể mua sản phẩm của chính mình");
+        }
+
+        requireRegistered(product.getEventId(), userId);
+
         AuctionEvent event = eventRepository.findById(product.getEventId())
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
         long currentPrice = computeCurrentPrice(product, event);
 
-        // Update product
+        // REAL money: hold the buy-now price in the buyer's wallet (applied at payment).
+        if (event.getMoneyMode() == EventMoneyMode.REAL) {
+            eventBidWalletService.applyAscendingHold(product, userId, currentPrice);
+        }
+
+        // Update product — Dutch sells immediately, so move straight to awaiting payment.
         product.setSessionStatus(EventProductSessionStatus.ENDED_SOLD);
         product.setWinnerId(userId);
         product.setFinalPrice(currentPrice);
+        product.setPaymentStatus("AWAITING_PAYMENT");
+        product.setPaymentDeadline(LocalDateTime.now().plusHours(72));
         product = eventProductRepository.save(product);
 
         // Notify winner
         eventNotificationService.notifyEventEnded(product.getEventId(), userId, true);
 
         return EventProductResponse.fromEntity(product);
+    }
+
+    private void requireRegistered(Long eventId, Long userId) {
+        boolean registered = registrationRepository.findByEventIdAndUserId(eventId, userId)
+                .map(r -> r.getStatus() == EventRegistrationStatus.REGISTERED)
+                .orElse(false);
+        if (!registered) {
+            throw new BusinessException("Bạn cần đăng ký tham gia sự kiện trước khi mua");
+        }
     }
 
     private DutchConfig parseDutchConfig(String json) {
