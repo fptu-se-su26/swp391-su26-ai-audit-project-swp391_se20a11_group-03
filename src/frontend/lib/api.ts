@@ -1,18 +1,8 @@
 import type { LiveAuctionItem } from "@/lib/home-data";
 import type { TrustStat } from "@/lib/home-data";
+import { API_BASE_URL } from "@/lib/api-base";
 
-const LOCAL_API_BASE_URL = "http://localhost:8096/api";
-const PRODUCTION_API_BASE_URL = "https://api.bidzone.io.vn/api";
-const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
-const configuredForLocalhost =
-  configuredApiBaseUrl?.startsWith("http://localhost") ||
-  configuredApiBaseUrl?.startsWith("http://127.0.0.1");
-
-export const API_BASE_URL =
-  process.env.NODE_ENV === "production" &&
-  (!configuredApiBaseUrl || configuredForLocalhost)
-    ? PRODUCTION_API_BASE_URL
-    : configuredApiBaseUrl || LOCAL_API_BASE_URL;
+export { API_BASE_URL } from "@/lib/api-base";
 
 export type ShippingAddress = {
   receiverName: string;
@@ -211,6 +201,7 @@ export type Category = {
 
 export type EventCategoryValue = "THEMED" | "CHARITY" | "GENERAL";
 export type BiddingModeValue = "STANDARD" | "DUTCH" | "SEALED_BID" | "PENNY";
+export type EventMoneyModeValue = "REAL" | "VIRTUAL";
 export type EventStatusValue =
   | "DRAFT"
   | "PUBLISHED"
@@ -227,6 +218,8 @@ export type AdminEvent = {
   bannerUrl: string | null;
   eventCategory: EventCategoryValue;
   biddingMode: BiddingModeValue;
+  moneyMode: EventMoneyModeValue;
+  depositAmount: number | null;
   isCharity: boolean;
   charityPercent: number | null;
   registrationOpenAt: string | null;
@@ -271,6 +264,8 @@ export type EventProduct = {
   sessionStatus: EventProductSessionStatus;
   winnerId: number | null;
   finalPrice: number | null;
+  paymentStatus: string | null;
+  paymentDeadline: string | null;
 };
 
 export type AvailableProductForEvent = {
@@ -1521,6 +1516,60 @@ export const sellerApi = {
   withdrawSubmission(eventProductId: number) {
     return apiFetch<ApiEnvelope<null>>(`/seller/events/products/${eventProductId}`, {
       method: "DELETE",
+    });
+  },
+};
+
+// ---------------------------------------------------------------------------
+// PUBLIC EVENTS (bidder) — /api/events*
+// ---------------------------------------------------------------------------
+export const eventApi = {
+  list() {
+    return apiFetch<ApiEnvelope<AdminEvent[]>>("/events", { auth: false });
+  },
+  get(eventId: number) {
+    return apiFetch<ApiEnvelope<AdminEvent>>(`/events/${eventId}`, { auth: false });
+  },
+  products(eventId: number) {
+    return apiFetch<ApiEnvelope<EventProduct[]>>(`/events/${eventId}/products`, { auth: false });
+  },
+  myEvents() {
+    return apiFetch<ApiEnvelope<AdminEvent[]>>("/events/my");
+  },
+  register(eventId: number) {
+    return apiFetch<ApiEnvelope<AdminEvent>>(`/events/${eventId}/register`, { method: "POST" });
+  },
+  unregister(eventId: number) {
+    return apiFetch<ApiEnvelope<null>>(`/events/${eventId}/unregister`, { method: "POST" });
+  },
+  standardBid(eventId: number, eventProductId: number, bidAmount: number) {
+    return apiFetch<ApiEnvelope<EventProduct>>(`/events/${eventId}/products/${eventProductId}/bid`, {
+      method: "POST",
+      body: JSON.stringify({ bidAmount }),
+    });
+  },
+  dutchCurrentPrice(eventId: number, eventProductId: number) {
+    return apiFetch<ApiEnvelope<number>>(`/events/${eventId}/products/${eventProductId}/dutch/current-price`, { auth: false });
+  },
+  dutchCommit(eventId: number, eventProductId: number) {
+    return apiFetch<ApiEnvelope<EventProduct>>(`/events/${eventId}/products/${eventProductId}/dutch/commit`, { method: "POST" });
+  },
+  sealedBid(eventId: number, eventProductId: number, bidAmount: number) {
+    return apiFetch<ApiEnvelope<unknown>>(`/events/${eventId}/products/${eventProductId}/sealed/bid`, {
+      method: "POST",
+      body: JSON.stringify({ bidAmount }),
+    });
+  },
+  pennyBid(eventId: number, eventProductId: number) {
+    return apiFetch<ApiEnvelope<EventProduct>>(`/events/${eventId}/products/${eventProductId}/penny/bid`, { method: "POST" });
+  },
+  pennyStatus(eventId: number, eventProductId: number) {
+    return apiFetch<ApiEnvelope<Record<string, unknown>>>(`/events/${eventId}/products/${eventProductId}/penny/status`, { auth: false });
+  },
+  pay(eventProductId: number, address: ShippingAddress) {
+    return apiFetch<ApiEnvelope<null>>(`/events/products/${eventProductId}/pay`, {
+      method: "POST",
+      body: JSON.stringify(address),
     });
   },
 };

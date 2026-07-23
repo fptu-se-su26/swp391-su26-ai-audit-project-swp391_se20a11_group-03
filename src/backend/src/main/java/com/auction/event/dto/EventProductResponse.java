@@ -30,6 +30,8 @@ public class EventProductResponse {
     private EventProductSessionStatus sessionStatus;
     private Long winnerId;
     private Long finalPrice;
+    private String paymentStatus;
+    private LocalDateTime paymentDeadline;
 
     public static EventProductResponse fromEntity(EventProduct entity) {
         EventProductResponse response = new EventProductResponse();
@@ -49,6 +51,8 @@ public class EventProductResponse {
         response.setSessionStatus(entity.getSessionStatus());
         response.setWinnerId(entity.getWinnerId());
         response.setFinalPrice(entity.getFinalPrice());
+        response.setPaymentStatus(entity.getPaymentStatus());
+        response.setPaymentDeadline(entity.getPaymentDeadline());
         return response;
     }
 }

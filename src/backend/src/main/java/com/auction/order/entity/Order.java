@@ -14,8 +14,11 @@ import java.time.LocalDateTime;
 public class Order {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "OrderId") private Long orderId;
-    @OneToOne(fetch = FetchType.LAZY) @JoinColumn(name = "AuctionId", nullable = false, unique = true)
+    // Nullable: an order comes from EITHER a main auction OR an event product win.
+    @OneToOne(fetch = FetchType.LAZY) @JoinColumn(name = "AuctionId", unique = true)
     private Auction auction;
+    @Column(name = "EventProductId")
+    private Long eventProductId;
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "BuyerId", nullable = false) private User buyer;
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "SellerId", nullable = false) private User seller;
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "ShipperId") private User shipper;

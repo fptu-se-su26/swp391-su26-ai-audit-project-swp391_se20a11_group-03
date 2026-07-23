@@ -18,6 +18,7 @@ import com.auction.notification.entity.Notification;
 import com.auction.account.entity.User;
 import com.auction.account.service.KycEligibilityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -77,9 +78,7 @@ public class ProductServiceImpl implements ProductService {
             throw new BusinessException("Product is already " + product.getStatus());
         }
 
-        if (!userRepository.existsById(Math.toIntExact(reviewerId))) {
-            throw new ResourceNotFoundException("Reviewer not found with id: " + reviewerId);
-        }
+        requireStaffOrAdmin(reviewerId);
 
         Long productSellerId = product.getSellerId();
         User seller = userRepository.findById(Math.toIntExact(productSellerId))
@@ -152,9 +151,7 @@ public class ProductServiceImpl implements ProductService {
             throw new BusinessException("Product is already " + product.getStatus());
         }
 
-        if (!userRepository.existsById(Math.toIntExact(reviewerId))) {
-            throw new ResourceNotFoundException("Reviewer not found with id: " + reviewerId);
-        }
+        requireStaffOrAdmin(reviewerId);
 
         product.setStatus("REJECTED");
         product.setRejectionReason(request.getReason());
@@ -609,6 +606,21 @@ public class ProductServiceImpl implements ProductService {
                 imgDTOs,
                 attrDTOs
         );
+    }
+
+    /**
+     * Defense-in-depth: even though the HTTP layer restricts the approval endpoints
+     * to Staff/Admin, verify the reviewer's role here so the privileged service
+     * method can never approve/reject a product on behalf of a plain user (e.g. if a
+     * new controller or path forgets the role check).
+     */
+    private void requireStaffOrAdmin(Long reviewerId) {
+        User reviewer = userRepository.findById(Math.toIntExact(reviewerId))
+                .orElseThrow(() -> new ResourceNotFoundException("Reviewer not found with id: " + reviewerId));
+        String roleName = reviewer.getRole() == null ? null : reviewer.getRole().getRoleName();
+        if (!"Staff".equalsIgnoreCase(roleName) && !"Admin".equalsIgnoreCase(roleName)) {
+            throw new AccessDeniedException("Chỉ Staff hoặc Admin mới được duyệt/từ chối sản phẩm");
+        }
     }
 
     private static long normalizeStartingPrice(Long raw) {

@@ -85,6 +85,20 @@ public class EventProduct {
     @Column(name = "FinalPrice")
     private Long finalPrice;
 
+    /** REAL-money: amount currently held in the leader's wallet for this product. */
+    @Column(name = "HeldAmount")
+    private Long heldAmount;
+
+    /** Post-win payment lifecycle: null | AWAITING_PAYMENT | PAID | FORFEITED | NO_WINNER. */
+    @Column(name = "PaymentStatus", length = 20)
+    private String paymentStatus;
+
+    @Column(name = "PaymentDeadline")
+    private LocalDateTime paymentDeadline;
+
+    @Column(name = "SettledAt")
+    private LocalDateTime settledAt;
+
     @Version
     @Column(name = "Version", nullable = false)
     private Long version;
