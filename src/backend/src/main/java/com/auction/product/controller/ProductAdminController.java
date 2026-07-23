@@ -16,7 +16,7 @@ import java.util.List;
  * @author Pham Manh Thang
  */
 @RestController
-@RequestMapping({"/admin/products", "/api/admin/products"})
+@RequestMapping("/api/admin/products")
 @RequiredArgsConstructor
 public class ProductAdminController {
 

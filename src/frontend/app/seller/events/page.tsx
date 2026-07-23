@@ -47,12 +47,8 @@ export default function SellerEventsPage() {
   const approvedProducts = myProducts.filter((p) => p.status.toUpperCase() === "APPROVED");
 
   useEffect(() => {
-    if (selectedEventId == null) {
-      setSubmissions([]);
-      return;
-    }
+    if (selectedEventId == null) return;
     let cancelled = false;
-    setLoadingSubmissions(true);
     sellerApi
       .mySubmissions(selectedEventId)
       .then((response) => {
@@ -68,6 +64,13 @@ export default function SellerEventsPage() {
       cancelled = true;
     };
   }, [selectedEventId]);
+
+  function handleEventChange(value: string) {
+    const eventId = value ? Number(value) : null;
+    setSelectedEventId(eventId);
+    setSubmissions([]);
+    setLoadingSubmissions(eventId != null);
+  }
 
   async function handleSubmit() {
     if (selectedEventId == null || !selectedProductId) return;
@@ -119,7 +122,7 @@ export default function SellerEventsPage() {
             </span>
             <select
               value={selectedEventId ?? ""}
-              onChange={(e) => setSelectedEventId(e.target.value ? Number(e.target.value) : null)}
+              onChange={(e) => handleEventChange(e.target.value)}
               className="mt-2 h-12 w-full rounded-xl border border-white/15 bg-[var(--luxora-bg-soft)] px-4 text-sm text-white outline-none focus:border-[var(--luxora-gold)]"
             >
               <option value="">

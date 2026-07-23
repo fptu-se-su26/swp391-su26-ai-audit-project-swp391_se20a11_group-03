@@ -3,6 +3,7 @@ package com.auction.event.dto;
 import com.auction.event.entity.AuctionEvent;
 import com.auction.event.enums.EventCategory;
 import com.auction.event.enums.BiddingMode;
+import com.auction.event.enums.EventMoneyMode;
 import com.auction.event.enums.EventStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,6 +23,8 @@ public class EventResponse {
     private String bannerUrl;
     private EventCategory eventCategory;
     private BiddingMode biddingMode;
+    private EventMoneyMode moneyMode;
+    private Long depositAmount;
     private Boolean isCharity;
     private Integer charityPercent;
     private LocalDateTime registrationOpenAt;
@@ -49,6 +52,8 @@ public class EventResponse {
         response.setBannerUrl(event.getBannerUrl());
         response.setEventCategory(event.getEventCategory());
         response.setBiddingMode(event.getBiddingMode());
+        response.setMoneyMode(event.getMoneyMode());
+        response.setDepositAmount(event.getDepositAmount());
         response.setIsCharity(event.isCharity());
         response.setCharityPercent(event.getCharityPercent());
         response.setRegistrationOpenAt(event.getRegistrationOpenAt());

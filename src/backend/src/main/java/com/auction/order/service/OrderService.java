@@ -3,6 +3,8 @@ package com.auction.order.service;
 import com.auction.account.dao.UserRepository;
 import com.auction.account.entity.User;
 import com.auction.bidding.entity.Auction;
+import com.auction.event.entity.EventProduct;
+import com.auction.product.entity.Product;
 import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.notification.entity.Notification;
 import com.auction.notification.service.NotificationService;
@@ -64,6 +66,26 @@ public class OrderService {
         saveHistory(order, null, OrderStatus.PENDING_PICKUP, null, "Order created after payment");
         notify(order.getBuyer(), "Order created", "Your paid order is waiting for pickup.", Notification.NotificationType.ORDER_CREATED, order);
         notify(order.getSeller(), "Order created", "Please prepare the auction item for company pickup.", Notification.NotificationType.ORDER_CREATED, order);
+        return order;
+    }
+
+    /** Creates a delivery order for a won event product (no main auction). */
+    @Transactional
+    public Order createEventOrder(EventProduct eventProduct, Product product, User buyer, User seller, ShippingAddressRequest address, long finalPrice) {
+        orderRepository.findByEventProductId(eventProduct.getEventProductId()).ifPresent(o -> {
+            throw new IllegalStateException("Order already exists for this event product");
+        });
+        Order order = new Order();
+        order.setEventProductId(eventProduct.getEventProductId()); order.setBuyer(buyer); order.setSeller(seller); order.setProduct(product);
+        order.setFinalPrice(finalPrice); order.setShippingFee(shippingFee);
+        order.setReceiverName(address.getReceiverName().trim()); order.setReceiverPhone(address.getReceiverPhone().trim());
+        order.setAddressLine(address.getAddressLine().trim()); order.setWard(address.getWard().trim());
+        order.setDistrict(address.getDistrict().trim()); order.setProvince(address.getProvince().trim()); order.setNote(address.getNote());
+        order.setStatus(OrderStatus.PENDING_PICKUP);
+        order = orderRepository.save(order);
+        saveHistory(order, null, OrderStatus.PENDING_PICKUP, null, "Order created after event payment");
+        notify(order.getBuyer(), "Order created", "Your paid event order is waiting for pickup.", Notification.NotificationType.ORDER_CREATED, order);
+        notify(order.getSeller(), "Order created", "Please prepare the event item for company pickup.", Notification.NotificationType.ORDER_CREATED, order);
         return order;
     }
 
@@ -177,11 +199,11 @@ public class OrderService {
         boolean platform = role(order.getSeller(), "Admin");
         User admin = userRepository.findFirstByRole_RoleNameOrderByIdAsc("Admin").orElse(null);
         if (platform) {
-            credit(wallet(order.getSeller(), now), price, "ADMIN_AUCTION_REVENUE", "AUC-ADMIN-REV-" + order.getAuction().getAuctionId(), "Platform listing revenue", now);
+            credit(wallet(order.getSeller(), now), price, "ADMIN_AUCTION_REVENUE", "AUC-ADMIN-REV-" + orderRef(order), "Platform listing revenue", now);
         } else {
             long commission = Math.round(price * PLATFORM_COMMISSION_RATE); long sellerAmount = price - commission;
-            credit(wallet(order.getSeller(), now), sellerAmount, "AUCTION_PAYOUT", "AUC-PAYOUT-" + order.getAuction().getAuctionId(), "Seller payout after completed delivery", now);
-            if (admin != null) credit(wallet(admin, now), commission, "PLATFORM_COMMISSION", "AUC-COMMISSION-" + order.getAuction().getAuctionId(), "Platform commission", now);
+            credit(wallet(order.getSeller(), now), sellerAmount, "AUCTION_PAYOUT", "AUC-PAYOUT-" + orderRef(order), "Seller payout after completed delivery", now);
+            if (admin != null) credit(wallet(admin, now), commission, "PLATFORM_COMMISSION", "AUC-COMMISSION-" + orderRef(order), "Platform commission", now);
         }
         order.setPayoutReleasedAt(now); orderRepository.save(order);
     }
@@ -192,6 +214,7 @@ public class OrderService {
     }
     private Wallet wallet(User user, LocalDateTime now) { return walletRepository.findByUserIdForUpdate(user.getId()).orElseGet(() -> { Wallet w = new Wallet(); w.setUser(user); w.setBalance(0L); w.setHoldBalance(0L); w.setUpdatedAt(now); return walletRepository.save(w); }); }
     private long value(Long n) { return n == null ? 0L : n; }
+    private String orderRef(Order o) { return o.getAuction() != null ? String.valueOf(o.getAuction().getAuctionId()) : ("EP" + o.getEventProductId()); }
     private Order get(long id) { return orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Order not found: " + id)); }
     private Order locked(long id) { return orderRepository.findLockedByOrderId(id).orElseThrow(() -> new ResourceNotFoundException("Order not found: " + id)); }
     private User user(long id) { return userRepository.findById(Math.toIntExact(id)).orElseThrow(() -> new ResourceNotFoundException("User not found: " + id)); }
@@ -202,6 +225,6 @@ public class OrderService {
     private void notify(User user, String title, String message, Notification.NotificationType type, Order order) { notificationService.createNotification(user.getUserId(), title, message, type, order.getOrderId(), "ORDER"); }
     private OrderResponse toResponse(Order o) {
         List<OrderResponse.HistoryItem> history = historyRepository.findByOrder_OrderIdOrderByCreatedAtAsc(o.getOrderId()).stream().map(h -> OrderResponse.HistoryItem.builder().fromStatus(h.getFromStatus() == null ? null : h.getFromStatus().name()).toStatus(h.getToStatus().name()).changedBy(h.getChangedBy() == null ? "SYSTEM" : h.getChangedBy().getUsername()).note(h.getNote()).createdAt(h.getCreatedAt()).build()).toList();
-        return OrderResponse.builder().orderId(o.getOrderId()).auctionId(o.getAuction().getAuctionId()).productId(o.getProduct().getProductId()).productName(o.getProduct().getProductName()).buyerId(o.getBuyer().getUserId()).sellerId(o.getSeller().getUserId()).shipperId(o.getShipper() == null ? null : o.getShipper().getUserId()).buyerName(o.getBuyer().getUsername()).sellerName(o.getSeller().getUsername()).shipperName(o.getShipper() == null ? null : o.getShipper().getUsername()).finalPrice(o.getFinalPrice()).shippingFee(o.getShippingFee()).receiverName(o.getReceiverName()).receiverPhone(o.getReceiverPhone()).addressLine(o.getAddressLine()).ward(o.getWard()).district(o.getDistrict()).province(o.getProvince()).note(o.getNote()).status(o.getStatus().name()).assignedAt(o.getAssignedAt()).deliveredAt(o.getDeliveredAt()).payoutReleasedAt(o.getPayoutReleasedAt()).createdAt(o.getCreatedAt()).updatedAt(o.getUpdatedAt()).history(history).build();
+        return OrderResponse.builder().orderId(o.getOrderId()).auctionId(o.getAuction() == null ? null : o.getAuction().getAuctionId()).productId(o.getProduct().getProductId()).productName(o.getProduct().getProductName()).buyerId(o.getBuyer().getUserId()).sellerId(o.getSeller().getUserId()).shipperId(o.getShipper() == null ? null : o.getShipper().getUserId()).buyerName(o.getBuyer().getUsername()).sellerName(o.getSeller().getUsername()).shipperName(o.getShipper() == null ? null : o.getShipper().getUsername()).finalPrice(o.getFinalPrice()).shippingFee(o.getShippingFee()).receiverName(o.getReceiverName()).receiverPhone(o.getReceiverPhone()).addressLine(o.getAddressLine()).ward(o.getWard()).district(o.getDistrict()).province(o.getProvince()).note(o.getNote()).status(o.getStatus().name()).assignedAt(o.getAssignedAt()).deliveredAt(o.getDeliveredAt()).payoutReleasedAt(o.getPayoutReleasedAt()).createdAt(o.getCreatedAt()).updatedAt(o.getUpdatedAt()).history(history).build();
     }
 }

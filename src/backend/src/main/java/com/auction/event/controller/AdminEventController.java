@@ -10,6 +10,7 @@ import com.auction.event.dto.UpdateEventRequest;
 import com.auction.event.service.EventLifecycleService;
 import com.auction.event.service.EventProductAssignmentService;
 import com.auction.product.dto.AvailableProductForEventDTO;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,7 +31,7 @@ public class AdminEventController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<EventResponse>> createEvent(
-            @RequestBody CreateEventRequest request,
+            @Valid @RequestBody CreateEventRequest request,
             Authentication authentication) {
         Long adminId = getUserIdFromAuthentication(authentication);
         EventResponse response = eventLifecycleService.createEvent(request, adminId);
@@ -40,7 +41,7 @@ public class AdminEventController {
     @PutMapping("/{eventId}")
     public ResponseEntity<ApiResponse<EventResponse>> updateEvent(
             @PathVariable Long eventId,
-            @RequestBody UpdateEventRequest request,
+            @Valid @RequestBody UpdateEventRequest request,
             Authentication authentication) {
         Long adminId = getUserIdFromAuthentication(authentication);
         EventResponse response = eventLifecycleService.updateEvent(eventId, request, adminId);
@@ -141,8 +142,10 @@ public class AdminEventController {
     }
 
     private Long getUserIdFromAuthentication(Authentication authentication) {
-        // TODO: Implement proper user ID extraction from authentication
-        // For now, return a dummy admin ID
-        return 1L;
+        if (authentication != null
+                && authentication.getPrincipal() instanceof com.auction.account.security.UserDetailsImpl user) {
+            return user.getId();
+        }
+        return null;
     }
 }

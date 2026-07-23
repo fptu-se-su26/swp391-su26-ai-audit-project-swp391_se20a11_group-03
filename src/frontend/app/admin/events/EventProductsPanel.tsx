@@ -40,8 +40,6 @@ export default function EventProductsPanel({ eventId }: { eventId: number }) {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(null);
     Promise.all([adminApi.eventProducts(eventId), adminApi.availableProducts()])
       .then(([productsRes, availableRes]) => {
         if (cancelled) return;
@@ -190,7 +188,7 @@ export default function EventProductsPanel({ eventId }: { eventId: number }) {
         </button>
       </div>
       <p className="mt-2 text-xs text-[#7b7268]">
-        Có thể bấm "Thêm" nhiều lần để đưa nhiều sản phẩm của hệ thống/seller vào sự kiện này.
+        Có thể bấm &quot;Thêm&quot; nhiều lần để đưa nhiều sản phẩm của hệ thống/seller vào sự kiện này.
       </p>
 
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}

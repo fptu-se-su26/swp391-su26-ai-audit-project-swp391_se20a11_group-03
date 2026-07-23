@@ -5,6 +5,7 @@ import com.auction.event.entity.EventProduct;
 import com.auction.event.entity.EventRegistration;
 import com.auction.event.entity.PennyBid;
 import com.auction.event.enums.BiddingMode;
+import com.auction.event.enums.EventProductApprovalStatus;
 import com.auction.event.enums.EventProductSessionStatus;
 import com.auction.event.enums.EventRegistrationStatus;
 import com.auction.event.enums.EventStatus;
@@ -13,6 +14,8 @@ import com.auction.event.repository.EventProductRepository;
 import com.auction.event.repository.EventRegistrationRepository;
 import com.auction.event.repository.PennyBidRepository;
 import com.auction.event.service.EventNotificationService;
+import com.auction.event.service.EventPaymentService;
+import com.auction.event.service.SealedBidService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -33,6 +36,8 @@ public class EventLifecycleScheduler {
     private final EventRegistrationRepository registrationRepository;
     private final PennyBidRepository pennyBidRepository;
     private final EventNotificationService eventNotificationService;
+    private final SealedBidService sealedBidService;
+    private final EventPaymentService eventPaymentService;
 
     @Scheduled(fixedDelay = 30000) // 30 seconds
     @Transactional
@@ -50,14 +55,28 @@ public class EventLifecycleScheduler {
         // Step c: End events if all products are ended
         processEventsToEnd(now);
 
+        // Step d: forfeit event winners who missed their payment deadline
+        try {
+            int forfeited = eventPaymentService.forfeitOverdueEventPayments();
+            if (forfeited > 0) {
+                log.info("Forfeited {} overdue event product payments", forfeited);
+            }
+        } catch (Exception e) {
+            log.error("Error forfeiting overdue event payments", e);
+        }
+
         log.info("Finished event lifecycle processing at {}", LocalDateTime.now());
     }
 
     @Transactional
     protected void processEventsToStart(LocalDateTime now) {
-        List<AuctionEvent> publishedEvents = eventRepository.findByStatus(EventStatus.PUBLISHED);
-        for (AuctionEvent event : publishedEvents) {
+        List<AuctionEvent> candidates = eventRepository.findByStatus(EventStatus.PUBLISHED);
+        for (AuctionEvent candidate : candidates) {
             try {
+                AuctionEvent event = eventRepository.findLockedById(candidate.getEventId()).orElse(null);
+                if (event == null || event.getStatus() != EventStatus.PUBLISHED) {
+                    continue;
+                }
                 if (event.getStartTime() != null && !now.isBefore(event.getStartTime())) {
                     event.setStatus(EventStatus.ONGOING);
                     event.setUpdatedAt(now);
@@ -66,8 +85,15 @@ public class EventLifecycleScheduler {
                     log.info("Event {} transitioned from PUBLISHED to ONGOING", event.getEventId());
 
                     // Also start event products with sessionStart <= now
-                    List<EventProduct> products = eventProductRepository.findByEventId(event.getEventId());
-                    for (EventProduct product : products) {
+                    List<EventProduct> products = eventProductRepository.findByEventIdAndApprovalStatus(
+                            event.getEventId(), EventProductApprovalStatus.APPROVED);
+                    for (EventProduct candidateProduct : products) {
+                        EventProduct product = eventProductRepository
+                                .findLockedById(candidateProduct.getEventProductId())
+                                .orElse(null);
+                        if (product == null) {
+                            continue;
+                        }
                         if (product.getSessionStatus() == EventProductSessionStatus.SCHEDULED
                                 && product.getSessionStart() != null
                                 && !now.isBefore(product.getSessionStart())) {
@@ -78,28 +104,35 @@ public class EventLifecycleScheduler {
                     }
                 }
             } catch (Exception e) {
-                log.error("Error processing event {} to start", event.getEventId(), e);
+                log.error("Error processing event {} to start", candidate.getEventId(), e);
             }
         }
     }
 
     @Transactional
     protected void processEventProductsToEnd(LocalDateTime now) {
-        List<EventProduct> activeProducts = eventProductRepository.findAll()
-                .stream()
-                .filter(p -> p.getSessionStatus() == EventProductSessionStatus.ACTIVE)
-                .toList();
+        List<EventProduct> activeProducts = eventProductRepository
+                .findBySessionStatus(EventProductSessionStatus.ACTIVE);
 
-        for (EventProduct product : activeProducts) {
+        for (EventProduct candidate : activeProducts) {
             try {
+                AuctionEvent event = eventRepository.findLockedById(candidate.getEventId()).orElse(null);
+                if (event == null) {
+                    continue;
+                }
+                EventProduct product = eventProductRepository
+                        .findLockedById(candidate.getEventProductId())
+                        .orElse(null);
+                if (product == null
+                        || product.getApprovalStatus() != EventProductApprovalStatus.APPROVED
+                        || product.getSessionStatus() != EventProductSessionStatus.ACTIVE) {
+                    continue;
+                }
                 if (product.getSessionEnd() != null && !now.isBefore(product.getSessionEnd())) {
-                    AuctionEvent event = eventRepository.findById(product.getEventId()).orElse(null);
-                    if (event == null) continue;
-
                     processEventProductEnd(event, product, now);
                 }
             } catch (Exception e) {
-                log.error("Error processing event product {} to end", product.getEventProductId(), e);
+                log.error("Error processing event product {} to end", candidate.getEventProductId(), e);
             }
         }
     }
@@ -114,19 +147,26 @@ public class EventLifecycleScheduler {
                 if (product.getWinnerId() != null && product.getCurrentPrice() != null) {
                     product.setSessionStatus(EventProductSessionStatus.ENDED_SOLD);
                     product.setFinalPrice(product.getCurrentPrice());
+                    product.setPaymentStatus("AWAITING_PAYMENT");
+                    product.setPaymentDeadline(now.plusHours(72));
                     eventNotificationService.notifyEventEnded(event.getEventId(), product.getWinnerId(), true);
                 } else {
                     product.setSessionStatus(EventProductSessionStatus.ENDED_UNSOLD);
+                    product.setPaymentStatus("NO_WINNER");
                 }
             }
             case DUTCH -> {
-                // Dutch: if no one bought, mark as unsold
+                // Dutch sells immediately on commit (which sets ENDED_SOLD), so a still-ACTIVE
+                // Dutch product at end simply had no buyer.
                 product.setSessionStatus(EventProductSessionStatus.ENDED_UNSOLD);
+                product.setPaymentStatus("NO_WINNER");
             }
             case SEALED_BID -> {
-                // Sealed: handled in SealedBidService.reveal(), mark as sold/unsold here
-                // For now, just mark as unsold if no winner
-                product.setSessionStatus(EventProductSessionStatus.ENDED_UNSOLD);
+                // Reveal all sealed bids and pick the winner (highest, then earliest).
+                // reveal() sets sessionStatus to ENDED_SOLD/ENDED_UNSOLD and persists on
+                // the same managed EventProduct instance (same transaction), so the shared
+                // save() below is a harmless no-op re-save.
+                sealedBidService.reveal(product.getEventProductId());
             }
             case PENNY -> {
                 // Penny: last bidder wins
@@ -135,9 +175,12 @@ public class EventLifecycleScheduler {
                     product.setSessionStatus(EventProductSessionStatus.ENDED_SOLD);
                     product.setWinnerId(lastBid.get().getUserId());
                     product.setFinalPrice(lastBid.get().getPriceAfterBid());
+                    product.setPaymentStatus("AWAITING_PAYMENT");
+                    product.setPaymentDeadline(now.plusHours(72));
                     eventNotificationService.notifyEventEnded(event.getEventId(), lastBid.get().getUserId(), true);
                 } else {
                     product.setSessionStatus(EventProductSessionStatus.ENDED_UNSOLD);
+                    product.setPaymentStatus("NO_WINNER");
                 }
             }
         }
@@ -150,10 +193,15 @@ public class EventLifecycleScheduler {
     protected void processEventsToEnd(LocalDateTime now) {
         List<AuctionEvent> ongoingEvents = eventRepository.findByStatus(EventStatus.ONGOING);
 
-        for (AuctionEvent event : ongoingEvents) {
+        for (AuctionEvent candidate : ongoingEvents) {
             try {
+                AuctionEvent event = eventRepository.findLockedById(candidate.getEventId()).orElse(null);
+                if (event == null || event.getStatus() != EventStatus.ONGOING) {
+                    continue;
+                }
                 if (event.getEndTime() != null && !now.isBefore(event.getEndTime())) {
-                    List<EventProduct> products = eventProductRepository.findByEventId(event.getEventId());
+                    List<EventProduct> products = eventProductRepository.findByEventIdAndApprovalStatus(
+                            event.getEventId(), EventProductApprovalStatus.APPROVED);
                     boolean allEnded = products.stream()
                             .allMatch(p -> p.getSessionStatus() == EventProductSessionStatus.ENDED_SOLD
                                     || p.getSessionStatus() == EventProductSessionStatus.ENDED_UNSOLD
@@ -164,16 +212,29 @@ public class EventLifecycleScheduler {
                         eventRepository.save(event);
                         log.info("Event {} transitioned from ONGOING to ENDED", event.getEventId());
 
-                        // Notify all registered users
+                        // Release any registration deposits still held by non-winners.
+                        try {
+                            eventPaymentService.refundRemainingDeposits(event.getEventId());
+                        } catch (Exception e) {
+                            log.error("Error refunding remaining deposits for event {}", event.getEventId(), e);
+                        }
+
+                        // Notify only registered users who did NOT win any product — winners
+                        // already got a per-product "you won" notification when it ended.
+                        java.util.Set<Long> winnerIds = products.stream()
+                                .map(EventProduct::getWinnerId)
+                                .filter(java.util.Objects::nonNull)
+                                .collect(java.util.stream.Collectors.toSet());
                         List<EventRegistration> registrations = registrationRepository.findByEventIdAndStatus(event.getEventId(), EventRegistrationStatus.REGISTERED);
                         for (EventRegistration reg : registrations) {
-                            // TODO: Check if user won any product in event
-                            eventNotificationService.notifyEventEnded(event.getEventId(), reg.getUserId(), false);
+                            if (!winnerIds.contains(reg.getUserId())) {
+                                eventNotificationService.notifyEventEnded(event.getEventId(), reg.getUserId(), false);
+                            }
                         }
                     }
                 }
             } catch (Exception e) {
-                log.error("Error processing event {} to end", event.getEventId(), e);
+                log.error("Error processing event {} to end", candidate.getEventId(), e);
             }
         }
     }

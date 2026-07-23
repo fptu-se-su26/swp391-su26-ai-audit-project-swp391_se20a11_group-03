@@ -7,7 +7,9 @@ import com.auction.event.dto.EventResponse;
 import com.auction.event.dto.EventStatsResponse;
 import com.auction.event.dto.UpdateEventRequest;
 import com.auction.event.entity.AuctionEvent;
+import com.auction.event.entity.EventProduct;
 import com.auction.event.enums.BiddingMode;
+import com.auction.event.enums.EventMoneyMode;
 import com.auction.event.enums.EventProductApprovalStatus;
 import com.auction.event.enums.EventProductSessionStatus;
 import com.auction.event.enums.EventRegistrationRole;
@@ -24,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,6 +35,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class EventLifecycleServiceImpl implements EventLifecycleService {
+
+    private static final java.util.Set<EventStatus> PUBLIC_STATUSES =
+            EnumSet.of(EventStatus.PUBLISHED, EventStatus.ONGOING, EventStatus.ENDED);
 
     private final AuctionEventRepository eventRepository;
     private final EventProductRepository eventProductRepository;
@@ -54,6 +60,8 @@ public class EventLifecycleServiceImpl implements EventLifecycleService {
         event.setBannerUrl(request.getBannerUrl());
         event.setEventCategory(request.getEventCategory());
         event.setBiddingMode(request.getBiddingMode());
+        event.setMoneyMode(request.getMoneyMode() != null ? request.getMoneyMode() : EventMoneyMode.REAL);
+        event.setDepositAmount(request.getDepositAmount());
         event.setCharity(request.getIsCharity() != null ? request.getIsCharity() : false);
         event.setCharityPercent(request.getCharityPercent());
         event.setRegistrationOpenAt(request.getRegistrationOpenAt());
@@ -101,6 +109,13 @@ public class EventLifecycleServiceImpl implements EventLifecycleService {
         if (request.getDescription() != null) event.setDescription(request.getDescription());
         if (request.getBannerUrl() != null) event.setBannerUrl(request.getBannerUrl());
         if (request.getEventCategory() != null) event.setEventCategory(request.getEventCategory());
+        if (request.getMoneyMode() != null) {
+            if (event.getStatus() != EventStatus.DRAFT && request.getMoneyMode() != event.getMoneyMode()) {
+                throw new BusinessException("Cannot change money mode after event is published");
+            }
+            event.setMoneyMode(request.getMoneyMode());
+        }
+        if (request.getDepositAmount() != null) event.setDepositAmount(request.getDepositAmount());
         if (request.getIsCharity() != null) event.setCharity(request.getIsCharity());
         if (request.getCharityPercent() != null) event.setCharityPercent(request.getCharityPercent());
         if (request.getRegistrationOpenAt() != null) event.setRegistrationOpenAt(request.getRegistrationOpenAt());
@@ -139,10 +154,48 @@ public class EventLifecycleServiceImpl implements EventLifecycleService {
     }
 
     @Override
+    public EventResponse getPublicEventById(Long eventId) {
+        AuctionEvent event = eventRepository.findById(eventId)
+                .filter(this::isPubliclyVisible)
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + eventId));
+        return withProductCounts(event);
+    }
+
+    @Override
+    public EventResponse getEventBySlug(String slug) {
+        AuctionEvent event = eventRepository.findBySlug(slug)
+                .filter(this::isPubliclyVisible)
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with slug: " + slug));
+        return withProductCounts(event);
+    }
+
+    @Override
     public List<EventResponse> getAllEvents() {
         return eventRepository.findAll().stream()
                 .map(EventResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<EventResponse> getPublicEvents() {
+        return eventRepository.findAll().stream()
+                .filter(this::isPubliclyVisible)
+                .map(EventResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    private boolean isPubliclyVisible(AuctionEvent event) {
+        return event.getStatus() != null && PUBLIC_STATUSES.contains(event.getStatus());
+    }
+
+    private EventResponse withProductCounts(AuctionEvent event) {
+        EventResponse response = EventResponse.fromEntity(event);
+        Map<String, Long> productCountByStatus = new HashMap<>();
+        productCountByStatus.put(EventProductApprovalStatus.APPROVED.name(),
+                eventProductRepository.countByEventIdAndApprovalStatus(
+                        event.getEventId(), EventProductApprovalStatus.APPROVED));
+        response.setProductCountByStatus(productCountByStatus);
+        return response;
     }
 
     @Override
@@ -217,13 +270,18 @@ public class EventLifecycleServiceImpl implements EventLifecycleService {
         }
         stats.setProductCountBySessionStatus(productCountBySessionStatus);
 
+        List<EventProduct> allProducts = eventProductRepository.findByEventId(eventId);
         Long soldProducts = eventProductRepository.countByEventIdAndSessionStatus(eventId, EventProductSessionStatus.ENDED_SOLD);
         stats.setTotalSoldProducts(soldProducts);
 
-        // TODO: Calculate total final price
-        stats.setTotalFinalPrice(0L);
+        // Total revenue = sum of the final price of products that were actually paid.
+        long totalFinalPrice = allProducts.stream()
+                .filter(p -> "PAID".equalsIgnoreCase(p.getPaymentStatus()) && p.getFinalPrice() != null)
+                .mapToLong(EventProduct::getFinalPrice)
+                .sum();
+        stats.setTotalFinalPrice(totalFinalPrice);
 
-        long totalProducts = eventProductRepository.findByEventId(eventId).size();
+        long totalProducts = allProducts.size();
         stats.setSoldRatio(totalProducts > 0 ? (double) soldProducts / totalProducts * 100 : 0.0);
 
         return stats;
@@ -264,6 +322,11 @@ public class EventLifecycleServiceImpl implements EventLifecycleService {
     }
 
     private void validateBiddingModeConfig(AuctionEvent event) {
+        if (event.getMoneyMode() == EventMoneyMode.VIRTUAL
+                && (event.getDepositAmount() == null || event.getDepositAmount() <= 0)) {
+            throw new BusinessException("Sự kiện tiền ảo cần mức cọc (depositAmount) lớn hơn 0");
+        }
+
         BiddingMode mode = event.getBiddingMode();
         int configCount = 0;
         if (event.getDutchConfigJson() != null && !event.getDutchConfigJson().isBlank()) configCount++;

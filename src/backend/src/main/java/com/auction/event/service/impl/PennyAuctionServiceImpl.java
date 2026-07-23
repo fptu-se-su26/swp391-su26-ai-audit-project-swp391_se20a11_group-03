@@ -7,9 +7,12 @@ import com.auction.event.dto.PennyConfig;
 import com.auction.event.entity.AuctionEvent;
 import com.auction.event.entity.EventProduct;
 import com.auction.event.entity.PennyBid;
+import com.auction.event.enums.EventMoneyMode;
 import com.auction.event.enums.EventProductSessionStatus;
+import com.auction.event.enums.EventRegistrationStatus;
 import com.auction.event.repository.AuctionEventRepository;
 import com.auction.event.repository.EventProductRepository;
+import com.auction.event.repository.EventRegistrationRepository;
 import com.auction.event.repository.PennyBidRepository;
 import com.auction.event.service.EventNotificationService;
 import com.auction.event.service.PennyAuctionService;
@@ -36,6 +39,8 @@ public class PennyAuctionServiceImpl implements PennyAuctionService {
     private final AuctionEventRepository eventRepository;
     private final EventProductRepository eventProductRepository;
     private final PennyBidRepository pennyBidRepository;
+    private final EventRegistrationRepository registrationRepository;
+    private final EventBidWalletService eventBidWalletService;
     private final EventNotificationService eventNotificationService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Map<Long, ReentrantLock> productLocks = new ConcurrentHashMap<>();
@@ -53,12 +58,23 @@ public class PennyAuctionServiceImpl implements PennyAuctionService {
                 throw new BusinessException("Phiên đấu giá không hoạt động");
             }
 
+            if (product.getSubmittedBySellerId() != null && product.getSubmittedBySellerId().equals(userId)) {
+                throw new BusinessException("Người bán không thể đặt giá sản phẩm của chính mình");
+            }
+
+            boolean registered = registrationRepository.findByEventIdAndUserId(product.getEventId(), userId)
+                    .map(r -> r.getStatus() == EventRegistrationStatus.REGISTERED)
+                    .orElse(false);
+            if (!registered) {
+                throw new BusinessException("Bạn cần đăng ký tham gia sự kiện trước khi đặt giá");
+            }
+
             AuctionEvent event = eventRepository.findById(product.getEventId())
                     .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
 
             PennyConfig config = parsePennyConfig(event.getPennyConfigJson());
-            if (config == null) {
-                throw new BusinessException("Penny auction config not found");
+            if (config == null || config.getBidStep() == null || config.getBidStep() <= 0) {
+                throw new BusinessException("Cấu hình đấu giá xu không hợp lệ");
             }
 
             LocalDateTime now = LocalDateTime.now();
@@ -76,6 +92,13 @@ public class PennyAuctionServiceImpl implements PennyAuctionService {
 
             // Calculate new price
             Long newPrice = product.getCurrentPrice() != null ? product.getCurrentPrice() + config.getBidStep() : product.getStartingPrice();
+
+            // REAL money: the last bidder is the provisional winner and must be able
+            // to pay the current price — hold it and release the previous leader's hold.
+            if (event.getMoneyMode() == EventMoneyMode.REAL) {
+                eventBidWalletService.applyAscendingHold(product, userId, newPrice);
+                product.setWinnerId(userId);
+            }
 
             // Create penny bid
             PennyBid pennyBid = new PennyBid();

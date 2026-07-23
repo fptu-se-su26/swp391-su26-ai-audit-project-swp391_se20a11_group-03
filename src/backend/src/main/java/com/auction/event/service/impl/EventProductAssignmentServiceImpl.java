@@ -112,6 +112,9 @@ public class EventProductAssignmentServiceImpl implements EventProductAssignment
 
         eventProduct.setApprovalStatus(EventProductApprovalStatus.REJECTED);
         eventProduct.setRejectReason(reason);
+        if (eventProduct.getSessionStatus() == EventProductSessionStatus.SCHEDULED) {
+            eventProduct.setSessionStatus(EventProductSessionStatus.CANCELLED);
+        }
         eventProduct = eventProductRepository.save(eventProduct);
 
         return EventProductResponse.fromEntity(eventProduct);

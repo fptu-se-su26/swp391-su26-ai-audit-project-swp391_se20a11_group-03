@@ -6,6 +6,7 @@ import {
   type AdminEvent,
   type BiddingModeValue,
   type EventCategoryValue,
+  type EventMoneyModeValue,
   type EventStatusValue,
   uploadImages,
 } from "@/lib/api";
@@ -19,6 +20,8 @@ type EventFormState = {
   bannerUrl: string;
   eventCategory: EventCategoryValue;
   biddingMode: BiddingModeValue;
+  moneyMode: EventMoneyModeValue;
+  depositAmount: string;
   isCharity: boolean;
   charityPercent: string;
   registrationOpenAt: string;
@@ -69,6 +72,8 @@ const emptyForm = (): EventFormState => ({
   bannerUrl: "",
   eventCategory: "GENERAL",
   biddingMode: "STANDARD",
+  moneyMode: "REAL",
+  depositAmount: "",
   isCharity: false,
   charityPercent: "",
   registrationOpenAt: "",
@@ -122,6 +127,9 @@ function toPayload(form: EventFormState) {
     bannerUrl: form.bannerUrl.trim(),
     eventCategory: form.eventCategory,
     biddingMode: form.biddingMode,
+    moneyMode: form.moneyMode,
+    depositAmount:
+      form.moneyMode === "VIRTUAL" && form.depositAmount ? Number(form.depositAmount) : null,
     isCharity: form.isCharity,
     charityPercent: form.isCharity && form.charityPercent ? Number(form.charityPercent) : null,
     registrationOpenAt: form.registrationOpenAt || null,
@@ -145,6 +153,8 @@ function fromEvent(event: AdminEvent): EventFormState {
     bannerUrl: event.bannerUrl ?? "",
     eventCategory: event.eventCategory ?? "GENERAL",
     biddingMode: event.biddingMode ?? "STANDARD",
+    moneyMode: event.moneyMode ?? "REAL",
+    depositAmount: event.depositAmount != null ? String(event.depositAmount) : "",
     isCharity: Boolean(event.isCharity),
     charityPercent: event.charityPercent ? String(event.charityPercent) : "",
     registrationOpenAt: toDateTimeLocal(event.registrationOpenAt),
@@ -344,6 +354,20 @@ export default function EventsClient() {
                   <select value={form.eventCategory} onChange={(event) => updateForm("eventCategory", event.target.value as EventCategoryValue)} className={inputClassName}>
                     {categoryOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                   </select>
+                  <select value={form.moneyMode} onChange={(event) => updateForm("moneyMode", event.target.value as EventMoneyModeValue)} className={inputClassName}>
+                    <option value="REAL">Tiền thật (khóa ví khi đấu, không cọc)</option>
+                    <option value="VIRTUAL">Tiền ảo (đấu miễn phí, cọc khi đăng ký)</option>
+                  </select>
+                  {form.moneyMode === "VIRTUAL" && (
+                    <input
+                      type="number"
+                      min={0}
+                      value={form.depositAmount}
+                      onChange={(event) => updateForm("depositAmount", event.target.value)}
+                      placeholder="Mức cọc khi đăng ký (VND)"
+                      className={inputClassName}
+                    />
+                  )}
                   <div className="md:col-span-2">
                     <input value={form.bannerUrl} onChange={(event) => updateForm("bannerUrl", event.target.value)} placeholder="Banner URL" className={inputClassName} />
                     <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -443,7 +467,9 @@ export default function EventsClient() {
                   )}
                   <textarea value={form.rulesText} onChange={(event) => updateForm("rulesText", event.target.value)} placeholder="Thể lệ / nội dung đầy đủ" className={`${textareaClassName} min-h-28`} />
                   <textarea value={form.rewardDescription} onChange={(event) => updateForm("rewardDescription", event.target.value)} placeholder="Mô tả phần thưởng" className={`${textareaClassName} min-h-28`} />
-                  {editingEventId != null && <EventProductsPanel eventId={editingEventId} />}
+                  {editingEventId != null && (
+                    <EventProductsPanel key={editingEventId} eventId={editingEventId} />
+                  )}
                 </div>
                 {formError && <p className="mt-4 text-sm text-red-600">{formError}</p>}
                 <div className="mt-6 flex gap-3">
@@ -461,6 +487,9 @@ export default function EventsClient() {
                   <div className="mt-4 overflow-hidden rounded-[24px] border border-[#e3dbcf] bg-white">
                     <div className="relative h-60 bg-[#ece5d8]">
                       {previewBanner ? (
+                        // The admin preview intentionally accepts an arbitrary URL before save;
+                        // Next Image only permits hostnames declared at build time.
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={previewBanner}
                           alt={previewTitle}

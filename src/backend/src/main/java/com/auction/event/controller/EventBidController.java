@@ -2,10 +2,13 @@ package com.auction.event.controller;
 
 import com.auction.account.security.UserDetailsImpl;
 import com.auction.common.dto.ApiResponse;
+import com.auction.common.exception.ResourceNotFoundException;
 import com.auction.event.dto.BidRequest;
 import com.auction.event.dto.EventProductResponse;
 import com.auction.event.entity.SealedBid;
+import com.auction.event.enums.EventProductApprovalStatus;
 import com.auction.event.service.*;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,16 +27,19 @@ public class EventBidController {
     private final DutchAuctionService dutchAuctionService;
     private final SealedBidService sealedBidService;
     private final PennyAuctionService pennyAuctionService;
+    private final EventProductAssignmentService eventProductAssignmentService;
+    private final EventLifecycleService eventLifecycleService;
 
     // Standard bidding
     @PostMapping("/bid")
-    @PreAuthorize("hasRole('USER') or hasRole('SELLER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('User','Seller','Admin')")
     public ResponseEntity<ApiResponse<EventProductResponse>> placeStandardBid(
             @PathVariable Long eventId,
             @PathVariable Long eventProductId,
-            @RequestBody BidRequest request,
+            @Valid @RequestBody BidRequest request,
             @AuthenticationPrincipal UserDetailsImpl currentUser
     ) {
+        validateEventProduct(eventId, eventProductId);
         Long userId = currentUser.getId();
         EventProductResponse response = standardEventBidService.placeBid(eventProductId, userId, request.getBidAmount());
         return ResponseEntity.ok(ApiResponse.success("Đặt giá thành công", response));
@@ -45,17 +51,19 @@ public class EventBidController {
             @PathVariable Long eventId,
             @PathVariable Long eventProductId
     ) {
+        validateEventProduct(eventId, eventProductId);
         Long price = dutchAuctionService.getCurrentPrice(eventProductId);
         return ResponseEntity.ok(ApiResponse.success(price));
     }
 
     @PostMapping("/dutch/commit")
-    @PreAuthorize("hasRole('USER') or hasRole('SELLER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('User','Seller','Admin')")
     public ResponseEntity<ApiResponse<EventProductResponse>> commitDutchPurchase(
             @PathVariable Long eventId,
             @PathVariable Long eventProductId,
             @AuthenticationPrincipal UserDetailsImpl currentUser
     ) {
+        validateEventProduct(eventId, eventProductId);
         Long userId = currentUser.getId();
         EventProductResponse response = dutchAuctionService.commitPurchase(eventProductId, userId);
         return ResponseEntity.ok(ApiResponse.success("Mua thành công", response));
@@ -63,13 +71,14 @@ public class EventBidController {
 
     // Sealed bid
     @PostMapping("/sealed/bid")
-    @PreAuthorize("hasRole('USER') or hasRole('SELLER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('User','Seller','Admin')")
     public ResponseEntity<ApiResponse<SealedBid>> submitSealedBid(
             @PathVariable Long eventId,
             @PathVariable Long eventProductId,
-            @RequestBody BidRequest request,
+            @Valid @RequestBody BidRequest request,
             @AuthenticationPrincipal UserDetailsImpl currentUser
     ) {
+        validateEventProduct(eventId, eventProductId);
         Long userId = currentUser.getId();
         SealedBid response = sealedBidService.submitBid(eventProductId, userId, request.getBidAmount());
         return ResponseEntity.ok(ApiResponse.success("Gửi giá kín thành công", response));
@@ -80,6 +89,7 @@ public class EventBidController {
             @PathVariable Long eventId,
             @PathVariable Long eventProductId
     ) {
+        validateEventProduct(eventId, eventProductId);
         Optional<EventProductResponse> result = sealedBidService.getRevealResult(eventProductId);
         if (result.isPresent()) {
             return ResponseEntity.ok(ApiResponse.success(result.get()));
@@ -89,12 +99,13 @@ public class EventBidController {
 
     // Penny auction
     @PostMapping("/penny/bid")
-    @PreAuthorize("hasRole('USER') or hasRole('SELLER') or hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('User','Seller','Admin')")
     public ResponseEntity<ApiResponse<EventProductResponse>> placePennyBid(
             @PathVariable Long eventId,
             @PathVariable Long eventProductId,
             @AuthenticationPrincipal UserDetailsImpl currentUser
     ) {
+        validateEventProduct(eventId, eventProductId);
         Long userId = currentUser.getId();
         EventProductResponse response = pennyAuctionService.placeBid(eventProductId, userId);
         return ResponseEntity.ok(ApiResponse.success("Đặt giá thành công", response));
@@ -105,7 +116,19 @@ public class EventBidController {
             @PathVariable Long eventId,
             @PathVariable Long eventProductId
     ) {
+        validateEventProduct(eventId, eventProductId);
         Map<String, Object> status = pennyAuctionService.getPennyStatus(eventProductId);
         return ResponseEntity.ok(ApiResponse.success(status));
+    }
+
+    private void validateEventProduct(Long eventId, Long eventProductId) {
+        EventProductResponse product = eventProductAssignmentService.getEventProductById(eventProductId);
+        if (!eventId.equals(product.getEventId())) {
+            throw new ResourceNotFoundException("Event product does not belong to event: " + eventId);
+        }
+        eventLifecycleService.getPublicEventById(eventId);
+        if (product.getApprovalStatus() != EventProductApprovalStatus.APPROVED) {
+            throw new ResourceNotFoundException("Event product not found: " + eventProductId);
+        }
     }
 }

@@ -1,0 +1,2 @@
+# Local runtime logs may contain request metadata and must never be committed.
+**/codex-*.log

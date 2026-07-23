@@ -1,7 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import Header from "@/components/home/Header";
 import Footer from "@/components/home/Footer";
+import EventParticipation from "./EventParticipation";
+import { API_BASE_URL } from "@/lib/api-base";
 
 type EventDetail = {
   eventId: number;
@@ -19,6 +22,8 @@ type EventDetail = {
   isCharity: boolean;
   charityPercent?: number | null;
   biddingMode: string;
+  moneyMode?: "REAL" | "VIRTUAL";
+  depositAmount?: number | null;
 };
 
 type ApiEnvelope<T> = {
@@ -26,9 +31,6 @@ type ApiEnvelope<T> = {
   message: string;
   data: T;
 };
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8096/api";
 
 async function loadEventBySlug(slug: string): Promise<EventDetail | null> {
   try {
@@ -79,10 +81,13 @@ export default async function EventDetailPage({
         {/* Banner */}
         <div className="mb-10 overflow-hidden rounded-2xl border border-white/10">
           <div className="relative h-64 overflow-hidden sm:h-80">
-            <img
-              src={event.bannerUrl || "https://picsum.photos/1200/600?grayscale"}
+            <Image
+              src={event.bannerUrl || "/product-placeholder.svg"}
               alt={event.name}
-              className="h-full w-full object-cover"
+              fill
+              sizes="(min-width: 1280px) 1200px, 100vw"
+              priority
+              className="object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
             <div className="absolute bottom-6 left-6 right-6">
@@ -182,21 +187,15 @@ export default async function EventDetailPage({
                 </div>
               </div>
 
-              {/* CTA Button */}
+              {/* Interactive registration + bidding + payment */}
               <div className="mt-6">
-                {event.status === "PUBLISHED" ? (
-                  <button className="w-full rounded-full bg-[#f0c982] px-6 py-3 text-sm font-bold text-black transition-colors hover:bg-[#f4d79b]">
-                    Đăng ký tham gia
-                  </button>
-                ) : event.status === "ONGOING" ? (
-                  <button className="w-full rounded-full border border-[#f0c982] px-6 py-3 text-sm font-bold text-[#f0c982]">
-                    Vào phòng đấu giá
-                  </button>
-                ) : (
-                  <button className="w-full cursor-not-allowed rounded-full bg-white/10 px-6 py-3 text-sm font-bold text-white/50">
-                    Đã đóng
-                  </button>
-                )}
+                <EventParticipation
+                  eventId={event.eventId}
+                  status={event.status}
+                  moneyMode={event.moneyMode ?? "REAL"}
+                  depositAmount={event.depositAmount ?? null}
+                  biddingMode={event.biddingMode}
+                />
               </div>
             </div>
           </div>
