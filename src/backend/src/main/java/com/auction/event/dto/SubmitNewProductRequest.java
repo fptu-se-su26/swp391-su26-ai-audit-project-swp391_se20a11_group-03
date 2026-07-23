@@ -7,7 +7,5 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class SubmitNewProductRequest extends CreateProductRequestDTO {
-    private Long startingPrice;
-    private Long priceStep;
     private Long reservePrice;
 }

@@ -163,7 +163,7 @@ public class EventSellerServiceImpl implements EventSellerService {
         eventProduct.setApprovalStatus(EventProductApprovalStatus.PENDING);
         eventProduct.setStartingPrice(request.getStartingPrice() != null ? request.getStartingPrice() : product.getStartingPrice());
         eventProduct.setCurrentPrice(eventProduct.getStartingPrice());
-        eventProduct.setPriceStep(request.getPriceStep());
+        eventProduct.setPriceStep(request.getStepPrice());
         eventProduct.setReservePrice(request.getReservePrice());
         eventProduct.setSessionStatus(EventProductSessionStatus.SCHEDULED);
         eventProduct.setSessionStart(event.getStartTime());

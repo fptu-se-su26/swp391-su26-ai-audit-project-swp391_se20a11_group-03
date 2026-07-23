@@ -42,10 +42,6 @@ public class AutoBidServiceImpl implements AutoBidService {
         if (auction.getStatus() != AuctionStatus.ACTIVE && auction.getStatus() != AuctionStatus.UPCOMING) {
             throw new BusinessException("Phiên đấu giá đã kết thúc, không thể đặt giá tự động");
         }
-        if (auction.getAuctionMode() != AuctionMode.TIMED) {
-            throw new BusinessException("Đấu giá tự động chỉ áp dụng cho phiên đấu giá dài hạn (TIMED)");
-        }
-
         long minRequired = computeMinNextBid(auction);
         if (maxBidAmount == null || maxBidAmount < minRequired) {
             throw new BusinessException("Mức tối đa phải từ " + String.format("%,d", minRequired) + " VND trở lên");

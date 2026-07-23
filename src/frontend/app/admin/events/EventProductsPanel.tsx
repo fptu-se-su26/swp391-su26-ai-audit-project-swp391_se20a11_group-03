@@ -1,123 +1,90 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ApiError,
   adminApi,
   productApi,
-  type AvailableProductForEvent,
+  uploadImages,
+  type Category,
   type EventProduct,
-  type EventProductApprovalStatus,
 } from "@/lib/api";
 
-const statusBadge: Record<EventProductApprovalStatus, string> = {
-  PENDING: "bg-yellow-500/15 text-yellow-700 border-yellow-500/30",
-  APPROVED: "bg-green-500/15 text-green-700 border-green-500/30",
-  REJECTED: "bg-red-500/15 text-red-700 border-red-500/30",
-};
+const fieldClass =
+  "w-full rounded-xl border border-[#d8d0c4] bg-white px-3 py-2 text-sm outline-none focus:border-[#d4aa61]";
 
-const statusLabel: Record<EventProductApprovalStatus, string> = {
-  PENDING: "Chờ duyệt",
-  APPROVED: "Đã duyệt",
-  REJECTED: "Đã từ chối",
-};
-
-function formatVnd(value: number | null) {
+function money(value: number | null) {
   return value == null ? "—" : `${value.toLocaleString("vi-VN")} ₫`;
 }
 
 export default function EventProductsPanel({ eventId }: { eventId: number }) {
   const [products, setProducts] = useState<EventProduct[]>([]);
-  const [available, setAvailable] = useState<AvailableProductForEvent[]>([]);
-  const [productNames, setProductNames] = useState<Record<number, string>>({});
+  const [names, setNames] = useState<Record<number, string>>({});
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pickerProductId, setPickerProductId] = useState("");
-  const [adding, setAdding] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
-  const [rejectingId, setRejectingId] = useState<number | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
+  const [draggedId, setDraggedId] = useState<number | null>(null);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState({
+    productName: "",
+    categoryId: "",
+    description: "",
+    startingPrice: "",
+    stepPrice: "",
+  });
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([adminApi.eventProducts(eventId), adminApi.availableProducts()])
-      .then(([productsRes, availableRes]) => {
+    Promise.all([adminApi.eventProducts(eventId), productApi.categories()])
+      .then(([productResult, categoryResult]) => {
         if (cancelled) return;
-        setProducts(productsRes.data ?? []);
-        setAvailable(availableRes.data ?? []);
+        setProducts(productResult.data ?? []);
+        setCategories(categoryResult.data ?? []);
       })
-      .catch((cause) => {
-        if (!cancelled) {
-          setError(cause instanceof ApiError ? cause.message : "Không thể tải sản phẩm sự kiện");
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+      .catch((cause) => setError(cause instanceof Error ? cause.message : "Không thể tải sản phẩm"))
+      .finally(() => !cancelled && setLoading(false));
+    return () => { cancelled = true; };
   }, [eventId]);
 
-  // Resolve a display name for products already in the event (the assignment
-  // endpoint doesn't return productName, only productId), one lookup per
-  // distinct id, cached locally so re-renders don't refetch.
   useEffect(() => {
-    const missingIds = products
-      .map((p) => p.productId)
-      .filter((id): id is number => id != null && productNames[id] === undefined);
-    if (missingIds.length === 0) return;
+    const ids = [...new Set(products.map((item) => item.productId).filter((id): id is number => id != null))]
+      .filter((id) => names[id] == null);
+    if (!ids.length) return;
     let cancelled = false;
-    Promise.all(
-      missingIds.map((id) =>
-        productApi
-          .detail(id)
-          .then((detail) => [id, detail.productName] as const)
-          .catch(() => [id, `Sản phẩm #${id}`] as const),
-      ),
-    ).then((pairs) => {
-      if (cancelled) return;
-      setProductNames((current) => {
-        const next = { ...current };
-        for (const [id, name] of pairs) next[id] = name;
-        return next;
+    Promise.all(ids.map((id) => productApi.detail(id)
+      .then((item) => [id, item.productName] as const)
+      .catch(() => [id, `Sản phẩm #${id}`] as const)))
+      .then((pairs) => {
+        if (!cancelled) setNames((current) => ({ ...current, ...Object.fromEntries(pairs) }));
       });
-    });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products]);
+    return () => { cancelled = true; };
+  }, [products, names]);
 
-  async function handleAdd() {
-    if (!pickerProductId) return;
-    setAdding(true);
-    setError(null);
-    try {
-      const productId = Number(pickerProductId);
-      const picked = available.find((p) => p.productId === productId);
-      const response = await adminApi.assignExistingProductToEvent(eventId, productId);
-      setProducts((current) => [...current, response.data]);
-      setAvailable((current) => current.filter((p) => p.productId !== productId));
-      if (picked) {
-        setProductNames((current) => ({ ...current, [productId]: picked.productName }));
-      }
-      setPickerProductId("");
-    } catch (cause) {
-      setError(cause instanceof ApiError ? cause.message : "Không thể thêm sản phẩm vào sự kiện");
-    } finally {
-      setAdding(false);
+  const pending = useMemo(
+    () => products.filter((item) => item.approvalStatus === "PENDING" && item.sessionStatus !== "CANCELLED"),
+    [products],
+  );
+  const approved = useMemo(
+    () => products.filter((item) => item.approvalStatus === "APPROVED" && item.sessionStatus !== "CANCELLED"),
+    [products],
+  );
+
+  async function review(id: number, approve: boolean) {
+    let reason = "";
+    if (!approve) {
+      reason = window.prompt("Nhập lý do từ chối sản phẩm:")?.trim() ?? "";
+      if (!reason) return;
     }
-  }
-
-  async function handleApprove(eventProductId: number) {
-    setBusyId(eventProductId);
+    setBusyId(id);
     setError(null);
     try {
-      const response = await adminApi.approveEventProduct(eventProductId);
-      setProducts((current) =>
-        current.map((p) => (p.eventProductId === eventProductId ? response.data : p)),
-      );
+      const result = approve
+        ? await adminApi.approveEventProduct(id)
+        : await adminApi.rejectEventProduct(id, reason);
+      setProducts((current) => current.map((item) => item.eventProductId === id ? result.data : item));
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : "Không thể duyệt sản phẩm");
     } finally {
@@ -125,158 +92,145 @@ export default function EventProductsPanel({ eventId }: { eventId: number }) {
     }
   }
 
-  async function handleReject(eventProductId: number) {
-    if (!rejectReason.trim()) return;
-    setBusyId(eventProductId);
+  async function addFromComputer() {
+    if (!files.length || !draft.productName.trim() || !draft.categoryId
+      || !draft.startingPrice || !draft.stepPrice) return;
+    setAdding(true);
     setError(null);
     try {
-      const response = await adminApi.rejectEventProduct(eventProductId, rejectReason.trim());
-      setProducts((current) =>
-        current.map((p) => (p.eventProductId === eventProductId ? response.data : p)),
-      );
-      setRejectingId(null);
-      setRejectReason("");
+      const urls = await uploadImages(files);
+      const result = await adminApi.createEventProductFromComputer(eventId, {
+        categoryId: Number(draft.categoryId),
+        productName: draft.productName.trim(),
+        description: draft.description.trim(),
+        startingPrice: Number(draft.startingPrice),
+        stepPrice: Number(draft.stepPrice),
+        images: urls.map((imageUrl, index) => ({ imageUrl, isPrimary: index === 0 })),
+      });
+      setProducts((current) => [...current, result.data]);
+      if (result.data.productId) {
+        setNames((current) => ({ ...current, [result.data.productId!]: draft.productName.trim() }));
+      }
+      setFiles([]);
+      setDraft({ productName: "", categoryId: "", description: "", startingPrice: "", stepPrice: "" });
     } catch (cause) {
-      setError(cause instanceof ApiError ? cause.message : "Không thể từ chối sản phẩm");
+      setError(cause instanceof Error ? cause.message : "Không thể thêm sản phẩm từ máy");
     } finally {
-      setBusyId(null);
+      setAdding(false);
     }
   }
 
-  async function handleRemove(eventProductId: number) {
-    if (!window.confirm("Gỡ sản phẩm này khỏi sự kiện?")) return;
-    setBusyId(eventProductId);
-    setError(null);
+  async function moveProduct(targetId: number) {
+    if (draggedId == null || draggedId === targetId) return;
+    const from = approved.findIndex((item) => item.eventProductId === draggedId);
+    const to = approved.findIndex((item) => item.eventProductId === targetId);
+    if (from < 0 || to < 0) return;
+    const next = [...approved];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setProducts((current) => [
+      ...current.filter((item) => item.approvalStatus !== "APPROVED" || item.sessionStatus === "CANCELLED"),
+      ...next,
+    ]);
+    setDraggedId(null);
+    setSavingOrder(true);
     try {
-      await adminApi.removeEventProduct(eventProductId);
-      setProducts((current) => current.filter((p) => p.eventProductId !== eventProductId));
+      await adminApi.reorderEventProducts(eventId, next.map((item) => item.eventProductId));
     } catch (cause) {
-      setError(cause instanceof ApiError ? cause.message : "Không thể gỡ sản phẩm");
+      setError(cause instanceof Error ? cause.message : "Không thể lưu thứ tự sản phẩm");
     } finally {
-      setBusyId(null);
+      setSavingOrder(false);
     }
   }
 
   return (
-    <div className="md:col-span-2 rounded-2xl border border-[#ddd4c8] bg-[#fcfaf6] p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a57a2a]">
-        Sản phẩm trong sự kiện
-      </p>
-
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <select
-          value={pickerProductId}
-          onChange={(event) => setPickerProductId(event.target.value)}
-          className="min-w-[240px] flex-1 rounded-xl border border-[#d8d0c4] bg-white px-3 py-2 text-sm text-[#1f1a14] outline-none focus:border-[#d4aa61]"
-        >
-          <option value="">
-            {available.length === 0 ? "Không còn sản phẩm khả dụng" : "Chọn sản phẩm có sẵn để thêm..."}
-          </option>
-          {available.map((p) => (
-            <option key={p.productId} value={p.productId}>
-              {p.productName} ({formatVnd(p.startingPrice)})
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          disabled={!pickerProductId || adding}
-          onClick={() => void handleAdd()}
-          className="rounded-full bg-[#f0c982] px-4 py-2 text-sm font-semibold text-black disabled:opacity-40"
-        >
-          {adding ? "Đang thêm..." : "Thêm"}
-        </button>
-      </div>
-      <p className="mt-2 text-xs text-[#7b7268]">
-        Có thể bấm &quot;Thêm&quot; nhiều lần để đưa nhiều sản phẩm của hệ thống/seller vào sự kiện này.
-      </p>
-
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
-
-      <div className="mt-4 space-y-2">
-        {loading && <p className="text-sm text-[#7b7268]">Đang tải sản phẩm...</p>}
-        {!loading && products.length === 0 && (
-          <p className="text-sm text-[#7b7268]">Sự kiện này chưa có sản phẩm nào.</p>
-        )}
-        {products.map((p) => (
-          <div
-            key={p.eventProductId}
-            className="rounded-xl border border-[#e3dbcf] bg-white p-3 text-sm text-[#1f1a14]"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="truncate font-semibold">
-                  {p.productId != null ? productNames[p.productId] ?? `Sản phẩm #${p.productId}` : "—"}
-                </p>
-                <p className="text-xs text-[#7b7268]">
-                  Giá khởi điểm: {formatVnd(p.startingPrice)} · Hiện tại: {formatVnd(p.currentPrice)}
-                </p>
-                {p.approvalStatus === "REJECTED" && p.rejectReason && (
-                  <p className="mt-1 text-xs text-red-600">Lý do từ chối: {p.rejectReason}</p>
-                )}
-              </div>
-              <span
-                className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${statusBadge[p.approvalStatus]}`}
-              >
-                {statusLabel[p.approvalStatus]}
-              </span>
-            </div>
-
-            <div className="mt-2 flex flex-wrap gap-2">
-              {p.approvalStatus === "PENDING" && (
-                <>
-                  <button
-                    type="button"
-                    disabled={busyId === p.eventProductId}
-                    onClick={() => void handleApprove(p.eventProductId)}
-                    className="rounded-full border border-green-600/30 px-3 py-1 text-xs font-semibold text-green-700 hover:bg-green-500/10 disabled:opacity-40"
-                  >
-                    Duyệt
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setRejectingId(rejectingId === p.eventProductId ? null : p.eventProductId)
-                    }
-                    className="rounded-full border border-red-600/30 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-500/10"
-                  >
-                    Từ chối
-                  </button>
-                </>
-              )}
-              {(p.approvalStatus === "PENDING" || p.approvalStatus === "APPROVED") &&
-                p.sessionStatus === "SCHEDULED" && (
-                  <button
-                    type="button"
-                    disabled={busyId === p.eventProductId}
-                    onClick={() => void handleRemove(p.eventProductId)}
-                    className="rounded-full border border-[#d8d0c4] px-3 py-1 text-xs font-semibold text-[#534a3f] hover:border-red-400 hover:text-red-600 disabled:opacity-40"
-                  >
-                    Xóa
-                  </button>
-                )}
-            </div>
-
-            {rejectingId === p.eventProductId && (
-              <div className="mt-2 flex flex-col gap-2">
-                <textarea
-                  value={rejectReason}
-                  onChange={(event) => setRejectReason(event.target.value)}
-                  placeholder="Nhập lý do từ chối..."
-                  className="min-h-16 w-full rounded-xl border border-[#d8d0c4] bg-white px-3 py-2 text-sm outline-none focus:border-[#d4aa61]"
-                />
-                <button
-                  type="button"
-                  disabled={!rejectReason.trim() || busyId === p.eventProductId}
-                  onClick={() => void handleReject(p.eventProductId)}
-                  className="self-start rounded-full bg-red-600 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
-                >
-                  Xác nhận từ chối
-                </button>
-              </div>
-            )}
+    <div className="mt-6 grid gap-6 xl:grid-cols-[1.2fr_0.9fr]">
+      <section className="rounded-2xl border border-[#ddd4c8] bg-[#fcfaf6] p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a57a2a]">
+          Sản phẩm seller gửi chờ duyệt
+        </p>
+        <p className="mt-2 text-xs text-[#7b7268]">
+          Chỉ sản phẩm seller chủ động gửi vào sự kiện mới xuất hiện tại đây.
+        </p>
+        {loading && <p className="mt-4 text-sm text-[#7b7268]">Đang tải...</p>}
+        {!loading && pending.length === 0 && (
+          <div className="mt-4 rounded-xl border border-dashed border-[#d8d0c4] px-4 py-8 text-center text-sm text-[#7b7268]">
+            Hiện chưa có seller nào gửi sản phẩm để duyệt.
           </div>
-        ))}
+        )}
+        <div className="mt-4 space-y-2">
+          {pending.map((item) => (
+            <div key={item.eventProductId} className="rounded-xl border border-[#e3dbcf] bg-white p-3">
+              <p className="font-semibold">{item.productId ? names[item.productId] ?? `Sản phẩm #${item.productId}` : "Sản phẩm mới"}</p>
+              <p className="mt-1 text-xs text-[#7b7268]">Seller #{item.submittedBySellerId} · Giá khởi điểm {money(item.startingPrice)}</p>
+              <div className="mt-3 flex gap-2">
+                <button disabled={busyId === item.eventProductId} onClick={() => void review(item.eventProductId, true)}
+                  className="rounded-full bg-green-600 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40">Duyệt</button>
+                <button disabled={busyId === item.eventProductId} onClick={() => void review(item.eventProductId, false)}
+                  className="rounded-full border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-700 disabled:opacity-40">Từ chối</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="space-y-4">
+        <section className="rounded-2xl border border-[#ddd4c8] bg-[#fcfaf6] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a57a2a]">Thêm sản phẩm từ máy</p>
+          <div className="mt-3 space-y-2">
+            <label className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-[#c8bba8] bg-white px-4 py-4 text-sm font-semibold text-[#765a2d]">
+              <input type="file" accept="image/*" multiple className="hidden"
+                onChange={(event) => setFiles(Array.from(event.target.files ?? []))} />
+              {files.length ? `Đã chọn ${files.length} ảnh` : "Chọn ảnh sản phẩm từ folder"}
+            </label>
+            <input className={fieldClass} placeholder="Tên sản phẩm" value={draft.productName}
+              onChange={(event) => setDraft({ ...draft, productName: event.target.value })} />
+            <select className={fieldClass} value={draft.categoryId}
+              onChange={(event) => setDraft({ ...draft, categoryId: event.target.value })}>
+              <option value="">Chọn danh mục</option>
+              {categories.map((item) => <option key={item.categoryId} value={item.categoryId}>{item.categoryName}</option>)}
+            </select>
+            <textarea className={fieldClass} placeholder="Mô tả sản phẩm" value={draft.description}
+              onChange={(event) => setDraft({ ...draft, description: event.target.value })} />
+            <div className="grid grid-cols-2 gap-2">
+              <input type="number" min="1" className={fieldClass} placeholder="Giá khởi điểm" value={draft.startingPrice}
+                onChange={(event) => setDraft({ ...draft, startingPrice: event.target.value })} />
+              <input type="number" min="1" className={fieldClass} placeholder="Bước giá" value={draft.stepPrice}
+                onChange={(event) => setDraft({ ...draft, stepPrice: event.target.value })} />
+            </div>
+            <button type="button" disabled={adding || !files.length || !draft.productName || !draft.categoryId || !draft.startingPrice || !draft.stepPrice}
+              onClick={() => void addFromComputer()}
+              className="w-full rounded-full bg-[#f0c982] py-2.5 text-sm font-semibold text-black disabled:opacity-40">
+              {adding ? "Đang tải lên..." : "Thêm vào buổi đấu giá"}
+            </button>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-[#ddd4c8] bg-[#fcfaf6] p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#a57a2a]">Thứ tự đấu giá</p>
+            {savingOrder && <span className="text-xs text-[#7b7268]">Đang lưu...</span>}
+          </div>
+          <p className="mt-2 text-xs text-[#7b7268]">Kéo và thả để đổi thứ tự sản phẩm.</p>
+          {!loading && approved.length === 0 && <p className="mt-4 text-sm text-[#7b7268]">Chưa có sản phẩm đã duyệt.</p>}
+          <div className="mt-3 space-y-2">
+            {approved.map((item, index) => (
+              <div key={item.eventProductId} draggable
+                onDragStart={() => setDraggedId(item.eventProductId)}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={() => void moveProduct(item.eventProductId)}
+                className="flex cursor-grab items-center gap-3 rounded-xl border border-[#e3dbcf] bg-white p-3 active:cursor-grabbing">
+                <span className="material-symbols-outlined text-[#a57a2a]">drag_indicator</span>
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f3e5c8] text-xs font-bold">{index + 1}</span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{item.productId ? names[item.productId] ?? `Sản phẩm #${item.productId}` : "Sản phẩm"}</p>
+                  <p className="text-xs text-[#7b7268]">{money(item.startingPrice)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+        {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
     </div>
   );

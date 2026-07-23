@@ -15,6 +15,7 @@ import java.util.Optional;
 
 public interface EventProductRepository extends JpaRepository<EventProduct, Long> {
     List<EventProduct> findByEventId(Long eventId);
+    List<EventProduct> findByEventIdOrderByDisplayOrderAscEventProductIdAsc(Long eventId);
 
     /** Row-locked read used to serialize concurrent bid/purchase attempts on the same product. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)

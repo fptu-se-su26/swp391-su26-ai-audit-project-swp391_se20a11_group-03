@@ -401,11 +401,16 @@ export default function LiveBiddingPanel({
         </div>
       ) : null}
 
-      {isPremium && isTimed && viewerMode === "buyer" && (isActive || isUpcoming) ? (
+      {isPremium && viewerMode === "buyer" && (isActive || isUpcoming) ? (
         <div className="rounded-xl border border-[var(--luxora-gold)]/30 bg-[var(--luxora-gold)]/5 p-4">
           <p className="text-xs font-semibold text-[var(--luxora-gold-light)]">
             Đấu giá tự động (Premium)
           </p>
+          {!isTimed && !eligibility?.alreadyDeposited && !eligibility?.depositWaived ? (
+            <p className="mt-2 text-xs leading-5 text-yellow-200/80">
+              Phiên LIVE cần hoàn tất đặt cọc trước khi hệ thống có thể tự động đặt giá.
+            </p>
+          ) : null}
           {autoBid && autoBid.status === "ACTIVE" ? (
             <div className="mt-2">
               <p className="text-xs text-white/70">

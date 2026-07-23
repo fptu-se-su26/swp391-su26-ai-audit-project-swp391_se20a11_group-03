@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import Header from "@/components/home/Header";
 import Footer from "@/components/home/Footer";
 import { API_BASE_URL } from "@/lib/api-base";
@@ -74,12 +73,13 @@ export default async function EventsPage() {
             >
               {/* Banner */}
               <div className="relative h-48 overflow-hidden sm:h-56">
-                <Image
+                {/* Admin có thể nhập URL từ bất kỳ máy chủ ảnh nào. Dùng img
+                    để URL đó không bị giới hạn bởi next/image remotePatterns. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={event.bannerUrl || "/product-placeholder.svg"}
                   alt={event.name}
-                  fill
-                  sizes="(min-width: 1024px) 50vw, 100vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">

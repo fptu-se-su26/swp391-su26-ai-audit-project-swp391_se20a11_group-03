@@ -261,6 +261,7 @@ export type EventProduct = {
   reservePrice: number | null;
   sessionStart: string | null;
   sessionEnd: string | null;
+  displayOrder: number;
   sessionStatus: EventProductSessionStatus;
   winnerId: number | null;
   finalPrice: number | null;
@@ -359,6 +360,7 @@ export type AuctionEligibility = {
   productId: number;
   depositAllowed: boolean;
   alreadyDeposited: boolean;
+  depositWaived: boolean;
   depositAmount: number | null;
   depositDeadline: string | null;
   message: string | null;
@@ -1344,6 +1346,11 @@ export const adminApi = {
       body: JSON.stringify(payload),
     });
   },
+  publishEvent(eventId: number) {
+    return apiFetch<ApiEnvelope<AdminEvent>>(`/admin/events/${eventId}/publish`, {
+      method: "POST",
+    });
+  },
   deleteEvent(eventId: number) {
     return apiFetch<ApiEnvelope<null>>(`/admin/events/${eventId}`, {
       method: "DELETE",
@@ -1357,6 +1364,26 @@ export const adminApi = {
       `/admin/events/${eventId}/products/existing/${productId}`,
       { method: "POST" },
     );
+  },
+  createEventProductFromComputer(eventId: number, payload: {
+    categoryId: number;
+    productName: string;
+    description: string;
+    startingPrice: number;
+    stepPrice: number;
+    reservePrice?: number | null;
+    images: Array<{ imageUrl: string; isPrimary: boolean }>;
+  }) {
+    return apiFetch<ApiEnvelope<EventProduct>>(`/admin/events/${eventId}/products/from-computer`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+  reorderEventProducts(eventId: number, eventProductIds: number[]) {
+    return apiFetch<ApiEnvelope<EventProduct[]>>(`/admin/events/${eventId}/products/order`, {
+      method: "PUT",
+      body: JSON.stringify(eventProductIds),
+    });
   },
   approveEventProduct(eventProductId: number) {
     return apiFetch<ApiEnvelope<EventProduct>>(
