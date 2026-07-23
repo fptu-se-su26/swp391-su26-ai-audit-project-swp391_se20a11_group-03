@@ -71,6 +71,9 @@ public class EventProduct {
     @Column(name = "SessionEnd")
     private LocalDateTime sessionEnd;
 
+    @Column(name = "DisplayOrder", nullable = false)
+    private Integer displayOrder = 0;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "SessionStatus", nullable = false, length = 20)
     private EventProductSessionStatus sessionStatus = EventProductSessionStatus.SCHEDULED;

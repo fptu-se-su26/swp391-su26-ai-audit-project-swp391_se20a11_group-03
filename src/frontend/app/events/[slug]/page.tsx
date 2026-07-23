@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import Header from "@/components/home/Header";
 import Footer from "@/components/home/Footer";
@@ -58,9 +57,10 @@ const statusColors = {
 export default async function EventDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const event = await loadEventBySlug(params.slug);
+  const { slug } = await params;
+  const event = await loadEventBySlug(slug);
   if (!event) {
     notFound();
   }
@@ -81,13 +81,11 @@ export default async function EventDetailPage({
         {/* Banner */}
         <div className="mb-10 overflow-hidden rounded-2xl border border-white/10">
           <div className="relative h-64 overflow-hidden sm:h-80">
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={event.bannerUrl || "/product-placeholder.svg"}
               alt={event.name}
-              fill
-              sizes="(min-width: 1280px) 1200px, 100vw"
-              priority
-              className="object-cover"
+              className="h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
             <div className="absolute bottom-6 left-6 right-6">

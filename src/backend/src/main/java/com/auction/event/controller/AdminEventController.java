@@ -7,6 +7,7 @@ import com.auction.event.dto.EventResponse;
 import com.auction.event.dto.EventStatsResponse;
 import com.auction.event.dto.RejectSubmissionRequest;
 import com.auction.event.dto.UpdateEventRequest;
+import com.auction.event.dto.SubmitNewProductRequest;
 import com.auction.event.service.EventLifecycleService;
 import com.auction.event.service.EventProductAssignmentService;
 import com.auction.product.dto.AvailableProductForEventDTO;
@@ -126,6 +127,25 @@ public class AdminEventController {
     public ResponseEntity<ApiResponse<List<EventProductResponse>>> getEventProducts(@PathVariable Long eventId) {
         List<EventProductResponse> responses = eventProductAssignmentService.getEventProducts(eventId);
         return ResponseEntity.ok(ApiResponse.success(responses));
+    }
+
+    @PostMapping("/{eventId}/products/from-computer")
+    public ResponseEntity<ApiResponse<EventProductResponse>> createProductFromComputer(
+            @PathVariable Long eventId,
+            @Valid @RequestBody SubmitNewProductRequest request,
+            Authentication authentication) {
+        EventProductResponse response = eventProductAssignmentService.createAdminProduct(
+                eventId, request, getUserIdFromAuthentication(authentication));
+        return ResponseEntity.ok(ApiResponse.success("Product created and added to event", response));
+    }
+
+    @PutMapping("/{eventId}/products/order")
+    public ResponseEntity<ApiResponse<List<EventProductResponse>>> reorderProducts(
+            @PathVariable Long eventId,
+            @RequestBody List<Long> eventProductIds) {
+        return ResponseEntity.ok(ApiResponse.success(
+                "Product order updated successfully",
+                eventProductAssignmentService.reorderProducts(eventId, eventProductIds)));
     }
 
     @GetMapping("/products/{eventProductId}")
