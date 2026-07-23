@@ -2,120 +2,118 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Free Port 3000",
+      "label": "Backend: Stop Existing",
       "type": "shell",
-      "command": "powershell",
+      "command": "powershell.exe",
       "args": [
+        "-NoProfile",
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}/scripts/free-port.ps1",
-        "-Port",
-        "3000"
-      ],
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared",
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Start Frontend (auto free port)",
-      "type": "shell",
-      "command": "powershell",
-      "args": [
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}/scripts/start-frontend.ps1"
-      ],
-      "isBackground": true,
-      "dependsOn": ["Free Port 3000"],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
-      },
-      "problemMatcher": {
-        "owner": "nextjs",
-        "pattern": {
-          "regexp": "^(.*)$",
-          "file": 1,
-          "location": 2,
-          "message": 3
-        },
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": "Starting\\.\\.\\.",
-          "endsPattern": "Ready in"
-        }
-      }
-    },
-    {
-      "label": "Start Backend + Frontend",
-      "type": "shell",
-      "command": "powershell",
-      "args": [
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}/scripts/start-dev.ps1"
-      ],
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Free Port 8096",
-      "type": "shell",
-      "command": "powershell",
-      "args": [
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}/scripts/free-port.ps1",
+        "${workspaceFolder}/.vscode/stop-backend.ps1",
         "-Port",
         "8096"
       ],
+      "problemMatcher": [],
       "presentation": {
         "reveal": "always",
-        "panel": "shared",
+        "panel": "dedicated",
         "clear": true
+      }
+    },
+    {
+      "label": "Backend: Compile",
+      "type": "shell",
+      "command": ".\\mvnw.cmd",
+      "args": ["-DskipTests", "compile"],
+      "options": {
+        "cwd": "${workspaceFolder}/src/backend",
+        "env": {
+          "JAVA_HOME": "C:\\Program Files\\Java\\jdk-17",
+          "APP_TIME_ZONE": "Asia/Ho_Chi_Minh"
+        }
       },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Backend: Prepare Debug",
+      "dependsOn": ["Backend: Stop Existing", "Backend: Compile"],
+      "dependsOrder": "sequence",
       "problemMatcher": []
     },
     {
-      "label": "Start Backend (auto free port)",
+      "label": "Backend: Run",
       "type": "shell",
-      "command": "powershell",
-      "args": [
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}/scripts/start-backend.ps1"
-      ],
-      "isBackground": true,
-      "dependsOn": ["Free Port 8096"],
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated"
+      "command": ".\\mvnw.cmd",
+      "args": ["spring-boot:run"],
+      "options": {
+        "cwd": "${workspaceFolder}/src/backend",
+        "env": {
+          "JAVA_HOME": "C:\\Program Files\\Java\\jdk-17",
+          "APP_TIME_ZONE": "Asia/Ho_Chi_Minh"
+        }
       },
+      "dependsOn": "Backend: Prepare Debug",
+      "isBackground": true,
       "problemMatcher": {
         "owner": "java",
         "pattern": {
           "regexp": "^(.*)$",
-          "file": 1,
-          "location": 2,
-          "message": 3
+          "message": 1
         },
         "background": {
           "activeOnStart": true,
-          "beginsPattern": "Starting Spring Boot",
-          "endsPattern": "Started .* in"
+          "beginsPattern": ".*Starting AuctionApplication.*",
+          "endsPattern": ".*Started AuctionApplication.*"
         }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
       }
+    },
+    {
+      "label": "Frontend: Run",
+      "type": "shell",
+      "command": "npm.cmd",
+      "args": ["run", "dev"],
+      "options": {
+        "cwd": "${workspaceFolder}/src/frontend"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "nextjs",
+        "pattern": {
+          "regexp": "^(.*)$",
+          "message": 1
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*Next.js.*",
+          "endsPattern": ".*Ready in.*"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Dev: Backend + Frontend",
+      "dependsOn": ["Backend: Run", "Frontend: Run"],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
     }
   ]
 }

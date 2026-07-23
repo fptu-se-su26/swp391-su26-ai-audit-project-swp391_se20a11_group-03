@@ -51,7 +51,12 @@ export default function CollectorSidebar() {
   const t = useTranslations("sidebar.collector");
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const { data: account } = useApiData<AccountSummary | null>(fetchAccountSummary, null);
+  const {
+    data: account,
+    loading: accountLoading,
+    error: accountError,
+    reload: reloadAccount,
+  } = useApiData<AccountSummary | null>(fetchAccountSummary, null);
   const role = toFrontendRole(account?.profile.roleName ?? null);
   const navGroups = NAV_GROUPS.filter(
     (group) => !group.sellerOnly || role === "seller",
@@ -149,24 +154,39 @@ export default function CollectorSidebar() {
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">
-                {account?.profile.fullName ?? t("loading")}
+                {account?.profile.fullName ??
+                  (accountLoading ? t("loading") : t("loadError"))}
               </p>
               <p className="text-[11px] capitalize text-white/40">
                 {account?.profile.roleName ?? ""}
               </p>
             </div>
           </div>
+          {accountError && !accountLoading && (
+            <button
+              type="button"
+              onClick={() => void reloadAccount()}
+              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-2 text-xs text-white/60 transition hover:bg-white/10 hover:text-white"
+            >
+              <span className="material-symbols-outlined text-sm">refresh</span>
+              {t("retry")}
+            </button>
+          )}
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div className="rounded-lg bg-white/5 px-2.5 py-2">
               <p className="text-[10px] text-white/40">{t("balance")}</p>
               <p className="text-xs font-semibold text-[var(--luxora-gold-light)]">
-                {(account?.wallet.availableBalance ?? 0).toLocaleString("vi-VN")} ₫
+                {account
+                  ? `${account.wallet.availableBalance.toLocaleString("vi-VN")} ₫`
+                  : "—"}
               </p>
             </div>
             <div className="rounded-lg bg-white/5 px-2.5 py-2">
               <p className="text-[10px] text-white/40">{t("deposit")}</p>
               <p className="text-xs font-semibold">
-                {(account?.wallet.holdBalance ?? 0).toLocaleString("vi-VN")} ₫
+                {account
+                  ? `${account.wallet.holdBalance.toLocaleString("vi-VN")} ₫`
+                  : "—"}
               </p>
             </div>
           </div>

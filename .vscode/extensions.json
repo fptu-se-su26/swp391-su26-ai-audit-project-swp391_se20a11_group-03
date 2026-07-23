@@ -1,5 +1,7 @@
 {
     "recommendations": [
-        "saoudrizwan.claude-dev"
+        "saoudrizwan.claude-dev",
+        "vscjava.vscode-java-pack",
+        "vmware.vscode-spring-boot"
     ]
 }
