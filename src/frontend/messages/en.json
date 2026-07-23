@@ -840,6 +840,8 @@
       "expandMenu": "Expand menu",
       "collapseMenu": "Collapse menu",
       "loading": "Loading...",
+      "loadError": "Account unavailable",
+      "retry": "Retry",
       "balance": "Balance",
       "deposit": "Deposit",
       "topUp": "Top up",

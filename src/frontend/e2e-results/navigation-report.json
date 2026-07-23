@@ -1,0 +1,95 @@
+[
+  {
+    "role": "collector",
+    "from": "/dashboard",
+    "to": "/dashboard",
+    "durationMs": 2280,
+    "apiCallCount": 5,
+    "duplicates": [],
+    "failed": [],
+    "slowCalls": [],
+    "stillPendingAfterTimeout": []
+  },
+  {
+    "role": "collector",
+    "from": "/dashboard",
+    "to": "/watchlist",
+    "durationMs": 136,
+    "apiCallCount": 0,
+    "duplicates": [],
+    "failed": [],
+    "slowCalls": [],
+    "stillPendingAfterTimeout": []
+  },
+  {
+    "role": "collector",
+    "from": "/watchlist",
+    "to": "/won-items",
+    "durationMs": 134,
+    "apiCallCount": 1,
+    "duplicates": [],
+    "failed": [],
+    "slowCalls": [],
+    "stillPendingAfterTimeout": []
+  },
+  {
+    "role": "collector",
+    "from": "/won-items",
+    "to": "/orders",
+    "durationMs": 176,
+    "apiCallCount": 1,
+    "duplicates": [],
+    "failed": [],
+    "slowCalls": [],
+    "stillPendingAfterTimeout": []
+  },
+  {
+    "role": "collector",
+    "from": "/orders",
+    "to": "/messages",
+    "durationMs": 298,
+    "apiCallCount": 2,
+    "duplicates": [],
+    "failed": [],
+    "slowCalls": [],
+    "stillPendingAfterTimeout": []
+  },
+  {
+    "role": "collector",
+    "from": "/messages",
+    "to": "/profile",
+    "durationMs": 205,
+    "apiCallCount": 1,
+    "duplicates": [],
+    "failed": [],
+    "slowCalls": [],
+    "stillPendingAfterTimeout": []
+  },
+  {
+    "role": "collector",
+    "from": "/profile",
+    "to": "/security",
+    "durationMs": 399,
+    "apiCallCount": 3,
+    "duplicates": [],
+    "failed": [],
+    "slowCalls": [],
+    "stillPendingAfterTimeout": []
+  },
+  {
+    "role": "collector",
+    "from": "/security",
+    "to": "/premium",
+    "durationMs": 271,
+    "apiCallCount": 2,
+    "duplicates": [
+      {
+        "key": "GET http://localhost:8096/api/kyc/me",
+        "count": 2
+      }
+    ],
+    "failed": [],
+    "slowCalls": [],
+    "stillPendingAfterTimeout": []
+  }
+]

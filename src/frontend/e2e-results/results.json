@@ -1,0 +1,185 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "D:\\du_an\\swp391-su26-ai-audit-project-swp391_se20a11_group-03\\src\\frontend\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--ui"
+    ],
+    "configFile": "D:\\du_an\\swp391-su26-ai-audit-project-swp391_se20a11_group-03\\src\\frontend\\playwright.config.ts",
+    "rootDir": "D:/du_an/swp391-su26-ai-audit-project-swp391_se20a11_group-03/src/frontend/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "D:/du_an/swp391-su26-ai-audit-project-swp391_se20a11_group-03/src/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "D:/du_an/swp391-su26-ai-audit-project-swp391_se20a11_group-03/src/frontend/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "e2e-results/results.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "navigation.spec.ts",
+      "file": "navigation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Menu navigation per role",
+          "file": "navigation.spec.ts",
+          "line": 79,
+          "column": 6,
+          "specs": [
+            {
+              "title": "collector: every sidebar item loads, timed, network-checked",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6727,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "[collector console:info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold\n"
+                        },
+                        {
+                          "text": "[collector console:log] [HMR] connected\n"
+                        },
+                        {
+                          "text": "[collector console:error] Failed to load resource: the server responded with a status of 403 ()\n"
+                        },
+                        {
+                          "text": "[collector console:error] [GSI_LOGGER]: The given origin is not allowed for the given client ID.\n"
+                        },
+                        {
+                          "text": "[collector nav] /dashboard -> /dashboard\n"
+                        },
+                        {
+                          "text": "[collector nav] /dashboard -> /watchlist\n"
+                        },
+                        {
+                          "text": "[collector nav] /watchlist -> /won-items\n"
+                        },
+                        {
+                          "text": "[collector nav] /won-items -> /orders\n"
+                        },
+                        {
+                          "text": "[collector nav] /orders -> /messages\n"
+                        },
+                        {
+                          "text": "[collector nav] /messages -> /profile\n"
+                        },
+                        {
+                          "text": "[collector nav] /profile -> /security\n"
+                        },
+                        {
+                          "text": "[collector console:log] [Fast Refresh] rebuilding\n"
+                        },
+                        {
+                          "text": "[collector console:log] [Fast Refresh] done in 154ms\n"
+                        },
+                        {
+                          "text": "[collector nav] /security -> /premium\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-23T12:23:45.454Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\du_an\\swp391-su26-ai-audit-project-swp391_se20a11_group-03\\src\\frontend\\test-results\\navigation-Menu-navigation-adc70-loads-timed-network-checked-chromium\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5d2868f7d23420c27cca-14b7e9569a70550e832f",
+              "file": "navigation.spec.ts",
+              "line": 81,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-23T12:23:44.496Z",
+    "duration": 8923.657000000007,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

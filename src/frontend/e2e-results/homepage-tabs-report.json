@@ -1,0 +1,47 @@
+[
+  {
+    "label": "Trang chủ",
+    "from": "/",
+    "to": "/",
+    "durationMs": 2977,
+    "apiCallCount": 5,
+    "duplicates": [],
+    "failed": []
+  },
+  {
+    "label": "Sản phẩm",
+    "from": "/",
+    "to": "/storefront",
+    "durationMs": 141,
+    "apiCallCount": 0,
+    "duplicates": [],
+    "failed": []
+  },
+  {
+    "label": "Thương hiệu",
+    "from": "/storefront",
+    "to": "/brands",
+    "durationMs": 236,
+    "apiCallCount": 0,
+    "duplicates": [],
+    "failed": []
+  },
+  {
+    "label": "Về chúng tôi",
+    "from": "/brands",
+    "to": "/about",
+    "durationMs": 190,
+    "apiCallCount": 0,
+    "duplicates": [],
+    "failed": []
+  },
+  {
+    "label": "Sự kiện",
+    "from": "/about",
+    "to": "/events",
+    "durationMs": 618,
+    "apiCallCount": 0,
+    "duplicates": [],
+    "failed": []
+  }
+]

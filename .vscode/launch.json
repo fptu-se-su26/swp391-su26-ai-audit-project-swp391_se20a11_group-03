@@ -1,14 +1,19 @@
 {
+  "version": "0.2.0",
   "configurations": [
     {
       "type": "java",
-      "name": "Spring Boot-AuctionApplication<com.vnec-vnec-auth>",
+      "name": "Backend: Debug Spring Boot",
       "request": "launch",
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}/src/backend",
       "mainClass": "com.auction.AuctionApplication",
-      "projectName": "com.vnec-vnec-auth",
+      "preLaunchTask": "Backend: Prepare Debug",
+      "shortenCommandLine": "argfile",
+      "vmArgs": "-Dfile.encoding=UTF-8",
       "args": "",
-      "envFile": "${workspaceFolder}/.env"
+      "env": {
+        "APP_TIME_ZONE": "Asia/Ho_Chi_Minh"
+      }
     },
     {
       "type": "java",

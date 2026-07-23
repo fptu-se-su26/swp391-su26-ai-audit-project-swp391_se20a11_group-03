@@ -83,6 +83,7 @@ D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\ma
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\config\WebSocketConfig.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\controller\AuctionChatController.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\controller\AuctionController.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\controller\AutoBidController.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\controller\BiddingController.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\controller\DepositController.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\controller\UserBidController.java
@@ -94,6 +95,8 @@ D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\ma
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\dto\AuctionSessionDto.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\dto\AuctionStateResponse.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\dto\AuctionWinAnnouncementDto.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\dto\AutoBidRequest.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\dto\AutoBidResponse.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\dto\BidRecordResponse.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\dto\BidRequest.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\dto\BidResponse.java
@@ -105,11 +108,14 @@ D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\ma
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\entity\AuctionMode.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\entity\AuctionSession.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\entity\AuctionStatus.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\entity\AutoBid.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\entity\AutoBidStatus.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\entity\Bid.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\repository\AuctionChatMessageRepository.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\repository\AuctionDepositRepository.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\repository\AuctionRepository.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\repository\AuctionSessionRepository.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\repository\AutoBidRepository.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\repository\BidRepository.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\repository\CategoryRepository.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\repository\JpaAuctionSessionRepository.java
@@ -121,6 +127,7 @@ D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\ma
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\service\AuctionPaymentService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\service\AuctionService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\service\AuctionSettlementService.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\service\AutoBidService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\service\BiddingService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\service\DepositService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\service\impl\AuctionChatServiceImpl.java
@@ -128,6 +135,7 @@ D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\ma
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\service\impl\AuctionPaymentServiceImpl.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\service\impl\AuctionServiceImpl.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\service\impl\AuctionSettlementServiceImpl.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\service\impl\AutoBidServiceImpl.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\service\impl\DepositServiceImpl.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\util\AuctionPhaseUtil.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\bidding\util\DepositCalculator.java
@@ -211,6 +219,7 @@ D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\ma
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\entity\SealedBid.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\enums\BiddingMode.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\enums\EventCategory.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\enums\EventMoneyMode.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\enums\EventProductApprovalStatus.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\enums\EventProductSessionStatus.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\enums\EventProductSourceType.java
@@ -226,12 +235,15 @@ D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\ma
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\DutchAuctionService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\EventLifecycleService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\EventNotificationService.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\EventPaymentService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\EventProductAssignmentService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\EventSellerService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\EventUserRegistrationService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\impl\DutchAuctionServiceImpl.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\impl\EventBidWalletService.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\impl\EventLifecycleServiceImpl.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\impl\EventNotificationServiceImpl.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\impl\EventPaymentServiceImpl.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\impl\EventProductAssignmentServiceImpl.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\impl\EventSellerServiceImpl.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\event\service\impl\EventUserRegistrationServiceImpl.java
@@ -255,6 +267,7 @@ D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\ma
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\fraud\entity\SystemSetting.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\fraud\entity\SystemSettingAuditLog.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\fraud\entity\SystemSettingKey.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\fraud\event\AutoBidTriggerListener.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\fraud\event\BidCreatedEvent.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\fraud\event\BidCreatedEventListener.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\fraud\model\FraudSignal.java
@@ -309,6 +322,7 @@ D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\ma
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\dto\AiValuationResponse.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\dto\AttributeOptionDTO.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\dto\AuctionResponse.java
+D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\dto\AvailableProductForEventDTO.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\dto\BidResponse.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\dto\CategoryAttributeDTO.java
 D:\du_an\swp391-su26-ai-audit-project-swp391_se20a11_group-03\src\backend\src\main\java\com\auction\product\dto\CategoryDTO.java

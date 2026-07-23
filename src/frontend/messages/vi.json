@@ -767,6 +767,8 @@
       "expandMenu": "Mở rộng menu",
       "collapseMenu": "Thu nhỏ menu",
       "loading": "Đang tải...",
+      "loadError": "Không tải được tài khoản",
+      "retry": "Thử lại",
       "balance": "Số dư",
       "deposit": "Đặt cọc",
       "topUp": "Nạp quỹ",
