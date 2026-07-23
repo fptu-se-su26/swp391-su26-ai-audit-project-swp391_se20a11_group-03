@@ -27,6 +27,7 @@ public class EventProductResponse {
     private Long reservePrice;
     private LocalDateTime sessionStart;
     private LocalDateTime sessionEnd;
+    private Integer displayOrder;
     private EventProductSessionStatus sessionStatus;
     private Long winnerId;
     private Long finalPrice;
@@ -48,6 +49,7 @@ public class EventProductResponse {
         response.setReservePrice(entity.getReservePrice());
         response.setSessionStart(entity.getSessionStart());
         response.setSessionEnd(entity.getSessionEnd());
+        response.setDisplayOrder(entity.getDisplayOrder());
         response.setSessionStatus(entity.getSessionStatus());
         response.setWinnerId(entity.getWinnerId());
         response.setFinalPrice(entity.getFinalPrice());

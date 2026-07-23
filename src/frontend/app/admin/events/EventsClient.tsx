@@ -275,6 +275,21 @@ export default function EventsClient() {
     }
   }
 
+  async function publishEvent(event: AdminEvent) {
+    try {
+      const response = await adminApi.publishEvent(event.eventId);
+      setData((items) =>
+        items.map((item) => (item.eventId === event.eventId ? response.data : item)),
+      );
+    } catch (cause) {
+      window.alert(
+        cause instanceof Error
+          ? cause.message
+          : "Không thể xuất bản sự kiện. Hãy kiểm tra banner, mô tả và sản phẩm đã duyệt.",
+      );
+    }
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <div className="flex items-center justify-between gap-4">
@@ -317,6 +332,15 @@ export default function EventsClient() {
             <p className="mt-4 text-xs text-white/60">{formatDateRange(event.startTime, event.endTime)}</p>
             <p className="mt-2 text-xs text-white/45">Phân loại: {event.eventCategory}</p>
             <div className="mt-4 flex gap-2">
+              {event.status === "DRAFT" && (
+                <button
+                  type="button"
+                  onClick={() => void publishEvent(event)}
+                  className="flex-1 rounded-full bg-[#f0c982] py-2 text-xs font-semibold text-black hover:bg-[#f6d99f]"
+                >
+                  Xuất bản
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => openEditModal(event)}
@@ -467,9 +491,6 @@ export default function EventsClient() {
                   )}
                   <textarea value={form.rulesText} onChange={(event) => updateForm("rulesText", event.target.value)} placeholder="Thể lệ / nội dung đầy đủ" className={`${textareaClassName} min-h-28`} />
                   <textarea value={form.rewardDescription} onChange={(event) => updateForm("rewardDescription", event.target.value)} placeholder="Mô tả phần thưởng" className={`${textareaClassName} min-h-28`} />
-                  {editingEventId != null && (
-                    <EventProductsPanel key={editingEventId} eventId={editingEventId} />
-                  )}
                 </div>
                 {formError && <p className="mt-4 text-sm text-red-600">{formError}</p>}
                 <div className="mt-6 flex gap-3">
@@ -527,6 +548,9 @@ export default function EventsClient() {
                 </div>
               </div>
             </div>
+            {editingEventId != null && (
+              <EventProductsPanel key={editingEventId} eventId={editingEventId} />
+            )}
           </div>
         </div>
       )}
